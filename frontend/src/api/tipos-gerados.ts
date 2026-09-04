@@ -49,8 +49,11 @@ export interface components {
              * @example banco
              */
             componente?: string;
-            /** @description Situação atual do componente */
-            situacao?: components["schemas"]["SituacaoDeSaude"];
+            /**
+             * @description Situação atual do componente
+             * @enum {string}
+             */
+            situacao?: "OPERANTE" | "DEGRADADO" | "INDISPONIVEL";
             /**
              * Format: date-time
              * @description Momento da última verificação
@@ -61,8 +64,11 @@ export interface components {
         };
         /** @description Situação consolidada da plataforma */
         SaudeResponse: {
-            /** @description Pior situação entre os componentes */
-            situacaoGeral?: components["schemas"]["SituacaoDeSaude"];
+            /**
+             * @description Pior situação entre os componentes
+             * @enum {string}
+             */
+            situacaoGeral?: "OPERANTE" | "DEGRADADO" | "INDISPONIVEL";
             /**
              * @description Versão da aplicação
              * @example 0.1.0
@@ -71,8 +77,6 @@ export interface components {
             /** @description Situação de cada componente monitorado */
             componentes?: components["schemas"]["ComponenteDeSaudeResponse"][];
         };
-        /** @enum {string} */
-        SituacaoDeSaude: "OPERANTE" | "DEGRADADO" | "INDISPONIVEL";
     };
     responses: never;
     parameters: never;

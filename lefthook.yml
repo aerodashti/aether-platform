@@ -18,7 +18,9 @@ pre-push:
       run: npm run testar
     backend-testes:
       root: backend/
-      run: ./gradlew check
+      # Os dois: `check` é rápido e não exige Docker; `testeIntegracao` sobe o Testcontainers.
+      # A separação por tag existe para o CI e para o dia a dia, não para pular teste no push.
+      run: ./gradlew check testeIntegracao
 
 commit-msg:
   commands:

@@ -37,14 +37,24 @@ npm run dev
 
 ## Verificando o projeto
 
+Com o Docker rodando (passo 2 acima), a verificação completa é:
+
 ```bash
-cd backend  && ./gradlew check        # Spotless, Checkstyle, Error Prone, testes, JaCoCo
-cd backend  && ./gradlew testeIntegracao   # testes com Testcontainers (exige Docker rodando)
-cd frontend && npm run verificar      # Prettier, ESLint, Stylelint, tsc, build e Vitest
+cd backend  && ./gradlew check testeIntegracao   # tudo do backend
+cd frontend && npm run verificar                 # tudo do frontend
+```
+
+É exatamente o que o hook de `pre-push` roda. Separando as duas metades do backend:
+
+```bash
+cd backend && ./gradlew check             # Spotless, Checkstyle, Error Prone, testes, JaCoCo
+cd backend && ./gradlew testeIntegracao   # Testcontainers + PostgreSQL (exige Docker)
 ```
 
 `./gradlew check` **não** exige Docker: os testes que sobem contêiner estão marcados com a tag
-JUnit `integracao` e ficam fora do `check`.
+JUnit `integracao` e ficam fora dele. A separação serve para o `check` ser rápido no dia a dia e
+para o CI poder tratar as duas etapas em separado — **não** para pular os testes de integração.
+Antes de dar push, rode os dois (é o que o Lefthook faz por você).
 
 ## Tipos da API no frontend
 

@@ -26,8 +26,9 @@ Público de alto padrão: a referência visual é gestão patrimonial, não ferr
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d   # sobe o PostgreSQL
-cd backend && ./gradlew check                      # lint + build + testes do backend
-cd backend && ./gradlew testeIntegracao            # testes com Testcontainers (exige Docker)
+cd backend && ./gradlew check testeIntegracao      # verificação completa do backend
+cd backend && ./gradlew check                      # sem Docker: lint, build e testes unitários
+cd backend && ./gradlew testeIntegracao            # só os testes com Testcontainers
 cd backend && ./gradlew bootRun                    # sobe a API em http://localhost:8080
 cd frontend && npm run verificar                   # lint + tipos + build + testes do front
 cd frontend && npm run gerar-tipos                 # regenera src/api/tipos-gerados.ts (backend no ar)
