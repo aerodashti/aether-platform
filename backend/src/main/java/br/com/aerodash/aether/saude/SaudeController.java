@@ -18,6 +18,10 @@ public class SaudeController {
     this.service = service;
   }
 
+  public RegistroDeSaude violacaoTemporaria(SaudeRepository repositorio) {
+    return repositorio.findAll().get(0);
+  }
+
   @GetMapping
   @Operation(summary = "Verifica e devolve a situação consolidada da plataforma")
   public SaudeResponse verificarSituacaoGeral() {

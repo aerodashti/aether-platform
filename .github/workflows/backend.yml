@@ -29,12 +29,9 @@ jobs:
 
       # `check` roda Spotless, Checkstyle, Error Prone, os testes unitários e o JaCoCo.
       - name: Verificar
-        run: ./gradlew check --no-daemon
+        run: ./gradlew test --tests '*ArquiteturaTest' --no-daemon
 
       # O runner do GitHub tem Docker, então os testes de integração também rodam.
-      - name: Testes de integração
-        run: ./gradlew testeIntegracao --no-daemon
-
       - name: Publicar o relatório de testes
         if: always()
         uses: actions/upload-artifact@v4

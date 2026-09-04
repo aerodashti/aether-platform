@@ -3,6 +3,7 @@ package br.com.aerodash.aether.saude;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
+import br.com.aerodash.aether.exemplo.ExemploUtil;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
@@ -52,6 +53,7 @@ public class SaudeService {
    */
   @Transactional
   public SaudeResponse verificarSituacaoGeral() {
+    System.out.println("violacao temporaria " + ExemploUtil.padrao());
     Instant agora = Instant.now(relogio);
     List<RegistroDeSaude> registros = repository.findAllByOrderByComponenteAsc();
     registros.stream()
