@@ -1,3 +1,5 @@
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
   java
   jacoco
@@ -70,6 +72,11 @@ checkstyle {
 tasks.withType<JavaCompile>().configureEach {
   options.encoding = "UTF-8"
   options.compilerArgs.add("-parameters")
+  // O código gerado por MapStruct e Hibernate não é nosso: não faz sentido analisá-lo.
+  options.errorprone {
+    disableWarningsInGeneratedCode = true
+    excludedPaths = ".*/build/generated/.*"
+  }
 }
 
 // O `test` padrão não exige Docker: quem precisa de contêiner está em `testeIntegracao`.
