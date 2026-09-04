@@ -18,6 +18,9 @@ Casos que já geraram dúvida:
 
 - `id` permanece `id`. Datas de auditoria seguem o português: `criadoEm`, `atualizadoEm` — nunca
   `createdAt`.
+- Hook React começa com `use`, não com `usar`: `useSaude`, `useVencimento`. O prefixo é reservado
+  pelo React e exigido pela regra `react-hooks/rules-of-hooks`, que falha o lint — é a mesma
+  categoria dos sufixos de framework no backend, não uma exceção ao português.
 - Enum e seus valores em português sem acento: `SituacaoDeSaude.INDISPONIVEL`.
 - Nome de classe **sempre no singular**: `Aeronave`, não `Aeronaves`. O repositório é
   `AeronaveRepository` mesmo retornando listas.
@@ -40,7 +43,7 @@ No TypeScript vale o mesmo: `estaCarregando`, `possuiErro`, `podeEnviar`.
 | --- | --- | --- |
 | Classe Java | `PascalCase`, singular | `RegistroDeSaude.java` |
 | Componente React | `PascalCase` | `PaginaSaude.tsx` |
-| Hook React | `usar` + substantivo | `usarSaude.ts` |
+| Hook React | `use` + substantivo em português | `useSaude.ts` |
 | CSS Module | mesmo nome do componente | `PaginaSaude.module.css` |
 | Migration Flyway | `V<n>__<descricao_em_portugues>.sql` | `V1__cria_registro_de_saude.sql` |
 | Documento em `docs/` | `kebab-case.md` | `design-system.md` |

@@ -1,0 +1,18 @@
+.moldura {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--cor-fundo);
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+}
+
+.conteudo {
+  padding: var(--espaco-7) var(--espaco-6);
+}

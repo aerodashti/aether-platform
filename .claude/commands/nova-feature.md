@@ -35,7 +35,7 @@ Testes em `backend/src/test/java/br/com/aerodash/aether/$1/`:
 
 ## Frontend
 
-Crie `frontend/src/features/$1/` com `api/usar<Nome>.ts` (hook do TanStack Query usando
+Crie `frontend/src/features/$1/` com `api/use<Nome>.ts` (hook do TanStack Query usando
 `clienteHttp`) e `componentes/Pagina<Nome>.tsx` + `Pagina<Nome>.module.css`, mais
 `Pagina<Nome>.test.tsx`. Registre a rota em `frontend/src/app/rotas.tsx`.
 
