@@ -70,8 +70,7 @@ class ArquiteturaTest {
             if (tipo.isAnnotatedWith(Entity.class)) {
               eventos.add(
                   SimpleConditionEvent.satisfied(
-                      metodo,
-                      metodo.getFullName() + " expõe a entidade " + tipo.getSimpleName()));
+                      metodo, metodo.getFullName() + " expõe a entidade " + tipo.getSimpleName()));
             }
           }
         }

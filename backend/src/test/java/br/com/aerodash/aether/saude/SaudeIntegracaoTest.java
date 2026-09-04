@@ -56,7 +56,6 @@ class SaudeIntegracaoTest {
     assertThat(repository.findByComponente("banco"))
         .get()
         .satisfies(
-            registro ->
-                assertThat(registro.getSituacao()).isEqualTo(SituacaoDeSaude.OPERANTE));
+            registro -> assertThat(registro.getSituacao()).isEqualTo(SituacaoDeSaude.OPERANTE));
   }
 }

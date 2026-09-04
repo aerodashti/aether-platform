@@ -22,8 +22,7 @@ class RegistroDeSaudeTest {
   @Test
   @DisplayName("considera recente a verificação dentro da janela de cinco minutos")
   void possuiVerificacaoRecenteDentroDaJanela() {
-    RegistroDeSaude dentro =
-        registro(SituacaoDeSaude.OPERANTE, AGORA.minusSeconds(4 * 60 + 59));
+    RegistroDeSaude dentro = registro(SituacaoDeSaude.OPERANTE, AGORA.minusSeconds(4 * 60 + 59));
     RegistroDeSaude fora = registro(SituacaoDeSaude.OPERANTE, AGORA.minusSeconds(5 * 60 + 1));
 
     assertThat(dentro.possuiVerificacaoRecente(AGORA)).isTrue();
@@ -35,16 +34,14 @@ class RegistroDeSaudeTest {
   void estaSaudavelExigeAsDuasCondicoes() {
     assertThat(registro(SituacaoDeSaude.OPERANTE, AGORA).estaSaudavel(AGORA)).isTrue();
     assertThat(registro(SituacaoDeSaude.DEGRADADO, AGORA).estaSaudavel(AGORA)).isFalse();
-    assertThat(
-            registro(SituacaoDeSaude.OPERANTE, AGORA.minusSeconds(600)).estaSaudavel(AGORA))
+    assertThat(registro(SituacaoDeSaude.OPERANTE, AGORA.minusSeconds(600)).estaSaudavel(AGORA))
         .isFalse();
   }
 
   @Test
   @DisplayName("registrar verificação sobrescreve situação e momento")
   void registrarVerificacaoAtualizaOEstado() {
-    RegistroDeSaude registro =
-        registro(SituacaoDeSaude.INDISPONIVEL, AGORA.minusSeconds(3600));
+    RegistroDeSaude registro = registro(SituacaoDeSaude.INDISPONIVEL, AGORA.minusSeconds(3600));
 
     registro.registrarVerificacao(SituacaoDeSaude.OPERANTE, AGORA);
 

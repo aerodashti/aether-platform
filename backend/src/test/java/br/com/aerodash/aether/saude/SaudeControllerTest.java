@@ -77,8 +77,7 @@ class SaudeControllerTest {
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.title").value("Recurso não encontrado"))
         .andExpect(
-            jsonPath("$.detail")
-                .value("O componente informado não é monitorado pela plataforma."))
+            jsonPath("$.detail").value("O componente informado não é monitorado pela plataforma."))
         .andExpect(jsonPath("$.requisicao").value("abc-123"));
   }
 }

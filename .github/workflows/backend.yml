@@ -27,15 +27,6 @@ jobs:
       - name: Preparar o Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: TEMPORARIO formatar e publicar
-        run: ./gradlew spotlessApply --no-daemon
-
-      - name: TEMPORARIO publicar fontes formatadas
-        uses: actions/upload-artifact@v4
-        with:
-          name: fontes-formatadas
-          path: backend/src
-
       # `check` roda Spotless, Checkstyle, Error Prone, os testes unitários e o JaCoCo.
       - name: Verificar
         run: ./gradlew check --no-daemon
