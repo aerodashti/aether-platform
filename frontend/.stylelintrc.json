@@ -1,0 +1,28 @@
+{
+  "plugins": ["stylelint-declaration-strict-value"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "/color/",
+        "background",
+        "fill",
+        "stroke",
+        "font-family",
+        "font-size",
+        "font-weight",
+        "line-height",
+        "padding",
+        "margin",
+        "gap",
+        "border-radius",
+        "box-shadow",
+        "transition-duration"
+      ],
+      {
+        "ignoreValues": ["inherit", "transparent", "currentColor", "none", "0", "auto"],
+        "message": "Use um token de design-system/tokens/ em vez de um valor literal."
+      }
+    ]
+  },
+  "ignoreFiles": ["src/design-system/tokens/**"]
+}

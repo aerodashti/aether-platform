@@ -1,0 +1,53 @@
+.titulo {
+  font-family: var(--fonte-titulo);
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-apertada);
+  margin: 0;
+}
+
+.subtitulo {
+  font-family: var(--fonte-titulo);
+  font-size: var(--tamanho-gg);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-apertada);
+  margin: 0;
+}
+
+.corpo {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-normal);
+  margin: 0;
+}
+
+.legenda {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-normal);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.padrao {
+  color: var(--cor-texto);
+}
+
+.suave {
+  color: var(--cor-texto-suave);
+}
+
+.positivo {
+  color: var(--cor-positivo);
+}
+
+.atencao {
+  color: var(--cor-atencao);
+}
+
+.critico {
+  color: var(--cor-critico);
+}

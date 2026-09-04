@@ -1,0 +1,53 @@
+{
+  "name": "aether-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . && stylelint \"src/**/*.css\"",
+    "formatar": "prettier --write .",
+    "verificar-formato": "prettier --check .",
+    "testar": "vitest run",
+    "gerar-tokens": "node scripts/gerar-tokens.mjs",
+    "gerar-tipos": "openapi-typescript http://localhost:8080/v3/api-docs -o src/api/tipos-gerados.ts",
+    "verificar": "npm run verificar-formato && npm run lint && npm run build && npm run testar"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.18.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^26.4.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^9.39.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.5.0",
+    "jsdom": "^30.0.1",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.6",
+    "stylelint": "^17.15.0",
+    "stylelint-declaration-strict-value": "^1.12.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true,
+    "unrs-resolver@1.12.2": true
+  }
+}

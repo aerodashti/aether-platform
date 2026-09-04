@@ -1,0 +1,39 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-5);
+  border: 0;
+  border-radius: var(--raio-m);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-apertada);
+  cursor: pointer;
+  transition-property: background-color, color, box-shadow;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.botao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.botao:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.primario {
+  background: var(--cor-acento);
+  color: var(--cor-acento-contraste);
+  box-shadow: var(--elevacao-1);
+}
+
+.secundario {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--elevacao-1);
+}

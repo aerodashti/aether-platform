@@ -1,0 +1,44 @@
+name: Backend
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend.yml']
+
+jobs:
+  verificar:
+    name: Lint, build e testes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar o JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+
+      - name: Preparar o Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # `check` roda Spotless, Checkstyle, Error Prone, os testes unitários e o JaCoCo.
+      - name: Verificar
+        run: ./gradlew check --no-daemon
+
+      # O runner do GitHub tem Docker, então os testes de integração também rodam.
+      - name: Testes de integração
+        run: ./gradlew testeIntegracao --no-daemon
+
+      - name: Publicar o relatório de testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-de-testes-backend
+          path: backend/build/reports/tests/
+          if-no-files-found: ignore

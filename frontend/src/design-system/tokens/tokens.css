@@ -1,0 +1,82 @@
+/* Gerado por scripts/gerar-tokens.mjs. Não edite: mexa em tokens.json. */
+
+:root {
+  --cor-fundo: #f6f4f1;
+  --cor-superficie: #ffffff;
+  --cor-superficie-sutil: #efebe5;
+  --cor-borda: #ded8cf;
+  --cor-texto: #1b1815;
+  --cor-texto-suave: #655e54;
+  --cor-acento: #8c6b3f;
+  --cor-acento-contraste: #ffffff;
+  --cor-positivo: #2e6b4f;
+  --cor-atencao: #7d5a0d;
+  --cor-critico: #9b2c21;
+  --cor-foco: #8c6b3f;
+  --fonte-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fonte-titulo: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --tamanho-xs: 0.75rem;
+  --tamanho-s: 0.875rem;
+  --tamanho-m: 1rem;
+  --tamanho-g: 1.25rem;
+  --tamanho-gg: 1.75rem;
+  --tamanho-ggg: 2.5rem;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-forte: 600;
+  --altura-apertada: 1.2;
+  --altura-normal: 1.5;
+  --espaco-1: 0.25rem;
+  --espaco-2: 0.5rem;
+  --espaco-3: 0.75rem;
+  --espaco-4: 1rem;
+  --espaco-5: 1.5rem;
+  --espaco-6: 2rem;
+  --espaco-7: 3rem;
+  --espaco-8: 4rem;
+  --raio-s: 4px;
+  --raio-m: 8px;
+  --raio-g: 16px;
+  --raio-redondo: 999px;
+  --elevacao-0: none;
+  --elevacao-1: 0 1px 2px rgba(27, 24, 21, 0.06);
+  --elevacao-2: 0 4px 12px rgba(27, 24, 21, 0.08);
+  --elevacao-3: 0 12px 32px rgba(27, 24, 21, 0.12);
+  --duracao-rapida: 120ms;
+  --duracao-normal: 200ms;
+  --duracao-lenta: 320ms;
+  --curva-padrao: cubic-bezier(0.2, 0, 0, 1);
+  --curva-saida: cubic-bezier(0.4, 0, 1, 1);
+}
+
+:root[data-theme='escuro'] {
+  --cor-fundo: #14120f;
+  --cor-superficie: #1c1916;
+  --cor-superficie-sutil: #24201c;
+  --cor-borda: #322c26;
+  --cor-texto: #f2eee8;
+  --cor-texto-suave: #a79e92;
+  --cor-acento: #c7a16b;
+  --cor-acento-contraste: #14120f;
+  --cor-positivo: #6fbf95;
+  --cor-atencao: #d9ae58;
+  --cor-critico: #e0796c;
+  --cor-foco: #c7a16b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='claro']) {
+    --cor-fundo: #14120f;
+    --cor-superficie: #1c1916;
+    --cor-superficie-sutil: #24201c;
+    --cor-borda: #322c26;
+    --cor-texto: #f2eee8;
+    --cor-texto-suave: #a79e92;
+    --cor-acento: #c7a16b;
+    --cor-acento-contraste: #14120f;
+    --cor-positivo: #6fbf95;
+    --cor-atencao: #d9ae58;
+    --cor-critico: #e0796c;
+    --cor-foco: #c7a16b;
+  }
+}

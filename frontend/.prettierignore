@@ -1,0 +1,7 @@
+dist
+coverage
+node_modules
+# Arquivos gerados: quem manda é o gerador, não o Prettier.
+src/api/tipos-gerados.ts
+src/design-system/tokens/tokens.css
+src/design-system/tokens/tokens.ts

@@ -1,0 +1,24 @@
+# Ambiente local do Aether. Apenas o banco: backend e frontend rodam na máquina.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aether-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aether}
+      POSTGRES_USER: ${POSTGRES_USER:-aether}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aether}
+      # Ordenação e mensagens em português no banco local.
+      LANG: pt_BR.utf8
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aether} -d ${POSTGRES_DB:-aether}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dados-postgres:
