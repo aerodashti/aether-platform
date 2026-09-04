@@ -1,0 +1,26 @@
+pre-commit:
+  parallel: true
+  commands:
+    frontend-lint:
+      root: frontend/
+      glob: "*.{ts,tsx,css,json,md}"
+      run: npm run verificar-formato && npm run lint
+    backend-formato:
+      root: backend/
+      glob: "*.java"
+      run: ./gradlew spotlessCheck
+
+pre-push:
+  parallel: false
+  commands:
+    frontend-testes:
+      root: frontend/
+      run: npm run testar
+    backend-testes:
+      root: backend/
+      run: ./gradlew check
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --no -- commitlint --edit {1}

@@ -1,0 +1,17 @@
+{
+  "name": "aether-platform",
+  "private": true,
+  "type": "module",
+  "description": "Monorepo do Aether. Este package.json existe apenas para hooks de git e commitlint.",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "lefthook": "^2.1.12"
+  },
+  "allowScripts": {
+    "lefthook@2.1.12": true
+  }
+}
