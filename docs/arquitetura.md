@@ -54,10 +54,14 @@ O Service **não** reimplementa isso. Ele orquestra:
 
 ```java
 // SaudeService.java
-public SaudeResponse consultarSituacaoGeral() {
-  List<RegistroDeSaude> registros = repository.findAll();
-  boolean tudoOperante = registros.stream().allMatch(RegistroDeSaude::estaOperante);
-  ...
+private static SituacaoDeSaude consolidar(List<RegistroDeSaude> registros, Instant agora) {
+  if (registros.isEmpty() || registros.stream().anyMatch(RegistroDeSaude::estaIndisponivel)) {
+    return SituacaoDeSaude.INDISPONIVEL;
+  }
+  if (registros.stream().allMatch(registro -> registro.estaSaudavel(agora))) {
+    return SituacaoDeSaude.OPERANTE;
+  }
+  return SituacaoDeSaude.DEGRADADO;
 }
 ```
 

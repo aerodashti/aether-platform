@@ -50,6 +50,8 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 | Saúde | `saude` | Saúde | Feature de exemplo do bootstrap: situação operacional da própria plataforma. Não é domínio de aviação. |
 | Componente | `componente` | Componente | Parte monitorada pela feature de saúde (banco, API). |
 | Situação | `situacao` | Situação | Estado atual de algo: `OPERANTE`, `DEGRADADO`, `INDISPONIVEL`. |
+| Registro de saúde | `registroDeSaude` | — | Linha da tabela `registro_de_saude`: a situação conhecida de um componente. |
+| Verificação | `verificacao` | Verificação | Ato de conferir a situação de um componente e gravar o resultado. |
 | Requisição | `requisicao` | Requisição | Identificador de correlação de um request (`X-Request-Id`). |
 
 ## Pendente do handoff do Claude Design
