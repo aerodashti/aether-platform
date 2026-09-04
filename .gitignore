@@ -1,0 +1,25 @@
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Gradle / Java
+.gradle/
+build/
+bin/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Ambiente
+.env
+.env.local
+infra/.env
+
+# Claude Code
+.claude/settings.local.json
