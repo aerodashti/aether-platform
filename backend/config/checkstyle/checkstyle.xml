@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Checkstyle mínimo: formatação é responsabilidade do Spotless (google-java-format).
+  Aqui ficam só os limites estruturais que o formatador não impõe.
+-->
+<module name="Checker">
+  <property name="severity" value="error"/>
+  <property name="charset" value="UTF-8"/>
+  <property name="fileExtensions" value="java"/>
+
+  <!-- Limite de 300 linhas por classe. -->
+  <module name="FileLength">
+    <property name="max" value="300"/>
+  </module>
+
+  <module name="TreeWalker">
+    <!-- Limite de 40 linhas por método. -->
+    <module name="MethodLength">
+      <property name="max" value="40"/>
+      <property name="countEmpty" value="false"/>
+    </module>
+
+    <module name="ParameterNumber">
+      <property name="max" value="6"/>
+    </module>
+
+    <module name="UnusedImports"/>
+    <module name="RedundantImport"/>
+    <module name="IllegalImport"/>
+    <module name="NeedBraces"/>
+    <module name="EqualsHashCode"/>
+    <module name="MissingOverride"/>
+    <module name="OneTopLevelClass"/>
+
+    <!-- Identificadores em português sem acento nem cedilha: só ASCII. -->
+    <module name="MethodName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="message" value="Nome de método deve ser camelCase ASCII, sem acento nem cedilha."/>
+    </module>
+    <module name="LocalVariableName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="message" value="Nome de variável deve ser camelCase ASCII, sem acento nem cedilha."/>
+    </module>
+    <module name="MemberName">
+      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="message" value="Nome de campo deve ser camelCase ASCII, sem acento nem cedilha."/>
+    </module>
+    <module name="TypeName">
+      <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+      <property name="message" value="Nome de tipo deve ser PascalCase ASCII, sem acento nem cedilha."/>
+    </module>
+  </module>
+</module>

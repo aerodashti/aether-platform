@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Desenvolvimento: uma linha legível, com o id de correlação em destaque.
+  Produção: JSON, para ingestão direta pela plataforma de logs.
+-->
+<configuration>
+  <springProfile name="!prod">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+        <pattern>%d{HH:mm:ss.SSS} %-5level [%X{requisicao:-sem-requisicao}] %logger{36} - %msg%n</pattern>
+      </encoder>
+    </appender>
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <springProfile name="prod">
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <includeMdcKeyName>requisicao</includeMdcKeyName>
+        <fieldNames>
+          <timestamp>momento</timestamp>
+          <message>mensagem</message>
+          <logger>origem</logger>
+          <level>nivel</level>
+          <thread>[ignore]</thread>
+          <levelValue>[ignore]</levelValue>
+        </fieldNames>
+      </encoder>
+    </appender>
+    <root level="INFO">
+      <appender-ref ref="JSON"/>
+    </root>
+  </springProfile>
+</configuration>

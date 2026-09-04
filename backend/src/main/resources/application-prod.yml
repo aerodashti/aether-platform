@@ -1,0 +1,13 @@
+# Perfil de produção: log em JSON (ver logback-spring.xml) e DEBUG desligado.
+logging:
+  level:
+    root: INFO
+    br.com.aerodash.aether: INFO
+
+spring:
+  jpa:
+    show-sql: false
+
+springdoc:
+  swagger-ui:
+    enabled: false
