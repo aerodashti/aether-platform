@@ -70,11 +70,19 @@ Por padrão o campo **aparece em claro**. Os que precisam ser escondidos estão 
 
 ```yaml
 campos:
+  codigo: integral
   cpf: cpf
+  email: integral
+  novaSenha: integral
+  senha: integral
 ```
 
-`nome-do-campo: estrategia`. Hoje há uma estratégia, `cpf`, que preserva só os cinco últimos
-dígitos — o bastante para conferir um caso com o suporte sem identificar ninguém:
+`nome-do-campo: estrategia`. A estratégia `cpf` preserva só os cinco últimos dígitos — o bastante
+para conferir um caso com o suporte sem identificar ninguém. Qualquer outro nome de estratégia
+(aqui, `integral`) mascara o campo inteiro; é o que vale para credencial e e-mail. Para ligar um
+request a uma pessoa existe `usuario.id`, que não identifica ninguém fora do banco.
+
+Exemplos da estratégia `cpf`:
 
 ```
 "cpf": "12345678901"      ->  "cpf": "***.***.789-01"
@@ -82,7 +90,7 @@ dígitos — o bastante para conferir um caso com o suporte sem identificar ning
 "cpf": "123"              ->  "cpf": "***"
 ```
 
-Qualquer outra estratégia mascara o campo inteiro. Isso é de propósito: errar o nome da estratégia
+Estratégia desconhecida mascara o campo inteiro. Isso é de propósito: errar o nome da estratégia
 esconde demais, nunca de menos. A máscara vale em qualquer profundidade — dentro de objeto, dentro
 de lista, no request e no response.
 

@@ -1,0 +1,16 @@
+.moldura {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.tela {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.tela:active {
+  cursor: grabbing;
+}

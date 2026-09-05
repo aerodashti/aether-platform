@@ -6,18 +6,32 @@ export const tokens = {
     'superficie': 'var(--cor-superficie)',
     'superficie-sutil': 'var(--cor-superficie-sutil)',
     'borda': 'var(--cor-borda)',
+    'borda-forte': 'var(--cor-borda-forte)',
+    'borda-suave': 'var(--cor-borda-suave)',
     'texto': 'var(--cor-texto)',
     'texto-suave': 'var(--cor-texto-suave)',
     'acento': 'var(--cor-acento)',
+    'acento-escuro': 'var(--cor-acento-escuro)',
+    'acento-claro': 'var(--cor-acento-claro)',
+    'acento-texto': 'var(--cor-acento-texto)',
+    'acento-solido': 'var(--cor-acento-solido)',
+    'acento-solido-hover': 'var(--cor-acento-solido-hover)',
+    'acento-vestigio': 'var(--cor-acento-vestigio)',
     'acento-contraste': 'var(--cor-acento-contraste)',
     'positivo': 'var(--cor-positivo)',
     'atencao': 'var(--cor-atencao)',
     'critico': 'var(--cor-critico)',
     'foco': 'var(--cor-foco)',
   },
+  elevacao: {
+    '0': 'var(--elevacao-0)',
+    '1': 'var(--elevacao-1)',
+    '2': 'var(--elevacao-2)',
+    '3': 'var(--elevacao-3)',
+  },
   fonte: {
     'base': 'var(--fonte-base)',
-    'titulo': 'var(--fonte-titulo)',
+    'mono': 'var(--fonte-mono)',
   },
   tamanho: {
     'xs': 'var(--tamanho-xs)',
@@ -27,14 +41,26 @@ export const tokens = {
     'gg': 'var(--tamanho-gg)',
     'ggg': 'var(--tamanho-ggg)',
   },
+  altura: {
+    'xs': 'var(--altura-xs)',
+    's': 'var(--altura-s)',
+    'm': 'var(--altura-m)',
+    'g': 'var(--altura-g)',
+    'gg': 'var(--altura-gg)',
+    'ggg': 'var(--altura-ggg)',
+  },
   peso: {
     'normal': 'var(--peso-normal)',
     'medio': 'var(--peso-medio)',
     'forte': 'var(--peso-forte)',
+    'maximo': 'var(--peso-maximo)',
   },
-  altura: {
-    'apertada': 'var(--altura-apertada)',
-    'normal': 'var(--altura-normal)',
+  rastreio: {
+    'titulo': 'var(--rastreio-titulo)',
+    'legenda': 'var(--rastreio-legenda)',
+    'marca': 'var(--rastreio-marca)',
+    'etiqueta': 'var(--rastreio-etiqueta)',
+    'codigo': 'var(--rastreio-codigo)',
   },
   espaco: {
     '1': 'var(--espaco-1)',
@@ -45,18 +71,14 @@ export const tokens = {
     '6': 'var(--espaco-6)',
     '7': 'var(--espaco-7)',
     '8': 'var(--espaco-8)',
+    '9': 'var(--espaco-9)',
+    '10': 'var(--espaco-10)',
   },
   raio: {
     's': 'var(--raio-s)',
     'm': 'var(--raio-m)',
     'g': 'var(--raio-g)',
     'redondo': 'var(--raio-redondo)',
-  },
-  elevacao: {
-    '0': 'var(--elevacao-0)',
-    '1': 'var(--elevacao-1)',
-    '2': 'var(--elevacao-2)',
-    '3': 'var(--elevacao-3)',
   },
   duracao: {
     'rapida': 'var(--duracao-rapida)',
@@ -70,12 +92,13 @@ export const tokens = {
 } as const;
 
 export type Cor = keyof typeof tokens.cor;
+export type Elevacao = keyof typeof tokens.elevacao;
 export type Fonte = keyof typeof tokens.fonte;
 export type Tamanho = keyof typeof tokens.tamanho;
-export type Peso = keyof typeof tokens.peso;
 export type Altura = keyof typeof tokens.altura;
+export type Peso = keyof typeof tokens.peso;
+export type Rastreio = keyof typeof tokens.rastreio;
 export type Espaco = keyof typeof tokens.espaco;
 export type Raio = keyof typeof tokens.raio;
-export type Elevacao = keyof typeof tokens.elevacao;
 export type Duracao = keyof typeof tokens.duracao;
 export type Curva = keyof typeof tokens.curva;

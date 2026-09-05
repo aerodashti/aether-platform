@@ -1,0 +1,52 @@
+.arte {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--cor-superficie-sutil);
+}
+
+/* Abaixo de 1024px o painel do formulário já ocupa a largura útil: o que sobraria do globo seria
+   uma fatia recortada, não uma imagem. */
+@media (max-width: 1023px) {
+  .arte {
+    display: none;
+  }
+}
+
+/* Os anéis são maiores que o painel de propósito: o recorte nas bordas é o que dá a sensação de
+   estar olhando um pedaço de algo muito maior. */
+.anel {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: var(--raio-redondo);
+}
+
+.anelExterno {
+  width: min(1232px, 101vw);
+  border: 1px dotted var(--cor-acento-vestigio);
+}
+
+.anelTracejado {
+  width: min(1008px, 83vw);
+  border: 1px dashed var(--cor-acento-vestigio);
+}
+
+.anelSolido {
+  width: min(812px, 67vw);
+  border: 1px solid var(--cor-acento-vestigio);
+}
+
+.anelInterno {
+  width: min(644px, 53vw);
+  border: 1px dotted var(--cor-acento-vestigio);
+}
+
+.globo {
+  position: relative;
+  width: min(560px, 46vw);
+  aspect-ratio: 1;
+}

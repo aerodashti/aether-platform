@@ -53,6 +53,32 @@ cd frontend && npm ci && npm run dev                 # http://localhost:5173
 Um request produz uma linha de log com tudo o que aconteceu nele; o passo a passo de como ver
 traces e logs em uma interface está em `docs/observabilidade.md`.
 
+## Entrando na aplicação
+
+A tela de entrada fica em <http://localhost:5173/entrar>. O `db/seed` cria quatro usuários de
+desenvolvimento, e a senha de todos os ativos é **`aether-dev-2026`**:
+
+| E-mail | Situação | Serve para |
+| --- | --- | --- |
+| `leonardo@administraair.com.br` | ATIVO | Entrar e recuperar a senha |
+| `patricia@administraair.com.br` | ATIVO | Um segundo ativo, para testar sem sujar o primeiro |
+| `camila@administraair.com.br` | PENDENTE | Convidada, ainda sem senha: não entra e não recebe código |
+| `diego.furtado@administraair.com.br` | INATIVO | Acesso revogado: recusado como credencial inválida |
+
+Essa senha é pública de propósito e só existe na sua máquina: o perfil `prod` não carrega o
+`db/seed`.
+
+Sem `spring.mail.host` configurado, o código de seis dígitos da recuperação **não é enviado por
+e-mail — ele sai no log do backend**, em WARN. É o bastante para percorrer o fluxo inteiro sem
+servidor de e-mail (`docs/adr/0014-envio-de-codigo-por-porta.md`).
+
+Cinco senhas erradas suspendem a conta por quinze minutos. Para destravar durante o desenvolvimento:
+
+```bash
+docker compose -f infra/docker-compose.yml exec postgres \
+  psql -U aether -d aether -c "UPDATE usuario SET tentativas = 0, bloqueado_ate = NULL;"
+```
+
 ## Verificando o projeto
 
 Com o Docker rodando (passo 2 acima), a verificação completa é:

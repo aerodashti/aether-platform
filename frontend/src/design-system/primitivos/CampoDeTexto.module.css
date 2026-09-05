@@ -1,0 +1,85 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.rotulo {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-g);
+  color: var(--cor-texto);
+}
+
+.entrada {
+  width: 100%;
+  padding: var(--espaco-4) var(--espaco-5);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-s);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-g);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.entrada::placeholder {
+  color: var(--cor-texto-suave);
+}
+
+/* O anel de foco é um `outline` colado na borda, e não uma borda mais grossa: `outline` não ocupa
+   espaço no layout, então o campo não pula de tamanho ao receber o foco. */
+.entrada:focus {
+  border-color: var(--cor-acento);
+  outline: 1px solid var(--cor-acento);
+  outline-offset: 0;
+}
+
+.entrada:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.invalida {
+  border-color: var(--cor-critico);
+}
+
+/* O campo com erro mantém o vermelho ao receber o foco: trocar para o azul de foco esconderia,
+   justamente quando a pessoa vai corrigir, qual campo estava errado. */
+.invalida:focus {
+  border-color: var(--cor-critico);
+  outline-color: var(--cor-critico);
+}
+
+.centro {
+  text-align: center;
+}
+
+.espacado {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-ggg);
+  letter-spacing: var(--rastreio-codigo);
+}
+
+.apoio {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.erro {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-critico);
+}

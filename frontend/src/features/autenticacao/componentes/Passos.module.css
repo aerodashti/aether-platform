@@ -1,0 +1,54 @@
+/* Os quatro passos compartilham a mesma coluna: mudar de passo não pode deslocar o formulário. */
+.passo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  margin-bottom: var(--espaco-3);
+}
+
+/* O título do passo é o azul profundo, e não a cor de texto: é o único ponto de cor da coluna. */
+.destaque {
+  color: var(--cor-acento-escuro);
+}
+
+.enfase {
+  color: var(--cor-texto);
+  font-weight: var(--peso-forte);
+}
+
+.recado {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: flex-start;
+  margin: 0;
+  padding: var(--espaco-4) var(--espaco-5);
+  border: 1px solid var(--cor-acento-vestigio);
+  border-radius: var(--raio-s);
+  background: var(--cor-borda-suave);
+  color: var(--cor-texto-suave);
+  font-size: var(--tamanho-g);
+  line-height: var(--altura-g);
+}
+
+.recadoIcone {
+  display: flex;
+  flex: none;
+  align-items: center;
+  color: var(--cor-acento-texto);
+
+  /* Alinha o glifo com a primeira linha do texto, não com o topo da caixa. */
+  height: calc(var(--tamanho-g) * var(--altura-g));
+}
+
+.linhaDeAcoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espaco-5);
+}

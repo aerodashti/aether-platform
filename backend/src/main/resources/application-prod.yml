@@ -7,7 +7,15 @@ logging:
 spring:
   jpa:
     show-sql: false
+  # Sem `db/seed`: os usuários de desenvolvimento não existem em produção.
+  flyway:
+    locations: classpath:db/migration
 
 springdoc:
   swagger-ui:
     enabled: false
+
+aether:
+  autenticacao:
+    # Produção é HTTPS: o cookie de sessão não pode trafegar em claro.
+    cookie-seguro: true
