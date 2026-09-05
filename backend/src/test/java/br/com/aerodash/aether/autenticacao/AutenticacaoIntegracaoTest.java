@@ -2,6 +2,7 @@ package br.com.aerodash.aether.autenticacao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,6 +32,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
  * O fluxo inteiro da área não logada contra um PostgreSQL de verdade: migration, seed, BCrypt,
  * cookie e os três passos da recuperação.
  *
+ * <p><b>Cada teste que altera um usuário cria o seu.</b> Os testes compartilham banco e contexto, e
+ * nada aqui roda em transação desfeita ao fim — redefinir a senha de um usuário do seed valeria
+ * para os testes seguintes, e o resultado passaria a depender da ordem em que o JUnit os executa.
+ * Só {@link #seedCriaOsTresEstados()} lê o seed, e não o modifica.
+ *
  * <p>Exige Docker. Fica fora do {@code check}: rode com {@code ./gradlew testeIntegracao}.
  */
 @Tag("integracao")
@@ -43,9 +49,9 @@ class AutenticacaoIntegracaoTest {
   @Container @ServiceConnection
   static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
-  private static final String ATIVO = "leonardo@administraair.com.br";
-  private static final String PENDENTE = "camila@administraair.com.br";
-  private static final String INATIVO = "diego.furtado@administraair.com.br";
+  private static final String SEED_ATIVO = "leonardo@administraair.com.br";
+  private static final String SEED_PENDENTE = "camila@administraair.com.br";
+  private static final String SEED_INATIVO = "diego.furtado@administraair.com.br";
   private static final String SENHA = "aether-dev-2026";
 
   @Autowired private MockMvc mockMvc;
@@ -58,33 +64,33 @@ class AutenticacaoIntegracaoTest {
   @Test
   @DisplayName("o seed cria os três estados de usuário previstos pela tela")
   void seedCriaOsTresEstados() {
-    assertThat(usuarios.findByEmail(ATIVO))
+    assertThat(usuarios.findByEmail(SEED_ATIVO))
         .get()
         .satisfies(usuario -> assertThat(usuario.estaAtivo()).isTrue());
-    assertThat(usuarios.findByEmail(PENDENTE))
+    assertThat(usuarios.findByEmail(SEED_PENDENTE))
         .get()
         .satisfies(usuario -> assertThat(usuario.possuiSenha()).isFalse());
-    assertThat(usuarios.findByEmail(INATIVO))
+    assertThat(usuarios.findByEmail(SEED_INATIVO))
         .get()
         .satisfies(usuario -> assertThat(usuario.estaAtivo()).isFalse());
   }
 
   @Test
-  @DisplayName("entra com a senha do seed e a sessão passa a responder pelo cookie")
+  @DisplayName("entra com a senha correta e a sessão passa a responder pelo cookie")
   void entraEConsultaASessao() throws Exception {
-    Cookie sessao = entrar(ATIVO, SENHA);
+    String email = criarAtivo("sessao");
 
     mockMvc
-        .perform(get("/autenticacao/sessao").cookie(sessao))
+        .perform(get("/autenticacao/sessao").cookie(entrar(email, SENHA)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.nome").value("Leonardo Andrade"))
-        .andExpect(jsonPath("$.email").value(ATIVO));
+        .andExpect(jsonPath("$.nome").value("Teste sessao"))
+        .andExpect(jsonPath("$.email").value(email));
   }
 
   @Test
   @DisplayName("sair invalida o cookie que estava funcionando")
   void sairInvalidaOCookie() throws Exception {
-    Cookie sessao = entrar(ATIVO, SENHA);
+    Cookie sessao = entrar(criarAtivo("saida"), SENHA);
 
     mockMvc
         .perform(delete("/autenticacao/sessao").cookie(sessao))
@@ -95,15 +101,20 @@ class AutenticacaoIntegracaoTest {
         .andExpect(status().isUnauthorized());
   }
 
+  /**
+   * Os usuários PENDENTE e INATIVO do seed servem aqui porque este caminho não os altera: a recusa
+   * acontece antes de qualquer gravação. Só o caso da senha errada — que conta a tentativa —
+   * precisa de usuário próprio.
+   */
   @Test
   @DisplayName("senha errada, usuário pendente e usuário inativo recusam com a mesma resposta")
   void recusasSaoIndistinguiveis() throws Exception {
     for (String[] caso :
         new String[][] {
-          {ATIVO, "senha-errada"},
-          {PENDENTE, SENHA},
-          {INATIVO, SENHA},
-          {"nao-existe@x.com.br", SENHA}
+          {criarAtivo("recusa"), "senha-errada"},
+          {SEED_PENDENTE, SENHA},
+          {SEED_INATIVO, SENHA},
+          {"nao-existe@exemplo.com.br", SENHA}
         }) {
       mockMvc
           .perform(
@@ -118,26 +129,17 @@ class AutenticacaoIntegracaoTest {
   @Test
   @DisplayName("recuperação: pede o código, valida e entra com a senha nova")
   void fluxoCompletoDeRecuperacao() throws Exception {
-    String email = "patricia@administraair.com.br";
+    String email = criarAtivo("recuperacao");
     String novaSenha = "outra-senha-bem-longa";
 
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\"}".formatted(email)))
-        .andExpect(status().isAccepted());
-
-    ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
-    verify(enviador).enviar(any(Usuario.class), codigo.capture());
-    assertThat(codigo.getValue()).matches("\\d{6}");
+    String codigo = pedirCodigo(email);
+    assertThat(codigo).matches("\\d{6}");
 
     mockMvc
         .perform(
             post("/autenticacao/recuperacao/codigo")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"%s\"}".formatted(email, codigo.getValue())))
+                .content("{\"email\":\"%s\",\"codigo\":\"%s\"}".formatted(email, codigo)))
         .andExpect(status().isNoContent());
 
     mockMvc
@@ -146,7 +148,7 @@ class AutenticacaoIntegracaoTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     "{\"email\":\"%s\",\"codigo\":\"%s\",\"novaSenha\":\"%s\"}"
-                        .formatted(email, codigo.getValue(), novaSenha)))
+                        .formatted(email, codigo, novaSenha)))
         .andExpect(status().isNoContent());
 
     assertThat(entrar(email, novaSenha)).isNotNull();
@@ -155,21 +157,10 @@ class AutenticacaoIntegracaoTest {
   @Test
   @DisplayName("o código queimado não redefine a senha uma segunda vez")
   void codigoUsadoNaoServeDeNovo() throws Exception {
-    String email = "leonardo@administraair.com.br";
-
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\"}".formatted(email)))
-        .andExpect(status().isAccepted());
-
-    ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
-    verify(enviador).enviar(any(Usuario.class), codigo.capture());
-
+    String email = criarAtivo("queimado");
     String corpo =
         "{\"email\":\"%s\",\"codigo\":\"%s\",\"novaSenha\":\"senha-nova-longa\"}"
-            .formatted(email, codigo.getValue());
+            .formatted(email, pedirCodigo(email));
 
     mockMvc
         .perform(
@@ -196,20 +187,19 @@ class AutenticacaoIntegracaoTest {
                 .content("{\"email\":\"ninguem@exemplo.com.br\"}"))
         .andExpect(status().isAccepted());
 
-    verify(enviador, org.mockito.Mockito.never()).enviar(any(), any());
+    verify(enviador, never()).enviar(any(), any());
   }
 
   /**
    * A contagem de falhas é gravada e só depois o método lança. Como exceção não verificada desfaz a
    * transação por padrão, sem {@code noRollbackFor} o contador voltaria a zero a cada tentativa e o
    * bloqueio nunca aconteceria. Só um teste que passa pela transação de verdade percebe isso — no
-   * unitário a entidade em memória "conta" normalmente.
+   * unitário a entidade em memória conta normalmente.
    */
   @Test
   @DisplayName("bloqueia a conta depois de cinco senhas erradas, e a senha certa também é recusada")
   void bloqueiaDepoisDeCincoFalhas() throws Exception {
-    String email = "camila.bloqueio@administraair.com.br";
-    criarAtivo(email);
+    String email = criarAtivo("bloqueio");
 
     for (int tentativa = 0; tentativa < 5; tentativa++) {
       mockMvc
@@ -233,18 +223,8 @@ class AutenticacaoIntegracaoTest {
   @Test
   @DisplayName("o código morre depois de cinco palpites errados, mesmo com o valor certo em mãos")
   void codigoMorreDepoisDeCincoPalpites() throws Exception {
-    String email = "rafael.codigo@administraair.com.br";
-    criarAtivo(email);
-
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\"}".formatted(email)))
-        .andExpect(status().isAccepted());
-
-    ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
-    verify(enviador).enviar(any(Usuario.class), codigo.capture());
+    String email = criarAtivo("palpites");
+    String codigo = pedirCodigo(email);
 
     for (int palpite = 0; palpite < 5; palpite++) {
       mockMvc
@@ -259,18 +239,32 @@ class AutenticacaoIntegracaoTest {
         .perform(
             post("/autenticacao/recuperacao/codigo")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"%s\"}".formatted(email, codigo.getValue())))
+                .content("{\"email\":\"%s\",\"codigo\":\"%s\"}".formatted(email, codigo)))
         .andExpect(status().isBadRequest());
   }
 
-  /**
-   * Usuário próprio do teste: os do seed são compartilhados e o bloqueio contaminaria os demais.
-   */
-  private void criarAtivo(String email) {
-    Usuario usuario = new Usuario("Teste", email, Instant.now());
-    usuario.definirSenha(cofre.codificar(SENHA), Instant.now());
+  /** Usuário ativo exclusivo deste teste, para que a ordem de execução não importe. */
+  private String criarAtivo(String apelido) {
+    String email = apelido + "@teste.aether.com.br";
+    Instant agora = Instant.now();
+    Usuario usuario = new Usuario("Teste " + apelido, email, agora);
+    usuario.definirSenha(cofre.codificar(SENHA), agora);
     usuarios.saveAndFlush(usuario);
+    return email;
+  }
+
+  /** Dispara a recuperação e devolve o código que o enviador recebeu. */
+  private String pedirCodigo(String email) throws Exception {
+    mockMvc
+        .perform(
+            post("/autenticacao/recuperacao")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"%s\"}".formatted(email)))
+        .andExpect(status().isAccepted());
+
+    ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
+    verify(enviador).enviar(any(Usuario.class), codigo.capture());
+    return codigo.getValue();
   }
 
   private Cookie entrar(String email, String senha) throws Exception {
