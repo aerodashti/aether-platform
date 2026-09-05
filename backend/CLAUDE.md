@@ -54,6 +54,7 @@ Ou rode `/nova-feature <nome>`.
 ## Comandos
 
 ```bash
+./gradlew check testeIntegracao       # verificação completa — é o que o pre-push roda
 ./gradlew check                       # Spotless, Checkstyle, Error Prone, testes, JaCoCo
 ./gradlew spotlessApply               # corrige a formatação
 ./gradlew testeIntegracao             # testes @Tag("integracao") — exige Docker
@@ -62,4 +63,5 @@ Ou rode `/nova-feature <nome>`.
 ```
 
 `check` não sobe contêiner. Se um teste precisa de Docker, ele tem que estar com
-`@Tag("integracao")` — caso contrário quebra a máquina de quem não tem Docker e o CI.
+`@Tag("integracao")` — caso contrário ele quebra o `check` de quem está sem Docker no meio de
+outra tarefa. A tag organiza; ela não dispensa ninguém de rodar o teste: o `pre-push` roda os dois.

@@ -17,13 +17,24 @@
 
 ```bash
 cd backend
-./gradlew check              # Spotless, Checkstyle, Error Prone, testes unitários, JaCoCo
-./gradlew testeIntegracao    # testes marcados com @Tag("integracao") — exige Docker rodando
+./gradlew check testeIntegracao   # a verificação completa — é o que o pre-push roda
+./gradlew check                   # Spotless, Checkstyle, Error Prone, testes unitários, JaCoCo
+./gradlew testeIntegracao         # testes @Tag("integracao") — sobe Testcontainers, exige Docker
 ./gradlew test --tests '*SaudeServiceTest'
 ```
 
 `check` **não** exige Docker: quem depende de contêiner está fora dele, na tarefa
-`testeIntegracao`. Isso mantém o CI e a máquina de quem não tem Docker sempre verdes.
+`testeIntegracao`. A separação existe para o `check` ser rápido no dia a dia e para o CI poder
+tratar as duas etapas em separado — **não** é permissão para pular os testes de integração. O hook
+de `pre-push` roda os dois, então o push exige Docker de pé.
+
+### Testcontainers e a versão da API do Docker
+
+`testeIntegracao` define `-Dapi.version=1.41`. O docker-java embutido no Testcontainers fala a API
+1.32 por padrão, e o Docker Engine 25 e seguintes recusam qualquer versão abaixo da 1.40 com um
+HTTP 400 que aparece como "Could not find a valid Docker environment" — mensagem que sugere Docker
+desligado quando o problema é outro. Se um dia o Docker exigir um piso mais alto, esse é o número
+a mexer, em `backend/build.gradle.kts`.
 
 ### As quatro regras de ArchUnit
 

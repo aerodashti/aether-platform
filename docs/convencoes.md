@@ -50,8 +50,9 @@ No TypeScript vale o mesmo: `estaCarregando`, `possuiErro`, `podeEnviar`.
 
 ## Commits
 
-Conventional Commits com o assunto em português, em minúscula, sem ponto final. O tipo permanece
-em inglês porque é palavra reservada da convenção.
+Conventional Commits com o assunto em português, começando em minúscula e sem ponto final. O tipo
+permanece em inglês porque é palavra reservada da convenção. Siglas de domínio continuam em
+maiúscula no meio do assunto: `fix: corrige o vencimento do CVA` é válido.
 
 ```
 feat: adiciona hub de vencimentos

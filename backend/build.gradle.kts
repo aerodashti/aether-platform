@@ -92,6 +92,11 @@ tasks.register<Test>("testeIntegracao") {
   classpath = sourceSets["test"].runtimeClasspath
   useJUnitPlatform { includeTags("integracao") }
   shouldRunAfter(tasks.named("test"))
+
+  // O docker-java embutido no Testcontainers fala a API 1.32 do Docker por padrão, e o Docker
+  // Engine 25+ recusa qualquer coisa abaixo da 1.40 com HTTP 400. A 1.41 existe desde o Docker
+  // 20.10, então cobre da versão mais antiga que suportamos até a atual.
+  systemProperty("api.version", "1.41")
 }
 
 tasks.named<JacocoReport>("jacocoTestReport") {

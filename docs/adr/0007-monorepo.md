@@ -24,6 +24,14 @@ seu `CLAUDE.md` e seu pipeline de CI. A raiz guarda apenas documentação, hooks
 
 ## Consequências
 
+- **A raiz tem `package.json`, `package-lock.json` e `node_modules/`, e isso é proposital.** Eles
+  existem só para o `lefthook` e o `commitlint`, que são ferramentas de **git**, não de frontend:
+  validam commits que tocam `backend/`, `docs/` e `infra/`, e `lefthook install` escreve em
+  `.git/hooks`, na raiz. Movê-los para `frontend/` colocaria as regras de commit do backend dentro
+  do projeto de frontend. Fugir do npm exigiria instalar o Lefthook por fora (`brew`) e trocar o
+  commitlint por um equivalente exótico — mais atrito no setup do que os 72 MB ignorados pelo git
+  que o `node_modules/` da raiz ocupa. O `npm install` da raiz é o passo 1 do README exatamente
+  porque é ele que instala os hooks.
 - Um PR pode mudar contrato e consumo ao mesmo tempo, e o CI valida os dois.
 - Os pipelines de CI são separados e disparados por path: mexer no front não roda o build do back.
 - Deploys continuam independentes; o monorepo não os acopla.

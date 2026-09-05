@@ -1,6 +1,8 @@
 .pagina {
   display: flex;
   flex-direction: column;
+  /* Sem isto os filhos esticam na largura e o Botao vira uma barra. */
+  align-items: flex-start;
   gap: var(--espaco-5);
   max-width: 42rem;
 }
@@ -14,6 +16,7 @@
 .resumo {
   display: flex;
   flex-direction: column;
+  align-self: stretch;
   gap: var(--espaco-2);
   padding: var(--espaco-5);
   background: var(--cor-superficie);
@@ -23,6 +26,7 @@
 }
 
 .aviso {
+  align-self: stretch;
   padding: var(--espaco-4);
   background: var(--cor-superficie-sutil);
   border-radius: var(--raio-m);
