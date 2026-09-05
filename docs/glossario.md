@@ -43,6 +43,18 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 | RBAC 145 | `rbac145` | RBAC 145 | Regra de organização de manutenção homologada. |
 | DECEA | `decea` | DECEA | Departamento de Controle do Espaço Aéreo: plano de voo e espaço aéreo. |
 
+## Acesso
+
+| Termo | Identificador | Texto na interface | Nunca use | Significado |
+| --- | --- | --- | --- | --- |
+| Usuário | `usuario` | Usuário | `user`, `conta`, `login` (como substantivo) | Pessoa com acesso ao Aether. Distinto de **Proprietário**: nem todo usuário é titular de aeronave, e nem todo proprietário tem acesso. |
+| Autenticação | `autenticacao` | — | `auth`, `signin` | Provar quem é. A feature que cobre a área não logada inteira. |
+| Entrar | `entrar` | Entrar | `login`, `signin`, `acessar` | Ato de abrir sessão. O verbo na interface é "Entrar"; o oposto é "Sair". |
+| Sessão de acesso | `sessaoDeAcesso` | — | `token`, `session` | Período em que um usuário está autenticado. Uma linha em `sessao_de_acesso`; o cookie carrega o token dela. |
+| Senha | `senha` | Senha | `password`, `pwd` | Segredo escolhido **pelo próprio usuário**. Administrador nunca define senha de ninguém. |
+| Código de recuperação | `codigoDeRecuperacao` | Código | `otp`, `pin`, `token` | Seis dígitos enviados por e-mail para redefinir a senha. Vale uma vez, por dez minutos. |
+| Situação do usuário | `situacaoDoUsuario` | Situação | `status` | `ATIVO` (entra), `PENDENTE` (convidado, ainda não criou senha), `INATIVO` (acesso revogado). |
+
 ## Termos de plataforma
 
 | Termo | Identificador | Texto na interface | Significado |
@@ -59,7 +71,7 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 
 ## Pendente do handoff do Claude Design
 
-A tela **"Posso voar hoje"** ainda não teve seus rótulos incorporados: o bundle do Claude Design não
-pôde ser lido na sessão de bootstrap. Ao rodar `/tela-do-design` pela primeira vez, cada rótulo do
-bundle deve ser conferido contra esta tabela e adicionado se for termo novo — em especial o próprio
-nome da tela e os rótulos de situação que ela usa.
+O bundle foi lido e a **tela de entrada** teve seus rótulos incorporados na seção "Acesso" acima.
+As demais telas do bundle (visão geral, frota, lançamentos, rateio, manutenção, voos, aportes,
+fechamento, usuários) ainda não: cada uma traz vocabulário próprio — competência, rateio, aporte,
+saldo, trecho — que entra aqui quando a tela for implementada, não antes.

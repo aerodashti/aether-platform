@@ -1,19 +1,38 @@
+/* Altura fixa por tamanho, em vez de padding vertical: é o que mantém controles de tipos
+   diferentes alinhados na mesma linha de um formulário denso. */
+
 .botao {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--espaco-2);
-  padding: var(--espaco-3) var(--espaco-5);
-  border: 0;
+  gap: var(--espaco-3);
+  border: 1px solid transparent;
   border-radius: var(--raio-m);
   font-family: var(--fonte-base);
-  font-size: var(--tamanho-s);
-  font-weight: var(--peso-medio);
-  line-height: var(--altura-apertada);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  white-space: nowrap;
   cursor: pointer;
-  transition-property: background-color, color, box-shadow;
+  transition-property: background-color, border-color, box-shadow, transform;
   transition-duration: var(--duracao-rapida);
   transition-timing-function: var(--curva-padrao);
+}
+
+.medio {
+  height: var(--espaco-9);
+  padding: 0 var(--espaco-5);
+}
+
+.grande {
+  height: var(--espaco-10);
+  padding: 0 var(--espaco-6);
+  font-size: var(--tamanho-g);
+  line-height: var(--altura-g);
+}
+
+.total {
+  width: 100%;
 }
 
 .botao:focus-visible {
@@ -23,17 +42,104 @@
 
 .botao:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .primario {
-  background: var(--cor-acento);
+  background: var(--cor-acento-solido);
+  border-color: var(--cor-acento);
   color: var(--cor-acento-contraste);
-  box-shadow: var(--elevacao-1);
+}
+
+.primario:hover:not(:disabled) {
+  background: var(--cor-acento-solido-hover);
 }
 
 .secundario {
   background: var(--cor-superficie);
+  border-color: var(--cor-borda);
   color: var(--cor-texto);
   box-shadow: var(--elevacao-1);
+}
+
+.secundario:hover:not(:disabled) {
+  border-color: var(--cor-acento);
+}
+
+/* Contorno que se preenche: o estado de repouso é discreto e o hover assume o azul inteiro.
+   É a única animação de identidade do produto — o resto da interface não se move. */
+.contorno {
+  position: relative;
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border-width: 2px;
+  border-color: var(--cor-acento);
+  color: var(--cor-acento-texto);
+  box-shadow: var(--elevacao-3);
+}
+
+.rotulo {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  transition-property: transform, opacity;
+  transition-duration: var(--duracao-lenta);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.desliza {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-acento-contraste);
+  opacity: 0;
+  transform: translateX(var(--espaco-10));
+  transition-property: transform, opacity;
+  transition-duration: var(--duracao-lenta);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.contorno:hover:not(:disabled),
+.contorno:focus-visible {
+  background: var(--cor-acento);
+  color: var(--cor-acento-contraste);
+  box-shadow: var(--elevacao-2);
+  transform: translateY(-2px);
+}
+
+.contorno:active:not(:disabled) {
+  background: var(--cor-acento);
+  color: var(--cor-acento-contraste);
+}
+
+.contorno:hover:not(:disabled) .rotulo,
+.contorno:focus-visible .rotulo,
+.contorno:active:not(:disabled) .rotulo {
+  opacity: 0;
+  transform: translateX(var(--espaco-10));
+}
+
+.contorno:hover:not(:disabled) .desliza,
+.contorno:focus-visible .desliza,
+.contorno:active:not(:disabled) .desliza {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Sem movimento, a troca de rótulo continua acontecendo — só deixa de deslizar. */
+@media (prefers-reduced-motion: reduce) {
+  .contorno:hover:not(:disabled),
+  .contorno:focus-visible,
+  .contorno:active:not(:disabled) {
+    transform: none;
+  }
+
+  .rotulo,
+  .desliza {
+    transform: none !important;
+  }
 }

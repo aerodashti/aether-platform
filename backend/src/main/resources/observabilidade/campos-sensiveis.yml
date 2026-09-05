@@ -20,4 +20,11 @@
 #
 # A comparação é exata e sensível a maiúsculas: `cpf` não cobre `CPF` nem `cpfDoProprietario`.
 campos:
+  # Credencial de uso único: aparece no corpo de /autenticacao/recuperacao/codigo.
+  codigo: integral
   cpf: cpf
+  # Dado pessoal. Para ligar um request a uma pessoa existe `usuario.id`, que não identifica
+  # ninguém fora do banco e já é registrado pelo serviço de autenticação.
+  email: integral
+  novaSenha: integral
+  senha: integral

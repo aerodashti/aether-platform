@@ -14,9 +14,19 @@ const tokens = JSON.parse(readFileSync(join(pasta, 'tokens.json'), 'utf8'));
 
 const AVISO = '/* Gerado por scripts/gerar-tokens.mjs. Não edite: mexa em tokens.json. */';
 
+const TEMAS = ['claro', 'escuro'];
+
+/** Onde o nome da categoria não serve de prefixo do token, o prefixo está aqui. */
+const PREFIXOS = { cores: 'cor', espacamento: 'espaco' };
+
+/**
+ * Uma categoria é tematizada quando declara os dois temas. Cor e elevação são: no claro a camada
+ * vem da sombra, no escuro vem de um contorno de luz de 1px — não dá para ser o mesmo valor.
+ */
+const ehTematizada = (valores) => TEMAS.every((tema) => tema in valores);
+
 /** Achata uma categoria em pares [nome-do-token, valor], já com o prefixo final. */
 function achatar(categoria, valores) {
-  const prefixos = { espacamento: 'espaco', raio: 'raio', elevacao: 'elevacao' };
   const pares = [];
   for (const [chave, valor] of Object.entries(valores)) {
     if (typeof valor === 'object') {
@@ -25,18 +35,19 @@ function achatar(categoria, valores) {
         pares.push([`${chave}-${subChave}`, subValor]);
       }
     } else {
-      pares.push([`${prefixos[categoria] ?? categoria}-${chave}`, valor]);
+      pares.push([`${PREFIXOS[categoria] ?? categoria}-${chave}`, valor]);
     }
   }
   return pares;
 }
 
-const cores = (tema) =>
-  Object.entries(tokens.cores[tema]).map(([chave, valor]) => [`cor-${chave}`, valor]);
+// As chaves iniciadas por `$` são anotações para quem lê o arquivo, não tokens.
+const categorias = Object.keys(tokens).filter((nome) => !nome.startsWith('$'));
+const tematizadas = categorias.filter((nome) => ehTematizada(tokens[nome]));
+const estaticas = categorias.filter((nome) => !ehTematizada(tokens[nome]));
 
-const estaticos = ['tipografia', 'espacamento', 'raio', 'elevacao', 'movimento'].flatMap(
-  (categoria) => achatar(categoria, tokens[categoria]),
-);
+const doTema = (tema) => tematizadas.flatMap((nome) => achatar(nome, tokens[nome][tema]));
+const estaticos = estaticas.flatMap((nome) => achatar(nome, tokens[nome]));
 
 const bloco = (pares, recuo = '  ') =>
   pares.map(([nome, valor]) => `${recuo}--${nome}: ${valor};`).join('\n');
@@ -44,16 +55,16 @@ const bloco = (pares, recuo = '  ') =>
 const css = `${AVISO}
 
 :root {
-${bloco([...cores('claro'), ...estaticos])}
+${bloco([...doTema('claro'), ...estaticos])}
 }
 
 :root[data-theme='escuro'] {
-${bloco(cores('escuro'))}
+${bloco(doTema('escuro'))}
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='claro']) {
-${bloco(cores('escuro'), '    ')}
+${bloco(doTema('escuro'), '    ')}
   }
 }
 `;
@@ -70,7 +81,7 @@ function agrupar(pares) {
   return grupos;
 }
 
-const grupos = agrupar([...cores('claro'), ...estaticos]);
+const grupos = agrupar([...doTema('claro'), ...estaticos]);
 const corpo = Object.entries(grupos)
   .map(([grupo, valores]) => {
     const linhas = Object.entries(valores)
@@ -100,5 +111,5 @@ ${tipos}
 );
 
 console.info(
-  `tokens.css e tokens.ts gerados com ${cores('claro').length + estaticos.length} tokens.`,
+  `tokens.css e tokens.ts gerados com ${doTema('claro').length + estaticos.length} tokens.`,
 );

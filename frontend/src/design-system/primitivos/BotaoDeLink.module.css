@@ -1,0 +1,43 @@
+/* Reset do cromo nativo do botão: sem isto o navegador desenha borda e fundo em volta do texto,
+   e o que deveria ler como link vira um botão cinza no meio do parágrafo. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--cor-acento-texto);
+  font-family: inherit;
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+  text-align: inherit;
+  cursor: pointer;
+  transition-property: color;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.link:hover:not(:disabled) {
+  color: var(--cor-acento-escuro);
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.link:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.centro {
+  justify-content: center;
+}
+
+.total {
+  width: 100%;
+}

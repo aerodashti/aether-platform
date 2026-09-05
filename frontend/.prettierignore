@@ -5,3 +5,5 @@ node_modules
 src/api/tipos-gerados.ts
 src/design-system/tokens/tokens.css
 src/design-system/tokens/tokens.ts
+# Dado de terceiro (Natural Earth 110m), copiado sem alteração: reformatar só o incharia.
+public/dados/terra-110m.json
