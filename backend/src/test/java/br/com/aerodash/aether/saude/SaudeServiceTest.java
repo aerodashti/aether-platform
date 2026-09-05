@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
+import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -30,13 +31,14 @@ class SaudeServiceTest {
 
   @Mock private SaudeRepository repository;
   @Mock private SaudeMapper mapper;
+  @Mock private ContextoDaRequisicao contexto;
 
   private SaudeService service;
 
   @BeforeEach
   void prepararService() {
     Clock relogio = Clock.fixed(AGORA, ZoneOffset.UTC);
-    service = new SaudeService(repository, mapper, relogio, "0.1.0");
+    service = new SaudeService(repository, mapper, relogio, contexto, "0.1.0");
     when(mapper.paraListaDeResponse(anyList(), any())).thenReturn(List.of());
   }
 

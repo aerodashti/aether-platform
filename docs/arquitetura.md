@@ -33,7 +33,8 @@ Não existem pacotes horizontais (`controllers/`, `services/`, `repositories/`).
 
 ### Fluxo de um request
 
-1. `FiltroDeCorrelacao` lê ou gera o `X-Request-Id`, coloca no MDC e devolve no header da resposta.
+1. `FiltroDeLinhaCanonica` lê ou gera o `X-Request-Id`, abre o span do request e coloca tudo no
+   MDC; ao final, emite a linha canônica e devolve o header. Veja `docs/observabilidade.md`.
 2. `*Controller` recebe o DTO de request, validado por Bean Validation.
 3. `*Service` orquestra: busca no repositório, chama regras da entidade, decide o que fazer.
 4. `*Mapper` (MapStruct) converte entidade → DTO de response.
@@ -119,8 +120,8 @@ src/
 - `features/<nome>/api/` guarda os hooks do TanStack Query daquela tela.
 - Estado de servidor é do Query; estado de UI é `useState` ou contexto local. Não há store global.
 - Lógica fora do JSX: extraia para hook. Componentes pequenos.
-- `compartilhado/` começa praticamente vazio. A exceção deliberada é `compartilhado/log`, que é
-  infraestrutura e não pertence a nenhuma feature.
+- `compartilhado/` começa praticamente vazio. A exceção deliberada é
+  `compartilhado/observabilidade`, que é infraestrutura e não pertence a nenhuma feature.
 
 ### Fronteiras (falham o lint)
 

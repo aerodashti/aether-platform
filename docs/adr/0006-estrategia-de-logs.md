@@ -2,7 +2,7 @@
 
 > **Quando ler este arquivo:** antes de adicionar log, APM ou uma biblioteca de observabilidade.
 
-- **Status:** aceito
+- **Status:** substituído por ADR-0008 e ADR-0009
 - **Data:** 2026-09-04
 
 ## Contexto
@@ -38,4 +38,8 @@ O detalhe operacional está em `docs/logs.md`.
 
 ## Quando revisitar
 
-Ao entrar em produção com usuários reais, quando será preciso decidir destino, retenção e alerta.
+Já foi. Em 2026-09-05 esta decisão foi substituída: o correlation ID e a proibição de dado pessoal
+continuam valendo, mas o modelo deixou de ser "logue eventos com níveis" e passou a ser
+"uma linha canônica por request, espelhada em um span do OpenTelemetry". Veja
+`0008-opentelemetry.md`, `0009-canonical-log-line.md` e `0010-sanitizacao-por-allowlist.md`.
+O `MascaradorDeLog` citado acima não existe mais: a política virou allowlist.

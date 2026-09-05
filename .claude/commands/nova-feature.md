@@ -21,7 +21,9 @@ Crie `backend/src/main/java/br/com/aerodash/aether/$1/` com, no mínimo:
 - entidade JPA no singular, com `@Entity` e `@Table(name = "$1")`, campos em português sem acento,
   e ao menos um método de regra com nome verbal (`estaAtivo()`, `possuiVencimento()`);
 - `<Nome>Repository` estendendo `JpaRepository`;
-- `<Nome>Service` com injeção por construtor e campos `final`;
+- `<Nome>Service` com injeção por construtor e campos `final`, **já recebendo
+  `ContextoDaRequisicao contexto`** — toda variável que decide um ramo passa por
+  `contexto.decisao` antes do desvio, e o que for relevante do fluxo por `contexto.registrar`;
 - `<Nome>Response` (`record`) e, se houver escrita, `<Nome>Request` (`record`) com Bean Validation;
 - `<Nome>Mapper` MapStruct com `componentModel = "spring"`;
 - `<Nome>Controller` com `@RestController`, `@RequestMapping("/$1")` e `@Tag` do springdoc —
@@ -51,5 +53,7 @@ cd frontend && npm run gerar-tipos   # exige o backend no ar
 cd frontend && npm run verificar
 ```
 
-Atualize `docs/glossario.md` se algum termo novo apareceu. Não escreva documentação nova para a
+Atualize `docs/glossario.md` se algum termo novo apareceu. Se algum campo do request ou da
+response precisa aparecer em claro no log, adicione-o a
+`backend/src/main/resources/observabilidade/campos-permitidos.yml` — sem isso ele sai como `***`. Não escreva documentação nova para a
 feature: o código e os testes são a documentação.

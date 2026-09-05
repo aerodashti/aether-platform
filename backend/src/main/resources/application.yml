@@ -31,6 +31,27 @@ springdoc:
 aether:
   versao: 0.1.0
 
+# Observabilidade: SDK do OpenTelemetry configurado por propriedade, sem Java Agent.
+otel:
+  service:
+    name: aether
+  # Por padrão nada é exportado: o console de dev fica com exatamente uma linha por request.
+  #   OTEL_TRACES_EXPORTER=logging  -> despeja o span no console (mesma informação, forma de trace)
+  #   OTEL_TRACES_EXPORTER=otlp     -> manda ao coletor de OTEL_EXPORTER_OTLP_ENDPOINT
+  traces:
+    exporter: ${OTEL_TRACES_EXPORTER:none}
+  logs:
+    exporter: ${OTEL_LOGS_EXPORTER:none}
+  metrics:
+    exporter: ${OTEL_METRICS_EXPORTER:none}
+  exporter:
+    otlp:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}
+  instrumentation:
+    # O FiltroDeLinhaCanonica é o dono do span de servidor; sem isto haveria dois por request.
+    spring-webmvc:
+      enabled: false
+
 logging:
   level:
     root: INFO

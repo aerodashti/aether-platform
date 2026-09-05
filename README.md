@@ -35,6 +35,15 @@ npm install
 npm run dev
 ```
 
+Um request produz uma linha de log com tudo o que aconteceu nele. Para ver traces e logs em uma
+interface, suba o coletor local — é opcional e fica fora do `up` do dia a dia:
+
+```bash
+docker compose -f infra/docker-compose.yml --profile observabilidade up -d
+```
+
+O passo a passo completo está em `docs/observabilidade.md`.
+
 ## Verificando o projeto
 
 Com o Docker rodando (passo 2 acima), a verificação completa é:
@@ -73,6 +82,6 @@ Isso lê o OpenAPI de `http://localhost:8080/v3/api-docs` e regrava `src/api/tip
 - `docs/convencoes.md` — nomenclatura, idioma, commits
 - `docs/design-system.md` — tokens e primitivos
 - `docs/testes.md` — o que testar em cada camada
-- `docs/logs.md` — padrão e níveis de log
+- `docs/observabilidade.md` — a linha canônica por request, traces e sanitização
 - `docs/glossario.md` — vocabulário de domínio
 - `docs/adr/` — por que cada decisão técnica foi tomada

@@ -44,7 +44,7 @@ export default tseslint.config(
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
 
-      // Só o wrapper de log fala com o console (docs/logs.md).
+      // Só a fachada de observabilidade fala com o console (docs/observabilidade.md).
       'no-console': 'error',
 
       // Elemento interativo cru concentra estados, foco e tokens: mora no design system.
@@ -94,8 +94,8 @@ export default tseslint.config(
     },
   },
   {
-    // O wrapper de log é o único ponto autorizado a usar o console.
-    files: ['src/compartilhado/log/**'],
+    // A fachada de observabilidade é o único ponto autorizado a usar o console.
+    files: ['src/compartilhado/observabilidade/**'],
     rules: { 'no-console': 'off' },
   },
   {

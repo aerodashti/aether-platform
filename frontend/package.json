@@ -15,6 +15,10 @@
     "verificar": "npm run verificar-formato && npm run lint && npm run build && npm run testar"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.222.0",
+    "@opentelemetry/resources": "^2.11.0",
+    "@opentelemetry/sdk-trace-web": "^2.11.0",
     "@tanstack/react-query": "^5.102.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

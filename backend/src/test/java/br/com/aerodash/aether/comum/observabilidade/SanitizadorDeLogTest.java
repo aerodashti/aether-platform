@@ -1,0 +1,125 @@
+package br.com.aerodash.aether.comum.observabilidade;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("SanitizadorDeLog")
+class SanitizadorDeLogTest {
+
+  private static final String JSON = "application/json";
+
+  private final SanitizadorDeLog sanitizador =
+      new SanitizadorDeLog(new PoliticaDeCamposPermitidos(), new ObjectMapper());
+
+  @Test
+  @DisplayName("mascara campo sensível que não está na allowlist")
+  void mascaraCampoForaDaAllowlist() {
+    Map<String, Object> tratado =
+        comoMapa("{\"cpf\":\"12345678901\",\"senha\":\"segredo\",\"id\":7}");
+
+    assertThat(tratado).containsEntry("cpf", "***").containsEntry("senha", "***");
+    assertThat(tratado.values()).doesNotContain("12345678901", "segredo");
+  }
+
+  @Test
+  @DisplayName("mantém escalares permitidos íntegros")
+  void mantemEscalaresPermitidos() {
+    Map<String, Object> tratado =
+        comoMapa(
+            "{\"id\":7,\"versao\":\"0.1.0\",\"saudavel\":true,"
+                + "\"verificadoEm\":\"2026-09-04T12:00:00Z\",\"situacao\":\"OPERANTE\"}");
+
+    assertThat(tratado)
+        .containsEntry("id", 7)
+        .containsEntry("versao", "0.1.0")
+        .containsEntry("saudavel", true)
+        .containsEntry("verificadoEm", "2026-09-04T12:00:00Z")
+        .containsEntry("situacao", "OPERANTE");
+  }
+
+  @Test
+  @DisplayName("resume lista grande sem perder os campos irmãos")
+  void resumeListaGrandePreservandoIrmaos() {
+    String itens =
+        IntStream.rangeClosed(1, 12)
+            .mapToObj(numero -> "{\"componente\":\"c" + numero + "\"}")
+            .reduce((a, b) -> a + "," + b)
+            .orElseThrow();
+    Map<String, Object> tratado =
+        comoMapa("{\"versao\":\"0.1.0\",\"componentes\":[" + itens + "]}");
+
+    assertThat(tratado).containsEntry("versao", "0.1.0");
+    assertThat(tratado.get("componentes"))
+        .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+        .containsEntry("_total", 12)
+        .hasEntrySatisfying(
+            "itens",
+            itensTratados ->
+                assertThat((List<?>) itensTratados).hasSize(SanitizadorDeLog.ITENS_DA_LISTA));
+  }
+
+  @Test
+  @DisplayName("mantém lista pequena inteira, sem resumo")
+  void mantemListaPequena() {
+    Map<String, Object> tratado =
+        comoMapa("{\"componentes\":[{\"componente\":\"api\"},{\"componente\":\"banco\"}]}");
+
+    assertThat(tratado.get("componentes")).isInstanceOf(List.class);
+    assertThat((List<?>) tratado.get("componentes")).hasSize(2);
+  }
+
+  @Test
+  @DisplayName("trunca string longa dizendo o tamanho original")
+  void truncaStringLonga() {
+    String longa = "a".repeat(2310);
+    Map<String, Object> tratado = comoMapa("{\"detail\":\"" + longa + "\"}");
+
+    String valor = String.valueOf(tratado.get("detail"));
+    assertThat(valor)
+        .hasSize(SanitizadorDeLog.LIMITE_DE_TEXTO + "…[truncado, 2310 chars]".length());
+    assertThat(valor).endsWith("…[truncado, 2310 chars]");
+  }
+
+  @Test
+  @DisplayName("não processa conteúdo que não é JSON: registra só tipo e tamanho")
+  void naoProcessaConteudoBinario() {
+    byte[] binario = new byte[] {1, 2, 3, 4};
+
+    Object tratado = sanitizador.sanitizarCorpo(binario, "multipart/form-data; boundary=xyz");
+
+    assertThat(tratado)
+        .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+        .containsEntry("tamanho_bytes", 4)
+        .containsEntry("content_type", "multipart/form-data; boundary=xyz");
+  }
+
+  @Test
+  @DisplayName("para de descer depois da profundidade máxima")
+  void limitaProfundidade() {
+    String aninhado = "{\"componente\":".repeat(9) + "\"fim\"" + "}".repeat(9);
+
+    assertThat(String.valueOf(comoMapa(aninhado))).contains("profundidade máxima");
+  }
+
+  @Test
+  @DisplayName("corpo vazio não vira campo")
+  void corpoVazioEhIgnorado() {
+    assertThat(sanitizador.sanitizarCorpo(new byte[0], JSON)).isNull();
+    assertThat(sanitizador.sanitizarCorpo(null, JSON)).isNull();
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> comoMapa(String corpo) {
+    Object tratado = sanitizador.sanitizarCorpo(corpo.getBytes(StandardCharsets.UTF_8), JSON);
+    assertThat(tratado).isInstanceOf(Map.class);
+    return (Map<String, Object>) tratado;
+  }
+}

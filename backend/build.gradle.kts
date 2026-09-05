@@ -23,8 +23,28 @@ repositories {
 
 val versaoMapstruct = "1.6.3"
 val versaoArchunit = "1.3.2"
+val versaoOtelInstrumentacao = "2.31.1"
+
+// O BOM do Spring Boot fixa o core do OpenTelemetry numa versão mais antiga que a exigida pela
+// instrumentação; sem este override a instrumentação 2.31.1 roda sobre o SDK 1.49 e quebra em
+// runtime com NoSuchMethodError.
+extra["opentelemetry.version"] = "1.65.0"
 
 dependencies {
+  // Instrumentação OpenTelemetry via SDK (sem Java Agent): a configuração fica visível no código.
+  implementation(
+    platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:$versaoOtelInstrumentacao"),
+  )
+  implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
+  implementation("io.opentelemetry:opentelemetry-exporter-logging")
+  // Os módulos de Logback moram no BOM alpha porque a OTel mantém a instrumentação lá; o que
+  // usamos deles é só o nome de duas classes de appender no logback-spring.xml.
+  implementation(
+    platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$versaoOtelInstrumentacao-alpha"),
+  )
+  implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0")
+
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-validation")

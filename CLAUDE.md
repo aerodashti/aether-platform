@@ -8,12 +8,12 @@ Público de alto padrão: a referência visual é gestão patrimonial, não ferr
 
 | Diretório | O que vive aqui |
 | --- | --- |
-| `docs/` | Arquitetura, convenções, design system, logs, testes e glossário |
+| `docs/` | Arquitetura, convenções, design system, observabilidade, testes e glossário |
 | `docs/adr/` | Decisões técnicas registradas (ADR) |
 | `.claude/commands/` | Comandos do projeto: `/nova-feature`, `/tela-do-design`, `/revisar`, `/adr` |
 | `infra/` | Docker Compose do ambiente local |
 | `backend/` | Spring Boot 3, Java 21, Gradle Kotlin DSL, PostgreSQL |
-| `backend/src/main/java/br/com/aerodash/aether/comum/` | Config, erros, logs e utilitários transversais |
+| `backend/src/main/java/br/com/aerodash/aether/comum/` | Config, erros e observabilidade — nada de domínio |
 | `backend/src/main/java/br/com/aerodash/aether/<feature>/` | Uma feature por pacote: Controller, Service, Repository, entidade, DTO, Mapper |
 | `frontend/` | React 19, TypeScript strict, Vite |
 | `frontend/src/app/` | Rotas, providers e layout raiz |
@@ -33,6 +33,8 @@ cd backend && ./gradlew bootRun                    # sobe a API em http://localh
 cd frontend && npm run verificar                   # lint + tipos + build + testes do front
 cd frontend && npm run gerar-tipos                 # regenera src/api/tipos-gerados.ts (backend no ar)
 cd frontend && npm run dev                         # sobe o front em http://localhost:5173
+
+docker compose -f infra/docker-compose.yml --profile observabilidade up -d   # traces e logs
 ```
 
 ## Regras invioláveis
@@ -50,20 +52,25 @@ cd frontend && npm run dev                         # sobe o front em http://loca
    (`aeronave.podeVoar()`). O Service orquestra, valida entrada e coordena repositórios.
 5. **DTO na borda.** Entidade JPA nunca é parâmetro nem retorno de método de `*Controller`.
    Um `record` por request/response, mapeado por MapStruct.
-6. **ArchUnit.** As quatro regras de `ArquiteturaTest` são parte do build; não as relaxe.
+6. **ArchUnit.** As seis regras de `ArquiteturaTest` são parte do build; não as relaxe.
 7. **Boundaries.** No front, `design-system` não importa de `features`/`app`/`api`;
    `features/A` não importa de `features/B`; `compartilhado` não importa de `features`;
    `<button>`, `<input>` e `<a>` crus só dentro de `design-system`.
 8. **Tokens.** Nenhuma cor, fonte ou espaçamento literal fora de `design-system/tokens/`.
    `tokens.json` é a fonte; `tokens.css` e `tokens.ts` são gerados por `npm run gerar-tokens`.
-9. **Logs.** Nada de `System.out`, `System.err`, `printStackTrace` ou `console.*` — use os wrappers.
-   Nunca logar dado pessoal, token, senha ou corpo completo de request.
+9. **Observabilidade.** Toda variável que determina um ramo de execução é registrada com
+   `contexto.decisao` **antes** do desvio. `INFO` e `DEBUG` manuais **não existem** no código de
+   negócio: um request produz uma única linha canônica, montada pelo filtro. `ERROR` e `WARN`
+   continuam permitidos para o que exige ação humana. Nada de `System.out`, `System.err`,
+   `printStackTrace` ou `console.*`. Nenhum campo aparece em claro no log sem estar em
+   `observabilidade/campos-permitidos.yml`.
 
 ## Antes de criar algo novo, leia
 
 - `docs/arquitetura.md` — camadas, fluxo de request, como adicionar uma feature
 - `docs/convencoes.md` — nomenclatura, idioma, commits, branches
 - `docs/glossario.md` — forma canônica de cada termo de domínio
+- `docs/observabilidade.md` — a linha canônica, a API do contexto e a regra das decisões
 
 ## Ao terminar
 

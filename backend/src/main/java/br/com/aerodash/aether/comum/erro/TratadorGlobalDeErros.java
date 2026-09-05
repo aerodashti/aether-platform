@@ -1,8 +1,7 @@
 package br.com.aerodash.aether.comum.erro;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-
-import br.com.aerodash.aether.comum.log.FiltroDeCorrelacao;
+import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
+import br.com.aerodash.aether.comum.observabilidade.FiltroDeLinhaCanonica;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -15,24 +14,35 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** Ponto único de tradução de exceção para resposta HTTP, no formato RFC 9457 Problem Details. */
+/**
+ * Ponto único de tradução de exceção para resposta HTTP, no formato RFC 9457 Problem Details.
+ *
+ * <p>Toda exceção passa por {@code contexto.registrarErro}, que marca o span e faz a linha canônica
+ * sair com {@code erro=true}. Só a falha inesperada gera uma segunda linha, em ERROR e com stack
+ * trace: para um 4xx de regra de negócio a linha canônica já diz tudo, e um ERROR por 404 tornaria
+ * o nível ERROR inútil.
+ */
 @RestControllerAdvice
 public class TratadorGlobalDeErros {
 
   private static final Logger log = LoggerFactory.getLogger(TratadorGlobalDeErros.class);
   private static final String PROPRIEDADE_REQUISICAO = "requisicao";
 
+  private final ContextoDaRequisicao contexto;
+
+  public TratadorGlobalDeErros(ContextoDaRequisicao contexto) {
+    this.contexto = contexto;
+  }
+
   @ExceptionHandler(ExcecaoDeDominio.class)
   public ProblemDetail tratarExcecaoDeDominio(ExcecaoDeDominio excecao) {
-    log.warn(
-        "Regra de negócio recusou a requisição",
-        kv("titulo", excecao.getTitulo()),
-        kv("status", excecao.getStatus().value()));
+    contexto.registrarErro(excecao);
     return montar(excecao.getStatus(), excecao.getTitulo(), excecao.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ProblemDetail tratarEntradaInvalida(MethodArgumentNotValidException excecao) {
+    contexto.registrarErro(excecao);
     Map<String, String> campos = new LinkedHashMap<>();
     for (FieldError erro : excecao.getBindingResult().getFieldErrors()) {
       campos.put(erro.getField(), erro.getDefaultMessage());
@@ -48,7 +58,11 @@ public class TratadorGlobalDeErros {
 
   @ExceptionHandler(Exception.class)
   public ProblemDetail tratarFalhaInesperada(Exception excecao) {
-    log.error("Falha inesperada ao processar a requisição", excecao);
+    contexto.registrarErro(excecao);
+    log.error(
+        "Falha inesperada ao processar a requisição (requestId={})",
+        MDC.get(FiltroDeLinhaCanonica.CHAVE_MDC),
+        excecao);
     return montar(
         HttpStatus.INTERNAL_SERVER_ERROR,
         "Erro interno",
@@ -59,7 +73,7 @@ public class TratadorGlobalDeErros {
     ProblemDetail problema = ProblemDetail.forStatus(status);
     problema.setTitle(titulo);
     problema.setDetail(detalhe);
-    problema.setProperty(PROPRIEDADE_REQUISICAO, MDC.get(FiltroDeCorrelacao.CHAVE_MDC));
+    problema.setProperty(PROPRIEDADE_REQUISICAO, MDC.get(FiltroDeLinhaCanonica.CHAVE_MDC));
     return problema;
   }
 }

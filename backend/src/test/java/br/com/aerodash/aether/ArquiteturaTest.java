@@ -6,6 +6,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -17,9 +18,10 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Entity;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.slf4j.Logger;
 
 /**
- * As quatro regras de arquitetura do Aether. Elas são parte do build: relaxar qualquer uma exige um
+ * As seis regras de arquitetura do Aether. Elas são parte do build: relaxar qualquer uma exige um
  * ADR, não uma exceção local. Veja {@code docs/arquitetura.md} e {@code docs/testes.md}.
  */
 @AnalyzeClasses(
@@ -54,6 +56,26 @@ class ArquiteturaTest {
           .because("a borda HTTP fala em DTO; entidade JPA não é contrato de API");
 
   @ArchTest
+  static final ArchRule opentelemetrySoNaObservabilidade =
+      noClasses()
+          .that()
+          .resideOutsideOfPackage("br.com.aerodash.aether.comum.observabilidade..")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("io.opentelemetry..")
+          .because("o código de negócio fala com o ContextoDaRequisicao, não com o SDK do OTel");
+
+  @ArchTest
+  static final ArchRule negocioNaoEmiteInfoNemDebug =
+      noClasses()
+          .that()
+          .resideOutsideOfPackage("br.com.aerodash.aether.comum..")
+          .should(chamarLoggerEm("info", "debug"))
+          .because(
+              "no código de negócio, INFO e DEBUG viram contexto.registrar e contexto.decisao;"
+                  + " a linha canônica é a única linha de sucesso do request");
+
+  @ArchTest
   static final ArchRule nenhumaClasseUsaSaidaPadrao =
       NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS.because(
           "todo log passa pelo SLF4J: System.out, System.err e printStackTrace não são log");
@@ -72,6 +94,26 @@ class ArquiteturaTest {
                   SimpleConditionEvent.satisfied(
                       metodo, metodo.getFullName() + " expõe a entidade " + tipo.getSimpleName()));
             }
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * ArchUnit, e não Checkstyle, porque a regra depende do <b>tipo</b> do receptor da chamada: só o
+   * ArchUnit sabe que a variável é um {@code org.slf4j.Logger}. O Checkstyle enxerga apenas tokens
+   * e teria que adivinhar pelo nome da variável.
+   */
+  private static ArchCondition<JavaClass> chamarLoggerEm(String... niveis) {
+    Set<String> proibidos = Set.of(niveis);
+    return new ArchCondition<>("chamar Logger." + String.join(" ou Logger.", niveis)) {
+      @Override
+      public void check(JavaClass classe, ConditionEvents eventos) {
+        for (JavaMethodCall chamada : classe.getMethodCallsFromSelf()) {
+          if (chamada.getTargetOwner().isAssignableTo(Logger.class)
+              && proibidos.contains(chamada.getName())) {
+            eventos.add(SimpleConditionEvent.satisfied(chamada, chamada.getDescription()));
           }
         }
       }

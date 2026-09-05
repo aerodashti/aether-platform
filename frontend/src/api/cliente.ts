@@ -1,4 +1,4 @@
-import { logger } from '@/compartilhado/log/logger';
+import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 
 /** Cabeçalho de correlação: o mesmo valor aparece no log do backend. */
 const HEADER_REQUISICAO = 'X-Request-Id';
@@ -41,17 +41,18 @@ async function lerDetalhe(resposta: Response): Promise<string> {
  */
 export async function buscar<T>(caminho: string): Promise<T> {
   const resposta = await fetch(`${BASE}${caminho}`, {
-    headers: { Accept: 'application/json' },
+    // O traceparent faz o span do backend nascer dentro do trace desta interação.
+    headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
   });
   const requisicao = resposta.headers.get(HEADER_REQUISICAO);
 
+  contexto.registrar('http.caminho', caminho);
+  contexto.registrar('http.status', resposta.status);
+  contexto.registrar('requisicao', requisicao ?? 'sem-identificador');
+
   if (!resposta.ok) {
     const detalhe = await lerDetalhe(resposta);
-    logger.erro('Falha na requisição à API', {
-      caminho,
-      status: resposta.status,
-      requisicao,
-    });
+    contexto.erro('Falha na requisição à API');
     throw new ErroDeApi(detalhe, resposta.status, requisicao);
   }
 

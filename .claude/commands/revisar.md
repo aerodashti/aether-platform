@@ -32,12 +32,18 @@ arquivo e a linha do problema. Não conserte nada antes de apresentar a lista co
 - [ ] Teste que precisa de Docker está com `@Tag("integracao")`?
 - [ ] No frontend, os testes consultam por papel e texto acessível — não por classe CSS?
 
-## Logs
+## Observabilidade
 
-- [ ] Nenhum `System.out`, `System.err`, `printStackTrace` ou `console.*` fora dos wrappers?
-- [ ] Nenhum dado pessoal, documento, token ou corpo de request no log?
-- [ ] Log de negócio usa argumentos estruturados, não concatenação?
-- [ ] O nível escolhido bate com `docs/logs.md` (`ERROR` só se exige ação)?
+- [ ] **Toda** variável que decide um ramo (`if`, `else`, `switch`, condição de loop, early return)
+      foi registrada com `contexto.decisao` **antes** do desvio?
+- [ ] Nenhum `INFO` ou `DEBUG` manual no código de negócio? (o que se quereria logar é campo da
+      linha canônica)
+- [ ] Campo novo que precisa aparecer em claro foi adicionado a
+      `observabilidade/campos-permitidos.yml` — e é mesmo necessário e não sensível?
+- [ ] Nenhum dado pessoal, documento, token ou corpo de request em claro?
+- [ ] Nenhuma classe fora de `comum/observabilidade` importa `io.opentelemetry`?
+- [ ] Nenhum `System.out`, `System.err`, `printStackTrace` ou `console.*` fora da fachada?
+- [ ] `ERROR` só onde exige ação humana?
 
 ## Estilo
 
@@ -47,6 +53,7 @@ arquivo e a linha do problema. Não conserte nada antes de apresentar a lista co
 ## Documentação
 
 - [ ] `docs/glossario.md` atualizado se surgiu termo novo?
+- [ ] `docs/observabilidade.md` atualizado se a política de campos mudou?
 - [ ] `docs/design-system.md` atualizado se surgiu token ou primitivo?
 - [ ] Houve decisão técnica sem ADR? (se sim, aponte qual)
 - [ ] Alguma documentação nova que deveria ser um teste?

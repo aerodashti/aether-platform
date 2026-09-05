@@ -53,6 +53,9 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 | Registro de saúde | `registroDeSaude` | — | Linha da tabela `registro_de_saude`: a situação conhecida de um componente. |
 | Verificação | `verificacao` | Verificação | Ato de conferir a situação de um componente e gravar o resultado. |
 | Requisição | `requisicao` | Requisição | Identificador de correlação de um request (`X-Request-Id`). |
+| Linha canônica | `linhaCanonica` | — | A única linha de log INFO de um request, com todos os campos. |
+| Decisão | `decisao` | — | Variável que determina um ramo de execução, registrada antes do desvio. |
+| Contexto da requisição | `contexto` | — | Fachada de observabilidade usada pelo código de negócio. |
 
 ## Pendente do handoff do Claude Design
 

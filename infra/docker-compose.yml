@@ -20,5 +20,22 @@ services:
       timeout: 5s
       retries: 10
 
+  # Coleta e visualização de traces e logs. Sobe só com o profile:
+  #   docker compose -f infra/docker-compose.yml --profile observabilidade up -d
+  observabilidade:
+    image: openobserve/openobserve:v0.15.0
+    container_name: aether-observabilidade
+    profiles: ["observabilidade"]
+    restart: unless-stopped
+    environment:
+      ZO_ROOT_USER_EMAIL: ${OBSERVABILIDADE_USUARIO:-dev@aerodash.com.br}
+      ZO_ROOT_USER_PASSWORD: ${OBSERVABILIDADE_SENHA:-observabilidade}
+      ZO_DATA_DIR: /data
+    ports:
+      - "5080:5080"
+    volumes:
+      - dados-observabilidade:/data
+
 volumes:
   dados-postgres:
+  dados-observabilidade:
