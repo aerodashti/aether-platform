@@ -1,7 +1,7 @@
 # Observabilidade
 
 > **Quando ler este arquivo:** antes de instrumentar qualquer código, antes de adicionar um campo à
-> allowlist, e sempre que precisar investigar o que aconteceu em um request.
+> lista de campos sensíveis, e sempre que precisar investigar o que aconteceu em um request.
 
 ## O modelo mental: uma linha por request
 
@@ -58,30 +58,60 @@ if (registros.stream().anyMatch(RegistroDeSaude::estaIndisponivel)) {
 
 O efeito colateral é bom: a condição ganha nome.
 
-## Sanitização: allowlist, não denylist
+## Sanitização
 
-Tudo é mascarado por padrão. Um campo só aparece em claro se o nome dele estiver em
-`backend/src/main/resources/observabilidade/campos-permitidos.yml`. Esse arquivo é a **única**
-fonte da política.
+Duas coisas diferentes acontecem antes de um valor virar campo do log. Elas se confundem
+facilmente, então vale separar.
+
+### Sigilo: a lista de campos sensíveis
+
+Por padrão o campo **aparece em claro**. Os que precisam ser escondidos estão em
+`backend/src/main/resources/observabilidade/campos-sensiveis.yml`, que é a única fonte da política:
+
+```yaml
+campos:
+  cpf: cpf
+```
+
+`nome-do-campo: estrategia`. Hoje há uma estratégia, `cpf`, que preserva só os cinco últimos
+dígitos — o bastante para conferir um caso com o suporte sem identificar ninguém:
+
+```
+"cpf": "12345678901"      ->  "cpf": "***.***.789-01"
+"cpf": "123.456.789-01"   ->  "cpf": "***.***.789-01"
+"cpf": "123"              ->  "cpf": "***"
+```
+
+Qualquer outra estratégia mascara o campo inteiro. Isso é de propósito: errar o nome da estratégia
+esconde demais, nunca de menos. A máscara vale em qualquer profundidade — dentro de objeto, dentro
+de lista, no request e no response.
+
+**Como adicionar um campo:**
+
+1. Pergunte se ele é dado pessoal, documento, credencial ou conteúdo escrito pelo usuário. Se não
+   for nada disso, não precisa entrar.
+2. Escolha a estratégia. Na dúvida, mascare inteiro.
+3. Acrescente o nome exato do campo, como aparece no JSON, em ordem alfabética.
+4. Rode `./gradlew test --tests '*SanitizadorDeLogTest'`.
+
+A comparação é exata e sensível a maiúsculas: `cpf` não cobre `CPF` nem `cpfDoProprietario`. Por
+isso, ao nomear um campo com dado pessoal, use a forma canônica do `docs/glossario.md`.
+
+O risco desta escolha é conhecido e está aceito em `docs/adr/0010-mascaramento-por-campo-sensivel.md`:
+um campo pessoal novo aparece em claro até alguém percebê-lo. Quem revisa um PR com campo novo
+precisa perguntar isso — está no `/revisar`.
+
+### Tamanho: limites que valem para todo campo
 
 | Regra | Comportamento |
 | --- | --- |
-| Campo fora da allowlist | vira `***`, em qualquer profundidade |
 | String acima de 500 caracteres | truncada, com sufixo `…[truncado, 2310 chars]` |
 | Lista com até 5 itens | aparece inteira |
 | Lista com mais de 5 itens | `{itens: [os 5 primeiros], _total: N}` |
 | Objeto aninhado | mesma regra, recursivamente, até profundidade 6 |
 | Multipart ou binário | **nunca é lido**: registra só `content_type` e `tamanho_bytes` |
 
-### Como adicionar um campo à allowlist
-
-1. Pergunte se ele é necessário para investigar um request. Se não for, não adicione.
-2. Pergunte se ele é dado pessoal, documento, credencial ou conteúdo escrito pelo usuário. Se for,
-   **não adicione** — registre um identificador em vez do valor.
-3. Acrescente o nome exato do campo, como aparece no JSON, na seção certa do arquivo.
-4. Rode `./gradlew test --tests '*SanitizadorDeLogTest'`.
-
-A comparação é exata e sensível a maiúsculas: `situacaoGeral` não libera `situacaogeral`.
+Isso não é sobre sigilo: é para que nenhum corpo de request consiga inundar a linha canônica.
 
 ## Erros
 

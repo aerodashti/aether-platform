@@ -62,8 +62,8 @@ docker compose -f infra/docker-compose.yml --profile observabilidade up -d   # t
    `contexto.decisao` **antes** do desvio. `INFO` e `DEBUG` manuais **não existem** no código de
    negócio: um request produz uma única linha canônica, montada pelo filtro. `ERROR` e `WARN`
    continuam permitidos para o que exige ação humana. Nada de `System.out`, `System.err`,
-   `printStackTrace` ou `console.*`. Nenhum campo aparece em claro no log sem estar em
-   `observabilidade/campos-permitidos.yml`.
+   `printStackTrace` ou `console.*`. Campo com dado pessoal só vai para o log mascarado, via
+   `observabilidade/campos-sensiveis.yml`.
 
 ## Antes de criar algo novo, leia
 

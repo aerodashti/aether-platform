@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
-import br.com.aerodash.aether.comum.observabilidade.PoliticaDeCamposPermitidos;
+import br.com.aerodash.aether.comum.observabilidade.PoliticaDeCamposSensiveis;
 import br.com.aerodash.aether.comum.observabilidade.SanitizadorDeLog;
 import io.opentelemetry.api.OpenTelemetry;
 import java.time.Instant;
@@ -36,7 +36,7 @@ class SaudeControllerTest {
    * contrato HTTP, não a exportação de spans.
    */
   @TestConfiguration
-  @Import({ContextoDaRequisicao.class, SanitizadorDeLog.class, PoliticaDeCamposPermitidos.class})
+  @Import({ContextoDaRequisicao.class, SanitizadorDeLog.class, PoliticaDeCamposSensiveis.class})
   static class ObservabilidadeDeTeste {
 
     @Bean

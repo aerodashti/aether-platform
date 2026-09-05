@@ -17,30 +17,53 @@ class SanitizadorDeLogTest {
   private static final String JSON = "application/json";
 
   private final SanitizadorDeLog sanitizador =
-      new SanitizadorDeLog(new PoliticaDeCamposPermitidos(), new ObjectMapper());
+      new SanitizadorDeLog(new PoliticaDeCamposSensiveis(), new ObjectMapper());
 
   @Test
-  @DisplayName("mascara campo sensível que não está na allowlist")
-  void mascaraCampoForaDaAllowlist() {
-    Map<String, Object> tratado =
-        comoMapa("{\"cpf\":\"12345678901\",\"senha\":\"segredo\",\"id\":7}");
+  @DisplayName("mascara o CPF preservando só os cinco últimos dígitos")
+  void mascaraOCpf() {
+    Map<String, Object> tratado = comoMapa("{\"cpf\":\"12345678901\",\"id\":7}");
 
-    assertThat(tratado).containsEntry("cpf", "***").containsEntry("senha", "***");
-    assertThat(tratado.values()).doesNotContain("12345678901", "segredo");
+    assertThat(tratado).containsEntry("cpf", "***.***.789-01").containsEntry("id", 7);
+    assertThat(String.valueOf(tratado)).doesNotContain("12345678901");
   }
 
   @Test
-  @DisplayName("mantém escalares permitidos íntegros")
-  void mantemEscalaresPermitidos() {
+  @DisplayName("mascara o CPF já formatado, o inválido e o nulo")
+  void mascaraCpfFormatadoEInvalido() {
+    assertThat(comoMapa("{\"cpf\":\"123.456.789-01\"}")).containsEntry("cpf", "***.***.789-01");
+    assertThat(comoMapa("{\"cpf\":\"123\"}")).containsEntry("cpf", "***");
+    assertThat(comoMapa("{\"cpf\":null}")).containsEntry("cpf", "***");
+  }
+
+  @Test
+  @DisplayName("mascara o CPF em qualquer profundidade, dentro de objeto e de lista")
+  void mascaraCpfAninhado() {
     Map<String, Object> tratado =
         comoMapa(
-            "{\"id\":7,\"versao\":\"0.1.0\",\"saudavel\":true,"
+            "{\"proprietario\":{\"nome\":\"Ana\",\"cpf\":\"12345678901\"},"
+                + "\"tripulantes\":[{\"cpf\":\"98765432100\"}]}");
+
+    assertThat(String.valueOf(tratado))
+        .contains("***.***.789-01")
+        .contains("***.***.321-00")
+        .doesNotContain("12345678901")
+        .doesNotContain("98765432100");
+  }
+
+  @Test
+  @DisplayName("campo que não é sensível aparece em claro")
+  void campoComumApareceEmClaro() {
+    Map<String, Object> tratado =
+        comoMapa(
+            "{\"id\":7,\"versao\":\"0.1.0\",\"saudavel\":true,\"matricula\":\"PR-ABC\","
                 + "\"verificadoEm\":\"2026-09-04T12:00:00Z\",\"situacao\":\"OPERANTE\"}");
 
     assertThat(tratado)
         .containsEntry("id", 7)
         .containsEntry("versao", "0.1.0")
         .containsEntry("saudavel", true)
+        .containsEntry("matricula", "PR-ABC")
         .containsEntry("verificadoEm", "2026-09-04T12:00:00Z")
         .containsEntry("situacao", "OPERANTE");
   }

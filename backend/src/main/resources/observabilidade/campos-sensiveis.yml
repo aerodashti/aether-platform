@@ -1,0 +1,23 @@
+# Política de sanitização de logs — fonte única.
+#
+# Regra: por padrão um campo aparece em claro na linha canônica. Os listados aqui são mascarados,
+# em qualquer profundidade e em qualquer corpo de request ou response.
+#
+# Formato: `nome-do-campo: estrategia`.
+#
+# Estratégias:
+#   cpf  — preserva só os cinco últimos dígitos: 12345678901 vira ***.***.789-01
+#   (qualquer outro valor) — mascara o campo inteiro como ***
+# A estratégia desconhecida cai no caso seguro de propósito: errar o nome esconde demais,
+# nunca de menos.
+#
+# Como adicionar um campo:
+#   1. Pergunte se ele é dado pessoal, documento, credencial ou conteúdo escrito pelo usuário.
+#      Se não for nada disso, não precisa entrar aqui.
+#   2. Escolha a estratégia. Na dúvida, mascare inteiro.
+#   3. Adicione o nome exato do campo, como ele aparece no JSON, em ordem alfabética.
+#   4. Rode `./gradlew test --tests '*SanitizadorDeLogTest'`.
+#
+# A comparação é exata e sensível a maiúsculas: `cpf` não cobre `CPF` nem `cpfDoProprietario`.
+campos:
+  cpf: cpf

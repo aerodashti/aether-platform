@@ -54,6 +54,7 @@ cd frontend && npm run verificar
 ```
 
 Atualize `docs/glossario.md` se algum termo novo apareceu. Se algum campo do request ou da
-response precisa aparecer em claro no log, adicione-o a
-`backend/src/main/resources/observabilidade/campos-permitidos.yml` — sem isso ele sai como `***`. Não escreva documentação nova para a
+response carrega dado pessoal, documento ou credencial, adicione-o a
+`backend/src/main/resources/observabilidade/campos-sensiveis.yml` — sem isso ele vai para o log
+em claro. Não escreva documentação nova para a
 feature: o código e os testes são a documentação.

@@ -9,17 +9,16 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
- * Aplica a política de {@link PoliticaDeCamposPermitidos} a qualquer valor antes de ele chegar ao
- * log ou ao span.
+ * Prepara qualquer valor antes de ele chegar ao log ou ao span.
  *
- * <p>Tudo é mascarado por padrão: um campo só sobrevive em claro se estiver na allowlist. Além
- * disso, texto longo é truncado, lista grande é resumida e a recursão para em uma profundidade fixa
- * — nenhum corpo de request consegue inundar a linha canônica.
+ * <p>São duas responsabilidades distintas. Sigilo: os campos listados em {@link
+ * PoliticaDeCamposSensiveis} são mascarados, o resto aparece em claro. Tamanho: texto longo é
+ * truncado, lista grande é resumida e a recursão para em uma profundidade fixa — assim nenhum corpo
+ * de request consegue inundar a linha canônica.
  */
 @Component
 public class SanitizadorDeLog {
 
-  static final String OCULTO = "***";
   static final int LIMITE_DE_TEXTO = 500;
   static final int ITENS_DA_LISTA = 5;
   static final int PROFUNDIDADE_MAXIMA = 6;
@@ -27,10 +26,10 @@ public class SanitizadorDeLog {
   private static final String CHAVE_TOTAL = "_total";
   private static final String CHAVE_ITENS = "itens";
 
-  private final PoliticaDeCamposPermitidos politica;
+  private final PoliticaDeCamposSensiveis politica;
   private final ObjectMapper json;
 
-  public SanitizadorDeLog(PoliticaDeCamposPermitidos politica, ObjectMapper json) {
+  public SanitizadorDeLog(PoliticaDeCamposSensiveis politica, ObjectMapper json) {
     this.politica = politica;
     this.json = json;
   }
@@ -86,7 +85,9 @@ public class SanitizadorDeLog {
       String campo = String.valueOf(entrada.getKey());
       tratado.put(
           campo,
-          politica.permite(campo) ? sanitizar(entrada.getValue(), profundidade + 1) : OCULTO);
+          politica.ehSensivel(campo)
+              ? politica.mascarar(campo, entrada.getValue())
+              : sanitizar(entrada.getValue(), profundidade + 1));
     }
     return tratado;
   }

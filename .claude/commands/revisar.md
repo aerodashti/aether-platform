@@ -38,9 +38,10 @@ arquivo e a linha do problema. Não conserte nada antes de apresentar a lista co
       foi registrada com `contexto.decisao` **antes** do desvio?
 - [ ] Nenhum `INFO` ou `DEBUG` manual no código de negócio? (o que se quereria logar é campo da
       linha canônica)
-- [ ] Campo novo que precisa aparecer em claro foi adicionado a
-      `observabilidade/campos-permitidos.yml` — e é mesmo necessário e não sensível?
-- [ ] Nenhum dado pessoal, documento, token ou corpo de request em claro?
+- [ ] O request ou a response trazem **campo novo com dado pessoal**, documento ou credencial? Se
+      sim, ele foi adicionado a `observabilidade/campos-sensiveis.yml`? (o padrão é aparecer em
+      claro — esta pergunta é a única barreira, faça-a em todo PR que mexe em DTO)
+- [ ] Nenhum token, senha ou conteúdo escrito pelo usuário em claro?
 - [ ] Nenhuma classe fora de `comum/observabilidade` importa `io.opentelemetry`?
 - [ ] Nenhum `System.out`, `System.err`, `printStackTrace` ou `console.*` fora da fachada?
 - [ ] `ERROR` só onde exige ação humana?

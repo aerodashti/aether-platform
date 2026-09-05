@@ -40,9 +40,9 @@ Ou rode `/nova-feature <nome>`.
   dado relevante e `contexto.decisao` para **toda** variável que decide um ramo — antes do desvio.
   Não crie `Logger` para narrar fluxo: `INFO` e `DEBUG` no código de negócio falham o build
   (ArchUnit `negocioNaoEmiteInfoNemDebug`). `ERROR` e `WARN` seguem permitidos. Nenhuma classe fora
-  de `comum/observabilidade` importa `io.opentelemetry`. Campo novo no log entra em
-  `src/main/resources/observabilidade/campos-permitidos.yml`. Detalhes em
-  `docs/observabilidade.md`.
+  de `comum/observabilidade` importa `io.opentelemetry`. Campo com dado pessoal entra em
+  `src/main/resources/observabilidade/campos-sensiveis.yml` — o que não está lá vai para o log em
+  claro. Detalhes em `docs/observabilidade.md`.
 - **Schema.** O Hibernate roda com `ddl-auto: validate`. Mudança de coluna é migration nova; nunca
   edite uma migration já aplicada.
 - **Transação.** `@Transactional(readOnly = true)` em leitura. Escrita muda a entidade carregada e

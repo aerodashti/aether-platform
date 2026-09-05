@@ -41,5 +41,6 @@ O detalhe operacional está em `docs/logs.md`.
 Já foi. Em 2026-09-05 esta decisão foi substituída: o correlation ID e a proibição de dado pessoal
 continuam valendo, mas o modelo deixou de ser "logue eventos com níveis" e passou a ser
 "uma linha canônica por request, espelhada em um span do OpenTelemetry". Veja
-`0008-opentelemetry.md`, `0009-canonical-log-line.md` e `0010-sanitizacao-por-allowlist.md`.
-O `MascaradorDeLog` citado acima não existe mais: a política virou allowlist.
+`0008-opentelemetry.md`, `0009-canonical-log-line.md` e
+`0010-mascaramento-por-campo-sensivel.md`. O `MascaradorDeLog` citado acima não existe mais como
+classe, mas a ideia dele sobreviveu: o mascaramento de CPF virou política declarada em arquivo.
