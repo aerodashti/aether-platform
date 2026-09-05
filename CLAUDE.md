@@ -12,6 +12,7 @@ Público de alto padrão: a referência visual é gestão patrimonial, não ferr
 | `docs/adr/` | Decisões técnicas registradas (ADR) |
 | `.claude/commands/` | Comandos do projeto: `/nova-feature`, `/tela-do-design`, `/revisar`, `/adr` |
 | `infra/` | Docker Compose do ambiente local |
+| `scripts/` | `ambiente.sh` — sobe, derruba e recria o ambiente de desenvolvimento |
 | `backend/` | Spring Boot 3, Java 21, Gradle Kotlin DSL, PostgreSQL |
 | `backend/src/main/java/br/com/aerodash/aether/comum/` | Config, erros e observabilidade — nada de domínio |
 | `backend/src/main/java/br/com/aerodash/aether/<feature>/` | Uma feature por pacote: Controller, Service, Repository, entidade, DTO, Mapper |
@@ -25,7 +26,10 @@ Público de alto padrão: a referência visual é gestão patrimonial, não ferr
 ## Comandos essenciais
 
 ```bash
-docker compose -f infra/docker-compose.yml up -d   # sobe o PostgreSQL
+./scripts/ambiente.sh up                           # sobe banco, backend e frontend (idempotente)
+./scripts/ambiente.sh reset                        # o mesmo, apagando os volumes do banco antes
+./scripts/ambiente.sh status                       # o que está no ar
+docker compose -f infra/docker-compose.yml up -d   # só o PostgreSQL
 cd backend && ./gradlew check testeIntegracao      # verificação completa do backend
 cd backend && ./gradlew check                      # sem Docker: lint, build e testes unitários
 cd backend && ./gradlew testeIntegracao            # só os testes com Testcontainers
@@ -33,8 +37,7 @@ cd backend && ./gradlew bootRun                    # sobe a API em http://localh
 cd frontend && npm run verificar                   # lint + tipos + build + testes do front
 cd frontend && npm run gerar-tipos                 # regenera src/api/tipos-gerados.ts (backend no ar)
 cd frontend && npm run dev                         # sobe o front em http://localhost:5173
-
-docker compose -f infra/docker-compose.yml --profile observabilidade up -d   # traces e logs
+./scripts/ambiente.sh up --observabilidade         # tudo + coletor de traces e logs em :5080
 ```
 
 ## Regras invioláveis
