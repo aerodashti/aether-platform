@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Desenvolvimento: uma linha legível, com o id de correlação em destaque.
+  Desenvolvimento: uma linha legível por request (a linha canônica).
   Produção: JSON, para ingestão direta pela plataforma de logs.
+
+  Em ambos, o appender de MDC do OpenTelemetry injeta trace_id, span_id e trace_flags em toda
+  linha, e o appender de bridge entrega os mesmos logs ao SDK para exportação via OTLP.
 -->
 <configuration>
   <springProfile name="!prod">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
       <encoder>
-        <pattern>%d{HH:mm:ss.SSS} %-5level [%X{requisicao:-sem-requisicao}] %logger{36} - %msg%n</pattern>
+        <pattern>%d{HH:mm:ss.SSS} %-5level [%X{requestId:-sem-requisicao} %X{trace_id:-sem-trace}] %logger{28} - %msg%n</pattern>
       </encoder>
     </appender>
-    <root level="INFO">
+    <appender name="SAIDA" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
       <appender-ref ref="CONSOLE"/>
-    </root>
+    </appender>
   </springProfile>
 
   <springProfile name="prod">
     <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
       <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-        <includeMdcKeyName>requisicao</includeMdcKeyName>
+        <includeMdcKeyName>requestId</includeMdcKeyName>
+        <includeMdcKeyName>trace_id</includeMdcKeyName>
+        <includeMdcKeyName>span_id</includeMdcKeyName>
         <fieldNames>
           <timestamp>momento</timestamp>
           <message>mensagem</message>
@@ -29,8 +34,20 @@
         </fieldNames>
       </encoder>
     </appender>
-    <root level="INFO">
+    <appender name="SAIDA" class="io.opentelemetry.instrumentation.logback.mdc.v1_0.OpenTelemetryAppender">
       <appender-ref ref="JSON"/>
-    </root>
+    </appender>
   </springProfile>
+
+  <!-- Ponte para o SDK: os mesmos logs viram registros OTLP quando há exporter configurado. -->
+  <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+    <captureExperimentalAttributes>true</captureExperimentalAttributes>
+    <captureMdcAttributes>*</captureMdcAttributes>
+    <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="SAIDA"/>
+    <appender-ref ref="OTEL"/>
+  </root>
 </configuration>

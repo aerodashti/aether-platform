@@ -31,7 +31,7 @@ diretamente.
 - Nenhuma cor, fonte, espaçamento, raio ou sombra literal fora de `tokens/` (Stylelint).
 - `<button>`, `<input>`, `<a>` crus só dentro de `design-system/` (ESLint boundaries).
 - `features/A` não importa de `features/B`.
-- `console.*` fora de `compartilhado/log`.
+- `console.*` fora de `compartilhado/observabilidade`.
 
 ## Ao terminar
 

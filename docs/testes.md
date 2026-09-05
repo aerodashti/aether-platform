@@ -11,7 +11,7 @@
 | Service | JUnit 5 + Mockito | Orquestração: o que acontece quando o repositório devolve vazio, quando a regra recusa, quando lança exceção de domínio. |
 | Controller | `@WebMvcTest` + MockMvc | Contrato HTTP: status, formato do JSON, validação de entrada, Problem Details no erro. |
 | Repositório / SQL | Testcontainers, `@Tag("integracao")` | Só quando há query própria ou migration a validar. Não teste o Spring Data. |
-| Arquitetura | ArchUnit | `ArquiteturaTest` — quatro regras, descritas abaixo. |
+| Arquitetura | ArchUnit | `ArquiteturaTest` — seis regras, descritas abaixo. |
 
 ### Como rodar
 
@@ -36,12 +36,15 @@ HTTP 400 que aparece como "Could not find a valid Docker environment" — mensag
 desligado quando o problema é outro. Se um dia o Docker exigir um piso mais alto, esse é o número
 a mexer, em `backend/build.gradle.kts`.
 
-### As quatro regras de ArchUnit
+### As seis regras de ArchUnit
 
 1. **Sem ciclo entre pacotes de feature** — feature não conhece feature.
 2. **`*Controller` não acessa `*Repository`** — a orquestração passa pelo Service.
 3. **`@Entity` não aparece em assinatura pública de `*Controller`** — DTO na borda.
 4. **Ninguém usa `System.out`, `System.err` ou `printStackTrace`** — logs passam pelo SLF4J.
+5. **`io.opentelemetry` só em `comum/observabilidade`** — o negócio fala com o `ContextoDaRequisicao`.
+6. **Nenhum `Logger.info` ou `Logger.debug` fora de `comum`** — no negócio, isso vira
+   `contexto.registrar` e `contexto.decisao` (veja `docs/observabilidade.md`).
 
 Cada regra foi verificada violando-a de propósito e observando o build falhar. Se você precisar
 relaxar uma delas, o caminho é um ADR, não um `@ArchIgnore`.

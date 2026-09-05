@@ -9,12 +9,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
+import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
+import br.com.aerodash.aether.comum.observabilidade.PoliticaDeCamposSensiveis;
+import br.com.aerodash.aether.comum.observabilidade.SanitizadorDeLog;
+import io.opentelemetry.api.OpenTelemetry;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +29,21 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(SaudeController.class)
 @DisplayName("SaudeController")
 class SaudeControllerTest {
+
+  /**
+   * O slice do {@code @WebMvcTest} já traz o FiltroDeLinhaCanonica, porque ele é um Filter; o que
+   * falta são as colaborações dele. O OpenTelemetry entra como no-op: aqui o que se testa é o
+   * contrato HTTP, não a exportação de spans.
+   */
+  @TestConfiguration
+  @Import({ContextoDaRequisicao.class, SanitizadorDeLog.class, PoliticaDeCamposSensiveis.class})
+  static class ObservabilidadeDeTeste {
+
+    @Bean
+    OpenTelemetry openTelemetry() {
+      return OpenTelemetry.noop();
+    }
+  }
 
   private static final Instant AGORA = Instant.parse("2026-09-04T12:00:00Z");
 

@@ -38,7 +38,10 @@ Ou rode `/nova-feature <nome>`; para uma tela vinda do Claude Design, `/tela-do-
 - **Estilo.** CSS Modules, sempre `var(--token)`. Para criar ou mudar um token, edite
   `design-system/tokens/tokens.json` e rode `npm run gerar-tokens` — `tokens.css` e `tokens.ts`
   são gerados e nunca editados à mão.
-- **Console.** Só `@/compartilhado/log/logger`. `console.*` em qualquer outro arquivo falha o lint.
+- **Observabilidade.** Só `@/compartilhado/observabilidade/observabilidade`. Envolva a ação do
+  usuário em `contexto.interacao(nome, fn)` e use `contexto.registrar` / `contexto.decisao` dentro
+  dela — sai uma linha por interação, como no backend. `console.*` em qualquer outro arquivo falha
+  o lint. Sem `VITE_OTEL_ENDPOINT` o SDK não é registrado e tudo é no-op.
 - **Rede.** O Vite faz proxy de `/api` para `http://localhost:8080`; não há variável de ambiente
   nem CORS. Toda chamada passa por `buscar`, que já loga o erro com o `X-Request-Id` da resposta.
 - **Primitivo novo** só quando a tela em mãos precisa. Não crie por antecipação.

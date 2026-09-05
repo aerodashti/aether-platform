@@ -36,8 +36,13 @@ Ou rode `/nova-feature <nome>`.
   `ConfiguracaoComum`) e use `Instant.now(relogio)` — é o que torna a regra de frescor testável.
 - **Erros.** Exceção nova herda de `ExcecaoDeDominio` e declara seu `HttpStatus`. Não escreva
   `@ExceptionHandler` fora de `TratadorGlobalDeErros`.
-- **Logs.** `LoggerFactory.getLogger(<Classe>.class)` e argumentos estruturados
-  (`kv("aeronaveId", id)`), nunca concatenação. Dado pessoal só via `MascaradorDeLog`.
+- **Observabilidade.** Injete `ContextoDaRequisicao` no Service e use `contexto.registrar` para
+  dado relevante e `contexto.decisao` para **toda** variável que decide um ramo — antes do desvio.
+  Não crie `Logger` para narrar fluxo: `INFO` e `DEBUG` no código de negócio falham o build
+  (ArchUnit `negocioNaoEmiteInfoNemDebug`). `ERROR` e `WARN` seguem permitidos. Nenhuma classe fora
+  de `comum/observabilidade` importa `io.opentelemetry`. Campo com dado pessoal entra em
+  `src/main/resources/observabilidade/campos-sensiveis.yml` — o que não está lá vai para o log em
+  claro. Detalhes em `docs/observabilidade.md`.
 - **Schema.** O Hibernate roda com `ddl-auto: validate`. Mudança de coluna é migration nova; nunca
   edite uma migration já aplicada.
 - **Transação.** `@Transactional(readOnly = true)` em leitura. Escrita muda a entidade carregada e
@@ -47,9 +52,10 @@ Ou rode `/nova-feature <nome>`.
 
 - Checkstyle: 300 linhas por classe, 40 por método, identificadores só em ASCII.
 - Spotless (`google-java-format`): rode `./gradlew spotlessApply` antes de commitar.
-- ArchUnit (`ArquiteturaTest`): sem ciclo entre features, Controller não fala com Repository,
-  entidade não aparece na assinatura pública de Controller, ninguém usa `System.out`/`System.err`/
-  `printStackTrace`.
+- ArchUnit (`ArquiteturaTest`), seis regras: sem ciclo entre features; Controller não fala com
+  Repository; entidade não aparece na assinatura pública de Controller; ninguém usa
+  `System.out`/`System.err`/`printStackTrace`; `io.opentelemetry` só em `comum/observabilidade`;
+  nenhum `Logger.info`/`Logger.debug` fora de `comum`.
 
 ## Comandos
 

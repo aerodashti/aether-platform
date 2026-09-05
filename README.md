@@ -15,25 +15,43 @@ Este repositório é um monorepo: `backend/` (Spring Boot) e `frontend/` (React 
 
 O Gradle não precisa ser instalado: use o wrapper (`./gradlew`).
 
-## Setup em 5 minutos
+## Setup
+
+Um comando sobe tudo — banco, backend e frontend:
 
 ```bash
-# 1. Hooks de git (roda lint no commit e testes no push)
-npm install
-
-# 2. Banco de dados local
-cp infra/.env.example infra/.env
-docker compose -f infra/docker-compose.yml up -d
-
-# 3. Backend — http://localhost:8080, OpenAPI em /swagger-ui.html
-cd backend
-./gradlew bootRun
-
-# 4. Frontend — http://localhost:5173 (em outro terminal)
-cd frontend
-npm install
-npm run dev
+./scripts/ambiente.sh up
 ```
+
+Ele é idempotente: rodar de novo não duplica nada, só reporta o que já estava no ar. Na primeira
+vez também instala as dependências e cria o `infra/.env`.
+
+| Comando | O que faz |
+| --- | --- |
+| `./scripts/ambiente.sh up` | Sobe banco, backend (`:8080`) e frontend (`:5173`) |
+| `./scripts/ambiente.sh status` | Mostra o que está no ar |
+| `./scripts/ambiente.sh logs [backend\|frontend\|banco]` | Acompanha os logs |
+| `./scripts/ambiente.sh down` | Para tudo, **preservando** os dados |
+| `./scripts/ambiente.sh reset` | Apaga os volumes e sobe do zero — use ao mexer em migration |
+| `up` ou `reset` com `--observabilidade` | Inclui o coletor de traces e logs em `:5080` |
+
+`reset` é o que você quer quando mudou uma migration, uma coluna ou o seed: o banco volta vazio e o
+Flyway roda de novo do começo.
+
+### Fazendo na mão
+
+Se preferir controlar cada parte, é isto que o script faz:
+
+```bash
+npm install                                          # hooks de git
+cp infra/.env.example infra/.env
+docker compose -f infra/docker-compose.yml up -d     # PostgreSQL
+cd backend  && ./gradlew bootRun                     # http://localhost:8080
+cd frontend && npm ci && npm run dev                 # http://localhost:5173
+```
+
+Um request produz uma linha de log com tudo o que aconteceu nele; o passo a passo de como ver
+traces e logs em uma interface está em `docs/observabilidade.md`.
 
 ## Verificando o projeto
 
@@ -73,6 +91,6 @@ Isso lê o OpenAPI de `http://localhost:8080/v3/api-docs` e regrava `src/api/tip
 - `docs/convencoes.md` — nomenclatura, idioma, commits
 - `docs/design-system.md` — tokens e primitivos
 - `docs/testes.md` — o que testar em cada camada
-- `docs/logs.md` — padrão e níveis de log
+- `docs/observabilidade.md` — a linha canônica por request, traces e sanitização
 - `docs/glossario.md` — vocabulário de domínio
 - `docs/adr/` — por que cada decisão técnica foi tomada

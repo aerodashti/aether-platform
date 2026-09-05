@@ -23,3 +23,6 @@ infra/.env
 
 # Claude Code
 .claude/settings.local.json
+
+# Estado local do scripts/ambiente.sh
+.aether/
