@@ -1,33 +1,38 @@
+/* Os quatro degraus consomem a escala tipográfica do bundle: cada tamanho traz a sua altura de
+   linha, e o peso 700 existe só no título. Nenhum px de texto fora de tokens/. */
+
 .titulo {
-  font-family: var(--fonte-titulo);
+  font-family: var(--fonte-base);
   font-size: var(--tamanho-ggg);
-  font-weight: var(--peso-normal);
-  line-height: var(--altura-apertada);
+  font-weight: var(--peso-maximo);
+  line-height: var(--altura-ggg);
+  letter-spacing: var(--rastreio-titulo);
   margin: 0;
 }
 
 .subtitulo {
-  font-family: var(--fonte-titulo);
+  font-family: var(--fonte-base);
   font-size: var(--tamanho-gg);
-  font-weight: var(--peso-normal);
-  line-height: var(--altura-apertada);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-gg);
+  letter-spacing: var(--rastreio-titulo);
   margin: 0;
 }
 
 .corpo {
   font-family: var(--fonte-base);
-  font-size: var(--tamanho-m);
+  font-size: var(--tamanho-g);
   font-weight: var(--peso-normal);
-  line-height: var(--altura-normal);
+  line-height: var(--altura-g);
   margin: 0;
 }
 
 .legenda {
   font-family: var(--fonte-base);
   font-size: var(--tamanho-s);
-  font-weight: var(--peso-medio);
-  line-height: var(--altura-normal);
-  letter-spacing: 0.04em;
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  letter-spacing: var(--rastreio-legenda);
   text-transform: uppercase;
   margin: 0;
 }

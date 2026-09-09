@@ -19,7 +19,17 @@
         "transition-duration"
       ],
       {
-        "ignoreValues": ["inherit", "transparent", "currentColor", "none", "0", "auto"],
+        "ignoreValues": [
+          "inherit",
+          "transparent",
+          "currentColor",
+          "none",
+          "0",
+          "auto",
+          "light",
+          "dark",
+          "0.01ms"
+        ],
         "message": "Use um token de design-system/tokens/ em vez de um valor literal."
       }
     ]

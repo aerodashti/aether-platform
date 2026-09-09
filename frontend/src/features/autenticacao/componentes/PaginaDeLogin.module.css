@@ -1,0 +1,101 @@
+.tela {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--cor-superficie);
+}
+
+/* O painel não encolhe: o formulário tem largura de leitura, e é o painel da arte que cede. */
+.painel {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: min(560px, 100%);
+  min-width: 0;
+  padding: var(--espaco-9) var(--espaco-10);
+  overflow-y: auto;
+  background: linear-gradient(
+    170deg,
+    var(--cor-superficie) 0%,
+    var(--cor-borda-suave) 52%,
+    var(--cor-borda) 100%
+  );
+}
+
+@media (max-width: 640px) {
+  .painel {
+    padding: var(--espaco-7) var(--espaco-6);
+  }
+}
+
+/* `min-height: 100%` com `justify-content: space-between` prende marca no topo e rodapé embaixo
+   quando sobra espaço, e deixa o painel rolar quando não sobra — que é o caso em 1024×768. */
+.coluna {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--espaco-7);
+  min-height: 100%;
+}
+
+.marca {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.palavraDaMarca {
+  letter-spacing: var(--rastreio-marca);
+}
+
+.assinatura {
+  margin: 0;
+  color: var(--cor-acento-escuro);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  letter-spacing: var(--rastreio-etiqueta);
+  text-transform: uppercase;
+}
+
+.formulario {
+  width: 100%;
+  max-width: 424px;
+  padding: var(--espaco-7) 0;
+}
+
+.rodape {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-xs);
+}
+
+/* A faixa existe sempre, vazia ou não: um contêiner que aparece junto com o texto não é anunciado
+   de forma confiável por leitor de tela. */
+.faixaDeAviso {
+  position: fixed;
+  bottom: var(--espaco-7);
+  left: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.aviso {
+  margin: 0;
+  padding: var(--espaco-4) var(--espaco-6);
+  border-radius: var(--raio-s);
+  background: var(--cor-acento-solido);
+  box-shadow: var(--elevacao-3);
+  color: var(--cor-acento-contraste);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}

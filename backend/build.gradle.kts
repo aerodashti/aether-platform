@@ -48,6 +48,12 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-validation")
+  // Envio do código de recuperação. É o JavaMailSender do Spring: sem cliente HTTP de terceiro.
+  implementation("org.springframework.boot:spring-boot-starter-mail")
+  // Só o BCrypt, não o starter inteiro: `spring-security-crypto` é uma biblioteca sem
+  // auto-configuração, então não instala filtro nem tranca endpoint. O starter completo entra
+  // junto com a área logada, quando existir autorização para configurar. Ver ADR 0013.
+  implementation("org.springframework.security:spring-security-crypto")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
   implementation("net.logstash.logback:logstash-logback-encoder:8.1")
   implementation("org.mapstruct:mapstruct:$versaoMapstruct")

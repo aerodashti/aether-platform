@@ -133,6 +133,26 @@ class SanitizadorDeLogTest {
   }
 
   @Test
+  @DisplayName("esconde por inteiro senha, código de recuperação e e-mail")
+  void escondeCredenciaisEEmail() {
+    Map<String, Object> entrada =
+        comoMapa("{\"email\":\"leonardo@administraair.com.br\",\"senha\":\"aether-dev-2026\"}");
+
+    assertThat(entrada).containsEntry("email", "***").containsEntry("senha", "***");
+    assertThat(String.valueOf(entrada))
+        .doesNotContain("aether-dev-2026")
+        .doesNotContain("leonardo@administraair.com.br");
+
+    Map<String, Object> recuperacao =
+        comoMapa("{\"codigo\":\"519274\",\"novaSenha\":\"senha-nova-longa\"}");
+
+    assertThat(recuperacao).containsEntry("codigo", "***").containsEntry("novaSenha", "***");
+    assertThat(String.valueOf(recuperacao))
+        .doesNotContain("519274")
+        .doesNotContain("senha-nova-longa");
+  }
+
+  @Test
   @DisplayName("corpo vazio não vira campo")
   void corpoVazioEhIgnorado() {
     assertThat(sanitizador.sanitizarCorpo(new byte[0], JSON)).isNull();

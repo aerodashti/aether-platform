@@ -12,7 +12,8 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    # `db/seed` traz os usuários de desenvolvimento e é retirado no perfil de produção.
+    locations: classpath:db/migration,classpath:db/seed
   threads:
     virtual:
       enabled: true
@@ -30,6 +31,17 @@ springdoc:
 
 aether:
   versao: 0.1.0
+  # Política de acesso. São números de segurança, não constantes de código: mudam por ambiente.
+  autenticacao:
+    duracao-da-sessao: PT12H
+    tentativas-ate-bloquear: 5
+    duracao-do-bloqueio: PT15M
+    validade-do-codigo: PT10M
+    tentativas-por-codigo: 5
+    intervalo-entre-codigos: PT1M
+    remetente: ${AETHER_EMAIL_REMETENTE:nao-responda@aether.aerodash.com.br}
+    # Em desenvolvimento o front roda em http://localhost: um cookie `Secure` não seria enviado.
+    cookie-seguro: ${AETHER_COOKIE_SEGURO:false}
 
 # Observabilidade: SDK do OpenTelemetry configurado por propriedade, sem Java Agent.
 otel:

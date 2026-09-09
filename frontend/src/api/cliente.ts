@@ -43,7 +43,39 @@ export async function buscar<T>(caminho: string): Promise<T> {
   const resposta = await fetch(`${BASE}${caminho}`, {
     // O traceparent faz o span do backend nascer dentro do trace desta interação.
     headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
+    // O cookie de sessão é HttpOnly: quem o anexa é o navegador, não este código.
+    credentials: 'same-origin',
   });
+  return conferir<T>(caminho, resposta);
+}
+
+/**
+ * Faz uma requisição com corpo JSON. `metodo` cobre POST e DELETE porque os dois carregam a mesma
+ * mecânica de erro e de correlação; o que muda é só o verbo e a presença de corpo.
+ */
+export async function enviar<T>(
+  caminho: string,
+  corpo?: unknown,
+  metodo: 'POST' | 'DELETE' = 'POST',
+): Promise<T> {
+  const resposta = await fetch(`${BASE}${caminho}`, {
+    method: metodo,
+    headers: {
+      Accept: 'application/json',
+      ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...contexto.cabecalhosDeTrace(),
+    },
+    credentials: 'same-origin',
+    body: corpo === undefined ? undefined : JSON.stringify(corpo),
+  });
+  return conferir<T>(caminho, resposta);
+}
+
+/**
+ * Registra a correlação, traduz o erro e devolve o corpo. O 204 do backend não tem corpo: tentar
+ * lê-lo como JSON quebraria os passos da recuperação, que respondem exatamente isso.
+ */
+async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
   const requisicao = resposta.headers.get(HEADER_REQUISICAO);
 
   contexto.registrar('http.caminho', caminho);
@@ -56,5 +88,8 @@ export async function buscar<T>(caminho: string): Promise<T> {
     throw new ErroDeApi(detalhe, resposta.status, requisicao);
   }
 
+  if (resposta.status === 204 || resposta.headers.get('Content-Length') === '0') {
+    return undefined as T;
+  }
   return (await resposta.json()) as T;
 }

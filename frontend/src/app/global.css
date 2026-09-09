@@ -1,3 +1,19 @@
+/* `color-scheme` acompanha o tema escolhido para que controle nativo, barra de rolagem e
+   autofill do navegador nasçam na cor certa — os tokens sozinhos não alcançam esses elementos. */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='escuro'] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='claro']) {
+    color-scheme: dark;
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -9,7 +25,22 @@ body {
   background: var(--cor-fundo);
   color: var(--cor-texto);
   font-family: var(--fonte-base);
-  font-size: var(--tamanho-m);
-  line-height: var(--altura-normal);
+  font-size: var(--tamanho-g);
+  line-height: var(--altura-g);
+
+  /* Herdado por todo dado numérico: em grade densa, dígito de largura variável desalinha coluna. */
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+}
+
+/* O produto é de leitura, não de animação: quem pediu menos movimento recebe menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
