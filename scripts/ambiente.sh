@@ -4,6 +4,7 @@
 #
 #   ./scripts/ambiente.sh up       banco + backend + frontend, sem duplicar o que já está no ar
 #   ./scripts/ambiente.sh reset    o mesmo, mas apagando os volumes do banco antes
+#   ./scripts/ambiente.sh restart  mata backend e frontend (mesmo de outro branch) e sobe de novo
 #   ./scripts/ambiente.sh down     para tudo, preservando os dados
 #   ./scripts/ambiente.sh status   o que está no ar
 #   ./scripts/ambiente.sh logs     acompanha os logs
@@ -34,6 +35,7 @@ Sobe, derruba e recria o ambiente de desenvolvimento do Aether.
 
   ./scripts/ambiente.sh up       banco + backend + frontend, sem duplicar o que já está no ar
   ./scripts/ambiente.sh reset    o mesmo, mas apagando os volumes do banco antes
+  ./scripts/ambiente.sh restart  mata backend e frontend (mesmo de outro branch) e sobe de novo
   ./scripts/ambiente.sh down     para tudo, preservando os dados
   ./scripts/ambiente.sh status   o que está no ar
   ./scripts/ambiente.sh logs     acompanha os logs
@@ -42,7 +44,7 @@ Todo comando é idempotente: rodar duas vezes tem o mesmo efeito de rodar uma.
 
 Opções:
   --observabilidade   inclui o coletor de traces e logs (profile do Compose) e faz o
-                      backend exportar para ele. Vale para `up` e para `reset`.
+                      backend exportar para ele. Vale para `up`, `restart` e `reset`.
 
 Argumentos de `logs`: backend | frontend | banco   (sem argumento, mostra os dois primeiros)
 AJUDA
@@ -119,6 +121,16 @@ compose_todos() {
 }
 
 # ----------------------------------------------------------------------------- passos
+# O npm grava node_modules/.package-lock.json ao final de cada instalação. Se o
+# package-lock.json do projeto for mais novo que ele, alguém trocou de branch e trouxe
+# dependência nova sem instalar — foi assim que apareceu "Failed to resolve import d3-geo".
+precisa_instalar_frontend() {
+  local instalado="$RAIZ/frontend/node_modules/.package-lock.json"
+  [ -d "$RAIZ/frontend/node_modules" ] || return 0
+  [ -f "$instalado" ] || return 0
+  [ "$RAIZ/frontend/package-lock.json" -nt "$instalado" ]
+}
+
 preparar_arquivos() {
   mkdir -p "$TRABALHO"
   if [ ! -f "$RAIZ/infra/.env" ]; then
@@ -129,7 +141,7 @@ preparar_arquivos() {
     azul "  instalando dependências da raiz (hooks de git)"
     (cd "$RAIZ" && npm install --silent)
   fi
-  if [ ! -d "$RAIZ/frontend/node_modules" ]; then
+  if precisa_instalar_frontend; then
     azul "  instalando dependências do frontend"
     (cd "$RAIZ/frontend" && npm ci --silent)
   fi
@@ -262,6 +274,17 @@ comando_down() {
   verde 'Ambiente parado. Os volumes foram preservados; use "reset" para apagá-los.'
 }
 
+# `up` considera "no ar" qualquer processo que responda nas portas, inclusive um que ficou
+# rodando de outro branch. `restart` derruba os dois antes de subir; o banco não é tocado.
+comando_restart() {
+  conferir_prerequisitos
+  azul "reiniciando processos locais"
+  parar_porta "$PORTA_FRONTEND" "frontend"
+  parar_porta "$PORTA_BACKEND" "backend"
+  echo
+  comando_up
+}
+
 comando_reset() {
   conferir_prerequisitos
   ambar "Isto apaga os volumes do Docker: o banco volta vazio e o Flyway roda do zero."
@@ -314,6 +337,7 @@ case "${COMANDO:-up}" in
   up)     comando_up ;;
   down)   comando_down ;;
   reset)  comando_reset ;;
+  restart|--reiniciar) comando_restart ;;
   status) comando_status ;;
   logs)   comando_logs "${ALVO:-tudo}" ;;
   *)      uso; falhar "Comando desconhecido: $COMANDO" ;;

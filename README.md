@@ -32,6 +32,7 @@ vez também instala as dependências e cria o `infra/.env`.
 | `./scripts/ambiente.sh status` | Mostra o que está no ar |
 | `./scripts/ambiente.sh logs [backend\|frontend\|banco]` | Acompanha os logs |
 | `./scripts/ambiente.sh down` | Para tudo, **preservando** os dados |
+| `./scripts/ambiente.sh restart` | Mata backend e frontend (mesmo se forem de outro branch) e sobe de novo |
 | `./scripts/ambiente.sh reset` | Apaga os volumes e sobe do zero — use ao mexer em migration |
 | `up` ou `reset` com `--observabilidade` | Inclui o coletor de traces e logs em `:5080` |
 

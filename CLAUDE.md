@@ -28,6 +28,7 @@ Público de alto padrão: a referência visual é gestão patrimonial, não ferr
 ```bash
 ./scripts/ambiente.sh up                           # sobe banco, backend e frontend (idempotente)
 ./scripts/ambiente.sh reset                        # o mesmo, apagando os volumes do banco antes
+./scripts/ambiente.sh restart                      # mata backend e frontend e sobe de novo (troca de branch)
 ./scripts/ambiente.sh status                       # o que está no ar
 docker compose -f infra/docker-compose.yml up -d   # só o PostgreSQL
 cd backend && ./gradlew check testeIntegracao      # verificação completa do backend
