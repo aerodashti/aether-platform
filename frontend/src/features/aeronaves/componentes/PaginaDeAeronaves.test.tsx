@@ -1,13 +1,19 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeAeronaves } from './PaginaDeAeronaves';
 
+// A grade agora navega (a matrícula é Link), então o teste precisa de um Router por volta.
 function envolver(conteudo: ReactNode) {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>);
+  return render(
+    <MemoryRouter>
+      <QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>
+    </MemoryRouter>,
+  );
 }
 
 function respostaDe(corpo: unknown, status = 200) {

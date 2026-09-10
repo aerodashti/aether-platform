@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.aeronave;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,9 +18,10 @@ import java.util.Locale;
  * <p>A camada regulatória mora aqui, não no service: se um {@code if} olha só para os vencimentos
  * deste objeto, ele pertence a este objeto. Veja {@code docs/arquitetura.md}.
  *
- * <p>Hoje a aeronave é só cadastro e conformidade. O que o domínio ainda pede — contadores de horas
- * e ciclos alimentados pelo diário de bordo, participações de proprietários, fundo — entra com as
- * features donas de cada um.
+ * <p>Além do cadastro e da conformidade, a aeronave carrega a ficha técnica (contadores declarados,
+ * corrigidos só por administrador até o diário de voos alimentá-los) e a configuração financeira do
+ * rateio. As participações de proprietários moram em {@code participacao}, com o contrato vigente e
+ * o histórico.
  */
 @Entity
 @Table(name = "aeronave")
@@ -37,6 +39,23 @@ public class Aeronave {
 
   @Column(name = "base", nullable = false, length = 4)
   private String base;
+
+  @Column(name = "fabricante", length = 80)
+  private String fabricante;
+
+  @Column(name = "numero_de_serie", length = 40)
+  private String numeroDeSerie;
+
+  @Column(name = "hangar", length = 60)
+  private String hangar;
+
+  /** Número da apólice. A vigência é o {@code vencimentoReta}: RETA é o seguro. */
+  @Column(name = "apolice_do_seguro", length = 40)
+  private String apoliceDoSeguro;
+
+  @Embedded private ContadoresDaAeronave contadores;
+
+  @Embedded private ConfiguracaoFinanceira configuracaoFinanceira;
 
   @Column(name = "vencimento_cva", nullable = false)
   private LocalDate vencimentoCva;
@@ -65,6 +84,8 @@ public class Aeronave {
     this.base = normalizarBase(base);
     this.vencimentoCva = vencimentoCva;
     this.vencimentoReta = vencimentoReta;
+    this.contadores = ContadoresDaAeronave.zerados();
+    this.configuracaoFinanceira = ConfiguracaoFinanceira.padrao();
     this.criadoEm = momento;
     this.atualizadoEm = momento;
   }
@@ -136,6 +157,37 @@ public class Aeronave {
     this.atualizadoEm = momento;
   }
 
+  /** Os dados de identificação da ficha técnica. A matrícula fica de fora: é identidade. */
+  public void atualizarFichaTecnica(FichaTecnica ficha, Instant momento) {
+    this.fabricante = ficha.fabricante();
+    this.modelo = ficha.modelo();
+    this.numeroDeSerie = ficha.numeroDeSerie();
+    this.base = normalizarBase(ficha.base());
+    this.hangar = ficha.hangar();
+    this.apoliceDoSeguro = ficha.apoliceDoSeguro();
+    this.atualizadoEm = momento;
+  }
+
+  /** Os campos editáveis da ficha, juntos: eles só andam juntos. */
+  public record FichaTecnica(
+      String fabricante,
+      String modelo,
+      String numeroDeSerie,
+      String base,
+      String hangar,
+      String apoliceDoSeguro) {}
+
+  /** Correção manual dos totais — rota de administrador enquanto o diário de voos não existe. */
+  public void corrigirContadores(ContadoresDaAeronave novosContadores, Instant momento) {
+    this.contadores = novosContadores;
+    this.atualizadoEm = momento;
+  }
+
+  public void atualizarConfiguracaoFinanceira(ConfiguracaoFinanceira nova, Instant momento) {
+    this.configuracaoFinanceira = nova;
+    this.atualizadoEm = momento;
+  }
+
   public Long getId() {
     return id;
   }
@@ -158,6 +210,30 @@ public class Aeronave {
 
   public LocalDate getVencimentoReta() {
     return vencimentoReta;
+  }
+
+  public String getFabricante() {
+    return fabricante;
+  }
+
+  public String getNumeroDeSerie() {
+    return numeroDeSerie;
+  }
+
+  public String getHangar() {
+    return hangar;
+  }
+
+  public String getApoliceDoSeguro() {
+    return apoliceDoSeguro;
+  }
+
+  public ContadoresDaAeronave getContadores() {
+    return contadores;
+  }
+
+  public ConfiguracaoFinanceira getConfiguracaoFinanceira() {
+    return configuracaoFinanceira;
   }
 
   public Instant getCriadoEm() {

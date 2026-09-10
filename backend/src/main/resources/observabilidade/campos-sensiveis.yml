@@ -28,6 +28,8 @@ campos:
   # Documento da empresa. Público no Brasil, mas a política deste arquivo manda mascarar
   # documento — e um CNPJ em log de produção não ajuda ninguém a depurar nada.
   cnpj: integral
+  # Código ANAC do tripulante: documento pessoal.
+  canac: integral
   cpf: cpf
   # Documento do proprietário: CPF ou CNPJ no mesmo campo. Mascarado inteiro porque a
   # estratégia `cpf` assume 11 dígitos e aqui podem ser 14.

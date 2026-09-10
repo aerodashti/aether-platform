@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { RotaAutenticada } from '@/compartilhado/sessao/RotaAutenticada';
 import { RotaDeAdministrador } from '@/compartilhado/sessao/RotaDeAdministrador';
 import { PaginaDeAeronaves } from '@/features/aeronaves/componentes/PaginaDeAeronaves';
+import { PaginaDeDetalheDaAeronave } from '@/features/aeronaves/componentes/PaginaDeDetalheDaAeronave';
 import { PaginaDeLogin } from '@/features/autenticacao/componentes/PaginaDeLogin';
 import { PaginaDeConfiguracoes } from '@/features/configuracoes/componentes/PaginaDeConfiguracoes';
 import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/PaginaDeProprietarios';
@@ -24,6 +25,7 @@ export function Rotas() {
         <Route element={<LayoutDaAplicacao />}>
           <Route index element={<PaginaSaude />} />
           <Route path="/aeronaves" element={<PaginaDeAeronaves />} />
+          <Route path="/aeronaves/:id" element={<PaginaDeDetalheDaAeronave />} />
           <Route path="/proprietarios" element={<PaginaDeProprietarios />} />
           <Route path="/configuracoes" element={<PaginaDeConfiguracoes />} />
           <Route element={<RotaDeAdministrador />}>

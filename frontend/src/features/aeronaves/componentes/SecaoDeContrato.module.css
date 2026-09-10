@@ -1,0 +1,128 @@
+.secao {
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-5);
+}
+
+.acoesDeEdicao {
+  display: flex;
+  gap: var(--espaco-3);
+}
+
+.lista {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.linha {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  min-height: var(--controle-altura-p);
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.dono {
+  display: flex;
+  flex: 1;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Barra de participação: um retângulo de canto reto, como tudo no produto. */
+.barra {
+  flex: 1;
+  max-width: 240px;
+  height: 4px;
+  background: var(--cor-borda-suave);
+}
+
+.preenchimento {
+  display: block;
+  height: 100%;
+  background: var(--cor-acento);
+}
+
+.percentual {
+  min-width: 72px;
+  font-weight: var(--peso-forte);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.campoDePercentual {
+  width: 112px;
+}
+
+.edicao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.adicionar {
+  max-width: 320px;
+  padding-top: var(--espaco-3);
+}
+
+.rodapeDeEdicao {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.historico {
+  margin-top: var(--espaco-5);
+}
+
+.arquivado {
+  padding: var(--espaco-4);
+  margin-top: var(--espaco-3);
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda-suave);
+}
+
+.arquivadoCabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-2);
+}
+
+.listaCompacta .linha {
+  min-height: auto;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-6);
+  text-align: center;
+}

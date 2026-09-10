@@ -17,6 +17,17 @@
 | --- | --- | --- | --- | --- |
 | Aeronave | `aeronave` | Aeronave | `aviao`, `jato`, `aircraft` | Jato ou helicóptero sob gestão do proprietário. Cobre os dois tipos. |
 | Proprietário | `proprietario` | Proprietário | `dono`, `owner`, `cliente` | Pessoa física ou jurídica titular da aeronave no RAB. |
+| Contrato de participação | `contratoDeParticipacao` | Contrato de participação | `sociedade`, `cotas`, `shares` | A foto de quem é dono de quanto de uma aeronave, de um instante até o próximo contrato. Não se edita — se arquiva: alterar cria um novo e encerra o vigente (ADR-0016). |
+| Participação | `participacao` | Participação | `cota`, `fatia`, `share` | A fração de um proprietário num contrato: **% de propriedade**, duas casas, soma do contrato fechando em 100. Distinta do % do rateio, que é derivado por competência. |
+| Ficha técnica | `fichaTecnica` | Ficha técnica | `specs`, `dadosTecnicos` | Identificação e totais da aeronave no detalhe: fabricante, nº de série, hangar, contadores e seguro. |
+| Contadores da aeronave | `contadores` | — | `totalizadores`, `medidores` | Totais acumulados: horas de célula, ciclos, km voados, horas por motor e APU. Declarados no cadastro e corrigidos só por administrador até o diário de voos alimentá-los. Motor 2 e APU nulos significam "não tem", não zero. |
+| Base do rateio | `baseDoRateio` | Base do rateio | `criterio`, `metodo` | Como o custo se divide: `POR_USO` (horas/km voados) ou `POR_PROPRIEDADE` (% do contrato). |
+| Aporte | `aporte` | Aporte | `contribuicao`, `deposito` | Entrada de dinheiro do proprietário no fundo da aeronave. O modelo é `FIXO` ou `PROPORCIONAL_AO_USO`, com periodicidade em meses (1, 2, 3, 4, 6 ou 12). |
+| Dia de fechamento | `diaDeFechamento` | Dia de fechamento da fatura | `dataDeCorte` | Dia do mês em que a fatura da aeronave fecha, de 1 a 28 — fevereiro decide o teto. |
+| CANAC | `canac` | CANAC | `codigoAnac` (por extenso), `licenca` | Código ANAC do tripulante, gravado só com dígitos. Sigla oficial: não se traduz. |
+| CMA | `validadeCma` | CMA | `atestadoMedico`, `medical` | Certificado Médico Aeronáutico. O que se guarda é a validade; nula significa "não informada", não vencida. |
+| CHT | `validadeCht` | CHT | `habilitacao` (sozinho), `rating` | Certificado de Habilitação Técnica. Mesma regra do CMA para validade nula. |
+| Função do tripulante | `funcaoDoTripulante` | Função | `cargo`, `role`, `checkPilot` | O papel do tripulante numa aeronave: `COMANDANTE`, `COPILOTO`, `INSTRUTOR`, `EXAMINADOR` (o "check pilot" do jargão vira Examinador). Uma função por vínculo. |
 | Cor de identificação | `corDeIdentificacao` | Cor de identificação | `cor` (sozinho), `avatar`, `badge` | Cor com que o proprietário aparece na interface: no ponto ao lado do nome e nos trechos do calendário. Paleta fechada (`PETROLEO`, `AZUL`, `CELESTE`, `VERDE`, `AMBAR`, `CINZA`); cada valor mapeia para um token do design system. |
 | Situação do proprietário | `situacaoDoProprietario` | Situação | `status`, `ativo` (como campo) | Se o proprietário participa da operação hoje: `ATIVO` ou `INATIVO`. Desativar preserva o histórico; excluir de verdade não existe neste domínio. |
 | CPF/CNPJ | `cpfCnpj` | CPF / CNPJ | `documento` (genérico), `cpf` ou `cnpj` (isolados, quando o campo aceita os dois) | Documento do proprietário, gravado só com dígitos: 11 para CPF, 14 para CNPJ. Opcional no cadastro; o contrato de participação é que o exige. |

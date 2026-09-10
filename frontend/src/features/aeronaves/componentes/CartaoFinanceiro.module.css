@@ -1,0 +1,44 @@
+.cartao {
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-4);
+}
+
+.linhas {
+  margin: 0;
+}
+
+.linha {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--espaco-3) 0;
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:last-child {
+  border-bottom: 0;
+}
+
+.rotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.valor {
+  margin: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

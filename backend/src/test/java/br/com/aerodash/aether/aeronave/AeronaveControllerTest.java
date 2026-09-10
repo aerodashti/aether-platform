@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -89,5 +91,60 @@ class AeronaveControllerTest {
         .andExpect(jsonPath("$[0].documentoDoProximoVencimento").value("RETA"))
         .andExpect(jsonPath("$[0].diasAteOProximoVencimento").value(12))
         .andExpect(jsonPath("$[0].podeVoar").value(true));
+  }
+
+  @Test
+  @DisplayName("proprietário não edita a ficha técnica: 403 antes do service")
+  void proprietarioNaoEditaFicha() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
+
+    mockMvc
+        .perform(
+            put("/aeronaves/1/ficha-tecnica")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"modelo":"Citation XLS+","base":"SBSP"}
+                    """))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("corrigir contadores é de administrador: gestor recebe 403")
+  void gestorNaoCorrigeContadores() throws Exception {
+    when(autenticacao.autenticar(TOKEN))
+        .thenReturn(Optional.of(new UsuarioAutenticado(2L, "Patrícia", PapelDoUsuario.GESTOR)));
+
+    mockMvc
+        .perform(
+            put("/aeronaves/1/contadores")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"horasDeCelula":3412.5,"ciclos":2890,"kmVoados":1482300}
+                    """))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("o administrador corrige contadores; negativo é barrado pela validação")
+  void administradorCorrigeContadores() throws Exception {
+    UsuarioAutenticado administrador =
+        new UsuarioAutenticado(1L, "Leonardo", PapelDoUsuario.ADMINISTRADOR);
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(administrador));
+
+    mockMvc
+        .perform(
+            put("/aeronaves/1/contadores")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"horasDeCelula":-1,"ciclos":2890,"kmVoados":1482300}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.horasDeCelula").exists());
   }
 }

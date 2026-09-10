@@ -1,0 +1,40 @@
+.cartao {
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--espaco-5);
+}
+
+.pares {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--espaco-5) var(--espaco-4);
+  margin: 0;
+}
+
+.par {
+  min-width: 0;
+}
+
+.chave {
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+}
+
+.valor {
+  margin: var(--espaco-1) 0 0;
+  overflow: hidden;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
