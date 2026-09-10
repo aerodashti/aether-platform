@@ -1,0 +1,145 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-5);
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.identidade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-5);
+  align-items: baseline;
+  min-width: 0;
+}
+
+.matricula {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-ggg);
+  letter-spacing: var(--rastreio-codigo);
+  font-variant-numeric: tabular-nums;
+}
+
+.nomeada {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: baseline;
+  min-width: 0;
+}
+
+.situacao {
+  display: inline-flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+}
+
+/* Dot com a cor da severidade: um dos poucos círculos permitidos. */
+.ponto {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--raio-redondo);
+}
+
+.regular {
+  color: var(--cor-positivo);
+}
+
+.atencao {
+  color: var(--cor-atencao);
+}
+
+.vencido {
+  color: var(--cor-critico);
+}
+
+.regular .ponto {
+  background: var(--cor-positivo);
+}
+
+.atencao .ponto {
+  background: var(--cor-atencao);
+}
+
+.vencido .ponto {
+  background: var(--cor-critico);
+}
+
+.metricas {
+  display: flex;
+  gap: var(--espaco-7);
+  margin: 0;
+}
+
+.metrica {
+  text-align: right;
+}
+
+.metricaRotulo {
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+}
+
+.metricaValor {
+  margin: var(--espaco-1) 0 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricaCritica {
+  color: var(--cor-critico);
+}
+
+.cartoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .cartoes {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.recadoAcoes {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+}
+
+.carregando {
+  padding: var(--espaco-8);
+  text-align: center;
+}

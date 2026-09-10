@@ -2,9 +2,12 @@ package br.com.aerodash.aether.aeronave;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,8 +37,29 @@ public class AeronaveController {
   }
 
   @GetMapping("/{id}")
-  @Operation(summary = "Devolve uma aeronave")
-  public AeronaveResponse buscar(@PathVariable Long id) {
+  @Operation(summary = "Devolve o detalhe de uma aeronave: ficha técnica e configuração")
+  public DetalheDaAeronaveResponse buscar(@PathVariable Long id) {
     return aeronaves.buscar(id);
+  }
+
+  @PutMapping("/{id}/ficha-tecnica")
+  @Operation(summary = "Atualiza os dados de identificação da ficha técnica")
+  public DetalheDaAeronaveResponse atualizarFichaTecnica(
+      @PathVariable Long id, @Valid @RequestBody FichaTecnicaRequest request) {
+    return aeronaves.atualizarFichaTecnica(id, request);
+  }
+
+  @PutMapping("/{id}/contadores")
+  @Operation(summary = "Corrige os totais acumulados — rota de administrador")
+  public DetalheDaAeronaveResponse corrigirContadores(
+      @PathVariable Long id, @Valid @RequestBody ContadoresRequest request) {
+    return aeronaves.corrigirContadores(id, request);
+  }
+
+  @PutMapping("/{id}/configuracao-financeira")
+  @Operation(summary = "Atualiza a base do rateio, o aporte e o dia de fechamento")
+  public DetalheDaAeronaveResponse atualizarConfiguracaoFinanceira(
+      @PathVariable Long id, @Valid @RequestBody ConfiguracaoFinanceiraRequest request) {
+    return aeronaves.atualizarConfiguracaoFinanceira(id, request);
   }
 }

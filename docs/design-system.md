@@ -160,7 +160,7 @@ acessibilidade ficam em um lugar só.
 | --- | --- | --- | --- |
 | `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
 | `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco |
-| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
+| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
 | `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
 | `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
@@ -168,6 +168,7 @@ acessibilidade ficam em um lugar só.
 | `PainelModal` | `primitivos/PainelModal.tsx` | — | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal |
 | `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
 | `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
+| `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
 
 ### A variante `contorno` do `Botao`
 
@@ -251,6 +252,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
 | Tela de Proprietários (grade, filtros, painel de cadastro) | **Parcial** — `features/proprietarios`. Ver a nota abaixo sobre as colunas ausentes |
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
+| Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados
@@ -262,6 +264,21 @@ sparkline. Todos pertencem a telas da área logada que ainda não existem.
 O **esqueleto de carregamento** virou o primitivo `Esqueleto` quando a grade de Proprietários — a
 segunda — precisou dele, agora com o gradiente animado do `.skel` do handoff e
 `prefers-reduced-motion` respeitado.
+
+### O Detalhe da aeronave não tem abas — ainda
+
+O protótipo dá à aeronave sete abas (Visão geral, Voos, Custos, Rateio, Manutenção, Proprietários,
+Documentos); cinco são atalhos para telas que ainda não existem, e **aba para tela que não existe é
+porta pintada na parede**. A implementação empilha em uma coluna o que existe: contrato de
+participações, tripulação, ficha técnica e configuração financeira. As abas nascem quando as telas
+de destino nascerem.
+
+Do contrato, as colunas "% no rateio da competência" e "Saldo acumulado" ficam de fora até o
+fechamento existir — mesma regra das colunas da frota. A fatura e a cobertura do fundo do cartão
+financeiro pertencem a aportes; a trava de "fechamento pendente" no dia da fatura pertence ao
+rateio. O "Excluir" da linha de participação existe (remover do contrato novo), mas o
+rebalanceamento guiado do protótipo — abrir a exclusão de um proprietário já distribuindo a fatia
+liberada — entra com a tela de rateio.
 
 ### A tela de Proprietários tem quatro colunas, não seis
 

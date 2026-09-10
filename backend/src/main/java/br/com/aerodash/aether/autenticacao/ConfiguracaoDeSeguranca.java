@@ -54,6 +54,15 @@ public class ConfiguracaoDeSeguranca {
                     .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
                     .requestMatchers("/usuarios/**")
                     .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+                    // Corrigir contadores reescreve horas e ciclos na mão: só administrador.
+                    .requestMatchers("/aeronaves/*/contadores")
+                    .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+                    // A frota é o chão de toda a operação: ler é de quem tem sessão.
+                    // Editar ficha, financeiro e contrato de participações é de quem gere.
+                    .requestMatchers(HttpMethod.GET, "/aeronaves", "/aeronaves/**")
+                    .authenticated()
+                    .requestMatchers("/aeronaves", "/aeronaves/**")
+                    .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
                     // O nome e a cor do proprietário aparecem em grades da operação inteira:
                     // ler é de quem tem sessão. Mexer no cadastro é de quem gere a conta.
                     .requestMatchers(HttpMethod.GET, "/proprietarios")

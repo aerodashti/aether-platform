@@ -1,0 +1,20 @@
+.link {
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-texto);
+  text-decoration: none;
+  outline-offset: 2px;
+}
+
+.link:hover {
+  color: var(--cor-acento-escuro);
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--cor-foco);
+}
+
+.mono {
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,5 +1,6 @@
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
+import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import type { AeronaveResponse } from '../api/useAeronaves';
@@ -102,7 +103,11 @@ export function TabelaDaFrota({ itens, carregando, erro, aoTentarDeNovo }: Tabel
           return (
             <tr className={estilos.linha} key={aeronave.id}>
               <td className={estilos.celula}>
-                <span className={estilos.matricula}>{aeronave.matricula}</span>
+                <span className={estilos.matricula}>
+                  <LinkDeTexto para={`/aeronaves/${aeronave.id}`} mono>
+                    {aeronave.matricula}
+                  </LinkDeTexto>
+                </span>
               </td>
 
               <td className={estilos.celula}>

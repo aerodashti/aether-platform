@@ -13,6 +13,41 @@ import org.springframework.stereotype.Component;
 @Component
 public class AeronaveMapper {
 
+  public DetalheDaAeronaveResponse paraDetalhe(
+      Aeronave aeronave, LocalDate hoje, int diasDeAtencao) {
+    ContadoresDaAeronave c = aeronave.getContadores();
+    ConfiguracaoFinanceira f = aeronave.getConfiguracaoFinanceira();
+    return new DetalheDaAeronaveResponse(
+        aeronave.getId(),
+        aeronave.getMatricula(),
+        aeronave.getFabricante(),
+        aeronave.getModelo(),
+        aeronave.getNumeroDeSerie(),
+        aeronave.getBase(),
+        aeronave.getHangar(),
+        aeronave.getApoliceDoSeguro(),
+        aeronave.situacaoRegular(hoje, diasDeAtencao),
+        aeronave.documentoDoProximoVencimento(),
+        aeronave.proximoVencimento(),
+        aeronave.diasAteOProximoVencimento(hoje),
+        aeronave.podeVoar(hoje),
+        aeronave.getVencimentoCva(),
+        aeronave.getVencimentoReta(),
+        new DetalheDaAeronaveResponse.Contadores(
+            c.horasDeCelula(),
+            c.ciclos(),
+            c.kmVoados(),
+            c.horasMotor1(),
+            c.horasMotor2(),
+            c.horasApu()),
+        new DetalheDaAeronaveResponse.Financeiro(
+            f.baseDoRateio(),
+            f.modeloDeAporte(),
+            f.periodicidadeDoAporteMeses(),
+            f.valorDoAporte(),
+            f.diaDeFechamento()));
+  }
+
   public AeronaveResponse paraLinhaDaFrota(Aeronave aeronave, LocalDate hoje, int diasDeAtencao) {
     return new AeronaveResponse(
         aeronave.getId(),

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.Instant;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("Aeronave")
@@ -103,5 +104,81 @@ class AeronaveTest {
 
   private static Aeronave com(LocalDate cva, LocalDate reta, String matricula, String base) {
     return new Aeronave(matricula, "Cessna Citation XLS+", base, cva, reta, AGORA);
+  }
+
+  @Nested
+  @DisplayName("ficha técnica e configuração")
+  class FichaEConfiguracao {
+
+    private static final java.time.Instant MOMENTO =
+        java.time.Instant.parse("2026-09-10T12:00:00Z");
+
+    @Test
+    @DisplayName("nasce com contadores zerados e configuração padrão")
+    void nasceComPadroes() {
+      Aeronave aeronave =
+          new Aeronave(
+              "PS-MEP",
+              "Citation XLS+",
+              "SBSP",
+              java.time.LocalDate.parse("2027-01-01"),
+              java.time.LocalDate.parse("2027-02-01"),
+              MOMENTO);
+
+      assertThat(aeronave.getContadores()).isEqualTo(ContadoresDaAeronave.zerados());
+      assertThat(aeronave.getConfiguracaoFinanceira()).isEqualTo(ConfiguracaoFinanceira.padrao());
+    }
+
+    @Test
+    @DisplayName("atualizar a ficha normaliza a base e preserva a matrícula")
+    void atualizaFicha() {
+      Aeronave aeronave =
+          new Aeronave(
+              "PS-MEP",
+              "Citation XLS+",
+              "SBSP",
+              java.time.LocalDate.parse("2027-01-01"),
+              java.time.LocalDate.parse("2027-02-01"),
+              MOMENTO);
+
+      aeronave.atualizarFichaTecnica(
+          new Aeronave.FichaTecnica(
+              "Cessna", "Citation XLS+", "560-6321", "sbjd", "Hangar 7", "RETA-1"),
+          MOMENTO);
+
+      assertThat(aeronave.getBase()).isEqualTo("SBJD");
+      assertThat(aeronave.getMatricula()).isEqualTo("PS-MEP");
+      assertThat(aeronave.getFabricante()).isEqualTo("Cessna");
+    }
+
+    @Test
+    @DisplayName("contadores negativos são detectados em qualquer campo, nulos ignorados")
+    void contadoresNegativos() {
+      assertThat(ContadoresDaAeronave.zerados().possuiValoresNegativos()).isFalse();
+      assertThat(
+              new ContadoresDaAeronave(
+                      java.math.BigDecimal.ONE,
+                      0,
+                      java.math.BigDecimal.ZERO,
+                      null,
+                      java.math.BigDecimal.valueOf(-1),
+                      null)
+                  .possuiValoresNegativos())
+          .isTrue();
+    }
+
+    @Test
+    @DisplayName("periodicidade fora da tabela e dia 29 não passam")
+    void configuracaoInvalida() {
+      ConfiguracaoFinanceira meses5 =
+          new ConfiguracaoFinanceira(BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1);
+      ConfiguracaoFinanceira dia29 =
+          new ConfiguracaoFinanceira(BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 1, null, 29);
+
+      assertThat(meses5.possuiPeriodicidadeValida()).isFalse();
+      assertThat(dia29.possuiDiaDeFechamentoValido()).isFalse();
+      assertThat(ConfiguracaoFinanceira.padrao().possuiPeriodicidadeValida()).isTrue();
+      assertThat(ConfiguracaoFinanceira.padrao().possuiDiaDeFechamentoValido()).isTrue();
+    }
   }
 }
