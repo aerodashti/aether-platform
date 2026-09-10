@@ -9,7 +9,7 @@ import org.springframework.mail.MailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/** Beans da feature: o codificador de senha e por onde o código de recuperação sai. */
+/** Beans da feature: o codificador de senha e por onde o código e o convite saem. */
 @Configuration
 @EnableConfigurationProperties(PropriedadesDeAutenticacao.class)
 public class ConfiguracaoDeAutenticacao {
@@ -40,5 +40,23 @@ public class ConfiguracaoDeAutenticacao {
   @ConditionalOnMissingBean(EnviadorDeCodigoDeRecuperacao.class)
   public EnviadorDeCodigoDeRecuperacao enviadorParaLog() {
     return new EnviadorParaLog();
+  }
+
+  @Bean
+  @ConditionalOnProperty("spring.mail.host")
+  public EnviadorDeConvite enviadorDeConvitePorEmail(
+      MailSender correio, PropriedadesDeAutenticacao propriedades) {
+    return new EnviadorDeConvitePorEmail(
+        correio,
+        propriedades.remetente(),
+        propriedades.enderecoDoConvite(),
+        propriedades.validadeDoConvite());
+  }
+
+  /** Mesmo par condicional do código de recuperação, e pela mesma razão: dev sem SMTP. */
+  @Bean
+  @ConditionalOnMissingBean(EnviadorDeConvite.class)
+  public EnviadorDeConvite enviadorDeConviteParaLog(PropriedadesDeAutenticacao propriedades) {
+    return new EnviadorDeConviteParaLog(propriedades.enderecoDoConvite());
   }
 }

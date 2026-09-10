@@ -1,0 +1,22 @@
+.dialogo {
+  width: min(480px, 94vw);
+  max-height: 90dvh;
+  padding: 0;
+  overflow: auto;
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-g);
+  box-shadow: var(--elevacao-3);
+}
+
+.dialogo::backdrop {
+  background: var(--cor-overlay);
+}
+
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  padding: var(--espaco-7);
+}

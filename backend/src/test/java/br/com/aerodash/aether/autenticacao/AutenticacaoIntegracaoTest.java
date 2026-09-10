@@ -247,7 +247,7 @@ class AutenticacaoIntegracaoTest {
   private String criarAtivo(String apelido) {
     String email = apelido + "@teste.aether.com.br";
     Instant agora = Instant.now();
-    Usuario usuario = new Usuario("Teste " + apelido, email, agora);
+    Usuario usuario = new Usuario("Teste " + apelido, email, PapelDoUsuario.GESTOR, agora);
     usuario.definirSenha(cofre.codificar(SENHA), agora);
     usuarios.saveAndFlush(usuario);
     return email;

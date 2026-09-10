@@ -1,10 +1,10 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { enviar } from '@/api/cliente';
-import type { components } from '@/api/tipos-gerados';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
+import { CHAVE_DA_SESSAO, type SessaoResponse } from '@/compartilhado/sessao/sessao';
 
-export type SessaoResponse = components['schemas']['SessaoResponse'];
+export type { SessaoResponse };
 
 interface Credenciais {
   email: string;
@@ -25,11 +25,28 @@ interface SenhaNova extends CodigoInformado {
  * sozinho, então não há nada para este código armazenar.
  */
 export function useEntrar() {
+  const cliente = useQueryClient();
   return useMutation({
     mutationFn: (credenciais: Credenciais) =>
       contexto.interacao('entrar', () =>
         enviar<SessaoResponse>('/autenticacao/entrar', credenciais),
       ),
+    // A sessão recém-aberta é a resposta desta chamada: semear o cache evita que a área logada
+    // faça um GET /sessao redundante no primeiro render depois de entrar.
+    onSuccess: (sessao) => cliente.setQueryData(CHAVE_DA_SESSAO, sessao),
+  });
+}
+
+/**
+ * Encerra a sessão. Limpa o cache inteiro, não só a chave da sessão: o que estava em memória era
+ * de quem saiu, e deixar resquício na tela de quem entrar depois é vazamento de dado.
+ */
+export function useSair() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      contexto.interacao('sair', () => enviar<void>('/autenticacao/sessao', undefined, 'DELETE')),
+    onSuccess: () => cliente.clear(),
   });
 }
 

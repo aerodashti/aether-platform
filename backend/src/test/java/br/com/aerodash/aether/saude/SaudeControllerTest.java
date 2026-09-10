@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.aerodash.aether.autenticacao.ConfiguracaoDeSeguranca;
+import br.com.aerodash.aether.autenticacao.RespostaDeAcessoNegado;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.comum.observabilidade.PoliticaDeCamposSensiveis;
@@ -36,7 +38,15 @@ class SaudeControllerTest {
    * contrato HTTP, não a exportação de spans.
    */
   @TestConfiguration
-  @Import({ContextoDaRequisicao.class, SanitizadorDeLog.class, PoliticaDeCamposSensiveis.class})
+  // A cadeia de autorização real entra por importação explícita: o slice do @WebMvcTest não a
+  // carrega sozinho, e sem ela vale o padrão do starter — tudo fechado, e /saude responderia 401.
+  @Import({
+    ContextoDaRequisicao.class,
+    SanitizadorDeLog.class,
+    PoliticaDeCamposSensiveis.class,
+    ConfiguracaoDeSeguranca.class,
+    RespostaDeAcessoNegado.class
+  })
   static class ObservabilidadeDeTeste {
 
     @Bean
@@ -50,6 +60,15 @@ class SaudeControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private SaudeService service;
+
+  /**
+   * O slice também traz o {@code FiltroDeSessao}, que é Filter, e com ele a cadeia de autorização.
+   * O serviço que ele consulta não pertence a esta tela: mockado, ele nunca reconhece sessão — que
+   * é exatamente a condição em que {@code /saude} tem que responder.
+   */
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private br.com.aerodash.aether.autenticacao.AutenticacaoService autenticacao;
 
   @Test
   @DisplayName("devolve a situação consolidada em JSON")

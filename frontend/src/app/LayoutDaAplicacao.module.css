@@ -1,0 +1,105 @@
+.moldura {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+.navegacao {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 232px;
+  background: var(--cor-superficie-recuada);
+  border-right: 1px solid var(--cor-borda);
+}
+
+.marca {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-6) var(--espaco-4) var(--espaco-5);
+  text-align: center;
+}
+
+.itens {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-height: 0;
+  margin: 0;
+  padding: var(--espaco-3);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.coluna {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topo {
+  display: flex;
+  flex: none;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: flex-end;
+  height: 56px;
+  padding: 0 var(--espaco-7);
+  background: var(--cor-superficie);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.identidade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.conteudo {
+  flex: 1;
+  min-height: 0;
+  padding: var(--espaco-7);
+  overflow: auto;
+}
+
+/* Abaixo de 700px a navegação vira uma faixa horizontal rolável no topo: a gaveta com scrim do
+   protótipo é uma peça própria, e nenhuma tela em pé precisa dela ainda. */
+@media (max-width: 700px) {
+  .moldura {
+    flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .navegacao {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--cor-borda);
+  }
+
+  .marca {
+    padding: var(--espaco-4);
+    text-align: left;
+  }
+
+  .itens {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .conteudo {
+    padding: var(--espaco-5);
+    overflow: visible;
+  }
+}

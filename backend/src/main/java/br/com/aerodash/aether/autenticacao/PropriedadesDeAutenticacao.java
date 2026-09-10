@@ -13,6 +13,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param validadeDoCodigo janela de vida do código de seis dígitos
  * @param tentativasPorCodigo palpites permitidos antes de o código morrer
  * @param intervaloEntreCodigos espera mínima antes de reenviar um código novo
+ * @param validadeDoConvite janela de vida do link que o convidado usa para criar a senha
+ * @param enderecoDoConvite endereço da tela que recebe o link do convite
  * @param remetente endereço que assina o e-mail de recuperação
  * @param cookieSeguro marca o cookie como {@code Secure}; falso só em desenvolvimento sem HTTPS
  */
@@ -24,5 +26,7 @@ public record PropriedadesDeAutenticacao(
     Duration validadeDoCodigo,
     int tentativasPorCodigo,
     Duration intervaloEntreCodigos,
+    Duration validadeDoConvite,
+    String enderecoDoConvite,
     String remetente,
     boolean cookieSeguro) {}

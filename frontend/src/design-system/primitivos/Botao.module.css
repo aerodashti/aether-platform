@@ -19,6 +19,15 @@
   transition-timing-function: var(--curva-padrao);
 }
 
+/* O degrau compacto é o da grade densa: 32px é a densidade "compacta" do produto. Abaixo de
+   700px ele sobe para o alvo de toque, junto com os demais — ver o bloco no fim do arquivo. */
+.pequeno {
+  height: var(--controle-altura-p);
+  padding: 0 var(--espaco-4);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+}
+
 .medio {
   height: var(--espaco-9);
   padding: 0 var(--espaco-5);
@@ -141,5 +150,31 @@
   .rotulo,
   .desliza {
     transform: none !important;
+  }
+}
+
+/* Fantasma: sem fundo nem borda em repouso. É a ação de linha da grade, que só ganha peso no
+   hover — o repouso da tabela pertence ao dado, não aos controles. */
+.fantasma {
+  background: transparent;
+  border-color: transparent;
+  color: var(--cor-texto-suave);
+}
+
+.fantasma:hover:not(:disabled) {
+  background: var(--cor-hover);
+  color: var(--cor-texto);
+}
+
+/* Perigo por COR, nunca por ocultação: esconder um controle focável com opacity é falha de foco
+   visível. O vermelho só acende no hover e no foco; em repouso o rótulo é discreto. */
+.critico:hover:not(:disabled),
+.critico:focus-visible {
+  color: var(--cor-critico);
+}
+
+@media (hover: none), (max-width: 700px) {
+  .pequeno {
+    height: var(--controle-altura-toque);
   }
 }

@@ -51,4 +51,12 @@ public class PoliticaDeAcesso {
   public Duration intervaloEntreCodigos() {
     return propriedades.intervaloEntreCodigos();
   }
+
+  public Duration validadeDoConvite() {
+    return propriedades.validadeDoConvite();
+  }
+
+  public String enderecoDoConvite() {
+    return propriedades.enderecoDoConvite();
+  }
 }

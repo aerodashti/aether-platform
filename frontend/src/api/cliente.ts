@@ -50,13 +50,13 @@ export async function buscar<T>(caminho: string): Promise<T> {
 }
 
 /**
- * Faz uma requisição com corpo JSON. `metodo` cobre POST e DELETE porque os dois carregam a mesma
- * mecânica de erro e de correlação; o que muda é só o verbo e a presença de corpo.
+ * Faz uma requisição com corpo JSON. `metodo` cobre POST, PUT e DELETE porque os três carregam a
+ * mesma mecânica de erro e de correlação; o que muda é só o verbo e a presença de corpo.
  */
 export async function enviar<T>(
   caminho: string,
   corpo?: unknown,
-  metodo: 'POST' | 'DELETE' = 'POST',
+  metodo: 'POST' | 'PUT' | 'DELETE' = 'POST',
 ): Promise<T> {
   const resposta = await fetch(`${BASE}${caminho}`, {
     method: metodo,

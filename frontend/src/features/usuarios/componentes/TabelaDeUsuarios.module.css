@@ -1,0 +1,182 @@
+/* A régua da grade: uma largura por TIPO de dado, vinda da armadura de trilhas. Colunas do mesmo
+   tipo têm a mesma largura em toda tela do produto — é a assinatura construtiva do Aether. */
+.grade {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha {
+  display: grid;
+  grid-template-columns:
+    var(--armadura-rotulo-longo) var(--armadura-estado) var(--armadura-estado)
+    var(--armadura-data) var(--armadura-acao-texto);
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.cabecalho {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.linha {
+  min-height: var(--controle-altura-p);
+  padding: 0 var(--espaco-6);
+  /* Fio de 1px entre linhas; a régua de estrutura fica reservada para seções e totais. */
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+/* Hover OPACO, e não translúcido: sob coluna congelada o translúcido vaza. Nenhuma tela usa
+   coluna congelada ainda, mas divergir aqui criaria duas grades com comportamentos diferentes. */
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.pessoa {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+}
+
+/* Um dos poucos lugares onde o círculo é permitido: avatar, dot de situação e spinner. */
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-escuro);
+  background: var(--cor-fundo);
+  border-radius: var(--raio-redondo);
+}
+
+.nomes {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Célula de dupla linha: 13px + 11px cabem no degrau compacto de 32px com este leading. */
+.nome {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: baseline;
+  min-width: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.voce {
+  flex: none;
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-normal);
+  color: var(--cor-texto-suave);
+}
+
+.email {
+  overflow: hidden;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.papel,
+.situacao,
+.situacaoAtencao {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.papel,
+.situacao {
+  color: var(--cor-texto-suave);
+}
+
+/* Convite pendente é o único estado que pede ação de alguém: âmbar de texto, sem fundo. */
+.situacaoAtencao {
+  color: var(--cor-atencao);
+}
+
+.acesso {
+  overflow: hidden;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Abaixo de 640px a rolagem migra da página para a grade: encolher número é pior que rolar. */
+@media (max-width: 640px) {
+  .grade {
+    min-width: 640px;
+  }
+}

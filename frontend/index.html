@@ -14,6 +14,24 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
     />
+    <!--
+      Tema antes da primeira pintura. Precisa ser script bloqueante no `head`, e não código do
+      React: se o atributo só chegasse depois do bundle, quem escolheu o tema escuro veria um
+      lampejo branco em toda visita. Ausência de atributo significa "siga o sistema", que é
+      exatamente o que os tokens esperam.
+    -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('aether_tema');
+          if (pref === 'claro' || pref === 'escuro') {
+            document.documentElement.setAttribute('data-theme', pref);
+          }
+        } catch (e) {
+          /* Navegação privada pode recusar o localStorage: o sistema decide. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="raiz"></div>

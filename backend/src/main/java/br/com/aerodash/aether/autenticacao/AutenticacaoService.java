@@ -60,6 +60,33 @@ public class AutenticacaoService {
     return mapper.paraResponse(sessao.getUsuario());
   }
 
+  /**
+   * Resolve o cookie em identidade, para o {@link FiltroDeSessao}.
+   *
+   * <p>Ao contrário de {@link #consultarSessao(String)}, não lança: sessão ausente, encerrada ou
+   * expirada devolve vazio, e a requisição segue anônima até a cadeia de autorização decidir. Quem
+   * pergunta aqui ainda não sabe se a rota exige alguém.
+   *
+   * <p>Duas coisas são conferidas, e as duas são deliberadas. A <b>sessão</b> precisa estar vigente
+   * — é o que faz "sair" cortar o acesso no request seguinte. E o <b>usuário</b> precisa continuar
+   * ativo: o papel e a situação são lidos da linha do banco a cada request, e não guardados no
+   * cookie, justamente para que revogar acesso valha agora e não quando o cookie vencer. É o preço
+   * de uma consulta por chave primária que o ADR-0013 aceitou pagar.
+   */
+  @Transactional(readOnly = true)
+  public Optional<UsuarioAutenticado> autenticar(String token) {
+    Instant agora = politica.agora();
+    Optional<SessaoDeAcesso> sessao =
+        sessoes.findByToken(cofre.resumir(token)).filter(vigente -> vigente.estaVigente(agora));
+    contexto.decisao("autenticacao.sessao_vigente", sessao.isPresent());
+
+    Optional<Usuario> ativo = sessao.map(SessaoDeAcesso::getUsuario).filter(Usuario::estaAtivo);
+    contexto.decisao("autenticacao.usuario_ativo", ativo.isPresent());
+
+    ativo.ifPresent(usuario -> contexto.registrar("usuario.id", usuario.getId()));
+    return ativo.map(UsuarioAutenticado::de);
+  }
+
   /** Encerrar é idempotente: sair duas vezes, ou sair sem cookie, não é erro. */
   @Transactional
   public void sair(String token) {

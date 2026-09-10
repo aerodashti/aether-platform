@@ -22,6 +22,10 @@ export const tokens = {
     'atencao': 'var(--cor-atencao)',
     'critico': 'var(--cor-critico)',
     'foco': 'var(--cor-foco)',
+    'superficie-recuada': 'var(--cor-superficie-recuada)',
+    'hover': 'var(--cor-hover)',
+    'linha-hover': 'var(--cor-linha-hover)',
+    'overlay': 'var(--cor-overlay)',
   },
   elevacao: {
     '0': 'var(--elevacao-0)',
@@ -48,6 +52,7 @@ export const tokens = {
     'g': 'var(--altura-g)',
     'gg': 'var(--altura-gg)',
     'ggg': 'var(--altura-ggg)',
+    'linha-dupla': 'var(--altura-linha-dupla)',
   },
   peso: {
     'normal': 'var(--peso-normal)',
@@ -89,6 +94,26 @@ export const tokens = {
     'padrao': 'var(--curva-padrao)',
     'saida': 'var(--curva-saida)',
   },
+  controle: {
+    'altura-p': 'var(--controle-altura-p)',
+    'altura-m': 'var(--controle-altura-m)',
+    'altura-g': 'var(--controle-altura-g)',
+    'altura-toque': 'var(--controle-altura-toque)',
+  },
+  armadura: {
+    'gap': 'var(--armadura-gap)',
+    'id': 'var(--armadura-id)',
+    'rotulo': 'var(--armadura-rotulo)',
+    'lockup': 'var(--armadura-lockup)',
+    'rotulo-longo': 'var(--armadura-rotulo-longo)',
+    'estado': 'var(--armadura-estado)',
+    'data': 'var(--armadura-data)',
+    'acao-texto': 'var(--armadura-acao-texto)',
+  },
+  camada: {
+    'sticky': 'var(--camada-sticky)',
+    'menu': 'var(--camada-menu)',
+  },
 } as const;
 
 export type Cor = keyof typeof tokens.cor;
@@ -102,3 +127,6 @@ export type Espaco = keyof typeof tokens.espaco;
 export type Raio = keyof typeof tokens.raio;
 export type Duracao = keyof typeof tokens.duracao;
 export type Curva = keyof typeof tokens.curva;
+export type Controle = keyof typeof tokens.controle;
+export type Armadura = keyof typeof tokens.armadura;
+export type Camada = keyof typeof tokens.camada;

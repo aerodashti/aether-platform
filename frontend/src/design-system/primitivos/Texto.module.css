@@ -27,6 +27,17 @@
   margin: 0;
 }
 
+/* Texto de apoio: mesma altura da legenda, sem a caixa alta. A legenda é RÓTULO — micro-caps
+   com rastreio — e usá-la em frase transforma a frase em placa. Este degrau existe para o que é
+   frase: nota de rodapé, e-mail sob o nome, causa de um estado vazio. */
+.apoio {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  margin: 0;
+}
+
 .legenda {
   font-family: var(--fonte-base);
   font-size: var(--tamanho-s);

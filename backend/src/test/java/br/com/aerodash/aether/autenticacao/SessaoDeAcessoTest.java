@@ -47,7 +47,8 @@ class SessaoDeAcessoTest {
   }
 
   private static SessaoDeAcesso nova() {
-    Usuario usuario = new Usuario("Leonardo", "leonardo@administraair.com.br", AGORA);
+    Usuario usuario =
+        new Usuario("Leonardo", "leonardo@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);
     usuario.definirSenha("$2a$12$hash", AGORA);
     return new SessaoDeAcesso(usuario, "resumo-do-token", AGORA, DURACAO);
   }

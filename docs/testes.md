@@ -10,6 +10,19 @@
 | Entidade | JUnit 5 + AssertJ, sem Spring | As regras de negócio: `estaOperante()`, `podeVoar()`. Rápido e sem mock. |
 | Service | JUnit 5 + Mockito | Orquestração: o que acontece quando o repositório devolve vazio, quando a regra recusa, quando lança exceção de domínio. |
 | Controller | `@WebMvcTest` + MockMvc | Contrato HTTP: status, formato do JSON, validação de entrada, Problem Details no erro. |
+
+> **O slice do `@WebMvcTest` não carrega a cadeia de autorização.** Ele traz o `FiltroDeSessao`,
+> porque é um `Filter`, mas não a `ConfiguracaoDeSeguranca` — e sem ela vale o padrão do starter,
+> que fecha tudo: até `/saude` responderia 401. Todo teste de controller importa as duas
+> explicitamente:
+>
+> ```java
+> @Import({ConfiguracaoDeSeguranca.class, RespostaDeAcessoNegado.class})
+> ```
+>
+> E declara `@MockitoBean AutenticacaoService`, que é de quem o filtro depende. Autenticar no teste
+> é ensinar esse mock: `when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(...))` e mandar
+> o cookie no request — assim o que está sob teste é a cadeia real, não um atalho.
 | Repositório / SQL | Testcontainers, `@Tag("integracao")` | Só quando há query própria ou migration a validar. Não teste o Spring Data. |
 | Arquitetura | ArchUnit | `ArquiteturaTest` — seis regras, descritas abaixo. |
 

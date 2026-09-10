@@ -1,0 +1,71 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  max-width: 960px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aviso {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.etiqueta {
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  letter-spacing: var(--rastreio-legenda);
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: flex-end;
+}
+
+.busca {
+  flex: 1;
+  min-width: min(220px, 100%);
+  max-width: 340px;
+}
+
+.painel {
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.rodape {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-superficie-sutil);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.paginacao {
+  display: flex;
+  gap: var(--espaco-2);
+}
+
+/* A rolagem horizontal é da grade, nunca da página. */
+@media (max-width: 640px) {
+  .painel {
+    overflow-x: auto;
+  }
+}

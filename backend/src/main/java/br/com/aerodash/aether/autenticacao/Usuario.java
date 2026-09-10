@@ -40,8 +40,15 @@ public class Usuario {
   @Column(name = "situacao", nullable = false, length = 20)
   private SituacaoDoUsuario situacao;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "papel", nullable = false, length = 20)
+  private PapelDoUsuario papel;
+
   @Column(name = "tentativas", nullable = false)
   private int tentativas;
+
+  @Column(name = "ultimo_acesso")
+  private Instant ultimoAcesso;
 
   @Column(name = "bloqueado_ate")
   private Instant bloqueadoAte;
@@ -56,9 +63,10 @@ public class Usuario {
   protected Usuario() {}
 
   /** Nasce PENDENTE e sem senha: quem cria a senha é a própria pessoa, pelo link do convite. */
-  public Usuario(String nome, String email, Instant momento) {
+  public Usuario(String nome, String email, PapelDoUsuario papel, Instant momento) {
     this.nome = nome;
     this.email = normalizarEmail(email);
+    this.papel = papel;
     this.situacao = SituacaoDoUsuario.PENDENTE;
     this.tentativas = 0;
     this.criadoEm = momento;
@@ -76,6 +84,16 @@ public class Usuario {
 
   public boolean possuiSenha() {
     return senha != null;
+  }
+
+  /** Administrar usuários é o único poder que o papel concede hoje. */
+  public boolean ehAdministrador() {
+    return papel == PapelDoUsuario.ADMINISTRADOR;
+  }
+
+  /** Foi convidado e ainda não concluiu: é para quem o link do convite existe. */
+  public boolean aguardaConvite() {
+    return situacao == SituacaoDoUsuario.PENDENTE;
   }
 
   public boolean estaBloqueado(Instant agora) {
@@ -110,6 +128,7 @@ public class Usuario {
   public void registrarEntrada(Instant agora) {
     this.tentativas = 0;
     this.bloqueadoAte = null;
+    this.ultimoAcesso = agora;
     this.atualizadoEm = agora;
   }
 
@@ -122,6 +141,33 @@ public class Usuario {
     this.situacao = SituacaoDoUsuario.ATIVO;
     this.tentativas = 0;
     this.bloqueadoAte = null;
+    this.atualizadoEm = agora;
+  }
+
+  /**
+   * Revogar o acesso não apaga ninguém: a pessoa continua existindo, com seu histórico, e volta a
+   * entrar se for reativada. Quem já entrou uma vez guarda a senha; o convite pendente não vira
+   * senha por passar por aqui.
+   */
+  public void desativar(Instant agora) {
+    this.situacao = SituacaoDoUsuario.INATIVO;
+    this.tentativas = 0;
+    this.bloqueadoAte = null;
+    this.atualizadoEm = agora;
+  }
+
+  /**
+   * Reativar devolve a pessoa ao estado de onde ela saiu, não a ATIVO por decreto: quem nunca criou
+   * senha volta a PENDENTE, e o convite é que a levará adiante. O CHECK {@code
+   * usuario_ativo_possui_senha} recusaria o contrário.
+   */
+  public void reativar(Instant agora) {
+    this.situacao = possuiSenha() ? SituacaoDoUsuario.ATIVO : SituacaoDoUsuario.PENDENTE;
+    this.atualizadoEm = agora;
+  }
+
+  public void alterarPapel(PapelDoUsuario novoPapel, Instant agora) {
+    this.papel = novoPapel;
     this.atualizadoEm = agora;
   }
 
@@ -142,8 +188,17 @@ public class Usuario {
     return Optional.ofNullable(senha);
   }
 
+  public PapelDoUsuario getPapel() {
+    return papel;
+  }
+
   public SituacaoDoUsuario getSituacao() {
     return situacao;
+  }
+
+  /** Vazio para quem nunca entrou — é o que a tela mostra como travessão. */
+  public Optional<Instant> getUltimoAcesso() {
+    return Optional.ofNullable(ultimoAcesso);
   }
 
   public int getTentativas() {

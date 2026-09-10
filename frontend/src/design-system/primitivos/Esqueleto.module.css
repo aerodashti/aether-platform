@@ -1,0 +1,30 @@
+.esqueleto {
+  display: block;
+  width: 100%;
+  height: var(--espaco-4);
+  background: linear-gradient(
+    90deg,
+    var(--cor-borda-suave) 25%,
+    var(--cor-superficie-recuada) 37%,
+    var(--cor-borda-suave) 63%
+  );
+  background-size: 400% 100%;
+  animation: brilho 1.4s ease infinite;
+}
+
+@keyframes brilho {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto {
+    background: var(--cor-borda-suave);
+    animation: none;
+  }
+}

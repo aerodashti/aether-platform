@@ -22,9 +22,21 @@
 campos:
   # Credencial de uso único: aparece no corpo de /autenticacao/recuperacao/codigo.
   codigo: integral
+  # Token do link de convite: credencial de uso único, aparece no corpo de
+  # /autenticacao/convite/senha.
+  convite: integral
+  # Documento da empresa. Público no Brasil, mas a política deste arquivo manda mascarar
+  # documento — e um CNPJ em log de produção não ajuda ninguém a depurar nada.
+  cnpj: integral
   cpf: cpf
+  # Documento do proprietário: CPF ou CNPJ no mesmo campo. Mascarado inteiro porque a
+  # estratégia `cpf` assume 11 dígitos e aqui podem ser 14.
+  cpfCnpj: integral
   # Dado pessoal. Para ligar um request a uma pessoa existe `usuario.id`, que não identifica
   # ninguém fora do banco e já é registrado pelo serviço de autenticação.
   email: integral
   novaSenha: integral
   senha: integral
+  senhaAtual: integral
+  # Dado pessoal de contato do proprietário.
+  telefone: integral

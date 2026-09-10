@@ -57,13 +57,16 @@ class AutenticacaoServiceTest {
                 Duration.ofMinutes(10),
                 LIMITE,
                 Duration.ofMinutes(1),
+                Duration.ofDays(2),
+                "http://localhost:5173/entrar",
                 "nao-responda@aether.com.br",
                 false),
             Clock.fixed(AGORA, ZoneOffset.UTC));
     service = new AutenticacaoService(usuarios, sessoes, mapper, cofre, politica, contexto);
     when(cofre.novoTokenDeSessao()).thenReturn(TOKEN);
     when(cofre.resumir(TOKEN)).thenReturn(RESUMO);
-    when(mapper.paraResponse(any())).thenReturn(new SessaoResponse("Leonardo Andrade", EMAIL));
+    when(mapper.paraResponse(any()))
+        .thenReturn(new SessaoResponse("Leonardo Andrade", EMAIL, PapelDoUsuario.ADMINISTRADOR));
   }
 
   @Test
@@ -124,7 +127,8 @@ class AutenticacaoServiceTest {
   @Test
   @DisplayName("usuário pendente recebe a mesma recusa de credencial inválida")
   void pendenteNaoEntra() {
-    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(new Usuario("Camila", EMAIL, AGORA)));
+    when(usuarios.findByEmail(EMAIL))
+        .thenReturn(Optional.of(new Usuario("Camila", EMAIL, PapelDoUsuario.GESTOR, AGORA)));
 
     assertThatThrownBy(() -> service.entrar(EMAIL, SENHA))
         .isInstanceOf(CredenciaisInvalidasException.class);
@@ -185,7 +189,7 @@ class AutenticacaoServiceTest {
   }
 
   private static Usuario ativo() {
-    Usuario usuario = new Usuario("Leonardo Andrade", EMAIL, AGORA);
+    Usuario usuario = new Usuario("Leonardo Andrade", EMAIL, PapelDoUsuario.GESTOR, AGORA);
     usuario.definirSenha(HASH, AGORA);
     return usuario;
   }

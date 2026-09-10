@@ -7,9 +7,13 @@ logging:
 spring:
   jpa:
     show-sql: false
-  # Sem `db/seed`: os usuários de desenvolvimento não existem em produção.
+  # Sem `db/seed`: os dados de desenvolvimento não existem em produção.
   flyway:
     locations: classpath:db/migration
+    # Em produção a ordem é lei: uma migration que aparece fora de sequência é sinal de merge mal
+    # resolvido ou de deploy pulado, e tem que travar a subida em vez de ser aplicada em silêncio.
+    # O relaxamento do perfil padrão existe só por causa da faixa V900+ do seed local.
+    out-of-order: false
 
 springdoc:
   swagger-ui:
