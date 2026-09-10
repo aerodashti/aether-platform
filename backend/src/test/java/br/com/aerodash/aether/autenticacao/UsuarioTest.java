@@ -17,7 +17,8 @@ class UsuarioTest {
   @Test
   @DisplayName("nasce pendente e sem senha — quem cria a senha é a própria pessoa")
   void nascePendenteESemSenha() {
-    Usuario novo = new Usuario("Camila Nogueira", "camila@administraair.com.br", AGORA);
+    Usuario novo =
+        new Usuario("Camila Nogueira", "camila@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);
 
     assertThat(novo.getSituacao()).isEqualTo(SituacaoDoUsuario.PENDENTE);
     assertThat(novo.possuiSenha()).isFalse();
@@ -28,7 +29,8 @@ class UsuarioTest {
   @Test
   @DisplayName("normaliza o e-mail para minúsculas e sem espaços nas pontas")
   void normalizaOEmail() {
-    Usuario novo = new Usuario("Leonardo", "  Leonardo@AdministraAir.com.BR ", AGORA);
+    Usuario novo =
+        new Usuario("Leonardo", "  Leonardo@AdministraAir.com.BR ", PapelDoUsuario.GESTOR, AGORA);
 
     assertThat(novo.getEmail()).isEqualTo("leonardo@administraair.com.br");
     assertThat(Usuario.normalizarEmail(null)).isNull();
@@ -111,12 +113,93 @@ class UsuarioTest {
   }
 
   private static Usuario pendente() {
-    return new Usuario("Camila Nogueira", "camila@administraair.com.br", AGORA);
+    return new Usuario(
+        "Camila Nogueira", "camila@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);
   }
 
   private static Usuario ativo() {
-    Usuario usuario = new Usuario("Leonardo Andrade", "leonardo@administraair.com.br", AGORA);
+    Usuario usuario =
+        new Usuario(
+            "Leonardo Andrade", "leonardo@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);
     usuario.definirSenha("$2a$12$hash", AGORA);
     return usuario;
+  }
+
+  @Test
+  @DisplayName("administrador é o único papel que administra usuários")
+  void administradorEhOUnicoQueAdministra() {
+    assertThat(comPapel(PapelDoUsuario.ADMINISTRADOR).ehAdministrador()).isTrue();
+    assertThat(comPapel(PapelDoUsuario.GESTOR).ehAdministrador()).isFalse();
+    assertThat(comPapel(PapelDoUsuario.PROPRIETARIO).ehAdministrador()).isFalse();
+    assertThat(comPapel(PapelDoUsuario.PILOTO).ehAdministrador()).isFalse();
+  }
+
+  @Test
+  @DisplayName("entrar carimba o último acesso, que nasce vazio")
+  void entrarCarimbaOUltimoAcesso() {
+    Usuario usuario = comPapel(PapelDoUsuario.GESTOR);
+
+    assertThat(usuario.getUltimoAcesso()).isEmpty();
+
+    usuario.registrarEntrada(AGORA);
+
+    assertThat(usuario.getUltimoAcesso()).contains(AGORA);
+  }
+
+  @Test
+  @DisplayName("desativar revoga o acesso sem apagar a pessoa e libera o bloqueio")
+  void desativarRevogaOAcesso() {
+    Usuario usuario = comPapel(PapelDoUsuario.GESTOR);
+    usuario.definirSenha("hash", AGORA);
+    usuario.registrarFalhaDeEntrada(AGORA, 1, BLOQUEIO);
+
+    usuario.desativar(AGORA);
+
+    assertThat(usuario.getSituacao()).isEqualTo(SituacaoDoUsuario.INATIVO);
+    assertThat(usuario.podeEntrar(AGORA)).isFalse();
+    assertThat(usuario.possuiSenha()).isTrue();
+    assertThat(usuario.estaBloqueado(AGORA)).isFalse();
+  }
+
+  @Test
+  @DisplayName("reativar quem já tinha senha devolve ATIVO")
+  void reativarQuemTinhaSenhaVoltaAtivo() {
+    Usuario usuario = comPapel(PapelDoUsuario.GESTOR);
+    usuario.definirSenha("hash", AGORA);
+    usuario.desativar(AGORA);
+
+    usuario.reativar(AGORA);
+
+    assertThat(usuario.getSituacao()).isEqualTo(SituacaoDoUsuario.ATIVO);
+    assertThat(usuario.podeEntrar(AGORA)).isTrue();
+  }
+
+  @Test
+  @DisplayName("reativar quem nunca criou senha volta a PENDENTE, não a ATIVO")
+  void reativarQuemNuncaTeveSenhaVoltaPendente() {
+    Usuario usuario = comPapel(PapelDoUsuario.GESTOR);
+    usuario.desativar(AGORA);
+
+    usuario.reativar(AGORA);
+
+    assertThat(usuario.getSituacao()).isEqualTo(SituacaoDoUsuario.PENDENTE);
+    assertThat(usuario.aguardaConvite()).isTrue();
+    assertThat(usuario.podeEntrar(AGORA)).isFalse();
+  }
+
+  @Test
+  @DisplayName("alterar o papel não mexe na situação")
+  void alterarPapelNaoMexeNaSituacao() {
+    Usuario usuario = comPapel(PapelDoUsuario.PILOTO);
+    usuario.definirSenha("hash", AGORA);
+
+    usuario.alterarPapel(PapelDoUsuario.ADMINISTRADOR, AGORA);
+
+    assertThat(usuario.getPapel()).isEqualTo(PapelDoUsuario.ADMINISTRADOR);
+    assertThat(usuario.getSituacao()).isEqualTo(SituacaoDoUsuario.ATIVO);
+  }
+
+  private static Usuario comPapel(PapelDoUsuario papel) {
+    return new Usuario("Camila Nogueira", "camila@administraair.com.br", papel, AGORA);
   }
 }

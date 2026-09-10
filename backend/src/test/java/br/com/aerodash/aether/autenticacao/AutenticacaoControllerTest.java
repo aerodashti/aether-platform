@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -38,7 +39,15 @@ class AutenticacaoControllerTest {
 
   /** Mesmo arranjo do SaudeControllerTest: o filtro da linha canônica precisa das colaborações. */
   @TestConfiguration
-  @Import({ContextoDaRequisicao.class, SanitizadorDeLog.class, PoliticaDeCamposSensiveis.class})
+  // A cadeia de autorização real entra por importação explícita: o slice do @WebMvcTest não a
+  // carrega sozinho, e sem ela vale o padrão do starter — tudo fechado, e /saude responderia 401.
+  @Import({
+    ContextoDaRequisicao.class,
+    SanitizadorDeLog.class,
+    PoliticaDeCamposSensiveis.class,
+    ConfiguracaoDeSeguranca.class,
+    RespostaDeAcessoNegado.class
+  })
   static class ObservabilidadeDeTeste {
 
     @Bean
@@ -55,6 +64,8 @@ class AutenticacaoControllerTest {
           Duration.ofMinutes(10),
           5,
           Duration.ofMinutes(1),
+          Duration.ofDays(2),
+          "http://localhost:5173/entrar",
           "nao-responda@aether.com.br",
           false);
     }
@@ -66,6 +77,14 @@ class AutenticacaoControllerTest {
 
   @MockitoBean private AutenticacaoService autenticacao;
   @MockitoBean private RecuperacaoDeSenhaService recuperacao;
+  @MockitoBean private ConviteService convites;
+
+  /**
+   * Dependência do controller; a troca de senha tem teste próprio em TrocaDeSenhaControllerTest.
+   */
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private TrocaDeSenhaService trocaDeSenha;
 
   @Test
   @DisplayName("entrar devolve o usuário e o cookie HttpOnly da sessão")
@@ -75,7 +94,7 @@ class AutenticacaoControllerTest {
             new SessaoAberta(
                 "token-em-claro",
                 Duration.ofHours(12),
-                new SessaoResponse("Leonardo Andrade", EMAIL)));
+                new SessaoResponse("Leonardo Andrade", EMAIL, PapelDoUsuario.ADMINISTRADOR)));
 
     mockMvc
         .perform(
@@ -97,7 +116,7 @@ class AutenticacaoControllerTest {
             new SessaoAberta(
                 "token-secreto",
                 Duration.ofHours(12),
-                new SessaoResponse("Leonardo Andrade", EMAIL)));
+                new SessaoResponse("Leonardo Andrade", EMAIL, PapelDoUsuario.ADMINISTRADOR)));
 
     String corpo =
         mockMvc
@@ -237,5 +256,38 @@ class AutenticacaoControllerTest {
         .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));
 
     verify(autenticacao).sair("token");
+  }
+
+  @Test
+  @DisplayName("o convidado cria a própria senha pelo link, sem sessão")
+  void concluirConviteResponde204() throws Exception {
+    mockMvc
+        .perform(
+            post("/autenticacao/convite/senha")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"convite":"token-do-link","novaSenha":"minha-senha-nova"}
+                    """))
+        .andExpect(status().isNoContent());
+
+    verify(convites).concluir("token-do-link", "minha-senha-nova");
+  }
+
+  @Test
+  @DisplayName("senha curta demais é barrada pela validação, antes do service")
+  void senhaCurtaEhBarrada() throws Exception {
+    mockMvc
+        .perform(
+            post("/autenticacao/convite/senha")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"convite":"token-do-link","novaSenha":"curta"}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.novaSenha").exists());
+
+    verify(convites, never()).concluir(anyString(), anyString());
   }
 }

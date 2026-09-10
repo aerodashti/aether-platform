@@ -83,3 +83,14 @@
   line-height: var(--altura-s);
   color: var(--cor-critico);
 }
+
+/* Sai da tela, permanece na árvore de acessibilidade. */
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -4,8 +4,8 @@ import { juntarClasses } from '@/design-system/classes';
 
 import estilos from './Botao.module.css';
 
-export type VarianteDeBotao = 'primario' | 'secundario' | 'contorno';
-export type TamanhoDeBotao = 'medio' | 'grande';
+export type VarianteDeBotao = 'primario' | 'secundario' | 'contorno' | 'fantasma';
+export type TamanhoDeBotao = 'pequeno' | 'medio' | 'grande';
 
 interface BotaoProps {
   children: ReactNode;
@@ -20,6 +20,10 @@ interface BotaoProps {
   iconeAoFim?: ReactNode;
   /** Ocupa toda a largura disponível, para formulário em coluna. */
   largura?: 'natural' | 'total';
+  /** Nome acessível quando o rótulo visível não basta — botão só de ícone, por exemplo. */
+  rotuloAcessivel?: string;
+  /** Deixa o rótulo em tom de perigo. A ação segue sendo secundária; só a cor muda. */
+  tom?: 'padrao' | 'critico';
 }
 
 export function Botao({
@@ -32,6 +36,8 @@ export function Botao({
   carregando = false,
   iconeAoFim,
   largura = 'natural',
+  rotuloAcessivel,
+  tom = 'padrao',
 }: BotaoProps) {
   return (
     <button
@@ -41,7 +47,9 @@ export function Botao({
         estilos[variante],
         estilos[tamanho],
         largura === 'total' && estilos.total,
+        tom === 'critico' && estilos.critico,
       )}
+      aria-label={rotuloAcessivel}
       onClick={aoClicar}
       disabled={desabilitado || carregando}
       aria-busy={carregando}

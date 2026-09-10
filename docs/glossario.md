@@ -17,14 +17,26 @@
 | --- | --- | --- | --- | --- |
 | Aeronave | `aeronave` | Aeronave | `aviao`, `jato`, `aircraft` | Jato ou helicóptero sob gestão do proprietário. Cobre os dois tipos. |
 | Proprietário | `proprietario` | Proprietário | `dono`, `owner`, `cliente` | Pessoa física ou jurídica titular da aeronave no RAB. |
+| Cor de identificação | `corDeIdentificacao` | Cor de identificação | `cor` (sozinho), `avatar`, `badge` | Cor com que o proprietário aparece na interface: no ponto ao lado do nome e nos trechos do calendário. Paleta fechada (`PETROLEO`, `AZUL`, `CELESTE`, `VERDE`, `AMBAR`, `CINZA`); cada valor mapeia para um token do design system. |
+| Situação do proprietário | `situacaoDoProprietario` | Situação | `status`, `ativo` (como campo) | Se o proprietário participa da operação hoje: `ATIVO` ou `INATIVO`. Desativar preserva o histórico; excluir de verdade não existe neste domínio. |
+| CPF/CNPJ | `cpfCnpj` | CPF / CNPJ | `documento` (genérico), `cpf` ou `cnpj` (isolados, quando o campo aceita os dois) | Documento do proprietário, gravado só com dígitos: 11 para CPF, 14 para CNPJ. Opcional no cadastro; o contrato de participação é que o exige. |
 | Operador | `operador` | Operador | `operator` | Quem opera a aeronave, nem sempre o mesmo que o proprietário. |
 | Vencimento | `vencimento` | Vencimento | `expiracao`, `validade`, `expiration`, `dueDate` | Data em que um documento, certificado ou inspeção deixa de valer. **Termo central do produto.** |
-| Situação regular | `situacaoRegular` | Situação regular | `status`, `compliance` | Estado de conformidade de um item regulatório em determinado momento. |
 | Inspeção | `inspecao` | Inspeção | `manutencao`, `revisao`, `check` | Evento de manutenção programada previsto no programa da aeronave. |
 | Licença de tripulante | `licencaDeTripulante` | Licença de tripulante | `licencaPiloto`, `cht`, `license` | Habilitação ANAC do tripulante, com seus próprios vencimentos. |
 | Tripulante | `tripulante` | Tripulante | `piloto`, `crew` | Piloto ou comissário associado à operação. |
 | Voo | `voo` | Voo | `flight` | Trecho operado, base do controle de horas e ciclos. |
-| Base | `base` | Base | `hangar`, `home base` | Aeródromo onde a aeronave fica normalmente. |
+| Base | `base` | Base | `hangar`, `home base` | Aeródromo onde a aeronave fica normalmente, em código ICAO de quatro letras (`SBSP`). |
+| Matrícula | `matricula` | Matrícula | `prefixo`, `registration`, `tailNumber` | Identidade da aeronave no RAB (`PS-MEP`). Sempre em maiúsculas e **sempre em monoespaçada na interface**. |
+| Situação regular | `situacaoRegular` | Situação | **`status`** | Conformidade regulatória agora: `REGULAR` ("Saudável"), `ATENCAO` ("Atenção"), `VENCIDO` ("Vencido"). Derivada dos vencimentos, nunca gravada. O protótipo escreve "Status" no cabeçalho da coluna; aqui é **Situação**. |
+| Documento da aeronave | `documentoDaAeronave` | — | `doc`, `certificado` (genérico) | Documento com vencimento próprio: hoje `CVA` e `RETA`. São os dois que decidem se a aeronave voa. |
+| Próximo vencimento | `proximoVencimento` | Próximo vencimento | `validade`, `dueDate` | O documento que vence primeiro. Conformidade é elo mais fraco, não média. |
+| Janela de atenção | `diasDeAtencao` | — | `threshold`, `alerta` | A partir de quantos dias para o vencimento a aeronave entra em atenção. Política por inquilino, não norma da ANAC. |
+| Poder voar | `podeVoar` | — | `ativa`, `disponivel` | Nenhum documento vencido. É a pergunta que a conformidade responde. |
+| Empresa | `empresa` | Empresa | `conta`, `tenant`, `inquilino`, `organizacao` | A empresa dona desta instalação. **Sempre uma linha**, garantida por CHECK. Não é inquilino: isolar dados por empresa é outra decisão, ainda não tomada. |
+| CNPJ | `cnpj` | CNPJ | `documento`, `cgc` | Só dígitos no banco; a máscara é da interface. **Imutável**: é o documento do contrato, e trocá-lo é trocar de empresa. |
+| Antecedência do aviso | `diasDeAviso` | Alertas de vencimento | `threshold`, `alerta`, `prazo` | Com quantos dias antes de um vencimento a aeronave entra em atenção. Governa a coluna Situação da tela de Aeronaves. |
+| Preferência de tema | `preferenciaDeTema` | Aparência | `darkMode`, `skin` | `claro`, `escuro` ou `sistema`. Vive no navegador, não na conta: é preferência de quem olha a tela. |
 
 ## Termos regulatórios
 
@@ -54,6 +66,13 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 | Senha | `senha` | Senha | `password`, `pwd` | Segredo escolhido **pelo próprio usuário**. Administrador nunca define senha de ninguém. |
 | Código de recuperação | `codigoDeRecuperacao` | Código | `otp`, `pin`, `token` | Seis dígitos enviados por e-mail para redefinir a senha. Vale uma vez, por dez minutos. |
 | Situação do usuário | `situacaoDoUsuario` | Situação | `status` | `ATIVO` (entra), `PENDENTE` (convidado, ainda não criou senha), `INATIVO` (acesso revogado). |
+| Papel do usuário | `papelDoUsuario` | Papel | `role`, `perfil`, `permissao`, `admin` | O que a pessoa **é** no Aether: `ADMINISTRADOR`, `GESTOR`, `PROPRIETARIO`, `PILOTO`. Um papel por pessoa. Distinto de **Situação**, que diz só se ela pode entrar: alguém pode ser administrador e estar inativo. |
+| Administrador | `administrador` | Administrador | `admin`, `superusuario`, `root` | Papel que administra usuários — convida, reenvia convite, desativa e reativa. É o único papel com poder hoje; a tela de Usuários é restrita a ele. |
+| Gestor | `gestor` | Gestor | `operador` (é termo de domínio, linha 20), `manager` | Papel de quem opera o dia a dia: registra voos, lançamentos e fechamentos. |
+| Piloto | `piloto` | Piloto | `tripulante`, `comandante`, `pilot` | Papel da tripulação: registra voo e consulta a própria escala. |
+| Proprietário (papel) | `PROPRIETARIO` | Proprietário | — | Papel de quem entra para ver o que é seu. **Não confundir com o termo de domínio `proprietario`** (linha 19): aquele é o titular no RAB, exista ou não acesso; este é um valor de `papelDoUsuario`. Um titular sem acesso não tem papel nenhum, e alguém com este papel não vira titular por causa dele. |
+| Convite | `convite` | Convite | `invite`, `cadastro`, `ativacao` | Link de uso único pelo qual a pessoa convidada cria a **própria** senha. Vale 48 horas; reenviar mata o anterior. Distinto do **Código de recuperação**, que é de seis dígitos e só vale para quem já está `ATIVO`. |
+| Último acesso | `ultimoAcesso` | Último acesso | `lastLogin`, `ultimoLogin` | Instante da última entrada bem-sucedida. Vazio para quem nunca entrou. |
 
 ## Termos de plataforma
 
@@ -72,6 +91,7 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 ## Pendente do handoff do Claude Design
 
 O bundle foi lido e a **tela de entrada** teve seus rótulos incorporados na seção "Acesso" acima.
-As demais telas do bundle (visão geral, frota, lançamentos, rateio, manutenção, voos, aportes,
-fechamento, usuários) ainda não: cada uma traz vocabulário próprio — competência, rateio, aporte,
+A tela de **Usuários** teve seu vocabulário incorporado na mesma seção, junto com o backend que a
+serve. As demais telas do bundle (visão geral, frota, lançamentos, rateio, manutenção, voos, aportes,
+fechamento) ainda não: cada uma traz vocabulário próprio — competência, rateio, aporte,
 saldo, trecho — que entra aqui quando a tela for implementada, não antes.

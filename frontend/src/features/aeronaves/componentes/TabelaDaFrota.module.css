@@ -1,0 +1,192 @@
+/* A régua da frota, na armadura: identificador · rótulo · estado · lockup. Cada coluna na trilha
+   do seu TIPO de dado — é o que faz esta grade alinhar com a de Usuários e com as que virão. */
+.grade {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha {
+  display: grid;
+  grid-template-columns:
+    var(--armadura-id) var(--armadura-rotulo) var(--armadura-estado)
+    var(--armadura-lockup);
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.cabecalho {
+  height: var(--espaco-9);
+  padding: 0 var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  letter-spacing: var(--rastreio-legenda);
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.linha {
+  min-height: var(--controle-altura-p);
+  padding: var(--espaco-2) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+/* Identificador sempre em monoespaçada: é assim que a matrícula aparece no produto inteiro. */
+.matricula {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  color: var(--cor-texto);
+  letter-spacing: var(--rastreio-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+.modelo {
+  display: block;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.situacao {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Círculo permitido: dot de situação, junto com avatar e spinner. A cor é declarada por estado,
+   e não herdada com `currentColor`, porque o Stylelint exige token explícito em `background`. */
+.ponto {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--raio-redondo);
+}
+
+.regular {
+  color: var(--cor-positivo);
+}
+
+.regular .ponto {
+  background: var(--cor-positivo);
+}
+
+.atencao {
+  color: var(--cor-atencao);
+}
+
+.atencao .ponto {
+  background: var(--cor-atencao);
+}
+
+.vencido {
+  color: var(--cor-critico);
+}
+
+.vencido .ponto {
+  background: var(--cor-critico);
+}
+
+.recadoCritico .ponto {
+  background: var(--cor-critico);
+}
+
+/* Lockup: a grandeza em tabular, o qualificador em corpo menor e cor reduzida, fora do fluxo. */
+.vencimento {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.data {
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
+.qualificador {
+  overflow: hidden;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-9) var(--espaco-6);
+  text-align: center;
+}
+
+.recadoCritico {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  font-weight: var(--peso-forte);
+  color: var(--cor-critico);
+}
+
+.esqueleto {
+  display: block;
+  width: 100%;
+  height: var(--espaco-4);
+  background: var(--cor-borda-suave);
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* A rolagem é da grade, nunca da página: encolher a régua desalinha o produto inteiro. */
+@media (max-width: 640px) {
+  .grade {
+    min-width: 520px;
+  }
+}

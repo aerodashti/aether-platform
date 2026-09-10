@@ -4,7 +4,7 @@ import { juntarClasses } from '@/design-system/classes';
 
 import estilos from './Texto.module.css';
 
-export type VarianteDeTexto = 'titulo' | 'subtitulo' | 'corpo' | 'legenda';
+export type VarianteDeTexto = 'titulo' | 'subtitulo' | 'corpo' | 'apoio' | 'legenda';
 export type TomDeTexto = 'padrao' | 'suave' | 'positivo' | 'atencao' | 'critico';
 
 interface TextoProps {
@@ -17,6 +17,7 @@ interface TextoProps {
 }
 
 const elementoPadrao: Record<VarianteDeTexto, ElementType> = {
+  apoio: 'p',
   titulo: 'h1',
   subtitulo: 'h2',
   corpo: 'p',

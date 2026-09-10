@@ -50,10 +50,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-validation")
   // Envio do código de recuperação. É o JavaMailSender do Spring: sem cliente HTTP de terceiro.
   implementation("org.springframework.boot:spring-boot-starter-mail")
-  // Só o BCrypt, não o starter inteiro: `spring-security-crypto` é uma biblioteca sem
-  // auto-configuração, então não instala filtro nem tranca endpoint. O starter completo entra
-  // junto com a área logada, quando existir autorização para configurar. Ver ADR 0013.
-  implementation("org.springframework.security:spring-security-crypto")
+  // O starter completo entrou com a tela de Usuários, a primeira que autoriza por papel — é a
+  // segunda metade do ADR 0013, que previa exatamente este momento. Ele traz o
+  // `spring-security-crypto` do BCrypt junto, e agora a cadeia de filtros tem o que configurar:
+  // `ConfiguracaoDeSeguranca` declara o que é público e o que exige ADMINISTRADOR.
+  implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
   implementation("net.logstash.logback:logstash-logback-encoder:8.1")
   implementation("org.mapstruct:mapstruct:$versaoMapstruct")

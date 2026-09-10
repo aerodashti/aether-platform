@@ -23,6 +23,12 @@ interface CampoDeTextoProps {
   alinhamento?: AlinhamentoDeCampo;
   /** Espaçamento largo entre caracteres, para o código de seis dígitos. */
   espacado?: boolean;
+  /**
+   * Esconde o rótulo visualmente sem tirá-lo do leitor de tela. É o caso da busca sobre uma
+   * grade, onde o exemplo dentro do campo já diz o que se procura e um rótulo acima gastaria
+   * altura em cima da tabela.
+   */
+  rotuloOculto?: boolean;
   desabilitado?: boolean;
 }
 
@@ -45,6 +51,7 @@ export function CampoDeTexto({
   inputMode,
   alinhamento = 'esquerda',
   espacado = false,
+  rotuloOculto = false,
   desabilitado = false,
 }: CampoDeTextoProps) {
   const id = useId();
@@ -56,7 +63,10 @@ export function CampoDeTexto({
 
   return (
     <div className={estilos.campo}>
-      <label className={estilos.rotulo} htmlFor={id}>
+      <label
+        className={juntarClasses(estilos.rotulo, rotuloOculto && estilos.apenasLeitor)}
+        htmlFor={id}
+      >
         {rotulo}
       </label>
       <input

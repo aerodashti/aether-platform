@@ -12,8 +12,13 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
-    # `db/seed` traz os usuários de desenvolvimento e é retirado no perfil de produção.
+    # `db/seed` traz os dados de desenvolvimento e é retirado no perfil de produção.
     locations: classpath:db/migration,classpath:db/seed
+    # O seed usa a faixa V900+, e por isso ele fica SEMPRE à frente de qualquer migration nova:
+    # criar a V4 depois de a V900 ter sido aplicada é, para o Flyway, uma migration fora de ordem,
+    # e a validação recusa a subida. Sem isto, toda feature nova exigiria apagar o banco local.
+    # Em produção `db/seed` não existe e este relaxamento é desligado — veja application-prod.yml.
+    out-of-order: true
   threads:
     virtual:
       enabled: true
@@ -39,6 +44,10 @@ aether:
     validade-do-codigo: PT10M
     tentativas-por-codigo: 5
     intervalo-entre-codigos: PT1M
+    # O convite é um link, não um código de seis dígitos: vale mais tempo porque a pessoa pode
+    # levar um dia para abrir o e-mail, e a entropia do token é que o protege, não a janela curta.
+    validade-do-convite: P2D
+    endereco-do-convite: ${AETHER_ENDERECO_CONVITE:http://localhost:5173/entrar}
     remetente: ${AETHER_EMAIL_REMETENTE:nao-responda@aether.aerodash.com.br}
     # Em desenvolvimento o front roda em http://localhost: um cookie `Secure` não seria enviado.
     cookie-seguro: ${AETHER_COOKIE_SEGURO:false}

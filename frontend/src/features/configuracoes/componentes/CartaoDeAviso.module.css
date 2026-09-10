@@ -1,0 +1,21 @@
+.personalizado {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: flex-end;
+}
+
+.campo {
+  width: 110px;
+}
+
+/* A unidade alinha com o CENTRO do campo, não com a base: o rótulo acima empurra o campo para
+   baixo, e alinhar pela base deixaria "dias antes" colado no rodapé da caixa. */
+.unidade {
+  padding-bottom: var(--espaco-4);
+}
+
+.acao {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+}

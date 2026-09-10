@@ -1,0 +1,69 @@
+.grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.opcao {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  height: var(--espaco-9);
+  padding: 0 var(--espaco-5);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--cor-superficie);
+  /* 1px em repouso e 1px escolhido: a borda muda de cor, não de espessura — engrossar deslocaria
+     o rótulo em um pixel a cada troca. */
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  transition-property: background-color, border-color, color;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.igual {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.opcao:hover {
+  background: var(--cor-hover);
+  color: var(--cor-texto);
+}
+
+.opcao:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.escolhida {
+  color: var(--cor-texto);
+  background: var(--cor-acento-vestigio);
+  border-color: var(--cor-acento);
+}
+
+/* Círculo permitido: indicador de escolha, na mesma família de avatar, dot e spinner. */
+.marcador {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-redondo);
+}
+
+.escolhida .marcador {
+  border-width: 4px;
+  border-color: var(--cor-acento);
+}
+
+@media (hover: none), (max-width: 700px) {
+  .opcao {
+    height: var(--controle-altura-toque);
+  }
+}

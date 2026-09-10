@@ -7,6 +7,7 @@ import java.time.Duration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,14 +26,20 @@ public class AutenticacaoController {
 
   private final AutenticacaoService autenticacao;
   private final RecuperacaoDeSenhaService recuperacao;
+  private final ConviteService convites;
+  private final TrocaDeSenhaService trocaDeSenha;
   private final PropriedadesDeAutenticacao propriedades;
 
   public AutenticacaoController(
       AutenticacaoService autenticacao,
       RecuperacaoDeSenhaService recuperacao,
+      ConviteService convites,
+      TrocaDeSenhaService trocaDeSenha,
       PropriedadesDeAutenticacao propriedades) {
     this.autenticacao = autenticacao;
     this.recuperacao = recuperacao;
+    this.convites = convites;
+    this.trocaDeSenha = trocaDeSenha;
     this.propriedades = propriedades;
   }
 
@@ -85,6 +92,43 @@ public class AutenticacaoController {
   @Operation(summary = "Troca a senha usando o código recebido por e-mail")
   public ResponseEntity<Void> redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest requisicao) {
     recuperacao.redefinirSenha(requisicao.email(), requisicao.codigo(), requisicao.novaSenha());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Manda o código de confirmação para quem já está logado e quer trocar a própria senha.
+   *
+   * <p>202 e não 200: o que se garante é que o código saiu, não que chegou. E responde igual quando
+   * o intervalo entre envios ainda não passou — repetir o pedido não deve virar um jeito de
+   * descobrir o ritmo do sistema.
+   */
+  @PostMapping("/senha/token")
+  @Operation(summary = "Envia o código de confirmação para trocar a própria senha")
+  public ResponseEntity<Void> solicitarTokenDeTroca(
+      @AuthenticationPrincipal UsuarioAutenticado solicitante) {
+    trocaDeSenha.solicitarToken(solicitante.id());
+    return ResponseEntity.accepted().build();
+  }
+
+  @PostMapping("/senha")
+  @Operation(summary = "Troca a própria senha: exige a senha atual e o código enviado por e-mail")
+  public ResponseEntity<Void> trocarSenha(
+      @AuthenticationPrincipal UsuarioAutenticado solicitante,
+      @Valid @RequestBody TrocarSenhaRequest requisicao) {
+    trocaDeSenha.trocar(
+        solicitante.id(), requisicao.senhaAtual(), requisicao.novaSenha(), requisicao.codigo());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Fica na área não logada porque é exatamente aí que quem foi convidado está: sem sessão, com o
+   * link do e-mail na mão. O token do link é a credencial da chamada.
+   */
+  @PostMapping("/convite/senha")
+  @Operation(summary = "O convidado cria a própria senha e ativa o acesso")
+  public ResponseEntity<Void> concluirConvite(
+      @Valid @RequestBody ConcluirConviteRequest requisicao) {
+    convites.concluir(requisicao.convite(), requisicao.novaSenha());
     return ResponseEntity.noContent().build();
   }
 

@@ -66,6 +66,7 @@ muda por mais que ela acerte a senha. Escolhemos explicar o que está acontecend
 
 ## Quando revisitar
 
-Quando a primeira tela autenticada entrar — é o momento de trazer o starter do Spring Security e
-mover a leitura do cookie para um filtro. E se um dia a consulta de sessão aparecer num perfil de
+**A segunda metade foi resolvida em 2026-09-09 pelo ADR-0015**, com a tela de Usuários: o starter
+entrou, a leitura do cookie virou o `FiltroDeSessao` e a autorização passou a viver em
+`ConfiguracaoDeSeguranca`. O que segue valendo desta decisão é a sessão opaca no banco. E se um dia a consulta de sessão aparecer num perfil de
 carga como gargalo real, medido e não suposto, aí o JWT de vida curta com refresh volta à mesa.

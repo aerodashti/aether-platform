@@ -1,0 +1,148 @@
+/* A régua da grade vem da armadura, como em toda tela: rótulo longo (nome + contato), lockup
+   (documento pontuado em nowrap), estado e ações. Aeronave, participação e saldo entram com as
+   features donas de cada número. */
+.grade {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha {
+  display: grid;
+  grid-template-columns:
+    var(--armadura-rotulo-longo) var(--armadura-lockup) var(--armadura-estado)
+    var(--armadura-acao-texto);
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.cabecalho {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.linha {
+  min-height: var(--controle-altura-p);
+  padding: 0 var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.pessoa {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.nomes {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nome {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: baseline;
+  min-width: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.contato {
+  overflow: hidden;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Documento é identidade: monoespaçada e dígitos tabulares, como a matrícula. */
+.documento {
+  overflow: hidden;
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.situacao {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Abaixo de 640px a rolagem migra da página para a grade, como nas demais. */
+@media (max-width: 640px) {
+  .grade {
+    min-width: 640px;
+  }
+}

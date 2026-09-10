@@ -67,7 +67,8 @@ class CodigoDeRecuperacaoTest {
   }
 
   private static CodigoDeRecuperacao novo() {
-    Usuario usuario = new Usuario("Leonardo", "leonardo@administraair.com.br", AGORA);
+    Usuario usuario =
+        new Usuario("Leonardo", "leonardo@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);
     usuario.definirSenha("$2a$12$hash", AGORA);
     return new CodigoDeRecuperacao(usuario, "$2a$12$codigo", AGORA, VALIDADE);
   }

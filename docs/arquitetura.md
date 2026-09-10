@@ -35,10 +35,38 @@ Não existem pacotes horizontais (`controllers/`, `services/`, `repositories/`).
 
 1. `FiltroDeLinhaCanonica` lê ou gera o `X-Request-Id`, abre o span do request e coloca tudo no
    MDC; ao final, emite a linha canônica e devolve o header. Veja `docs/observabilidade.md`.
-2. `*Controller` recebe o DTO de request, validado por Bean Validation.
-3. `*Service` orquestra: busca no repositório, chama regras da entidade, decide o que fazer.
-4. `*Mapper` (MapStruct) converte entidade → DTO de response.
-5. Se uma exceção de domínio subir, `TratadorGlobalDeErros` a converte em RFC 9457 Problem Details.
+2. `FiltroDeSessao` traduz o cookie `aether_sessao` em identidade autenticada, se houver uma. Ele
+   nunca recusa: cookie ausente ou vencido apenas deixa a requisição seguir anônima.
+3. A cadeia do Spring Security decide se essa identidade basta para a rota. `ConfiguracaoDeSeguranca`
+   é a **fonte única** de quem entra onde — rota nova nasce fechada, e nenhum controller repete a
+   regra em anotação. Recusa vira 401 (entre) ou 403 (não é seu), nos mesmos Problem Details do
+   resto, por `RespostaDeAcessoNegado`. Veja `docs/adr/0013-sessao-opaca-em-cookie.md` e
+   `docs/adr/0015-papel-do-usuario-e-convite.md`.
+4. `*Controller` recebe o DTO de request, validado por Bean Validation.
+5. `*Service` orquestra: busca no repositório, chama regras da entidade, decide o que fazer.
+6. `*Mapper` (MapStruct) converte entidade → DTO de response.
+7. Se uma exceção de domínio subir, `TratadorGlobalDeErros` a converte em RFC 9457 Problem Details.
+
+Os passos 2 e 3 não passam pelo `TratadorGlobalDeErros`: a cadeia de filtros corta antes de qualquer
+controller, e é por isso que `RespostaDeAcessoNegado` existe — para que o front tenha um formato de
+erro só.
+
+### Duas features que precisam do mesmo valor
+
+Feature não conhece feature. Quando uma precisa de um dado que outra governa, a que **consome**
+declara uma interface com o que precisa, e a que **governa** a implementa:
+
+```
+aeronave/PoliticaDeVencimento.java          ← a porta, na feature que consome
+empresa/PoliticaDeVencimentoDaEmpresa.java  ← o adaptador, na feature que governa
+```
+
+A seta aponta para quem depende. A feature de aeronaves não sabe que existe uma empresa nem uma
+tela de Configurações mudando o número dela; sabe que alguém responde à pergunta. Trocar a fonte
+não toca em nenhuma regra de aeronave, e o ArchUnit continua sem ciclo.
+
+Não use isto para tudo: se duas features precisam trocar mais que um punhado de valores, o que
+existe ali é uma terceira feature ainda não nomeada.
 
 ### A entidade é o modelo — defesa contra o "service gordo"
 
@@ -96,6 +124,11 @@ pelo ArchUnit e falha o build.
 1. `docs/glossario.md`: confirme (ou adicione) o nome canônico do termo de domínio.
 2. Crie o pacote `br.com.aerodash.aether.<feature>`.
 3. Entidade JPA + migration Flyway em `src/main/resources/db/migration/V<n>__<descricao>.sql`.
+   Os dados de desenvolvimento moram em `db/seed`, na faixa `V900+`, e essa faixa **está sempre à
+   frente** de qualquer migration nova: criar a `V4` num banco que já aplicou a `V900` é, para o
+   Flyway, migration fora de ordem. Por isso o perfil padrão liga `spring.flyway.out-of-order`, e
+   o de produção o desliga explicitamente — lá `db/seed` não existe e uma migration fora de
+   sequência é sinal de merge mal resolvido ou deploy pulado, e tem que travar a subida.
 4. `*Repository` estendendo `JpaRepository`.
 5. `*Service` com injeção por construtor.
 6. `record`s de request/response + `*Mapper` MapStruct.

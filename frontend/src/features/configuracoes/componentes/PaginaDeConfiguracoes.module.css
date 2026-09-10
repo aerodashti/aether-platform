@@ -1,0 +1,16 @@
+/* Duas colunas quando cabem, uma quando não cabem. O `auto-fit` com piso de 330px é a mesma
+   escala de cartão do handoff — a tela não inventa um breakpoint próprio. */
+.tela {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: var(--espaco-5);
+  align-items: start;
+  max-width: 980px;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-width: 0;
+}

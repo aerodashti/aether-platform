@@ -16,7 +16,8 @@ conversa antes:
   separa o produto da aparência de template. `--raio-redondo` existe só para avatar, dot de situação
   e spinner. Formato pill é proibido.
 - **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px.
-  Alturas de controle 40 e 48. Sem respiros decorativos.
+  Alturas de controle 32, 40 e 48 — o degrau de 32 é a densidade compacta da grade. Sem respiros
+  decorativos.
 - **Contraste fino.** Superfícies chapadas, divisores de 1px, sombra discreta. Nada de gradiente
   chamativo, sombra grande ou glassmorphism.
 - **Azul petróleo.** Um acento só, em sete papéis (veja a tabela). Nenhum hex fora de `tokens.json`.
@@ -44,6 +45,32 @@ design-system/tokens/tokens.json   ← a fonte. É o único arquivo que se edita
 | Raio | `--raio-` | `--raio-m`, `--raio-redondo` |
 | Elevação | `--elevacao-` | `--elevacao-1` |
 | Movimento | `--duracao-`, `--curva-` | `--duracao-rapida`, `--curva-padrao` |
+| Controle | `--controle-altura-` | `--controle-altura-p` (32px), `-toque` (44px) |
+| Armadura | `--armadura-` | `--armadura-estado`, `--armadura-gap` |
+| Camada | `--camada-` | `--camada-sticky` |
+
+### A armadura de trilhas é a assinatura
+
+Uma largura por **tipo de dado**, no produto inteiro: coluna do mesmo tipo tem a mesma largura em
+toda tela. É o que faz duas grades diferentes lerem como o mesmo instrumento, e vem do DD-P15 do
+handoff. Só entram aqui as trilhas que alguma tela já consome — a régua completa tem mais.
+
+| Token | Valor | Tipo de dado |
+| --- | --- | --- |
+| `--armadura-gap` | 8px | Respiro entre trilhas. Mudar isto desalinha todas as grades |
+| `--armadura-id` | 80px | Identificador em monoespaçada: matrícula, rel. de voo, nota fiscal |
+| `--armadura-rotulo` | `minmax(120px, 1.5fr)` | Nome, modelo, descrição, atribuição |
+| `--armadura-lockup` | 160px | Lockup de duas partes em nowrap: grandeza + qualificador (DD-P16) |
+| `--armadura-rotulo-longo` | `minmax(248px, 2fr)` | Texto livre longo: nome + e-mail, descrição |
+| `--armadura-estado` | 112px | Etiqueta categórica: papel, situação, status |
+| `--armadura-data` | 96px | `dd/mm/aa` e competência |
+| `--armadura-acao-texto` | 160px | Duas ações rotuladas na mesma linha |
+
+### Alturas de controle
+
+`32 / 40 / 48` é a densidade de ponteiro fino. Em `(hover: none)` ou abaixo de 700px o piso vira
+`--controle-altura-toque` (44px), que é o alvo mínimo de toque — a trilha de ação não reflui porque
+já foi dimensionada a partir desse número.
 
 ### A escala tipográfica anda em par
 
@@ -81,6 +108,34 @@ Trocar o tema é escrever `data-theme` no elemento raiz. Nenhum componente preci
 rolagem e autofill do navegador nasçam na cor certa — os tokens sozinhos não alcançam esses
 elementos.
 
+### A tela de Aeronaves tem quatro colunas, não seis
+
+O protótipo mostra Matrícula · Modelo · Status · Saldo do fundo · Custo da competência ·
+Proprietários. As três últimas dependem de features que ainda não existem — aportes, lançamentos e
+participações —, e **coluna vazia não existe**: cada uma entra com a feature dona do seu número.
+Enquanto isso a grade não estica até os 1180px da régua completa, porque a trilha de rótulo é
+`1.5fr` e absorveria toda a sobra num vão entre Modelo e Situação.
+
+Duas diferenças deliberadas em relação ao protótipo, as duas por regra do próprio brief:
+
+- **"Situação", não "Status".** O glossário proíbe o anglicismo.
+- **Existe uma coluna de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
+  *"Estado sem consequência é proibido: ATENÇÃO sozinho não informa. Forma correta: Seguro RETA ·
+  vence em 12 dias."* A coluna ocupa a trilha de lockup, que é exatamente a forma "grandeza +
+  qualificador". O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave saudável,
+  "em 241 dias" é número sem pergunta.
+
+O seletor **"Estado"** do protótipo não foi implementado: o próprio `AETHER_PATTERNS.md` o registra
+como *"andaime de protótipo em Aeronaves e Custos"*, uma dívida declarada para demonstrar os cinco
+estados da grade. Os cinco estados existem na implementação; o seletor que os simula, não.
+
+### Ação de linha: visível, não escondida
+
+A ação destrutiva de uma linha de grade fica **sempre visível**, e perde peso contra a ação neutra
+por **cor**, não por ocultação. Esconder um controle focável com `opacity: 0` até o hover é falha de
+foco visível (WCAG 2.4.7 e 2.4.11): quem navega por teclado chega a um botão que não se vê. O
+handoff chegou à mesma conclusão e a registrou no próprio CSS, em `.acao-destrutiva`.
+
 ### Lacunas conhecidas
 
 - Não há tokens de **grade/layout** (largura de coluna, breakpoints). A tela de entrada usa dois
@@ -103,10 +158,16 @@ acessibilidade ficam em um lugar só.
 
 | Primitivo | Arquivo | Variantes | Observações |
 | --- | --- | --- | --- |
-| `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado, sem mudar a aparência |
-| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno` × tamanho `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento |
+| `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
+| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco |
 | `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
+| `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
+| `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
+| `GrupoDeOpcoes` | `primitivos/GrupoDeOpcoes.tsx` | `marcador`, `larguraIgual` | Escolha única com todas as opções à vista. É `radiogroup` de verdade (`role="radio"` + `aria-checked`), não fileira de botões que parecem escolhidos. Passando de cinco opções, use `Selecao` |
+| `PainelModal` | `primitivos/PainelModal.tsx` | — | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal |
+| `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
+| `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
 
 ### A variante `contorno` do `Botao`
 
@@ -132,6 +193,10 @@ foram unificados; onde divergiam no escuro, foram mantidos separados.
 | `--cor-borda` | `--cor-borda` | Divisor padrão |
 | `--cor-borda-forte` | `--cor-borda-forte` | Borda de campo |
 | `--cor-borda-suave` | `--cor-borda-suave` | Divisor entre linhas, fundo de recado |
+| `--cor-superficie-3` | `--cor-superficie-recuada` | Barra lateral, faixa recuada |
+| `--cor-hover` | `--cor-hover` | Hover de controle |
+| `--cor-linha-hover` | `--cor-linha-hover` | Hover de linha de grade. **Opaco de propósito**: translúcido vaza sob coluna congelada |
+| `--cor-overlay` | `--cor-overlay` | Scrim atrás do modal |
 | `--cor-texto` | `--cor-texto` | Texto principal |
 | `--cor-texto-sec` **e** `--cor-texto-ter` | `--cor-texto-suave` | Unificados: no bundle atual `--cor-texto-ter` já é alias de `--cor-texto-sec` nos dois temas |
 | `--cor-acao` | `--cor-acento` | Acento: traço, anel de foco, gráfico |
@@ -147,9 +212,11 @@ foram unificados; onde divergiam no escuro, foram mantidos separados.
 | `--cor-negativo` | `--cor-critico` | Erro, borda de campo inválido |
 
 Não foram trazidos, porque nenhuma tela os consome ainda: os `-tint`, `-forte` e `-clara` dos
-estados, as superfícies 3 e 4, `--cor-overlay`, `--cor-hover`, `--cor-linha-hover`,
-`--cor-neutro-medio`, os tokens `--z-*`, a armadura de trilhas (`--arm-*`, `--cols-*`) e
-`--shadow-fixa-*`. Entram com as telas de grade.
+estados, a superfície 4, `--cor-neutro-medio`, as réguas compostas `--cols-*`, o restante da
+armadura (`--arm-id`, `--arm-num`, `--arm-valor`, `--arm-lockup`, `--arm-serie`, `--arm-selecao`) e
+`--shadow-fixa-*`, que só existe onde há coluna congelada. Entram com as telas financeiras.
+
+Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e `menu`.
 
 ### Tipografia, espaço, raio, movimento
 
@@ -176,13 +243,36 @@ estados, as superfícies 3 e 4, `--cor-overlay`, `--cor-hover`, `--cor-linha-hov
 | `.link-acao` | **Implementado** — `BotaoDeLink` |
 | Globo pontilhado (`dotted-globe.js`) | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só |
 | Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
+| Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
+| Tela de Aeronaves (grade da frota) | **Parcial** — `features/aeronaves`. Ver a nota abaixo sobre as colunas ausentes |
+| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`. Seletor de tema em `compartilhado/tema` |
+| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
+| Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
+| Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
+| Tela de Proprietários (grade, filtros, painel de cadastro) | **Parcial** — `features/proprietarios`. Ver a nota abaixo sobre as colunas ausentes |
+| Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
+| Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados
 
-Barra lateral de navegação, cabeçalho de aplicação, busca global, menu de perfil, badge de situação,
-chip de alerta, tabela densa com colunas fixas e linha de totais, seletor de densidade, modal,
-drawer de detalhe, popover de calendário, skeleton de carregamento, gráficos de barra e sparkline.
-Todos pertencem à área logada.
+Busca global (⌘K), menu de perfil, badge de situação, chip de alerta, colunas congeladas e linha de
+totais da grade, seletor de densidade, drawer de detalhe, popover de calendário, gráficos de barra e
+sparkline. Todos pertencem a telas da área logada que ainda não existem.
+
+O **esqueleto de carregamento** virou o primitivo `Esqueleto` quando a grade de Proprietários — a
+segunda — precisou dele, agora com o gradiente animado do `.skel` do handoff e
+`prefers-reduced-motion` respeitado.
+
+### A tela de Proprietários tem quatro colunas, não seis
+
+Mesma regra da tela de Aeronaves: o protótipo mostra Proprietário · Aeronave · Participação ·
+Saldo · Situação · Ações, e as três do meio dependem do contrato de participação e do rateio, que
+ainda não existem — **coluna vazia não existe**. No lugar delas há uma coluna de CPF/CNPJ, que é
+dado do cadastro. O documento pontuado é nowrap de largura fixa e ocupa a trilha de lockup
+(160px): a régua do handoff não tem trilha própria de documento, e criar uma agora seria token
+para uma tela só. O "Excluir" do protótipo também não está aqui: ele abre um rebalanceamento de
+participações antes de inativar, fluxo que pertence ao contrato de participação — até lá, a ação
+destrutiva é Desativar/Reativar, como em Usuários.
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
 bundle). O produto é entregue em português; inglês e espanhol não estão nesta fase.

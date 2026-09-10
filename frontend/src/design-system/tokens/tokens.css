@@ -21,6 +21,10 @@
   --cor-atencao: #8a4f00;
   --cor-critico: #b4231f;
   --cor-foco: #2e5e86;
+  --cor-superficie-recuada: #edf1f5;
+  --cor-hover: rgba(13, 25, 38, 0.04);
+  --cor-linha-hover: #eef3f8;
+  --cor-overlay: rgba(13, 25, 38, 0.55);
   --elevacao-0: none;
   --elevacao-1: 0 1px 2px rgba(13, 25, 38, 0.06);
   --elevacao-2: 0 2px 4px rgba(13, 25, 38, 0.06), 0 4px 8px rgba(13, 25, 38, 0.05);
@@ -39,6 +43,7 @@
   --altura-g: 1.5;
   --altura-gg: 1.3;
   --altura-ggg: 1.12;
+  --altura-linha-dupla: 1.2;
   --peso-normal: 400;
   --peso-medio: 500;
   --peso-forte: 600;
@@ -67,6 +72,20 @@
   --duracao-lenta: 400ms;
   --curva-padrao: cubic-bezier(0.2, 0, 0, 1);
   --curva-saida: cubic-bezier(0.4, 0, 1, 1);
+  --controle-altura-p: 32px;
+  --controle-altura-m: 40px;
+  --controle-altura-g: 48px;
+  --controle-altura-toque: 44px;
+  --armadura-gap: 8px;
+  --armadura-id: 80px;
+  --armadura-rotulo: minmax(120px, 1.5fr);
+  --armadura-lockup: 160px;
+  --armadura-rotulo-longo: minmax(248px, 2fr);
+  --armadura-estado: 112px;
+  --armadura-data: 96px;
+  --armadura-acao-texto: 160px;
+  --camada-sticky: 10;
+  --camada-menu: 20;
 }
 
 :root[data-theme='escuro'] {
@@ -90,6 +109,10 @@
   --cor-atencao: #f0b34e;
   --cor-critico: #f87171;
   --cor-foco: #4f7ea8;
+  --cor-superficie-recuada: #12171f;
+  --cor-hover: rgba(255, 255, 255, 0.04);
+  --cor-linha-hover: #232c3a;
+  --cor-overlay: rgba(5, 9, 14, 0.66);
   --elevacao-0: none;
   --elevacao-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
   --elevacao-2: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.35);
@@ -118,6 +141,10 @@
     --cor-atencao: #f0b34e;
     --cor-critico: #f87171;
     --cor-foco: #4f7ea8;
+    --cor-superficie-recuada: #12171f;
+    --cor-hover: rgba(255, 255, 255, 0.04);
+    --cor-linha-hover: #232c3a;
+    --cor-overlay: rgba(5, 9, 14, 0.66);
     --elevacao-0: none;
     --elevacao-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
     --elevacao-2: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 12px rgba(0, 0, 0, 0.35);

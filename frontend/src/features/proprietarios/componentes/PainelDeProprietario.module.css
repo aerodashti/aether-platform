@@ -1,0 +1,10 @@
+.cores {
+  margin-top: var(--espaco-3);
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-4);
+  justify-content: flex-end;
+  margin-top: var(--espaco-2);
+}

@@ -1,0 +1,66 @@
+.grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+/* A amostra é quadrada de canto reto, como tudo no produto; só o ponto da grade é círculo,
+   pela mesma licença do dot de situação. */
+.amostra {
+  width: var(--espaco-7);
+  height: var(--espaco-7);
+  padding: 0;
+  cursor: pointer;
+  background: var(--cor-da-amostra);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-s);
+  outline-offset: 2px;
+}
+
+.amostra:focus-visible {
+  outline: 2px solid var(--cor-foco);
+}
+
+.escolhida {
+  outline: 2px solid var(--cor-acento-escuro);
+}
+
+.escolhida:focus-visible {
+  outline-color: var(--cor-foco);
+}
+
+.ponto {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--cor-da-amostra);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-redondo);
+}
+
+/* A cor de cada nome da paleta, em custom property para amostra e ponto compartilharem. Os seis
+   vêm dos tokens — nenhum hex novo entra por aqui, e o tema escuro já vem resolvido deles. */
+.petroleo {
+  --cor-da-amostra: var(--cor-acento-escuro);
+}
+
+.azul {
+  --cor-da-amostra: var(--cor-acento);
+}
+
+.celeste {
+  --cor-da-amostra: var(--cor-acento-claro);
+}
+
+.verde {
+  --cor-da-amostra: var(--cor-positivo);
+}
+
+.ambar {
+  --cor-da-amostra: var(--cor-atencao);
+}
+
+.cinza {
+  --cor-da-amostra: var(--cor-texto-suave);
+}

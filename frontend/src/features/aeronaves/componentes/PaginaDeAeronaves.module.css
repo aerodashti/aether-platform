@@ -1,0 +1,41 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  /* A largura acompanha as trilhas que existem. Com as seis colunas do protótipo a régua chega a
+     1180px; com quatro, esticar até lá abriria um vão entre Modelo e Situação — a trilha de
+     rótulo é `1.5fr` e absorveria toda a sobra. Volta a crescer quando as colunas de dinheiro
+     entrarem com as features donas. */
+  max-width: 780px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--espaco-6);
+}
+
+.painel {
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+@media (max-width: 640px) {
+  .painel {
+    overflow-x: auto;
+  }
+}
+
+.resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  align-items: baseline;
+  margin: 0;
+}

@@ -55,6 +55,8 @@ class RecuperacaoDeSenhaServiceTest {
                 VALIDADE,
                 LIMITE,
                 Duration.ofMinutes(1),
+                Duration.ofDays(2),
+                "http://localhost:5173/entrar",
                 "nao-responda@aether.com.br",
                 false),
             Clock.fixed(AGORA, ZoneOffset.UTC));
@@ -90,7 +92,8 @@ class RecuperacaoDeSenhaServiceTest {
   @Test
   @DisplayName("usuário pendente não recebe código — o caminho dele é o convite")
   void pendenteNaoRecebeCodigo() {
-    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(new Usuario("Camila", EMAIL, AGORA)));
+    when(usuarios.findByEmail(EMAIL))
+        .thenReturn(Optional.of(new Usuario("Camila", EMAIL, PapelDoUsuario.GESTOR, AGORA)));
 
     assertThatCode(() -> service.solicitarCodigo(EMAIL)).doesNotThrowAnyException();
 
@@ -197,7 +200,7 @@ class RecuperacaoDeSenhaServiceTest {
   }
 
   private static Usuario ativo() {
-    Usuario usuario = new Usuario("Leonardo Andrade", EMAIL, AGORA);
+    Usuario usuario = new Usuario("Leonardo Andrade", EMAIL, PapelDoUsuario.GESTOR, AGORA);
     usuario.definirSenha("$2a$12$hash", AGORA);
     return usuario;
   }

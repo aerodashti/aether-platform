@@ -1,0 +1,24 @@
+.token {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding-top: var(--espaco-4);
+  border-top: 1px solid var(--cor-borda-suave);
+}
+
+.linha {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: flex-end;
+}
+
+.campo {
+  /* Cabe o rótulo "Código de confirmação" em uma linha; o campo em si precisaria de menos. */
+  width: 190px;
+}
+
+.acao {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+}
