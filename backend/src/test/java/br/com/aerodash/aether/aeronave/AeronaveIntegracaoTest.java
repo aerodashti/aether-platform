@@ -110,6 +110,61 @@ class AeronaveIntegracaoTest {
     assertThatThrownBy(() -> aeronaves.saveAndFlush(invalida)).isInstanceOf(Exception.class);
   }
 
+  @Test
+  @DisplayName("o cadastro completo entra pela borda e já aparece na frota")
+  void cadastroCompletoPelaBorda() throws Exception {
+    Cookie sessao = entrar();
+
+    mockMvc
+        .perform(
+            post("/aeronaves")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"matricula":"ps-nov","fabricante":"Pilatus","modelo":"PC-24",
+                     "numeroDeSerie":"501","base":"sbjd","hangar":"Hangar 3",
+                     "apoliceDoSeguro":"RETA-9","pesoMaxDecolagemKg":8300,
+                     "pesoMaxPousoKg":7665,
+                     "vencimentoCva":"2027-06-01","vencimentoReta":"2027-08-01",
+                     "contadores":{"horasDeCelula":120.5,"ciclos":98,"kmVoados":51000,
+                       "horasMotor1":118.0,"horasMotor2":118.0},
+                     "configuracaoFinanceira":{"baseDoRateio":"POR_PROPRIEDADE",
+                       "modeloDeAporte":"FIXO","periodicidadeDoAporteMeses":3,
+                       "valorDoAporte":45000,"diaDeFechamento":10}}
+                    """))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.matricula").value("PS-NOV"))
+        .andExpect(jsonPath("$.base").value("SBJD"))
+        .andExpect(jsonPath("$.contadores.ciclos").value(98))
+        .andExpect(jsonPath("$.configuracaoFinanceira.diaDeFechamento").value(10));
+
+    mockMvc
+        .perform(get("/aeronaves").cookie(sessao))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[?(@.matricula=='PS-NOV')].modelo").value("PC-24"));
+  }
+
+  @Test
+  @DisplayName("recadastrar uma matrícula do seed é 409, não uma segunda linha")
+  void recadastroEh409() throws Exception {
+    mockMvc
+        .perform(
+            post("/aeronaves")
+                .cookie(entrar())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"matricula":"ps-mep","modelo":"Citation XLS+","base":"SBSP",
+                     "vencimentoCva":"2027-06-01","vencimentoReta":"2027-08-01",
+                     "contadores":{"horasDeCelula":0,"ciclos":0,"kmVoados":0},
+                     "configuracaoFinanceira":{"baseDoRateio":"POR_USO",
+                       "modeloDeAporte":"FIXO","periodicidadeDoAporteMeses":1,
+                       "diaDeFechamento":1}}
+                    """))
+        .andExpect(status().isConflict());
+  }
+
   private Cookie entrar() throws Exception {
     MvcResult resultado =
         mockMvc

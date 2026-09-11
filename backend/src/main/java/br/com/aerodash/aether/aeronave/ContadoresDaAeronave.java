@@ -21,11 +21,12 @@ public record ContadoresDaAeronave(
     @Column(name = "km_voados", nullable = false) BigDecimal kmVoados,
     @Column(name = "horas_motor_1") BigDecimal horasMotor1,
     @Column(name = "horas_motor_2") BigDecimal horasMotor2,
+    @Column(name = "horas_motor_3") BigDecimal horasMotor3,
     @Column(name = "horas_apu") BigDecimal horasApu) {
 
   /** O estado de quem acabou de entrar no sistema sem histórico declarado. */
   public static ContadoresDaAeronave zerados() {
-    return new ContadoresDaAeronave(BigDecimal.ZERO, 0, BigDecimal.ZERO, null, null, null);
+    return new ContadoresDaAeronave(BigDecimal.ZERO, 0, BigDecimal.ZERO, null, null, null, null);
   }
 
   public boolean possuiValoresNegativos() {
@@ -34,6 +35,7 @@ public record ContadoresDaAeronave(
         || kmVoados.signum() < 0
         || (horasMotor1 != null && horasMotor1.signum() < 0)
         || (horasMotor2 != null && horasMotor2.signum() < 0)
+        || (horasMotor3 != null && horasMotor3.signum() < 0)
         || (horasApu != null && horasApu.signum() < 0);
   }
 }

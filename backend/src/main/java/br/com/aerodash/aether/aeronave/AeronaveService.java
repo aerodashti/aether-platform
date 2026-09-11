@@ -61,29 +61,55 @@ public class AeronaveService {
             request.numeroDeSerie(),
             request.base(),
             request.hangar(),
-            request.apoliceDoSeguro()),
+            request.apoliceDoSeguro(),
+            request.pesoMaxDecolagemKg(),
+            request.pesoMaxPousoKg()),
         Instant.now(relogio));
+    return paraDetalhe(aeronave);
+  }
+
+  @Transactional
+  public DetalheDaAeronaveResponse criar(CriarAeronaveRequest request) {
+    String matricula = Aeronave.normalizarMatricula(request.matricula());
+    boolean duplicada = aeronaves.findByMatricula(matricula).isPresent();
+    contexto.decisao("aeronave.matriculaDuplicada", duplicada);
+    if (duplicada) {
+      throw new MatriculaJaCadastradaException();
+    }
+
+    Instant agora = Instant.now(relogio);
+    Aeronave aeronave =
+        new Aeronave(
+            matricula,
+            request.modelo(),
+            request.base(),
+            request.vencimentoCva(),
+            request.vencimentoReta(),
+            agora);
+    aeronave.atualizarFichaTecnica(
+        new Aeronave.FichaTecnica(
+            request.fabricante(),
+            request.modelo(),
+            request.numeroDeSerie(),
+            request.base(),
+            request.hangar(),
+            request.apoliceDoSeguro(),
+            request.pesoMaxDecolagemKg(),
+            request.pesoMaxPousoKg()),
+        agora);
+    aeronave.corrigirContadores(montarContadores(request.contadores()), agora);
+    aeronave.atualizarConfiguracaoFinanceira(
+        montarConfiguracao(request.configuracaoFinanceira()), agora);
+
+    aeronave = aeronaves.save(aeronave);
+    contexto.registrar("aeronave.id", aeronave.getId());
     return paraDetalhe(aeronave);
   }
 
   @Transactional
   public DetalheDaAeronaveResponse corrigirContadores(Long id, ContadoresRequest request) {
     Aeronave aeronave = carregar(id);
-    ContadoresDaAeronave novos =
-        new ContadoresDaAeronave(
-            request.horasDeCelula(),
-            request.ciclos(),
-            request.kmVoados(),
-            request.horasMotor1(),
-            request.horasMotor2(),
-            request.horasApu());
-
-    // O Bean Validation já barrou campo a campo; a regra composta é da entidade e fica de cinto.
-    contexto.decisao("aeronave.contadoresNegativos", novos.possuiValoresNegativos());
-    if (novos.possuiValoresNegativos()) {
-      throw new ConfiguracaoFinanceiraInvalidaException("Contadores não podem ser negativos.");
-    }
-    aeronave.corrigirContadores(novos, Instant.now(relogio));
+    aeronave.corrigirContadores(montarContadores(request), Instant.now(relogio));
     return paraDetalhe(aeronave);
   }
 
@@ -91,6 +117,29 @@ public class AeronaveService {
   public DetalheDaAeronaveResponse atualizarConfiguracaoFinanceira(
       Long id, ConfiguracaoFinanceiraRequest request) {
     Aeronave aeronave = carregar(id);
+    aeronave.atualizarConfiguracaoFinanceira(montarConfiguracao(request), Instant.now(relogio));
+    return paraDetalhe(aeronave);
+  }
+
+  /** Monta e valida: o Bean Validation barrou campo a campo; a regra composta é da entidade. */
+  private ContadoresDaAeronave montarContadores(ContadoresRequest request) {
+    ContadoresDaAeronave novos =
+        new ContadoresDaAeronave(
+            request.horasDeCelula(),
+            request.ciclos(),
+            request.kmVoados(),
+            request.horasMotor1(),
+            request.horasMotor2(),
+            request.horasMotor3(),
+            request.horasApu());
+    contexto.decisao("aeronave.contadoresNegativos", novos.possuiValoresNegativos());
+    if (novos.possuiValoresNegativos()) {
+      throw new ConfiguracaoFinanceiraInvalidaException("Contadores não podem ser negativos.");
+    }
+    return novos;
+  }
+
+  private ConfiguracaoFinanceira montarConfiguracao(ConfiguracaoFinanceiraRequest request) {
     ConfiguracaoFinanceira nova =
         new ConfiguracaoFinanceira(
             request.baseDoRateio(),
@@ -98,14 +147,12 @@ public class AeronaveService {
             request.periodicidadeDoAporteMeses(),
             request.valorDoAporte(),
             request.diaDeFechamento());
-
     contexto.decisao("aeronave.periodicidadeValida", nova.possuiPeriodicidadeValida());
     if (!nova.possuiPeriodicidadeValida()) {
       throw new ConfiguracaoFinanceiraInvalidaException(
           "A periodicidade do aporte precisa ser 1, 2, 3, 4, 6 ou 12 meses.");
     }
-    aeronave.atualizarConfiguracaoFinanceira(nova, Instant.now(relogio));
-    return paraDetalhe(aeronave);
+    return nova;
   }
 
   private Aeronave carregar(Long id) {

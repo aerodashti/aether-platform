@@ -20,6 +20,8 @@ public record DetalheDaAeronaveResponse(
     @Schema(example = "Hangar 7 — Congonhas") String hangar,
     @Schema(description = "Número da apólice; a vigência é o vencimento da RETA")
         String apoliceDoSeguro,
+    @Schema(description = "MTOW em kg", example = "9163") Integer pesoMaxDecolagemKg,
+    @Schema(description = "MLW em kg", example = "8482") Integer pesoMaxPousoKg,
     SituacaoRegular situacaoRegular,
     DocumentoDaAeronave documentoDoProximoVencimento,
     LocalDate proximoVencimento,
@@ -37,6 +39,7 @@ public record DetalheDaAeronaveResponse(
       BigDecimal kmVoados,
       BigDecimal horasMotor1,
       BigDecimal horasMotor2,
+      BigDecimal horasMotor3,
       BigDecimal horasApu) {}
 
   @Schema(description = "Configuração financeira da aeronave")

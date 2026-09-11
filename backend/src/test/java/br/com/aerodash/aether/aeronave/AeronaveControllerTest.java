@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -146,5 +147,42 @@ class AeronaveControllerTest {
                     """))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.horasDeCelula").exists());
+  }
+
+  @Test
+  @DisplayName("proprietário não cadastra aeronave: 403 antes do service")
+  void proprietarioNaoCadastra() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
+
+    mockMvc
+        .perform(
+            post("/aeronaves")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("matrícula fora do padrão do RAB é barrada pela validação")
+  void matriculaForaDoPadrao() throws Exception {
+    when(autenticacao.autenticar(TOKEN))
+        .thenReturn(Optional.of(new UsuarioAutenticado(2L, "Patrícia", PapelDoUsuario.GESTOR)));
+
+    mockMvc
+        .perform(
+            post("/aeronaves")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"matricula":"N123AB","modelo":"G280","base":"KTEB",
+                     "vencimentoCva":"2027-06-01","vencimentoReta":"2027-08-01",
+                     "contadores":{"horasDeCelula":0,"ciclos":0,"kmVoados":0},
+                     "configuracaoFinanceira":{"baseDoRateio":"POR_USO","modeloDeAporte":"FIXO",
+                       "periodicidadeDoAporteMeses":1,"diaDeFechamento":1}}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.matricula").exists());
   }
 }

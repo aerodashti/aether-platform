@@ -26,6 +26,8 @@ public class AeronaveMapper {
         aeronave.getBase(),
         aeronave.getHangar(),
         aeronave.getApoliceDoSeguro(),
+        aeronave.getPesoMaxDecolagemKg(),
+        aeronave.getPesoMaxPousoKg(),
         aeronave.situacaoRegular(hoje, diasDeAtencao),
         aeronave.documentoDoProximoVencimento(),
         aeronave.proximoVencimento(),
@@ -39,6 +41,7 @@ public class AeronaveMapper {
             c.kmVoados(),
             c.horasMotor1(),
             c.horasMotor2(),
+            c.horasMotor3(),
             c.horasApu()),
         new DetalheDaAeronaveResponse.Financeiro(
             f.baseDoRateio(),

@@ -1,3 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+
+import { useSessao } from '@/compartilhado/sessao/sessao';
+import { Botao } from '@/design-system/primitivos/Botao';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useAeronaves } from '../api/useAeronaves';
@@ -37,13 +41,19 @@ function Resumo({ total, impedidas }: { total: number; impedidas: number }) {
 
 export function PaginaDeAeronaves() {
   const consulta = useAeronaves();
+  const navegar = useNavigate();
+  const { usuario } = useSessao();
   const frota = consulta.data ?? [];
   const impedidas = frota.filter((aeronave) => aeronave.podeVoar === false).length;
+  const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
 
   return (
     <div className={estilos.tela}>
       <div className={estilos.cabecalho}>
         {consulta.isPending ? null : <Resumo total={frota.length} impedidas={impedidas} />}
+        {podeGerir ? (
+          <Botao aoClicar={() => void navegar('/aeronaves/nova')}>Nova aeronave</Botao>
+        ) : null}
       </div>
 
       <div className={estilos.painel}>

@@ -4,11 +4,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -34,6 +37,13 @@ public class AeronaveController {
       summary = "Lista a frota em ordem de matrícula, com a situação regulatória de cada uma")
   public List<AeronaveResponse> listar() {
     return aeronaves.listar();
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "Cadastra uma aeronave com ficha, parâmetros e configuração financeira")
+  public DetalheDaAeronaveResponse criar(@Valid @RequestBody CriarAeronaveRequest request) {
+    return aeronaves.criar(request);
   }
 
   @GetMapping("/{id}")

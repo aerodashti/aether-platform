@@ -53,6 +53,13 @@ public class Aeronave {
   @Column(name = "apolice_do_seguro", length = 40)
   private String apoliceDoSeguro;
 
+  /** MTOW em kg, do certificado. Nulo é "não informado" — peso zero não existe. */
+  @Column(name = "peso_max_decolagem_kg")
+  private Integer pesoMaxDecolagemKg;
+
+  @Column(name = "peso_max_pouso_kg")
+  private Integer pesoMaxPousoKg;
+
   @Embedded private ContadoresDaAeronave contadores;
 
   @Embedded private ConfiguracaoFinanceira configuracaoFinanceira;
@@ -165,6 +172,8 @@ public class Aeronave {
     this.base = normalizarBase(ficha.base());
     this.hangar = ficha.hangar();
     this.apoliceDoSeguro = ficha.apoliceDoSeguro();
+    this.pesoMaxDecolagemKg = ficha.pesoMaxDecolagemKg();
+    this.pesoMaxPousoKg = ficha.pesoMaxPousoKg();
     this.atualizadoEm = momento;
   }
 
@@ -175,7 +184,9 @@ public class Aeronave {
       String numeroDeSerie,
       String base,
       String hangar,
-      String apoliceDoSeguro) {}
+      String apoliceDoSeguro,
+      Integer pesoMaxDecolagemKg,
+      Integer pesoMaxPousoKg) {}
 
   /** Correção manual dos totais — rota de administrador enquanto o diário de voos não existe. */
   public void corrigirContadores(ContadoresDaAeronave novosContadores, Instant momento) {
@@ -226,6 +237,14 @@ public class Aeronave {
 
   public String getApoliceDoSeguro() {
     return apoliceDoSeguro;
+  }
+
+  public Integer getPesoMaxDecolagemKg() {
+    return pesoMaxDecolagemKg;
+  }
+
+  public Integer getPesoMaxPousoKg() {
+    return pesoMaxPousoKg;
   }
 
   public ContadoresDaAeronave getContadores() {

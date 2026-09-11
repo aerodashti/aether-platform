@@ -22,4 +22,5 @@ public record ContadoresRequest(
         BigDecimal kmVoados,
     @PositiveOrZero(message = "Horas de motor não podem ser negativas.") BigDecimal horasMotor1,
     @PositiveOrZero(message = "Horas de motor não podem ser negativas.") BigDecimal horasMotor2,
+    @PositiveOrZero(message = "Horas de motor não podem ser negativas.") BigDecimal horasMotor3,
     @PositiveOrZero(message = "Horas de APU não podem ser negativas.") BigDecimal horasApu) {}

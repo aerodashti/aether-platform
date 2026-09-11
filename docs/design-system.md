@@ -253,6 +253,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Proprietários (grade, filtros, painel de cadastro) | **Parcial** — `features/proprietarios`. Ver a nota abaixo sobre as colunas ausentes |
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
 | Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
+| Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados
@@ -279,6 +280,16 @@ financeiro pertencem a aportes; a trava de "fechamento pendente" no dia da fatur
 rateio. O "Excluir" da linha de participação existe (remover do contrato novo), mas o
 rebalanceamento guiado do protótipo — abrir a exclusão de um proprietário já distribuindo a fatia
 liberada — entra com a tela de rateio.
+
+### A Nova aeronave tem quatro seções, não cinco
+
+Do protótipo ficaram de fora, cada uma esperando a feature dona: o **saldo atual do fundo** e a
+distribuição dele por proprietário (pertencem a aportes) e a seção de **documentos** (pertence à
+tela de documentos, que envolve armazenamento de arquivo). Entrou o que o protótipo não tem: o
+**vencimento do CVA** — a situação regulatória da frota é derivada dele, e cadastrar sem CVA
+criaria uma linha sem a coluna que dá sentido à tela. O contrato inicial de participações é um
+segundo POST na rota do contrato: `aeronave` importar `participacao` criaria ciclo entre features,
+e aeronave sem contrato é estado válido do domínio.
 
 ### A tela de Proprietários tem quatro colunas, não seis
 

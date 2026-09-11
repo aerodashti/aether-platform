@@ -364,6 +364,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/aeronaves": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
+        get: operations["listar_2"];
+        put?: never;
+        /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
+        post: operations["criar_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/aeronaves/{aeronaveId}/tripulantes": {
         parameters: {
             query?: never;
@@ -372,10 +390,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-        get: operations["listar_2"];
+        get: operations["listar_3"];
         put?: never;
         /** Vincula um tripulante à aeronave */
-        post: operations["criar_1"];
+        post: operations["criar_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -464,23 +482,6 @@ export interface paths {
         post?: never;
         /** Encerra a sessão corrente */
         delete: operations["sair"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/aeronaves": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-        get: operations["listar_3"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -632,6 +633,10 @@ export interface components {
             base?: string;
             hangar?: string;
             apoliceDoSeguro?: string;
+            /** Format: int32 */
+            pesoMaxDecolagemKg?: number;
+            /** Format: int32 */
+            pesoMaxPousoKg?: number;
         };
         /** @description Totais acumulados da aeronave */
         Contadores: {
@@ -641,6 +646,7 @@ export interface components {
             kmVoados?: number;
             horasMotor1?: number;
             horasMotor2?: number;
+            horasMotor3?: number;
             horasApu?: number;
         };
         /** @description Detalhe de uma aeronave */
@@ -664,6 +670,18 @@ export interface components {
             hangar?: string;
             /** @description Número da apólice; a vigência é o vencimento da RETA */
             apoliceDoSeguro?: string;
+            /**
+             * Format: int32
+             * @description MTOW em kg
+             * @example 9163
+             */
+            pesoMaxDecolagemKg?: number;
+            /**
+             * Format: int32
+             * @description MLW em kg
+             * @example 8482
+             */
+            pesoMaxPousoKg?: number;
             /** @enum {string} */
             situacaoRegular?: "REGULAR" | "ATENCAO" | "VENCIDO";
             /** @enum {string} */
@@ -702,6 +720,7 @@ export interface components {
             kmVoados: number;
             horasMotor1?: number;
             horasMotor2?: number;
+            horasMotor3?: number;
             horasApu?: number;
         };
         /** @description Rateio e fundo da aeronave */
@@ -895,6 +914,38 @@ export interface components {
             convite?: string;
             /** @description Senha escolhida pela própria pessoa */
             novaSenha?: string;
+        };
+        /** @description Cadastro de uma nova aeronave */
+        CriarAeronaveRequest: {
+            /**
+             * @description Matrícula no RAB
+             * @example PS-AER
+             */
+            matricula?: string;
+            fabricante?: string;
+            modelo?: string;
+            numeroDeSerie?: string;
+            base?: string;
+            hangar?: string;
+            apoliceDoSeguro?: string;
+            /** Format: int32 */
+            pesoMaxDecolagemKg?: number;
+            /** Format: int32 */
+            pesoMaxPousoKg?: number;
+            /**
+             * Format: date
+             * @description Vencimento do CVA
+             */
+            vencimentoCva: string;
+            /**
+             * Format: date
+             * @description Vigência do seguro RETA (vencimento)
+             */
+            vencimentoReta: string;
+            /** @description Valores acumulados na data do cadastro */
+            contadores: components["schemas"]["ContadoresRequest"];
+            /** @description Rateio e fundo */
+            configuracaoFinanceira: components["schemas"]["ConfiguracaoFinanceiraRequest"];
         };
         /** @description Definição de um novo contrato de participação */
         DefinirContratoRequest: {
@@ -1626,6 +1677,50 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AeronaveResponse"][];
+                };
+            };
+        };
+    };
+    criar_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CriarAeronaveRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
+                };
+            };
+        };
+    };
+    listar_3: {
+        parameters: {
+            query?: never;
+            header?: never;
             path: {
                 aeronaveId: number;
             };
@@ -1644,7 +1739,7 @@ export interface operations {
             };
         };
     };
-    criar_1: {
+    criar_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1817,26 +1912,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    listar_3: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AeronaveResponse"][];
-                };
             };
         };
     };

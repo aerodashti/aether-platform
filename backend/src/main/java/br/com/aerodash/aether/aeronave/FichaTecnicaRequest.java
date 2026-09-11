@@ -3,6 +3,7 @@ package br.com.aerodash.aether.aeronave;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -23,5 +24,8 @@ public record FichaTecnicaRequest(
             message = "A base é um código ICAO de quatro letras, como SBSP.")
         String base,
     @Size(max = 60, message = "O hangar pode ter no máximo 60 caracteres.") String hangar,
-    @Size(max = 40, message = "A apólice pode ter no máximo 40 caracteres.")
-        String apoliceDoSeguro) {}
+    @Size(max = 40, message = "A apólice pode ter no máximo 40 caracteres.") String apoliceDoSeguro,
+    @Positive(message = "O peso máximo de decolagem precisa ser maior que zero.")
+        Integer pesoMaxDecolagemKg,
+    @Positive(message = "O peso máximo de pouso precisa ser maior que zero.")
+        Integer pesoMaxPousoKg) {}

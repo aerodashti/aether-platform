@@ -46,11 +46,14 @@ export function PainelDeFichaTecnica({
   const [base, setBase] = useState(detalhe.base ?? '');
   const [hangar, setHangar] = useState(detalhe.hangar ?? '');
   const [apolice, setApolice] = useState(detalhe.apoliceDoSeguro ?? '');
+  const [pesoDecolagem, setPesoDecolagem] = useState(texto(detalhe.pesoMaxDecolagemKg));
+  const [pesoPouso, setPesoPouso] = useState(texto(detalhe.pesoMaxPousoKg));
   const [horasDeCelula, setHorasDeCelula] = useState(texto(detalhe.contadores?.horasDeCelula));
   const [ciclos, setCiclos] = useState(texto(detalhe.contadores?.ciclos));
   const [kmVoados, setKmVoados] = useState(texto(detalhe.contadores?.kmVoados));
   const [horasMotor1, setHorasMotor1] = useState(texto(detalhe.contadores?.horasMotor1));
   const [horasMotor2, setHorasMotor2] = useState(texto(detalhe.contadores?.horasMotor2));
+  const [horasMotor3, setHorasMotor3] = useState(texto(detalhe.contadores?.horasMotor3));
   const [horasApu, setHorasApu] = useState(texto(detalhe.contadores?.horasApu));
 
   const id = detalhe.id ?? 0;
@@ -65,6 +68,8 @@ export function PainelDeFichaTecnica({
       base,
       hangar,
       apoliceDoSeguro: apolice,
+      pesoMaxDecolagemKg: numeroOuNulo(pesoDecolagem),
+      pesoMaxPousoKg: numeroOuNulo(pesoPouso),
     };
     atualizarFicha.mutate(ficha, {
       onSuccess: () => {
@@ -81,6 +86,7 @@ export function PainelDeFichaTecnica({
             kmVoados: numeroOuNulo(kmVoados) ?? 0,
             horasMotor1: numeroOuNulo(horasMotor1),
             horasMotor2: numeroOuNulo(horasMotor2),
+            horasMotor3: numeroOuNulo(horasMotor3),
             horasApu: numeroOuNulo(horasApu),
           },
           { onSuccess: aoFechar },
@@ -139,6 +145,18 @@ export function PainelDeFichaTecnica({
           exemplo="SBSP"
         />
         <CampoDeTexto rotulo="Hangar" valor={hangar} aoMudar={setHangar} maxLength={60} />
+        <CampoDeTexto
+          rotulo="Peso máx. decolagem (kg)"
+          valor={pesoDecolagem}
+          aoMudar={setPesoDecolagem}
+          inputMode="numeric"
+        />
+        <CampoDeTexto
+          rotulo="Peso máx. pouso (kg)"
+          valor={pesoPouso}
+          aoMudar={setPesoPouso}
+          inputMode="numeric"
+        />
       </div>
 
       <Texto variante="legenda" tom="suave" como="h3">
@@ -185,6 +203,12 @@ export function PainelDeFichaTecnica({
               rotulo="Motor 2 (h)"
               valor={horasMotor2}
               aoMudar={setHorasMotor2}
+              inputMode="numeric"
+            />
+            <CampoDeTexto
+              rotulo="Motor 3 (h)"
+              valor={horasMotor3}
+              aoMudar={setHorasMotor3}
               inputMode="numeric"
             />
             <CampoDeTexto

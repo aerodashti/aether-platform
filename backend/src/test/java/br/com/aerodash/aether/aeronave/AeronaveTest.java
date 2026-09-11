@@ -143,7 +143,7 @@ class AeronaveTest {
 
       aeronave.atualizarFichaTecnica(
           new Aeronave.FichaTecnica(
-              "Cessna", "Citation XLS+", "560-6321", "sbjd", "Hangar 7", "RETA-1"),
+              "Cessna", "Citation XLS+", "560-6321", "sbjd", "Hangar 7", "RETA-1", 9163, 8482),
           MOMENTO);
 
       assertThat(aeronave.getBase()).isEqualTo("SBJD");
@@ -162,6 +162,7 @@ class AeronaveTest {
                       java.math.BigDecimal.ZERO,
                       null,
                       java.math.BigDecimal.valueOf(-1),
+                      null,
                       null)
                   .possuiValoresNegativos())
           .isTrue();
