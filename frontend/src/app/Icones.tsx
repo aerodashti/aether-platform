@@ -59,6 +59,16 @@ export function IconeDiario() {
   );
 }
 
+export function IconeRecibo() {
+  return (
+    <svg {...comuns}>
+      <path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21z" />
+      <path d="M9.5 8h5" />
+      <path d="M9.5 12h5" />
+    </svg>
+  );
+}
+
 export function IconeSaida() {
   return (
     <svg {...comuns}>

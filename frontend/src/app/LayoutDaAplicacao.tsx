@@ -13,6 +13,7 @@ import {
   IconeEngrenagem,
   IconePessoas,
   IconePulso,
+  IconeRecibo,
   IconeSaida,
 } from './Icones';
 import estilos from './LayoutDaAplicacao.module.css';
@@ -53,6 +54,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/voos" icone={<IconeDiario />}>
               Diário de voos
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/custos" icone={<IconeRecibo />}>
+              Lançamentos
             </LinkDeNavegacao>
           </li>
           <li>

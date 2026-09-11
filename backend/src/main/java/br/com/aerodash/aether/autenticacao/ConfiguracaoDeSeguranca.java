@@ -79,6 +79,11 @@ public class ConfiguracaoDeSeguranca {
         .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
         .requestMatchers("/usuarios/**")
         .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+        // O proprietário vê o que paga; lançar custo é de quem gere a conta.
+        .requestMatchers(HttpMethod.GET, "/custos", "/custos/**")
+        .authenticated()
+        .requestMatchers("/custos", "/custos/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
         // Lançar e corrigir voo inclui o piloto: é ele quem volta do voo com os
         // horários realizados na mão. Ler continua sendo de quem tem sessão.
         .requestMatchers(HttpMethod.GET, "/voos", "/voos/**")

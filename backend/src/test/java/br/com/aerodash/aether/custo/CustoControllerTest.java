@@ -1,4 +1,4 @@
-package br.com.aerodash.aether.voo;
+package br.com.aerodash.aether.custo;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -34,9 +34,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(VooController.class)
-@DisplayName("VooController")
-class VooControllerTest {
+@WebMvcTest(CustoController.class)
+@DisplayName("CustoController")
+class CustoControllerTest {
 
   @TestConfiguration
   @Import({
@@ -55,112 +55,108 @@ class VooControllerTest {
   }
 
   private static final String TOKEN = "token-de-sessao";
+  private static final UsuarioAutenticado GESTOR =
+      new UsuarioAutenticado(2L, "Patrícia", PapelDoUsuario.GESTOR);
   private static final UsuarioAutenticado PILOTO =
       new UsuarioAutenticado(3L, "Caio", PapelDoUsuario.PILOTO);
-  private static final UsuarioAutenticado PROPRIETARIO =
-      new UsuarioAutenticado(9L, "Rubens", PapelDoUsuario.PROPRIETARIO);
 
-  private static final TrechoResponse TRECHO =
-      new TrechoResponse(
+  private static final CustoResponse LANCAMENTO =
+      new CustoResponse(
           5L,
           1L,
           "PS-MEP",
-          "RV-2026-041",
-          1,
+          TipoDeCusto.VARIAVEL,
+          CategoriaDeCusto.ABASTECIMENTO,
           LocalDate.parse("2026-09-08"),
-          "SBSP",
-          "SBRJ",
-          new BigDecimal("0.8"),
-          new BigDecimal("365.0"),
-          null,
-          null,
-          null,
-          null,
+          "Jet A-1",
+          "RV-2026-041",
           7L,
           "Ricardo Meirelles",
           null,
           false,
-          null);
+          "NF 88.213",
+          MoedaDoCusto.BRL,
+          null,
+          null,
+          new BigDecimal("15725.00"));
 
   @Autowired private MockMvc mockMvc;
 
-  @MockitoBean private VooService voos;
+  @MockitoBean private CustoService custos;
   @MockitoBean private AutenticacaoService autenticacao;
 
   @Test
-  @DisplayName("qualquer papel lê o diário, com os totais somados no servidor")
+  @DisplayName("qualquer papel lê os lançamentos: o proprietário vê o que paga")
   void qualquerPapelLe() throws Exception {
-    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
-    when(voos.listar(any(), any()))
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+    when(custos.listar(any(), any()))
         .thenReturn(
-            new DiarioDeVoosResponse(
-                List.of(TRECHO),
-                new DiarioDeVoosResponse.TotaisDoDiario(
-                    new BigDecimal("0.8"), new BigDecimal("365.0"), 1)));
+            new LancamentosResponse(
+                List.of(LANCAMENTO),
+                new LancamentosResponse.TotaisDosLancamentos(
+                    BigDecimal.ZERO, new BigDecimal("15725.00"), new BigDecimal("15725.00"))));
 
     mockMvc
-        .perform(
-            get("/voos?aeronave=1&competencia=2026-09").cookie(new Cookie("aether_sessao", TOKEN)))
+        .perform(get("/custos?competencia=2026-09").cookie(new Cookie("aether_sessao", TOKEN)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.trechos[0].relatorioDeVoo").value("RV-2026-041"))
-        .andExpect(jsonPath("$.totais.pousos").value(1));
+        .andExpect(jsonPath("$.custos[0].categoria").value("ABASTECIMENTO"))
+        .andExpect(jsonPath("$.totais.total").value(15725.00));
   }
 
   @Test
-  @DisplayName("o piloto lança trecho: é ele quem volta do voo com os horários")
-  void pilotoLanca() throws Exception {
+  @DisplayName("piloto não lança custo: 403 antes do service")
+  void pilotoNaoLanca() throws Exception {
     when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
-    when(voos.criar(any())).thenReturn(TRECHO);
 
     mockMvc
         .perform(
-            post("/voos")
+            post("/custos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isForbidden());
+
+    verify(custos, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("o gestor lança e recebe 201")
+  void gestorLanca() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    when(custos.criar(any())).thenReturn(LANCAMENTO);
+
+    mockMvc
+        .perform(
+            post("/custos")
                 .cookie(new Cookie("aether_sessao", TOKEN))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"aeronaveId":1,"relatorioDeVoo":"RV-2026-041","numeroDoTrecho":1,
-                     "data":"2026-09-08","origem":"SBSP","destino":"SBRJ","km":365.0,
-                     "proprietarioId":7}
+                    {"aeronaveId":1,"categoria":"ABASTECIMENTO","data":"2026-09-08",
+                     "descricao":"Jet A-1","moeda":"BRL","valor":15725.00}
                     """))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.id").value(5));
   }
 
   @Test
-  @DisplayName("proprietário não escreve no diário: 403 antes do service")
-  void proprietarioNaoEscreve() throws Exception {
-    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
+  @DisplayName("sem categoria nem valor a validação barra antes do service")
+  void validacaoBarra() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
 
     mockMvc
         .perform(
-            post("/voos")
-                .cookie(new Cookie("aether_sessao", TOKEN))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{}"))
-        .andExpect(status().isForbidden());
-
-    verify(voos, never()).criar(any());
-  }
-
-  @Test
-  @DisplayName("origem fora do padrão ICAO é barrada pela validação")
-  void origemInvalida() throws Exception {
-    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
-
-    mockMvc
-        .perform(
-            post("/voos")
+            post("/custos")
                 .cookie(new Cookie("aether_sessao", TOKEN))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"aeronaveId":1,"relatorioDeVoo":"RV-1","numeroDoTrecho":1,
-                     "data":"2026-09-08","origem":"SP","destino":"SBRJ","km":365.0}
+                    {"aeronaveId":1,"data":"2026-09-08","descricao":"x","moeda":"BRL"}
                     """))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.origem").exists());
+        .andExpect(jsonPath("$.campos.categoria").exists())
+        .andExpect(jsonPath("$.campos.valor").exists());
 
-    verify(voos, never()).criar(any());
+    verify(custos, never()).criar(any());
   }
 }

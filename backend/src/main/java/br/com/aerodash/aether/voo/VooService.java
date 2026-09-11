@@ -216,10 +216,10 @@ public class VooService {
         trecho.getObservacoes());
   }
 
-  private DiarioDeVoosResponse.Totais totaisDe(List<Trecho> recorte) {
+  private DiarioDeVoosResponse.TotaisDoDiario totaisDe(List<Trecho> recorte) {
     BigDecimal horas =
         recorte.stream().map(Trecho::horasParaContadores).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal km = recorte.stream().map(Trecho::getKm).reduce(BigDecimal.ZERO, BigDecimal::add);
-    return new DiarioDeVoosResponse.Totais(horas, km, recorte.size());
+    return new DiarioDeVoosResponse.TotaisDoDiario(horas, km, recorte.size());
   }
 }

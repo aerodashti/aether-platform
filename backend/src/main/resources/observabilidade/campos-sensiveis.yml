@@ -31,12 +31,16 @@ campos:
   # Código ANAC do tripulante: documento pessoal.
   canac: integral
   cpf: cpf
+  # Conteúdo livre escrito pelo usuário no lançamento de custo.
+  descricao: integral
   # Documento do proprietário: CPF ou CNPJ no mesmo campo. Mascarado inteiro porque a
   # estratégia `cpf` assume 11 dígitos e aqui podem ser 14.
   cpfCnpj: integral
   # Dado pessoal. Para ligar um request a uma pessoa existe `usuario.id`, que não identifica
   # ninguém fora do banco e já é registrado pelo serviço de autenticação.
   email: integral
+  # Documento fiscal do lançamento.
+  notaFiscal: integral
   novaSenha: integral
   # Conteúdo livre escrito pelo usuário no trecho do diário de voos.
   observacoes: integral
