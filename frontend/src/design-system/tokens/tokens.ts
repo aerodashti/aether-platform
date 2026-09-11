@@ -108,6 +108,7 @@ export const tokens = {
     'rotulo-longo': 'var(--armadura-rotulo-longo)',
     'estado': 'var(--armadura-estado)',
     'data': 'var(--armadura-data)',
+    'numero': 'var(--armadura-numero)',
     'acao-texto': 'var(--armadura-acao-texto)',
   },
   camada: {

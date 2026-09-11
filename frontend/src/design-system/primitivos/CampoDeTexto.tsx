@@ -4,7 +4,7 @@ import { juntarClasses } from '@/design-system/classes';
 
 import estilos from './CampoDeTexto.module.css';
 
-export type TipoDeCampo = 'texto' | 'email' | 'senha' | 'data';
+export type TipoDeCampo = 'texto' | 'email' | 'senha' | 'data' | 'hora' | 'mes';
 export type AlinhamentoDeCampo = 'esquerda' | 'centro';
 
 interface CampoDeTextoProps {
@@ -36,8 +36,10 @@ const tipoNativo: Record<TipoDeCampo, string> = {
   texto: 'text',
   email: 'email',
   senha: 'password',
-  // Nativo de propósito, como a Selecao: o calendário, o teclado e a validação vêm do navegador.
+  // Nativos de propósito, como a Selecao: calendário, teclado e validação vêm do navegador.
   data: 'date',
+  hora: 'time',
+  mes: 'month',
 };
 
 export function CampoDeTexto({

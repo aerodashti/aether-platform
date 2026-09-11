@@ -10,6 +10,7 @@ import { PaginaDeConfiguracoes } from '@/features/configuracoes/componentes/Pagi
 import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/PaginaDeProprietarios';
 import { PaginaSaude } from '@/features/saude/componentes/PaginaSaude';
 import { PaginaDeUsuarios } from '@/features/usuarios/componentes/PaginaDeUsuarios';
+import { PaginaDeVoos } from '@/features/voos/componentes/PaginaDeVoos';
 
 import { LayoutDaAplicacao } from './LayoutDaAplicacao';
 
@@ -28,6 +29,7 @@ export function Rotas() {
           <Route path="/aeronaves" element={<PaginaDeAeronaves />} />
           <Route path="/aeronaves/nova" element={<PaginaDeNovaAeronave />} />
           <Route path="/aeronaves/:id" element={<PaginaDeDetalheDaAeronave />} />
+          <Route path="/voos" element={<PaginaDeVoos />} />
           <Route path="/proprietarios" element={<PaginaDeProprietarios />} />
           <Route path="/configuracoes" element={<PaginaDeConfiguracoes />} />
           <Route element={<RotaDeAdministrador />}>

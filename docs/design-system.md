@@ -64,6 +64,7 @@ handoff. Só entram aqui as trilhas que alguma tela já consome — a régua com
 | `--armadura-rotulo-longo` | `minmax(248px, 2fr)` | Texto livre longo: nome + e-mail, descrição |
 | `--armadura-estado` | 112px | Etiqueta categórica: papel, situação, status |
 | `--armadura-data` | 96px | `dd/mm/aa` e competência |
+| `--armadura-numero` | 96px | Numérico curto alinhado à direita: horas, km, quantidade, % |
 | `--armadura-acao-texto` | 160px | Duas ações rotuladas na mesma linha |
 
 ### Alturas de controle
@@ -160,7 +161,7 @@ acessibilidade ficam em um lugar só.
 | --- | --- | --- | --- |
 | `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
 | `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco |
-| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
+| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
 | `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
 | `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
@@ -169,6 +170,7 @@ acessibilidade ficam em um lugar só.
 | `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
 | `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
+| `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
 ### A variante `contorno` do `Botao`
 
@@ -254,6 +256,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
 | Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
+| Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados

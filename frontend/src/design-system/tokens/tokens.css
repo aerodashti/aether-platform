@@ -83,6 +83,7 @@
   --armadura-rotulo-longo: minmax(248px, 2fr);
   --armadura-estado: 112px;
   --armadura-data: 96px;
+  --armadura-numero: 96px;
   --armadura-acao-texto: 160px;
   --camada-sticky: 10;
   --camada-menu: 20;

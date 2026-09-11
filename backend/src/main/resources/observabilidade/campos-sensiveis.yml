@@ -38,6 +38,8 @@ campos:
   # ninguém fora do banco e já é registrado pelo serviço de autenticação.
   email: integral
   novaSenha: integral
+  # Conteúdo livre escrito pelo usuário no trecho do diário de voos.
+  observacoes: integral
   senha: integral
   senhaAtual: integral
   # Dado pessoal de contato do proprietário.
