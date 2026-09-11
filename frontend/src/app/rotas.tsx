@@ -8,6 +8,7 @@ import { PaginaDeNovaAeronave } from '@/features/aeronaves/componentes/PaginaDeN
 import { PaginaDeLogin } from '@/features/autenticacao/componentes/PaginaDeLogin';
 import { PaginaDeConfiguracoes } from '@/features/configuracoes/componentes/PaginaDeConfiguracoes';
 import { PaginaDeCustos } from '@/features/custos/componentes/PaginaDeCustos';
+import { PaginaDeManutencao } from '@/features/manutencao/componentes/PaginaDeManutencao';
 import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/PaginaDeProprietarios';
 import { PaginaSaude } from '@/features/saude/componentes/PaginaSaude';
 import { PaginaDeUsuarios } from '@/features/usuarios/componentes/PaginaDeUsuarios';
@@ -32,6 +33,7 @@ export function Rotas() {
           <Route path="/aeronaves/:id" element={<PaginaDeDetalheDaAeronave />} />
           <Route path="/voos" element={<PaginaDeVoos />} />
           <Route path="/custos" element={<PaginaDeCustos />} />
+          <Route path="/manutencao" element={<PaginaDeManutencao />} />
           <Route path="/proprietarios" element={<PaginaDeProprietarios />} />
           <Route path="/configuracoes" element={<PaginaDeConfiguracoes />} />
           <Route element={<RotaDeAdministrador />}>

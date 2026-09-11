@@ -9,6 +9,7 @@ import { useSair } from '@/features/autenticacao/api/useAcesso';
 import {
   IconeAeronave,
   IconeCartaoDeIdentidade,
+  IconeChave,
   IconeDiario,
   IconeEngrenagem,
   IconePessoas,
@@ -59,6 +60,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/custos" icone={<IconeRecibo />}>
               Lançamentos
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/manutencao" icone={<IconeChave />}>
+              Manutenção
             </LinkDeNavegacao>
           </li>
           <li>

@@ -52,9 +52,19 @@ public class ConfiguracaoDeSeguranca {
 
   /**
    * As regras de rota, na ordem em que valem: a primeira que casa decide. É a única fonte de "isto
-   * é público" — nenhum controller repete a decisão em anotação.
+   * é público" — nenhum controller repete a decisão em anotação. Os dois blocos rodam sobre o mesmo
+   * registro, na ordem em que são chamados.
    */
   private void autorizarRotas(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
+          rotas) {
+    autorizarAreaAbertaEConta(rotas);
+    autorizarOperacao(rotas);
+    rotas.anyRequest().authenticated();
+  }
+
+  /** A área não logada e a administração da conta: sessão, saúde, empresa e usuários. */
+  private void autorizarAreaAbertaEConta(
       AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
           rotas) {
     rotas
@@ -78,7 +88,19 @@ public class ConfiguracaoDeSeguranca {
         .requestMatchers("/empresa", "/empresa/**")
         .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
         .requestMatchers("/usuarios/**")
-        .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+        .hasRole(PapelDoUsuario.ADMINISTRADOR.name());
+  }
+
+  /** As telas da operação: manutenção, custos, voos, frota e proprietários. */
+  private void autorizarOperacao(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
+          rotas) {
+    rotas
+        // O painel de manutenção é leitura de todos; agendar e monitorar é de quem gere.
+        .requestMatchers(HttpMethod.GET, "/manutencoes", "/manutencoes/**")
+        .authenticated()
+        .requestMatchers("/manutencoes", "/manutencoes/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
         // O proprietário vê o que paga; lançar custo é de quem gere a conta.
         .requestMatchers(HttpMethod.GET, "/custos", "/custos/**")
         .authenticated()
@@ -107,8 +129,6 @@ public class ConfiguracaoDeSeguranca {
         .requestMatchers(HttpMethod.GET, "/proprietarios")
         .authenticated()
         .requestMatchers("/proprietarios", "/proprietarios/**")
-        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-        .anyRequest()
-        .authenticated();
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name());
   }
 }

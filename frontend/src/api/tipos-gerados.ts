@@ -39,6 +39,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/manutencoes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Corrige uma manutenção */
+        put: operations["atualizar_2"];
+        post?: never;
+        /** Exclui um evento */
+        delete: operations["excluir_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manutencoes/parametros/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Atualiza um parâmetro de controle */
+        put: operations["atualizarParametro"];
+        post?: never;
+        /** Exclui um parâmetro de controle */
+        delete: operations["excluirParametro"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/empresa": {
         parameters: {
             query?: never;
@@ -83,10 +119,10 @@ export interface paths {
         };
         get?: never;
         /** Corrige um lançamento */
-        put: operations["atualizar_2"];
+        put: operations["atualizar_3"];
         post?: never;
         /** Exclui um lançamento feito por engano */
-        delete: operations["excluir_1"];
+        delete: operations["excluir_2"];
         options?: never;
         head?: never;
         patch?: never;
@@ -152,7 +188,7 @@ export interface paths {
         };
         get?: never;
         /** Atualiza um tripulante, situação incluída */
-        put: operations["atualizar_3"];
+        put: operations["atualizar_4"];
         post?: never;
         delete?: never;
         options?: never;
@@ -293,6 +329,75 @@ export interface paths {
         put?: never;
         /** Desativa um proprietário, preservando o histórico */
         post: operations["desativar_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manutencoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** O painel de uma aeronave: parâmetros julgados, programadas e histórico */
+        get: operations["painel"];
+        put?: never;
+        /** Agenda uma manutenção; ela aparece no calendário de voos */
+        post: operations["agendar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manutencoes/{id}/reabertura": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reabre uma conclusão feita por engano */
+        post: operations["reabrir"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manutencoes/{id}/conclusao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Conclui: sai das programadas e entra no histórico permanente */
+        post: operations["concluir"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/manutencoes/parametros": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria um parâmetro de controle */
+        post: operations["criarParametro"];
         delete?: never;
         options?: never;
         head?: never;
@@ -718,6 +823,66 @@ export interface components {
              * @enum {string}
              */
             situacao?: "ATIVO" | "INATIVO";
+        };
+        /** @description Evento de manutenção */
+        ManutencaoRequest: {
+            /** Format: int64 */
+            aeronaveId: number;
+            /** Format: date */
+            data: string;
+            /** @example 14:30:00 */
+            hora?: string;
+            responsavel?: string;
+            descricao?: string;
+            valor?: number;
+        };
+        /** @description Evento de manutenção */
+        ManutencaoResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            /** Format: date */
+            data?: string;
+            /** @example 14:30:00 */
+            hora?: string;
+            responsavel?: string;
+            descricao?: string;
+            valor?: number;
+            /** @enum {string} */
+            status?: "PROGRAMADA" | "CONCLUIDA";
+        };
+        /** @description Parâmetro de controle */
+        ParametroRequest: {
+            /** Format: int64 */
+            aeronaveId: number;
+            nome?: string;
+            /** @enum {string} */
+            tipo: "HORAS" | "CICLOS" | "DATA";
+            limite?: number;
+            /** Format: date */
+            dataLimite?: string;
+            aviso: number;
+        };
+        /** @description Parâmetro de controle, julgado */
+        ParametroResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            nome?: string;
+            /** @enum {string} */
+            tipo?: "HORAS" | "CICLOS" | "DATA";
+            limite?: number;
+            /** Format: date */
+            dataLimite?: string;
+            aviso?: number;
+            /** @description Horas de célula, ciclos ou o dia de hoje, conforme o tipo */
+            atual?: number;
+            /** @description Quanto falta na unidade do tipo; negativo é estouro */
+            restante?: number;
+            /** @enum {string} */
+            situacao?: "REGULAR" | "ATENCAO" | "ESTOURADO";
         };
         /** @description Alteração dos dados da empresa */
         AlterarEmpresaRequest: {
@@ -1266,6 +1431,18 @@ export interface components {
             /** @description Situação de cada componente monitorado */
             componentes?: components["schemas"]["ComponenteDeSaudeResponse"][];
         };
+        /** @description Manutenção de uma aeronave */
+        PainelDeManutencaoResponse: {
+            /** @description Horas de célula atuais, a referência dos parâmetros */
+            horasDeCelula?: number;
+            /** Format: int32 */
+            ciclos?: number;
+            parametros?: components["schemas"]["ParametroResponse"][];
+            /** @description Programadas, em ordem de proximidade */
+            programadas?: components["schemas"]["ManutencaoResponse"][];
+            /** @description Concluídas, da mais recente para a mais antiga */
+            historico?: components["schemas"]["ManutencaoResponse"][];
+        };
         /** @description Lançamentos de custo de um recorte */
         LancamentosResponse: {
             custos?: components["schemas"]["CustoResponse"][];
@@ -1411,6 +1588,98 @@ export interface operations {
             };
         };
     };
+    atualizar_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManutencaoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ManutencaoResponse"];
+                };
+            };
+        };
+    };
+    excluir_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    atualizarParametro: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParametroRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ParametroResponse"];
+                };
+            };
+        };
+    };
+    excluirParametro: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     consultar: {
         parameters: {
             query?: never;
@@ -1479,7 +1748,7 @@ export interface operations {
             };
         };
     };
-    atualizar_2: {
+    atualizar_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1505,7 +1774,7 @@ export interface operations {
             };
         };
     };
-    excluir_1: {
+    excluir_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1603,7 +1872,7 @@ export interface operations {
             };
         };
     };
-    atualizar_3: {
+    atualizar_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1874,6 +2143,120 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProprietarioResponse"];
+                };
+            };
+        };
+    };
+    painel: {
+        parameters: {
+            query: {
+                aeronave: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PainelDeManutencaoResponse"];
+                };
+            };
+        };
+    };
+    agendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManutencaoRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ManutencaoResponse"];
+                };
+            };
+        };
+    };
+    reabrir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ManutencaoResponse"];
+                };
+            };
+        };
+    };
+    concluir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ManutencaoResponse"];
+                };
+            };
+        };
+    };
+    criarParametro: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParametroRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ParametroResponse"];
                 };
             };
         };
