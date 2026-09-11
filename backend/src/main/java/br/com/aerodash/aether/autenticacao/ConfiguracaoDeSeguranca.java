@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -30,47 +31,7 @@ public class ConfiguracaoDeSeguranca {
 
   @Bean
   public SecurityFilterChain cadeiaDeFiltros(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(
-            rotas ->
-                rotas
-                    // Trocar a própria senha é ato de quem já entrou: precisa vir antes da
-                    // liberação de /autenticacao/**, porque nesta cadeia a primeira regra que
-                    // casa é a que vale.
-                    .requestMatchers("/autenticacao/senha", "/autenticacao/senha/token")
-                    .authenticated()
-                    // A área não logada: entrar, sair, recuperar senha e concluir o convite.
-                    .requestMatchers("/autenticacao/**")
-                    .permitAll()
-                    // Sonda de saúde: precisa responder antes de qualquer sessão existir.
-                    .requestMatchers(HttpMethod.GET, "/saude", "/saude/**")
-                    .permitAll()
-                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
-                    .permitAll()
-                    // O nome da empresa aparece na interface inteira: ler é de quem tem sessão.
-                    .requestMatchers(HttpMethod.GET, "/empresa")
-                    .authenticated()
-                    // Editar os dados da conta e a política de aviso, não.
-                    .requestMatchers("/empresa", "/empresa/**")
-                    .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
-                    .requestMatchers("/usuarios/**")
-                    .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
-                    // Corrigir contadores reescreve horas e ciclos na mão: só administrador.
-                    .requestMatchers("/aeronaves/*/contadores")
-                    .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
-                    // A frota é o chão de toda a operação: ler é de quem tem sessão.
-                    // Editar ficha, financeiro e contrato de participações é de quem gere.
-                    .requestMatchers(HttpMethod.GET, "/aeronaves", "/aeronaves/**")
-                    .authenticated()
-                    .requestMatchers("/aeronaves", "/aeronaves/**")
-                    .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-                    // O nome e a cor do proprietário aparecem em grades da operação inteira:
-                    // ler é de quem tem sessão. Mexer no cadastro é de quem gere a conta.
-                    .requestMatchers(HttpMethod.GET, "/proprietarios")
-                    .authenticated()
-                    .requestMatchers("/proprietarios", "/proprietarios/**")
-                    .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-                    .anyRequest()
-                    .authenticated())
+    return http.authorizeHttpRequests(this::autorizarRotas)
         // O estado da sessão é a linha em `sessao_de_acesso`, não a HttpSession do container:
         // criar uma segunda noção de sessão aqui daria dois lugares para expirar de formas
         // diferentes.
@@ -87,5 +48,62 @@ public class ConfiguracaoDeSeguranca {
             erros -> erros.authenticationEntryPoint(recusa).accessDeniedHandler(recusa))
         .addFilterBefore(filtroDeSessao, UsernamePasswordAuthenticationFilter.class)
         .build();
+  }
+
+  /**
+   * As regras de rota, na ordem em que valem: a primeira que casa decide. É a única fonte de "isto
+   * é público" — nenhum controller repete a decisão em anotação.
+   */
+  private void autorizarRotas(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
+          rotas) {
+    rotas
+        // Trocar a própria senha é ato de quem já entrou: precisa vir antes da
+        // liberação de /autenticacao/**, porque nesta cadeia a primeira regra que
+        // casa é a que vale.
+        .requestMatchers("/autenticacao/senha", "/autenticacao/senha/token")
+        .authenticated()
+        // A área não logada: entrar, sair, recuperar senha e concluir o convite.
+        .requestMatchers("/autenticacao/**")
+        .permitAll()
+        // Sonda de saúde: precisa responder antes de qualquer sessão existir.
+        .requestMatchers(HttpMethod.GET, "/saude", "/saude/**")
+        .permitAll()
+        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+        .permitAll()
+        // O nome da empresa aparece na interface inteira: ler é de quem tem sessão.
+        .requestMatchers(HttpMethod.GET, "/empresa")
+        .authenticated()
+        // Editar os dados da conta e a política de aviso, não.
+        .requestMatchers("/empresa", "/empresa/**")
+        .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+        .requestMatchers("/usuarios/**")
+        .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+        // Lançar e corrigir voo inclui o piloto: é ele quem volta do voo com os
+        // horários realizados na mão. Ler continua sendo de quem tem sessão.
+        .requestMatchers(HttpMethod.GET, "/voos", "/voos/**")
+        .authenticated()
+        .requestMatchers("/voos", "/voos/**")
+        .hasAnyRole(
+            PapelDoUsuario.ADMINISTRADOR.name(),
+            PapelDoUsuario.GESTOR.name(),
+            PapelDoUsuario.PILOTO.name())
+        // Corrigir contadores reescreve horas e ciclos na mão: só administrador.
+        .requestMatchers("/aeronaves/*/contadores")
+        .hasRole(PapelDoUsuario.ADMINISTRADOR.name())
+        // A frota é o chão de toda a operação: ler é de quem tem sessão.
+        // Editar ficha, financeiro e contrato de participações é de quem gere.
+        .requestMatchers(HttpMethod.GET, "/aeronaves", "/aeronaves/**")
+        .authenticated()
+        .requestMatchers("/aeronaves", "/aeronaves/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // O nome e a cor do proprietário aparecem em grades da operação inteira:
+        // ler é de quem tem sessão. Mexer no cadastro é de quem gere a conta.
+        .requestMatchers(HttpMethod.GET, "/proprietarios")
+        .authenticated()
+        .requestMatchers("/proprietarios", "/proprietarios/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        .anyRequest()
+        .authenticated();
   }
 }

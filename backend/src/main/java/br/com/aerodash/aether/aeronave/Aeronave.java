@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -191,6 +192,12 @@ public class Aeronave {
   /** Correção manual dos totais — rota de administrador enquanto o diário de voos não existe. */
   public void corrigirContadores(ContadoresDaAeronave novosContadores, Instant momento) {
     this.contadores = novosContadores;
+    this.atualizadoEm = momento;
+  }
+
+  /** O diário de voos alimenta os contadores por aqui: horas de célula, km e pousos. */
+  public void acumularVoo(BigDecimal horas, BigDecimal km, int pousos, Instant momento) {
+    this.contadores = contadores.acumular(horas, km, pousos);
     this.atualizadoEm = momento;
   }
 

@@ -38,7 +38,10 @@
 | Inspeção | `inspecao` | Inspeção | `manutencao`, `revisao`, `check` | Evento de manutenção programada previsto no programa da aeronave. |
 | Licença de tripulante | `licencaDeTripulante` | Licença de tripulante | `licencaPiloto`, `cht`, `license` | Habilitação ANAC do tripulante, com seus próprios vencimentos. |
 | Tripulante | `tripulante` | Tripulante | `piloto`, `crew` | Piloto ou comissário associado à operação. |
-| Voo | `voo` | Voo | `flight` | Trecho operado, base do controle de horas e ciclos. |
+| Voo | `voo` | Voo | `flight` | O conjunto de trechos com o mesmo relatório de voo — todas as pernas voadas enquanto a aeronave esteve com o proprietário. A perna individual é o **Trecho**. |
+| Trecho | `trecho` | Trecho | `perna`, `leg`, `etapa` | Uma perna voada: origem → destino, com data, km e horários. Cada trecho conta um pouso e alimenta os contadores da aeronave e o % de uso do rateio. |
+| Relatório de voo | `relatorioDeVoo` | Rel. Voo | `numeroDoVoo`, `flightReport` | Identificador que agrupa os trechos de um voo (`RV-2026-041`). Livre — cada operador numera do seu jeito — e **sempre em monoespaçada na interface**, como a matrícula. |
+| Atribuição | `proprietarioId` (no trecho) | Atribuição | `dono do voo`, `usuario` | Quem usou a aeronave no trecho. Nula é voo de manutenção, que o rateio divide entre todos os proprietários. |
 | Base | `base` | Base | `hangar`, `home base` | Aeródromo onde a aeronave fica normalmente, em código ICAO de quatro letras (`SBSP`). |
 | Matrícula | `matricula` | Matrícula | `prefixo`, `registration`, `tailNumber` | Identidade da aeronave no RAB (`PS-MEP`). Sempre em maiúsculas e **sempre em monoespaçada na interface**. |
 | Situação regular | `situacaoRegular` | Situação | **`status`** | Conformidade regulatória agora: `REGULAR` ("Saudável"), `ATENCAO` ("Atenção"), `VENCIDO` ("Vencido"). Derivada dos vencimentos, nunca gravada. O protótipo escreve "Status" no cabeçalho da coluna; aqui é **Situação**. |

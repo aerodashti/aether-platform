@@ -1,0 +1,50 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.rotulo {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-g);
+  color: var(--cor-texto);
+}
+
+.entrada {
+  width: 100%;
+  padding: var(--espaco-4) var(--espaco-5);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-g);
+  color: var(--cor-texto);
+  resize: vertical;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-s);
+  transition-property: border-color, box-shadow;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.entrada::placeholder {
+  color: var(--cor-texto-suave);
+}
+
+.entrada:focus {
+  border-color: var(--cor-acento);
+  outline: 1px solid var(--cor-acento);
+  outline-offset: 0;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

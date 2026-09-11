@@ -1,0 +1,30 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+}
+
+.competencia {
+  min-width: 180px;
+}
+
+.painel {
+  overflow-x: auto;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}

@@ -29,6 +29,23 @@ public record ContadoresDaAeronave(
     return new ContadoresDaAeronave(BigDecimal.ZERO, 0, BigDecimal.ZERO, null, null, null, null);
   }
 
+  /**
+   * Soma um voo (ou o estorna, com deltas negativos). Célula, ciclos e km são os alimentados pelo
+   * diário; motores e APU seguem na correção manual — o diário não sabe quais operaram. O piso é
+   * zero: estornar mais do que existe denuncia correção manual no meio do caminho, e um contador
+   * negativo seria mentira maior que o zero.
+   */
+  public ContadoresDaAeronave acumular(BigDecimal horas, BigDecimal km, int pousos) {
+    return new ContadoresDaAeronave(
+        BigDecimal.ZERO.max(horasDeCelula.add(horas)),
+        Math.max(0, ciclos + pousos),
+        BigDecimal.ZERO.max(kmVoados.add(km)),
+        horasMotor1,
+        horasMotor2,
+        horasMotor3,
+        horasApu);
+  }
+
   public boolean possuiValoresNegativos() {
     return horasDeCelula.signum() < 0
         || ciclos < 0

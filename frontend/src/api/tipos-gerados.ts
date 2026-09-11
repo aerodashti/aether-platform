@@ -4,6 +4,24 @@
  */
 
 export interface paths {
+    "/voos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Corrige um trecho, estornando e reaplicando os contadores */
+        put: operations["atualizar"];
+        post?: never;
+        /** Exclui um trecho lançado por engano, estornando os contadores */
+        delete: operations["excluir"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/proprietarios/{id}": {
         parameters: {
             query?: never;
@@ -13,7 +31,7 @@ export interface paths {
         };
         get?: never;
         /** Atualiza o cadastro de um proprietário */
-        put: operations["atualizar"];
+        put: operations["atualizar_1"];
         post?: never;
         delete?: never;
         options?: never;
@@ -116,8 +134,26 @@ export interface paths {
         };
         get?: never;
         /** Atualiza um tripulante, situação incluída */
-        put: operations["atualizar_1"];
+        put: operations["atualizar_2"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/voos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista o recorte pedido, com a linha de totais somada no servidor */
+        get: operations["listar"];
+        put?: never;
+        /** Lança um trecho e alimenta os contadores da aeronave */
+        post: operations["criar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -132,7 +168,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista os usuários, com busca por nome ou e-mail e filtros de papel e situação */
-        get: operations["listar"];
+        get: operations["listar_1"];
         put?: never;
         /** Convida alguém: cria o acesso em PENDENTE e envia o link do convite */
         post: operations["convidar"];
@@ -201,10 +237,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista os proprietários em ordem de nome */
-        get: operations["listar_1"];
+        get: operations["listar_2"];
         put?: never;
         /** Cadastra um proprietário */
-        post: operations["criar"];
+        post: operations["criar_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -372,10 +408,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-        get: operations["listar_2"];
+        get: operations["listar_3"];
         put?: never;
         /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
-        post: operations["criar_1"];
+        post: operations["criar_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -390,10 +426,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-        get: operations["listar_3"];
+        get: operations["listar_4"];
         put?: never;
         /** Vincula um tripulante à aeronave */
-        post: operations["criar_2"];
+        post: operations["criar_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -508,6 +544,75 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Um trecho do diário de voos */
+        TrechoRequest: {
+            /** Format: int64 */
+            aeronaveId: number;
+            /**
+             * @description Identificador do voo
+             * @example RV-2026-018
+             */
+            relatorioDeVoo?: string;
+            /** Format: int32 */
+            numeroDoTrecho: number;
+            /** Format: date */
+            data: string;
+            origem?: string;
+            destino?: string;
+            km: number;
+            /** @example 14:30:00 */
+            partidaPrevista?: string;
+            /** @example 14:30:00 */
+            pousoPrevisto?: string;
+            /** @example 14:30:00 */
+            partidaRealizada?: string;
+            /** @example 14:30:00 */
+            pousoRealizado?: string;
+            /**
+             * Format: int64
+             * @description Quem usou; nulo é voo de manutenção, dividido entre todos
+             */
+            proprietarioId?: number;
+            observacoes?: string;
+        };
+        /** @description Trecho do diário de voos */
+        TrechoResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            /**
+             * @description Matrícula da aeronave
+             * @example PS-MEP
+             */
+            matricula?: string;
+            relatorioDeVoo?: string;
+            /** Format: int32 */
+            numeroDoTrecho?: number;
+            /** Format: date */
+            data?: string;
+            origem?: string;
+            destino?: string;
+            /** @description Duração em horas, uma casa; nula sem par de horários */
+            horas?: number;
+            km?: number;
+            /** @example 14:30:00 */
+            partidaPrevista?: string;
+            /** @example 14:30:00 */
+            pousoPrevisto?: string;
+            /** @example 14:30:00 */
+            partidaRealizada?: string;
+            /** @example 14:30:00 */
+            pousoRealizado?: string;
+            /** Format: int64 */
+            proprietarioId?: number;
+            /** @description Nome de quem usou; nulo em voo de manutenção */
+            nomeDoProprietario?: string;
+            /** @enum {string} */
+            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
+            vooDeManutencao?: boolean;
+            observacoes?: string;
+        };
         /** @description Dados cadastrais de um proprietário */
         ProprietarioRequest: {
             /**
@@ -989,6 +1094,19 @@ export interface components {
              */
             percentual?: number;
         };
+        /** @description Diário de voos de um recorte */
+        DiarioDeVoosResponse: {
+            trechos?: components["schemas"]["TrechoResponse"][];
+            /** @description Totais do recorte */
+            totais?: components["schemas"]["Totais"];
+        };
+        /** @description Totais do recorte */
+        Totais: {
+            horas?: number;
+            km?: number;
+            /** Format: int64 */
+            pousos?: number;
+        };
         Pageable: {
             /** Format: int32 */
             page?: number;
@@ -1122,6 +1240,52 @@ export interface components {
 export type $defs = Record<string, never>;
 export interface operations {
     atualizar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrechoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrechoResponse"];
+                };
+            };
+        };
+    };
+    excluir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    atualizar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1293,7 +1457,7 @@ export interface operations {
             };
         };
     };
-    atualizar_1: {
+    atualizar_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1321,6 +1485,53 @@ export interface operations {
         };
     };
     listar: {
+        parameters: {
+            query?: {
+                aeronave?: number;
+                competencia?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DiarioDeVoosResponse"];
+                };
+            };
+        };
+    };
+    criar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrechoRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrechoResponse"];
+                };
+            };
+        };
+    };
+    listar_1: {
         parameters: {
             query: {
                 busca?: string;
@@ -1433,7 +1644,7 @@ export interface operations {
             };
         };
     };
-    listar_1: {
+    listar_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1453,7 +1664,7 @@ export interface operations {
             };
         };
     };
-    criar: {
+    criar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1673,7 +1884,7 @@ export interface operations {
             };
         };
     };
-    listar_2: {
+    listar_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1693,7 +1904,7 @@ export interface operations {
             };
         };
     };
-    criar_1: {
+    criar_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1717,7 +1928,7 @@ export interface operations {
             };
         };
     };
-    listar_3: {
+    listar_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1739,7 +1950,7 @@ export interface operations {
             };
         };
     };
-    criar_2: {
+    criar_3: {
         parameters: {
             query?: never;
             header?: never;

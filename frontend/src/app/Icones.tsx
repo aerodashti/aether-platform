@@ -48,6 +48,17 @@ export function IconeCartaoDeIdentidade() {
   );
 }
 
+export function IconeDiario() {
+  return (
+    <svg {...comuns}>
+      <path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
+      <path d="M5 4v13" />
+      <path d="M9 9h6" />
+      <path d="M9 13h4" />
+    </svg>
+  );
+}
+
 export function IconeSaida() {
   return (
     <svg {...comuns}>
