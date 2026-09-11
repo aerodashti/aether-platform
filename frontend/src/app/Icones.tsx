@@ -69,6 +69,14 @@ export function IconeRecibo() {
   );
 }
 
+export function IconeChave() {
+  return (
+    <svg {...comuns}>
+      <path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.7L4 16.7V20h3.3l4.7-4.7a4.5 4.5 0 0 0 5.7-6L14.5 12l-2.5-2.5z" />
+    </svg>
+  );
+}
+
 export function IconeSaida() {
   return (
     <svg {...comuns}>

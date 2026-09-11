@@ -39,7 +39,10 @@
 | CPF/CNPJ | `cpfCnpj` | CPF / CNPJ | `documento` (genérico), `cpf` ou `cnpj` (isolados, quando o campo aceita os dois) | Documento do proprietário, gravado só com dígitos: 11 para CPF, 14 para CNPJ. Opcional no cadastro; o contrato de participação é que o exige. |
 | Operador | `operador` | Operador | `operator` | Quem opera a aeronave, nem sempre o mesmo que o proprietário. |
 | Vencimento | `vencimento` | Vencimento | `expiracao`, `validade`, `expiration`, `dueDate` | Data em que um documento, certificado ou inspeção deixa de valer. **Termo central do produto.** |
-| Inspeção | `inspecao` | Inspeção | `manutencao`, `revisao`, `check` | Evento de manutenção programada previsto no programa da aeronave. |
+| Inspeção | `inspecao` | Inspeção | `revisao`, `check` | Evento previsto no **programa de manutenção** da aeronave (inspeção de 100 h, anual). Uma inspeção agendada vira uma **Manutenção** na tela; o termo aqui é o do programa, não o do evento. |
+| Manutenção | `manutencao` | Manutenção | `servico`, `intervencao`, `MRO` | Um evento de manutenção de uma aeronave: `PROGRAMADA` (aparece no calendário de voos) ou `CONCLUIDA` (histórico permanente). Reabrir existe para o engano, não para reescrever a história. |
+| Parâmetro de controle | `parametroDeControle` | Parâmetro | `limite`, `alerta`, `checkItem` | Um limite monitorado por horas de célula, ciclos ou data ("overhaul a 3.000 ciclos"). O que se grava é o limite e a faixa de aviso; quanto falta é derivado dos contadores, nunca gravado. Situações: `REGULAR`, `ATENCAO`, `ESTOURADO`. |
+| Faixa de aviso | `aviso` | Avisar a X do limite | `threshold`, `margem` | A quantos horas/ciclos/dias do limite o parâmetro vira atenção. |
 | Licença de tripulante | `licencaDeTripulante` | Licença de tripulante | `licencaPiloto`, `cht`, `license` | Habilitação ANAC do tripulante, com seus próprios vencimentos. |
 | Tripulante | `tripulante` | Tripulante | `piloto`, `crew` | Piloto ou comissário associado à operação. |
 | Voo | `voo` | Voo | `flight` | O conjunto de trechos com o mesmo relatório de voo — todas as pernas voadas enquanto a aeronave esteve com o proprietário. A perna individual é o **Trecho**. |
