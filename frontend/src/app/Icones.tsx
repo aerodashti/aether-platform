@@ -77,6 +77,17 @@ export function IconeChave() {
   );
 }
 
+export function IconeCalendario() {
+  return (
+    <svg {...comuns}>
+      <rect x="4" y="6" width="16" height="14" />
+      <path d="M4 10h16" />
+      <path d="M8 4v4" />
+      <path d="M16 4v4" />
+    </svg>
+  );
+}
+
 export function IconeSaida() {
   return (
     <svg {...comuns}>
