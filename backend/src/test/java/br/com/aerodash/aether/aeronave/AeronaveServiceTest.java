@@ -70,7 +70,7 @@ class AeronaveServiceTest {
         service.corrigirContadores(
             1L,
             new ContadoresRequest(
-                new BigDecimal("3412.5"), 2890, new BigDecimal("1482300"), null, null, null));
+                new BigDecimal("3412.5"), 2890, new BigDecimal("1482300"), null, null, null, null));
 
     assertThat(detalhe.contadores().horasDeCelula()).isEqualByComparingTo("3412.5");
     assertThat(aeronave.getContadores().ciclos()).isEqualTo(2890);
@@ -93,10 +93,59 @@ class AeronaveServiceTest {
   @DisplayName("atualizar a ficha não mexe na matrícula nem nos vencimentos")
   void atualizaFicha() {
     service.atualizarFichaTecnica(
-        1L, new FichaTecnicaRequest("Cessna", "Citation XLS+", "560-6321", "SBJD", null, null));
+        1L,
+        new FichaTecnicaRequest(
+            "Cessna", "Citation XLS+", "560-6321", "SBJD", null, null, null, null));
 
     assertThat(aeronave.getMatricula()).isEqualTo("PS-MEP");
     assertThat(aeronave.getBase()).isEqualTo("SBJD");
     assertThat(aeronave.getVencimentoCva()).isEqualTo(LocalDate.parse("2027-01-01"));
+  }
+
+  private CriarAeronaveRequest cadastro(String matricula) {
+    return new CriarAeronaveRequest(
+        matricula,
+        "Embraer",
+        "Phenom 300E",
+        "50500123",
+        "sbjd",
+        "Hangar 2",
+        "RETA-1",
+        8150,
+        7650,
+        LocalDate.parse("2027-06-01"),
+        LocalDate.parse("2027-08-01"),
+        new ContadoresRequest(
+            new BigDecimal("1200.0"), 950, new BigDecimal("510000"), null, null, null, null),
+        new ConfiguracaoFinanceiraRequest(
+            BaseDoRateio.POR_PROPRIEDADE, ModeloDeAporte.FIXO, 1, new BigDecimal("60000"), 5));
+  }
+
+  @Test
+  @DisplayName("cria normalizando matrícula e base, com ficha e configuração num ato só")
+  void criaCompleta() {
+    when(aeronaves.findByMatricula("PR-AER")).thenReturn(java.util.Optional.empty());
+    when(aeronaves.save(org.mockito.ArgumentMatchers.any()))
+        .thenAnswer(chamada -> chamada.getArgument(0));
+
+    DetalheDaAeronaveResponse criada = service.criar(cadastro("pr-aer"));
+
+    assertThat(criada.matricula()).isEqualTo("PR-AER");
+    assertThat(criada.base()).isEqualTo("SBJD");
+    assertThat(criada.pesoMaxDecolagemKg()).isEqualTo(8150);
+    assertThat(criada.contadores().horasDeCelula()).isEqualByComparingTo("1200.0");
+    assertThat(criada.configuracaoFinanceira().baseDoRateio())
+        .isEqualTo(BaseDoRateio.POR_PROPRIEDADE);
+  }
+
+  @Test
+  @DisplayName("matrícula repetida é 409, antes de salvar")
+  void recusaMatriculaDuplicada() {
+    when(aeronaves.findByMatricula("PS-MEP")).thenReturn(java.util.Optional.of(aeronave));
+
+    assertThatThrownBy(() -> service.criar(cadastro("ps-mep")))
+        .isInstanceOf(MatriculaJaCadastradaException.class);
+    org.mockito.Mockito.verify(aeronaves, org.mockito.Mockito.never())
+        .save(org.mockito.ArgumentMatchers.any());
   }
 }

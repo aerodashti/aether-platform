@@ -58,3 +58,20 @@ export function useAtualizarConfiguracaoFinanceira(id: number) {
       ),
   );
 }
+
+export type CriarAeronaveRequest = components['schemas']['CriarAeronaveRequest'];
+
+/** O cadastro da tela "Nova aeronave". Invalida a frota: a linha nova precisa aparecer nela. */
+export function useCriarAeronave() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: (cadastro: CriarAeronaveRequest) =>
+      contexto.interacao('criar-aeronave', () =>
+        enviar<DetalheDaAeronaveResponse>('/aeronaves', cadastro),
+      ),
+    onSuccess: () => {
+      void cliente.invalidateQueries({ queryKey: CHAVE });
+      void cliente.invalidateQueries({ queryKey: ['aeronaves'] });
+    },
+  });
+}

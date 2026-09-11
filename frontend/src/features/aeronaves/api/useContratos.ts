@@ -29,3 +29,24 @@ export function useDefinirContrato(aeronaveId: number) {
     onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE }),
   });
 }
+
+/**
+ * A variante do cadastro: a aeronave acabou de nascer e o id só existe na hora de salvar, então
+ * ele viaja no próprio mutate — o hook de cima fixa o id na montagem, o que a tela nova não tem.
+ */
+export function useDefinirContratoAoCadastrar() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      aeronaveId,
+      request,
+    }: {
+      aeronaveId: number;
+      request: DefinirContratoRequest;
+    }) =>
+      contexto.interacao('definir-contrato', () =>
+        enviar<ContratosDaAeronaveResponse>(`/aeronaves/${aeronaveId}/contratos`, request),
+      ),
+    onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE }),
+  });
+}

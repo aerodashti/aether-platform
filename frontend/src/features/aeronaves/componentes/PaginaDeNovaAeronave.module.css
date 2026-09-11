@@ -1,0 +1,110 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 880px;
+}
+
+.secao {
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.cabecalhoDaSecao {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: flex-start;
+  margin-bottom: var(--espaco-5);
+}
+
+/* O número da seção: quadrado de canto reto, como o protótipo. */
+.numero {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-escuro);
+  background: var(--cor-fundo);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-4);
+}
+
+@media (max-width: 640px) {
+  .grade {
+    grid-template-columns: 1fr;
+  }
+}
+
+.motores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-4);
+}
+
+.vinculos {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.vinculo {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.dono {
+  display: flex;
+  flex: 1;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campoDePercentual {
+  width: 112px;
+}
+
+.adicionar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: 320px;
+  margin-top: var(--espaco-4);
+}
+
+.somaLinha {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-4);
+  justify-content: flex-end;
+}

@@ -24,6 +24,8 @@
 | Base do rateio | `baseDoRateio` | Base do rateio | `criterio`, `metodo` | Como o custo se divide: `POR_USO` (horas/km voados) ou `POR_PROPRIEDADE` (% do contrato). |
 | Aporte | `aporte` | Aporte | `contribuicao`, `deposito` | Entrada de dinheiro do proprietário no fundo da aeronave. O modelo é `FIXO` ou `PROPORCIONAL_AO_USO`, com periodicidade em meses (1, 2, 3, 4, 6 ou 12). |
 | Dia de fechamento | `diaDeFechamento` | Dia de fechamento da fatura | `dataDeCorte` | Dia do mês em que a fatura da aeronave fecha, de 1 a 28 — fevereiro decide o teto. |
+| Peso máximo de decolagem | `pesoMaxDecolagemKg` | Peso máx. de decolagem (kg) | `MTOW` (como identificador), `pesoDecolagem` | O MTOW do certificado, em kg inteiros. Nulo é "não informado" — peso zero não existe. Mesma regra para o `pesoMaxPousoKg` (MLW). |
+| Milha náutica | `milhaNautica` | Milha náutica (NM) | `milha` (sozinho), `mile` | Unidade do conversor do cadastro: 1 NM = 1,852 km, por definição. O produto grava sempre km. |
 | CANAC | `canac` | CANAC | `codigoAnac` (por extenso), `licenca` | Código ANAC do tripulante, gravado só com dígitos. Sigla oficial: não se traduz. |
 | CMA | `validadeCma` | CMA | `atestadoMedico`, `medical` | Certificado Médico Aeronáutico. O que se guarda é a validade; nula significa "não informada", não vencida. |
 | CHT | `validadeCht` | CHT | `habilitacao` (sozinho), `rating` | Certificado de Habilitação Técnica. Mesma regra do CMA para validade nula. |
