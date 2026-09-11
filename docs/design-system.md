@@ -259,6 +259,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
 | Tela de Lançamentos de custos (grade, filtros, painel, CSV) | **Parcial** — `features/custos`. Mesmas ausências deliberadas do diário (paginação, densidade, seletor de "Estado" do protótipo); o "Ver últimos dados" do protótipo não existe porque o `placeholderData` do Query já segura o recorte anterior |
 | Tela de Manutenção (parâmetros, programadas, histórico) | **Parcial** — `features/manutencao`. A edição de evento usa o mesmo painel do agendamento em vez da edição inline na linha do protótipo (um formulário só, mesma validação); "Anexar NF" entra com a tela de documentos; a recorrência do parâmetro entra quando existir renovação automática |
+| Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados

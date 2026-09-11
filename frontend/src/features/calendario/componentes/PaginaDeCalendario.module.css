@@ -1,0 +1,121 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navegacaoDoMes {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.painel {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.diaDaSemana {
+  padding: var(--espaco-3) var(--espaco-4);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-etiqueta);
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  align-items: flex-start;
+  min-height: 96px;
+  padding: var(--espaco-2) var(--espaco-3);
+  border-right: 1px solid var(--cor-borda-suave);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.dia:last-child {
+  border-right: 0;
+}
+
+.foraDoMes {
+  background: var(--cor-superficie-sutil);
+  opacity: 0.6;
+}
+
+.hoje {
+  /* A régua do dia corrente: borda, e não sombra — box-shadow literal é barrado pelo Stylelint
+     e os dias só têm borda à direita e abaixo, então esta não colide com nenhuma. */
+  border-top: 2px solid var(--cor-acento);
+}
+
+.numeroDoDia {
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.trecho {
+  display: inline-flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  min-width: 0;
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.trechoTexto {
+  max-width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.manutencao {
+  display: inline-flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  min-width: 0;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-atencao);
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .painel {
+    overflow-x: auto;
+  }
+
+  .semana {
+    min-width: 900px;
+  }
+}
