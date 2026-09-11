@@ -74,6 +74,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/custos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Corrige um lançamento */
+        put: operations["atualizar_2"];
+        post?: never;
+        /** Exclui um lançamento feito por engano */
+        delete: operations["excluir_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/aeronaves/{id}/ficha-tecnica": {
         parameters: {
             query?: never;
@@ -134,7 +152,7 @@ export interface paths {
         };
         get?: never;
         /** Atualiza um tripulante, situação incluída */
-        put: operations["atualizar_2"];
+        put: operations["atualizar_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -281,6 +299,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/custos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista o recorte pedido, com fixos e variáveis somados no servidor */
+        get: operations["listar_3"];
+        put?: never;
+        /** Registra um lançamento; em USD o BRL é derivado do câmbio, uma vez */
+        post: operations["criar_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/autenticacao/senha": {
         parameters: {
             query?: never;
@@ -408,10 +444,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-        get: operations["listar_3"];
+        get: operations["listar_4"];
         put?: never;
         /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
-        post: operations["criar_2"];
+        post: operations["criar_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -426,10 +462,10 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-        get: operations["listar_4"];
+        get: operations["listar_5"];
         put?: never;
         /** Vincula um tripulante à aeronave */
-        post: operations["criar_3"];
+        post: operations["criar_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -729,6 +765,58 @@ export interface components {
              * @example 30
              */
             diasDeAviso?: number;
+        };
+        /** @description Um lançamento de custo */
+        CustoRequest: {
+            /** Format: int64 */
+            aeronaveId: number;
+            /** @enum {string} */
+            categoria: "FOLHA_TRIPULACAO" | "HANGARAGEM" | "MANUTENCAO_PROGRAMADA" | "SEGURO" | "ASSINATURAS_OPERACIONAIS" | "LIMPEZA_MENSAL" | "TAXA_DE_ADMINISTRACAO" | "LEASING" | "PUBLICACOES_TECNICAS" | "ABASTECIMENTO" | "TARIFAS_AEROPORTUARIAS" | "COMISSARIA" | "ACERTO_DE_VIAGEM" | "COORDENACAO_VOO_INTERNACIONAL" | "DESPESAS_COM_FREELANCER";
+            /** Format: date */
+            data: string;
+            descricao?: string;
+            relatorioDeVoo?: string;
+            /**
+             * Format: int64
+             * @description Quem paga; nulo é rateado entre todos
+             */
+            proprietarioId?: number;
+            notaFiscal?: string;
+            /** @enum {string} */
+            moeda: "BRL" | "USD";
+            valor: number;
+            cambio?: number;
+        };
+        /** @description Lançamento de custo */
+        CustoResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            matricula?: string;
+            /** @enum {string} */
+            tipo?: "FIXO" | "VARIAVEL";
+            /** @enum {string} */
+            categoria?: "FOLHA_TRIPULACAO" | "HANGARAGEM" | "MANUTENCAO_PROGRAMADA" | "SEGURO" | "ASSINATURAS_OPERACIONAIS" | "LIMPEZA_MENSAL" | "TAXA_DE_ADMINISTRACAO" | "LEASING" | "PUBLICACOES_TECNICAS" | "ABASTECIMENTO" | "TARIFAS_AEROPORTUARIAS" | "COMISSARIA" | "ACERTO_DE_VIAGEM" | "COORDENACAO_VOO_INTERNACIONAL" | "DESPESAS_COM_FREELANCER";
+            /** Format: date */
+            data?: string;
+            descricao?: string;
+            relatorioDeVoo?: string;
+            /** Format: int64 */
+            proprietarioId?: number;
+            /** @description Nome de quem paga; nulo quando rateado */
+            nomeDoProprietario?: string;
+            /** @enum {string} */
+            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
+            rateado?: boolean;
+            notaFiscal?: string;
+            /** @enum {string} */
+            moeda?: "BRL" | "USD";
+            /** @description Valor original na moeda estrangeira; nulo em BRL */
+            valorOriginal?: number;
+            cambio?: number;
+            /** @description Valor em BRL, o que o rateio consome */
+            valor?: number;
         };
         /** @description Dados de identificação da ficha técnica */
         FichaTecnicaRequest: {
@@ -1098,10 +1186,10 @@ export interface components {
         DiarioDeVoosResponse: {
             trechos?: components["schemas"]["TrechoResponse"][];
             /** @description Totais do recorte */
-            totais?: components["schemas"]["Totais"];
+            totais?: components["schemas"]["TotaisDoDiario"];
         };
         /** @description Totais do recorte */
-        Totais: {
+        TotaisDoDiario: {
             horas?: number;
             km?: number;
             /** Format: int64 */
@@ -1177,6 +1265,18 @@ export interface components {
             versao?: string;
             /** @description Situação de cada componente monitorado */
             componentes?: components["schemas"]["ComponenteDeSaudeResponse"][];
+        };
+        /** @description Lançamentos de custo de um recorte */
+        LancamentosResponse: {
+            custos?: components["schemas"]["CustoResponse"][];
+            /** @description Totais do recorte */
+            totais?: components["schemas"]["TotaisDosLancamentos"];
+        };
+        /** @description Totais do recorte, em BRL */
+        TotaisDosLancamentos: {
+            fixos?: number;
+            variaveis?: number;
+            total?: number;
         };
         /** @description Aeronave sob gestão */
         AeronaveResponse: {
@@ -1379,6 +1479,52 @@ export interface operations {
             };
         };
     };
+    atualizar_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustoRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CustoResponse"];
+                };
+            };
+        };
+    };
+    excluir_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     atualizarFichaTecnica: {
         parameters: {
             query?: never;
@@ -1457,7 +1603,7 @@ export interface operations {
             };
         };
     };
-    atualizar_2: {
+    atualizar_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1732,6 +1878,53 @@ export interface operations {
             };
         };
     };
+    listar_3: {
+        parameters: {
+            query?: {
+                aeronave?: number;
+                competencia?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["LancamentosResponse"];
+                };
+            };
+        };
+    };
+    criar_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustoRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CustoResponse"];
+                };
+            };
+        };
+    };
     trocarSenha: {
         parameters: {
             query?: never;
@@ -1884,7 +2077,7 @@ export interface operations {
             };
         };
     };
-    listar_3: {
+    listar_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -1904,7 +2097,7 @@ export interface operations {
             };
         };
     };
-    criar_2: {
+    criar_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1928,7 +2121,7 @@ export interface operations {
             };
         };
     };
-    listar_4: {
+    listar_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -1950,7 +2143,7 @@ export interface operations {
             };
         };
     };
-    criar_3: {
+    criar_4: {
         parameters: {
             query?: never;
             header?: never;
