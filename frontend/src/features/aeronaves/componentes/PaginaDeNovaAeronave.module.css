@@ -13,9 +13,21 @@
 
 .cabecalhoDaSecao {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-4);
   align-items: flex-start;
   margin-bottom: var(--espaco-5);
+}
+
+.textoDaSecao {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* A ação da seção fica à direita do título, como no protótipo; em tela estreita quebra para baixo. */
+.acaoDaSecao {
+  flex: none;
+  margin-left: auto;
 }
 
 /* O número da seção: quadrado de canto reto, como o protótipo. */

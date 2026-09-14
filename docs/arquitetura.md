@@ -154,7 +154,10 @@ src/
 - Estado de servidor é do Query; estado de UI é `useState` ou contexto local. Não há store global.
 - Lógica fora do JSX: extraia para hook. Componentes pequenos.
 - `compartilhado/` começa praticamente vazio. A exceção deliberada é
-  `compartilhado/observabilidade`, que é infraestrutura e não pertence a nenhuma feature.
+  `compartilhado/observabilidade`, que é infraestrutura e não pertence a nenhuma feature. O que
+  entra depois é promovido quando a segunda feature aparece — `compartilhado/proprietarios` tem a
+  lista, o painel de cadastro e as mutações de criar e atualizar porque a tela de Proprietários e
+  o cadastro de aeronave os usam; desativar e reativar, só de uma tela, ficam na feature.
 
 ### Fronteiras (falham o lint)
 

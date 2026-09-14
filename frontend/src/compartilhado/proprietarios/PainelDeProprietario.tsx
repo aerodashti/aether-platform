@@ -7,18 +7,16 @@ import { PainelModal } from '@/design-system/primitivos/PainelModal';
 import { SeletorDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import {
-  useAtualizarProprietario,
-  useCriarProprietario,
-  type ProprietarioResponse,
-} from '../api/useProprietarios';
-
 import estilos from './PainelDeProprietario.module.css';
+import { useAtualizarProprietario, useCriarProprietario } from './useAcoesDeProprietario';
+import type { ProprietarioResponse } from './useProprietarios';
 
 interface PainelDeProprietarioProps {
   /** Sem proprietário é cadastro novo; com ele, edição dos mesmos campos. */
   proprietario?: ProprietarioResponse;
   aoFechar: () => void;
+  /** Recebe o proprietário salvo — é como o cadastro de aeronave vincula o recém-criado. */
+  aoSalvar?: (salvo: ProprietarioResponse) => void;
 }
 
 const COR_INICIAL: CorDeIdentificacao = 'PETROLEO';
@@ -27,10 +25,17 @@ const COR_INICIAL: CorDeIdentificacao = 'PETROLEO';
  * Cadastro e edição de proprietário, no mesmo painel: os campos são os mesmos, e a situação não
  * está aqui de propósito — desativar e reativar são ações da linha da grade.
  *
+ * <p>É compartilhado porque duas telas o abrem: a de Proprietários, que é o CRUD, e o cadastro
+ * de aeronave, que só precisa criar um proprietário sem sair do fluxo.
+ *
  * <p>Quem monta este componente escolhe o `key` (id do proprietário ou "novo"), e é a remontagem
  * que zera o estado — não há efeito sincronizando props com estado.
  */
-export function PainelDeProprietario({ proprietario, aoFechar }: PainelDeProprietarioProps) {
+export function PainelDeProprietario({
+  proprietario,
+  aoFechar,
+  aoSalvar,
+}: PainelDeProprietarioProps) {
   const [nome, setNome] = useState(proprietario?.nome ?? '');
   const [cpfCnpj, setCpfCnpj] = useState(proprietario?.cpfCnpj ?? '');
   const [email, setEmail] = useState(proprietario?.email ?? '');
@@ -46,10 +51,14 @@ export function PainelDeProprietario({ proprietario, aoFechar }: PainelDeProprie
 
   function salvar() {
     const cadastro = { nome, cpfCnpj, email, telefone, corDeIdentificacao: cor };
+    const aoConcluir = (salvo: ProprietarioResponse) => {
+      aoSalvar?.(salvo);
+      aoFechar();
+    };
     if (proprietario?.id != null) {
-      atualizar.mutate({ id: proprietario.id, cadastro }, { onSuccess: aoFechar });
+      atualizar.mutate({ id: proprietario.id, cadastro }, { onSuccess: aoConcluir });
     } else {
-      criar.mutate(cadastro, { onSuccess: aoFechar });
+      criar.mutate(cadastro, { onSuccess: aoConcluir });
     }
   }
 

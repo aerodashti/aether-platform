@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -32,6 +32,15 @@ function montar() {
       if (opcoes?.method === 'POST' && entrada === '/api/aeronaves') {
         chamadas.push({ url: entrada, corpo: JSON.parse(String(opcoes.body)) });
         return Promise.resolve(respostaDe({ id: 9, matricula: 'PS-AER' }, 201));
+      }
+      if (opcoes?.method === 'POST' && entrada === '/api/proprietarios') {
+        chamadas.push({ url: entrada, corpo: JSON.parse(String(opcoes.body)) });
+        return Promise.resolve(
+          respostaDe(
+            { id: 3, nome: 'Helena Sabino', corDeIdentificacao: 'OLIVA', situacao: 'ATIVO' },
+            201,
+          ),
+        );
       }
       if (opcoes?.method === 'POST' && entrada.includes('/contratos')) {
         chamadas.push({ url: entrada, corpo: JSON.parse(String(opcoes.body)) });
@@ -138,6 +147,23 @@ describe('PaginaDeNovaAeronave', () => {
     await userEvent.selectOptions(screen.getByLabelText('Adicionar vínculo'), '2');
     await userEvent.type(screen.getByLabelText('Participação de Vetor Participações em %'), '40');
     expect(botao).toBeEnabled();
+  });
+
+  it('cadastra um proprietário sem sair do fluxo e já o vincula', async () => {
+    montar();
+
+    await screen.findByRole('button', { name: 'Cadastrar aeronave' });
+    await userEvent.click(screen.getByRole('button', { name: '+ Cadastrar proprietário' }));
+
+    const painel = screen.getByRole('dialog', { name: 'Novo proprietário' });
+    await userEvent.type(within(painel).getByLabelText('Nome / Nome fantasia'), 'Helena Sabino');
+    await userEvent.click(within(painel).getByRole('button', { name: 'Cadastrar' }));
+
+    expect(await screen.findByLabelText('Participação de Helena Sabino em %')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Novo proprietário' })).not.toBeInTheDocument();
+    const [cadastro] = chamadas;
+    expect(cadastro?.url).toBe('/api/proprietarios');
+    expect((cadastro?.corpo as { nome: string }).nome).toBe('Helena Sabino');
   });
 
   it('cadastra, define o contrato na rota dele e navega para o detalhe', async () => {
