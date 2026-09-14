@@ -2,6 +2,8 @@ import type { DocumentoDaAeronave, SituacaoRegular } from '../api/useAeronaves';
 import type { BaseDoRateio, ModeloDeAporte } from '../api/useDetalheDaAeronave';
 import type { FuncaoDoTripulante } from '../api/useTripulantes';
 
+export { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
+
 /**
  * Enum → texto de interface. Fica no front porque é redação de tela: amarrar a API a "Saudável"
  * obrigaria a versionar endpoint para trocar uma palavra.
@@ -107,10 +109,6 @@ export const PERIODICIDADES: Array<{ valor: number; rotulo: string }> = [
 const NUMERO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 const INTEIRO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-const PERCENTUAL = new Intl.NumberFormat('pt-BR', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
 
 /** Ausente é travessão. Zero é zero — são afirmações diferentes. */
 export function horasEmTexto(valor: number | undefined): string {
@@ -123,10 +121,6 @@ export function inteiroEmTexto(valor: number | undefined): string {
 
 export function moedaEmTexto(valor: number | undefined): string {
   return valor === undefined ? '—' : MOEDA.format(valor);
-}
-
-export function percentualEmTexto(valor: number | undefined): string {
-  return valor === undefined ? '—' : `${PERCENTUAL.format(valor)}%`;
 }
 
 const MES_ANO = new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' });

@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { useSessao } from '@/compartilhado/sessao/sessao';
+import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { LinkDeNavegacao } from '@/design-system/primitivos/LinkDeNavegacao';
 import { Texto } from '@/design-system/primitivos/Texto';
@@ -37,14 +38,6 @@ const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
 
 function tituloDaRota(caminho: string): string {
   return TITULOS.find(({ padrao }) => padrao.test(caminho))?.titulo ?? 'Aether';
-}
-
-/** Duas letras para o avatar: "Leonardo Andrade" vira "LA". */
-function iniciais(nome: string | undefined): string {
-  const partes = (nome ?? '').trim().split(/\s+/).filter(Boolean);
-  const primeira = partes[0]?.[0] ?? '';
-  const ultima = partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? '') : '';
-  return (primeira + ultima).toUpperCase();
 }
 
 /**
@@ -130,9 +123,7 @@ export function LayoutDaAplicacao() {
             {tituloDaRota(localizacao.pathname)}
           </Texto>
           <div className={estilos.identidade}>
-            <span className={estilos.avatar} aria-hidden="true">
-              {iniciais(usuario?.nome)}
-            </span>
+            <Avatar nome={usuario?.nome} tom="escuro" />
             <div className={estilos.nomeEEmail}>
               <Texto variante="corpo" como="span">
                 {usuario?.nome}

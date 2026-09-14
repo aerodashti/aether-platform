@@ -260,7 +260,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
-| Tela de Proprietários (grade, filtros, painel de cadastro) | **Parcial** — `features/proprietarios`. Ver a nota abaixo sobre as colunas ausentes |
+| Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
 | Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
@@ -313,16 +313,18 @@ protótipo também tem o gatilho dentro do combobox vazio ("Nenhum proprietário
 existe aqui: a seleção é um `<select>` nativo, sem estado vazio próprio — o botão do cabeçalho
 cobre o caso.
 
-### A tela de Proprietários tem quatro colunas, não seis
+### A tela de Proprietários é uma grade de cartões, sem o saldo
 
-Mesma regra da tela de Aeronaves: o protótipo mostra Proprietário · Aeronave · Participação ·
-Saldo · Situação · Ações, e as três do meio dependem do contrato de participação e do rateio, que
-ainda não existem — **coluna vazia não existe**. No lugar delas há uma coluna de CPF/CNPJ, que é
-dado do cadastro. O documento pontuado é nowrap de largura fixa e ocupa a trilha de lockup
-(160px): a régua do handoff não tem trilha própria de documento, e criar uma agora seria token
-para uma tela só. O "Excluir" do protótipo também não está aqui: ele abre um rebalanceamento de
-participações antes de inativar, fluxo que pertence ao contrato de participação — até lá, a ação
-destrutiva é Desativar/Reativar, como em Usuários.
+É a tela do Projeto final: um cartão por proprietário, com avatar de iniciais, documento e contato
+numa linha, as ações à direita e, embaixo, uma linha por aeronave em que ele participa — matrícula,
+barra do percentual e o número. Os vínculos vêm de `GET /participacoes/vigentes`, uma chamada só
+para a grade inteira (o contrato é quem sabe quem é dono de quanto, por isso a rota é da
+participação, não do proprietário), e chegam à parte da lista de proprietários: enquanto não
+chegam, o cartão diz "sem vínculo", nunca fica em branco.
+
+O **saldo** que o protótipo mostra ao lado de cada barra não está aqui: pertence a aportes, e
+**coluna vazia não existe**. O "Excluir" do protótipo é "Desativar": excluir de verdade não existe
+neste domínio (glossário), e o inativo mostra a etiqueta e o "Reativar", como em Usuários.
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
 bundle). O produto é entregue em português; inglês e espanhol não estão nesta fase.

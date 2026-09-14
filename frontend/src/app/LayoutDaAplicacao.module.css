@@ -71,21 +71,6 @@
   min-width: 0;
 }
 
-/* Avatar de iniciais: o único círculo completo da casca, como no protótipo. */
-.avatar {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--controle-altura-m);
-  height: var(--controle-altura-m);
-  font-size: var(--tamanho-m);
-  font-weight: var(--peso-forte);
-  color: var(--cor-acento-contraste);
-  background: var(--cor-acento-escuro);
-  border-radius: var(--raio-redondo);
-}
-
 .nomeEEmail {
   display: flex;
   flex-direction: column;

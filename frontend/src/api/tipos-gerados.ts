@@ -646,6 +646,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/participacoes/vigentes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista as participações de todos os contratos vigentes */
+        get: operations["listar_6"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/autenticacao/sessao": {
         parameters: {
             query?: never;
@@ -1430,6 +1447,36 @@ export interface components {
             versao?: string;
             /** @description Situação de cada componente monitorado */
             componentes?: components["schemas"]["ComponenteDeSaudeResponse"][];
+        };
+        /** @description Participação vigente de um proprietário numa aeronave */
+        VinculoVigenteResponse: {
+            /**
+             * Format: int64
+             * @description Identificador do proprietário
+             * @example 1
+             */
+            proprietarioId?: number;
+            /**
+             * Format: int64
+             * @description Identificador da aeronave
+             * @example 3
+             */
+            aeronaveId?: number;
+            /**
+             * @description Matrícula da aeronave
+             * @example PS-AER
+             */
+            matricula?: string;
+            /**
+             * @description Modelo da aeronave
+             * @example Phenom 300E
+             */
+            modelo?: string;
+            /**
+             * @description Percentual de propriedade, duas casas
+             * @example 33.34
+             */
+            percentual?: number;
         };
         /** @description Manutenção de uma aeronave */
         PainelDeManutencaoResponse: {
@@ -2656,6 +2703,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ComponenteDeSaudeResponse"];
+                };
+            };
+        };
+    };
+    listar_6: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["VinculoVigenteResponse"][];
                 };
             };
         };

@@ -25,9 +25,45 @@
   max-width: 360px;
 }
 
-.painel {
-  overflow-x: auto;
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--espaco-5);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cartaoDoEsqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  min-height: 120px;
+  padding: var(--espaco-6);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-m);
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-9);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+/* Só para o leitor de tela: o anúncio de carregamento não precisa de forma visível. */
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

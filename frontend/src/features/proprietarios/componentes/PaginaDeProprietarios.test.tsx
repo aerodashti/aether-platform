@@ -2,13 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeProprietarios } from './PaginaDeProprietarios';
 
 function envolver(conteudo: ReactNode) {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>);
+  return render(
+    <MemoryRouter>
+      <QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>
+    </MemoryRouter>,
+  );
 }
 
 function respostaDe(corpo: unknown, status = 200) {
@@ -59,8 +64,14 @@ const PROPRIETARIOS = [
   },
 ];
 
-function linhaDe(nome: string) {
-  return screen.getByText(nome).closest('tr') as HTMLElement;
+const VINCULOS = [
+  { proprietarioId: 1, aeronaveId: 7, matricula: 'PS-AER', modelo: 'Phenom 300E', percentual: 60 },
+  { proprietarioId: 1, aeronaveId: 8, matricula: 'PR-HEL', modelo: 'AW109', percentual: 33.34 },
+];
+
+/** O cartão que contém o nome: o `li` mais próximo que é item da grade, não da lista de vínculos. */
+function cartaoDe(nome: string) {
+  return screen.getByText(nome).closest('ul[aria-label="Proprietários"] > li') as HTMLElement;
 }
 
 function prepararFetch(sessao: unknown) {
@@ -69,6 +80,9 @@ function prepararFetch(sessao: unknown) {
     vi.fn((entrada: string) => {
       if (entrada.startsWith('/api/autenticacao/sessao')) {
         return Promise.resolve(respostaDe(sessao));
+      }
+      if (entrada.startsWith('/api/participacoes/vigentes')) {
+        return Promise.resolve(respostaDe(VINCULOS));
       }
       return Promise.resolve(respostaDe(PROPRIETARIOS));
     }),
@@ -91,15 +105,34 @@ describe('PaginaDeProprietarios', () => {
     vi.restoreAllMocks();
   });
 
-  it('mostra contato e documento pontuado de cada proprietário', async () => {
+  it('mostra documento pontuado e contato numa linha, e as aeronaves com o percentual', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeProprietarios />);
 
     expect(await screen.findByText('Ricardo Meirelles')).toBeInTheDocument();
-    const linha = linhaDe('Ricardo Meirelles');
-    expect(within(linha).getByText('529.982.247-25')).toBeInTheDocument();
+    const cartao = cartaoDe('Ricardo Meirelles');
     expect(
-      within(linha).getByText('ricardo@meirelles.com.br · +55 11 98888-0000'),
+      within(cartao).getByText('529.982.247-25 · ricardo@meirelles.com.br · +55 11 98888-0000'),
+    ).toBeInTheDocument();
+
+    const aeronaves = await within(cartao).findByRole('list', {
+      name: 'Aeronaves de Ricardo Meirelles',
+    });
+    expect(within(aeronaves).getByRole('link', { name: 'PS-AER' })).toHaveAttribute(
+      'href',
+      '/aeronaves/7',
+    );
+    expect(within(aeronaves).getByText('60%')).toBeInTheDocument();
+    expect(within(aeronaves).getByText('33,34%')).toBeInTheDocument();
+  });
+
+  it('sem contrato vigente o cartão diz que falta o vínculo', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Helena Sarraf');
+    expect(
+      within(cartaoDe('Helena Sarraf')).getByText(/Sem vínculo com aeronave/),
     ).toBeInTheDocument();
   });
 
@@ -108,8 +141,8 @@ describe('PaginaDeProprietarios', () => {
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Helena Sarraf');
-    expect(within(linhaDe('Helena Sarraf')).getByText('—')).toBeInTheDocument();
-    expect(within(linhaDe('Otávio Lins')).getByText('Inativo')).toBeInTheDocument();
+    expect(within(cartaoDe('Helena Sarraf')).getByText('—')).toBeInTheDocument();
+    expect(within(cartaoDe('Otávio Lins')).getByText('Inativo')).toBeInTheDocument();
     expect(screen.queryByText('Ativo')).not.toBeInTheDocument();
   });
 
@@ -119,10 +152,10 @@ describe('PaginaDeProprietarios', () => {
 
     await screen.findByText('Otávio Lins');
     expect(
-      within(linhaDe('Otávio Lins')).getByRole('button', { name: 'Reativar' }),
+      within(cartaoDe('Otávio Lins')).getByRole('button', { name: 'Reativar' }),
     ).toBeInTheDocument();
     expect(
-      within(linhaDe('Ricardo Meirelles')).getByRole('button', { name: 'Desativar' }),
+      within(cartaoDe('Ricardo Meirelles')).getByRole('button', { name: 'Desativar' }),
     ).toBeInTheDocument();
   });
 
@@ -131,7 +164,7 @@ describe('PaginaDeProprietarios', () => {
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Ricardo Meirelles');
-    expect(screen.queryByRole('button', { name: 'Novo proprietário' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Novo proprietário' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desativar' })).not.toBeInTheDocument();
   });
@@ -163,7 +196,7 @@ describe('PaginaDeProprietarios', () => {
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Ricardo Meirelles');
-    await userEvent.click(screen.getByRole('button', { name: 'Novo proprietário' }));
+    await userEvent.click(screen.getByRole('button', { name: '+ Novo proprietário' }));
 
     expect(screen.getByRole('radiogroup', { name: 'Cor de identificação' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();

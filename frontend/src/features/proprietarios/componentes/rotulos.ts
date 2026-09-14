@@ -1,5 +1,7 @@
 import type { SituacaoDoProprietario } from '../api/useProprietarios';
 
+export { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
+
 export const OPCOES_DE_SITUACAO: Array<{ valor: SituacaoDoProprietario | ''; rotulo: string }> = [
   { valor: '', rotulo: 'Todas as situações' },
   { valor: 'ATIVO', rotulo: 'Ativos' },

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { buscar, enviar } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
+import { CHAVE_DE_VINCULOS_VIGENTES } from '@/compartilhado/participacoes/useVinculosVigentes';
 
 export type ContratosDaAeronaveResponse = components['schemas']['ContratosDaAeronaveResponse'];
 export type ContratoResponse = components['schemas']['ContratoResponse'];
@@ -26,7 +27,7 @@ export function useDefinirContrato(aeronaveId: number) {
       contexto.interacao('definir-contrato', () =>
         enviar<ContratosDaAeronaveResponse>(`/aeronaves/${aeronaveId}/contratos`, request),
       ),
-    onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE }),
+    onSuccess: () => invalidarContratos(cliente),
   });
 }
 
@@ -47,6 +48,12 @@ export function useDefinirContratoAoCadastrar() {
       contexto.interacao('definir-contrato', () =>
         enviar<ContratosDaAeronaveResponse>(`/aeronaves/${aeronaveId}/contratos`, request),
       ),
-    onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE }),
+    onSuccess: () => invalidarContratos(cliente),
   });
+}
+
+/** Um contrato novo muda a consulta da aeronave e a grade de proprietários, que lê os vigentes. */
+function invalidarContratos(cliente: ReturnType<typeof useQueryClient>) {
+  void cliente.invalidateQueries({ queryKey: CHAVE });
+  void cliente.invalidateQueries({ queryKey: CHAVE_DE_VINCULOS_VIGENTES });
 }
