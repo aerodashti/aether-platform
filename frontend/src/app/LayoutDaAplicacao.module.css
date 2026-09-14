@@ -49,14 +49,44 @@
   flex: none;
   gap: var(--espaco-4);
   align-items: center;
-  justify-content: flex-end;
-  height: 56px;
+  height: 62px;
   padding: 0 var(--espaco-7);
   background: var(--cor-superficie);
   border-bottom: 1px solid var(--cor-borda);
 }
 
+/* O título da tela ocupa o começo da barra e empurra a identificação para o fim. */
+.topo > h1 {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .identidade {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  min-width: 0;
+}
+
+/* Avatar de iniciais: o único círculo completo da casca, como no protótipo. */
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--controle-altura-m);
+  height: var(--controle-altura-m);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-contraste);
+  background: var(--cor-acento-escuro);
+  border-radius: var(--raio-redondo);
+}
+
+.nomeEEmail {
   display: flex;
   flex-direction: column;
   align-items: flex-end;

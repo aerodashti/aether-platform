@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -20,16 +20,45 @@ import {
 } from './Icones';
 import estilos from './LayoutDaAplicacao.module.css';
 
+/** O título que o cabeçalho mostra para cada rota, como o `screenTitle` do protótipo. */
+const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
+  { padrao: /^\/$/, titulo: 'Saúde' },
+  { padrao: /^\/aeronaves\/nova$/, titulo: 'Nova aeronave' },
+  { padrao: /^\/aeronaves\/[^/]+$/, titulo: 'Aeronave' },
+  { padrao: /^\/aeronaves$/, titulo: 'Aeronaves' },
+  { padrao: /^\/voos/, titulo: 'Diário de voos' },
+  { padrao: /^\/custos/, titulo: 'Lançamentos' },
+  { padrao: /^\/manutencao/, titulo: 'Manutenção' },
+  { padrao: /^\/calendario/, titulo: 'Calendário' },
+  { padrao: /^\/proprietarios/, titulo: 'Proprietários' },
+  { padrao: /^\/usuarios/, titulo: 'Usuários' },
+  { padrao: /^\/configuracoes/, titulo: 'Configurações' },
+];
+
+function tituloDaRota(caminho: string): string {
+  return TITULOS.find(({ padrao }) => padrao.test(caminho))?.titulo ?? 'Aether';
+}
+
+/** Duas letras para o avatar: "Leonardo Andrade" vira "LA". */
+function iniciais(nome: string | undefined): string {
+  const partes = (nome ?? '').trim().split(/\s+/).filter(Boolean);
+  const primeira = partes[0]?.[0] ?? '';
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]?.[0] ?? '') : '';
+  return (primeira + ultima).toUpperCase();
+}
+
 /**
- * A casca da área logada: navegação à esquerda, identificação no alto, tela no meio.
+ * A casca da área logada: navegação à esquerda, título da tela e identificação no alto, tela no
+ * meio — a moldura do Projeto final.
  *
- * <p>É deliberadamente o mínimo que as telas existentes exigem. A casca do protótipo tem busca
- * global, seletor de tema, fila de avisos e navegação em grupos — nada disso foi implementado
- * porque nenhuma tela em pé consome. Ver `docs/design-system.md`.
+ * <p>É deliberadamente o mínimo que as telas existentes exigem. A casca do protótipo tem ainda o
+ * "+ Registrar", a fila de avisos e o seletor de idioma — nada disso foi implementado porque
+ * nenhuma tela em pé consome. Ver `docs/design-system.md`.
  */
 export function LayoutDaAplicacao() {
   const { usuario, ehAdministrador } = useSessao();
   const sair = useSair();
+  const localizacao = useLocation();
 
   return (
     <div className={estilos.moldura}>
@@ -97,13 +126,21 @@ export function LayoutDaAplicacao() {
       </nav>
       <div className={estilos.coluna}>
         <header className={estilos.topo}>
+          <Texto variante="subtitulo" como="h1">
+            {tituloDaRota(localizacao.pathname)}
+          </Texto>
           <div className={estilos.identidade}>
-            <Texto variante="corpo" como="span">
-              {usuario?.nome}
-            </Texto>
-            <Texto variante="apoio" tom="suave" como="span">
-              {usuario?.email}
-            </Texto>
+            <span className={estilos.avatar} aria-hidden="true">
+              {iniciais(usuario?.nome)}
+            </span>
+            <div className={estilos.nomeEEmail}>
+              <Texto variante="corpo" como="span">
+                {usuario?.nome}
+              </Texto>
+              <Texto variante="apoio" tom="suave" como="span">
+                {usuario?.email}
+              </Texto>
+            </div>
           </div>
           <Botao
             variante="fantasma"

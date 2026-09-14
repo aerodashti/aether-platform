@@ -6,24 +6,24 @@
 
 .rotulo {
   font-family: var(--fonte-base);
-  font-size: var(--tamanho-g);
+  font-size: var(--tamanho-s);
   font-weight: var(--peso-medio);
-  line-height: var(--altura-g);
-  color: var(--cor-texto);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
 }
 
 .entrada {
   width: 100%;
   padding: var(--espaco-4) var(--espaco-5);
   font-family: var(--fonte-base);
-  font-size: var(--tamanho-g);
+  font-size: var(--tamanho-m);
   font-weight: var(--peso-normal);
-  line-height: var(--altura-g);
+  line-height: var(--altura-m);
   color: var(--cor-texto);
   resize: vertical;
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda-forte);
-  border-radius: var(--raio-s);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
   transition-property: border-color, box-shadow;
   transition-duration: var(--duracao-rapida);
   transition-timing-function: var(--curva-padrao);

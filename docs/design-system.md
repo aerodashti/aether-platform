@@ -5,23 +5,31 @@
 
 ## Origem dos valores
 
-Os tokens vêm do handoff do Claude Design (`lib/ds-tokens-teste.css` do bundle "Aether — projeto
-final"), traduzidos para os nomes em português deste repositório. O mapeamento nome a nome está na
-seção "Mapeamento com o handoff bundle".
+Os tokens vêm da página **"Projeto final Aether.dc.html"** do projeto "Aether — projeto final" do
+Claude Design. Essa página carrega os estilos inline (é dela que saem cores, raio e alturas do tema
+claro); o `lib/ds-tokens-final.css` que ela importa só é usado para o tema escuro, que o protótipo
+não desenha de outra forma. A página `Teste.dc.html` do mesmo projeto foi um experimento e **não é
+referência** — até 2026-09-14 o produto a seguia por engano, e a migração para o Projeto final
+está registrada em `docs/adr/0017-projeto-final-como-referencia-visual.md`. O mapeamento nome a
+nome está na seção "Mapeamento com o handoff bundle".
 
 A identidade que esses valores carregam — e que nenhuma mudança de token pode desfazer sem uma
 conversa antes:
 
-- **Cantos retos.** `--raio-s`, `--raio-m` e `--raio-g` são todos `0`. Não é descuido: é o que
-  separa o produto da aparência de template. `--raio-redondo` existe só para avatar, dot de situação
-  e spinner. Formato pill é proibido.
-- **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px.
-  Alturas de controle 32, 40 e 48 — o degrau de 32 é a densidade compacta da grade. Sem respiros
-  decorativos.
-- **Contraste fino.** Superfícies chapadas, divisores de 1px, sombra discreta. Nada de gradiente
-  chamativo, sombra grande ou glassmorphism.
-- **Azul petróleo.** Um acento só, em sete papéis (veja a tabela). Nenhum hex fora de `tokens.json`.
-- **Nunca `#000000` nem `#FFFFFF` absolutos.** O branco é `#fdfeff` e o preto é `#161c26`.
+- **Raio 4px.** `--raio-m` e `--raio-g` são `4px`, `--raio-s` é `3px`: controles, cartões, badges
+  e popovers têm o mesmo canto discreto. `--raio-redondo` existe só para avatar, dot de situação,
+  contador e spinner. Formato pill continua proibido.
+- **Neutros quentes, cartões brancos.** O fundo da página é `#fafafb`, os cartões são `#ffffff`
+  com borda `#e0e0e3`, a barra lateral é `#f4f4f6`. O texto é `#1d1f20` e o secundário `#5d5d60`.
+- **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px; os
+  campos e as tabelas ficam em 13px. Alturas de controle 32, 36 e 40 — o degrau de 32 é a
+  densidade compacta da grade. Sem respiros decorativos.
+- **Contraste fino.** Superfícies chapadas, divisores de 1px, sombra discreta nos cartões e uma
+  sombra maior só no popover. Nada de gradiente chamativo ou glassmorphism.
+- **Azul-aço.** Um acento só, `#5980a6`, com hover petróleo `#2c455d` e a variante de texto
+  `#416180` para rótulos de ação (botão secundário e fantasma). Nenhum hex fora de `tokens.json`.
+- **Nunca `#000000` nem `#FFFFFF` no texto.** O preto é `#1d1f20`; o branco existe só como
+  superfície de cartão.
 
 ## Fonte única
 

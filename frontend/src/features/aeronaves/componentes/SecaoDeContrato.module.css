@@ -2,6 +2,7 @@
   padding: var(--espaco-6);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .cabecalho {
@@ -103,6 +104,7 @@
   margin-top: var(--espaco-3);
   background: var(--cor-superficie-sutil);
   border: 1px solid var(--cor-borda-suave);
+  border-radius: var(--raio-m);
 }
 
 .arquivadoCabecalho {

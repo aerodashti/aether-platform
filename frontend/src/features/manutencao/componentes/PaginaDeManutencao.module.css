@@ -28,6 +28,7 @@
   padding: var(--espaco-5);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .referenciaRotulo {
@@ -56,6 +57,7 @@
   padding: var(--espaco-6);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .parametros,

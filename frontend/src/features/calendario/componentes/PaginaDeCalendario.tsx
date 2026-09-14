@@ -60,7 +60,7 @@ export function PaginaDeCalendario() {
           >
             ←
           </Botao>
-          <Texto variante="subtitulo" como="h1">
+          <Texto variante="subtitulo" como="h2">
             {tituloDaCompetencia(competencia)}
           </Texto>
           <Botao

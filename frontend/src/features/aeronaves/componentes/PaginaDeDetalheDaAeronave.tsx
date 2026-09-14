@@ -81,7 +81,7 @@ export function PaginaDeDetalheDaAeronave() {
         <div className={estilos.identidade}>
           <span className={estilos.matricula}>{detalhe.matricula}</span>
           <div className={estilos.nomeada}>
-            <Texto variante="subtitulo" como="h1">
+            <Texto variante="subtitulo" como="h2">
               {[detalhe.fabricante, detalhe.modelo].filter(Boolean).join(' ')}
             </Texto>
             <span

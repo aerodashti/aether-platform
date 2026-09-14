@@ -4,9 +4,6 @@
   gap: var(--espaco-4);
   min-height: var(--controle-altura-p);
   padding: 0 var(--espaco-3);
-  /* A barra de ativo nasce transparente e só troca de cor: reservar a faixa desde o repouso é o
-     que impede o rótulo de pular 2px ao entrar e sair do estado. */
-  border-left: var(--espaco-1) solid transparent;
   font-family: var(--fonte-base);
   font-size: var(--tamanho-m);
   font-weight: var(--peso-normal);
@@ -29,11 +26,11 @@
   outline-offset: 2px;
 }
 
-/* Ativo: a mesma marca das abas do produto — faixa de acento de 2px, fundo em vestígio. */
+/* Ativo: bloco de fundo em vestígio de ação e rótulo forte, sem barra lateral — o item da
+   navegação do Projeto final é um retângulo de canto 4px, como os botões. */
 .link[aria-current='page'] {
   background: var(--cor-acento-vestigio);
-  border-left-color: var(--cor-acento);
-  color: var(--cor-texto);
+  color: var(--cor-acento-escuro);
   font-weight: var(--peso-forte);
 }
 

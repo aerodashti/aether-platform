@@ -13,6 +13,7 @@
   padding: var(--espaco-6);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .identidade {
