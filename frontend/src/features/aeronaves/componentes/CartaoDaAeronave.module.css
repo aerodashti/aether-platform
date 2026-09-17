@@ -1,0 +1,131 @@
+/* Um cartão por aeronave: identificação, situação, números à direita e a seta — o item de lista
+   do protótipo, com cada bloco numa coluna de largura própria. */
+.cartao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-5) var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+  transition-property: box-shadow;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.cartao:hover {
+  box-shadow: var(--elevacao-2);
+}
+
+.identidade {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  min-width: 0;
+}
+
+.matricula {
+  font-size: var(--tamanho-g);
+  line-height: var(--altura-g);
+}
+
+.modelo {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Etiqueta de situação: dot e rótulo sobre o vestígio da mesma cor, canto 4px. */
+.situacao {
+  display: inline-flex;
+  flex: none;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-2) var(--espaco-4);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  border-radius: var(--raio-m);
+}
+
+.ponto {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--raio-redondo);
+}
+
+.regular {
+  color: var(--cor-positivo);
+  background: var(--cor-positivo-vestigio);
+}
+
+.regular .ponto {
+  background: var(--cor-positivo);
+}
+
+.atencao {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-vestigio);
+}
+
+.atencao .ponto {
+  background: var(--cor-atencao);
+}
+
+.vencido {
+  color: var(--cor-critico);
+  background: var(--cor-critico-vestigio);
+}
+
+.vencido .ponto {
+  background: var(--cor-critico);
+}
+
+.espaco {
+  flex: 1;
+}
+
+.numero {
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+  text-align: right;
+}
+
+.rotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.valor {
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+  font-variant-numeric: tabular-nums;
+}
+
+.qualificador {
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+}
+
+.seta {
+  flex: none;
+  font-weight: var(--peso-forte);
+}
+
+@media (max-width: 640px) {
+  .numero {
+    min-width: 0;
+    text-align: left;
+  }
+}

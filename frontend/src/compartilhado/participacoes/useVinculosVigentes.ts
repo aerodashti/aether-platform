@@ -31,3 +31,15 @@ export function agruparPorProprietario(
   }
   return grupos;
 }
+
+/** Quantos proprietários cada aeronave tem no contrato vigente — o número do cartão da frota. */
+export function contarProprietariosPorAeronave(
+  vinculos: VinculoVigenteResponse[] | undefined,
+): Map<number, number> {
+  const contagem = new Map<number, number>();
+  for (const vinculo of vinculos ?? []) {
+    const id = vinculo.aeronaveId ?? 0;
+    contagem.set(id, (contagem.get(id) ?? 0) + 1);
+  }
+  return contagem;
+}

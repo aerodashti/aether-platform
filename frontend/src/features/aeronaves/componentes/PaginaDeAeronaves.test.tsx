@@ -62,8 +62,26 @@ const FROTA = [
   },
 ];
 
-function linhaDe(matricula: string) {
-  return screen.getByText(matricula).closest('tr') as HTMLElement;
+const VINCULOS = [
+  { proprietarioId: 1, aeronaveId: 1, matricula: 'PS-MEP', percentual: 50 },
+  { proprietarioId: 2, aeronaveId: 1, matricula: 'PS-MEP', percentual: 30 },
+  { proprietarioId: 3, aeronaveId: 1, matricula: 'PS-MEP', percentual: 20 },
+];
+
+/** O fetch da tela: a frota em `/aeronaves` e os vínculos vigentes em `/participacoes`. */
+function prepararFetch(frota: unknown, status = 200) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((entrada: string) =>
+      Promise.resolve(
+        entrada.startsWith('/api/participacoes') ? respostaDe(VINCULOS) : respostaDe(frota, status),
+      ),
+    ),
+  );
+}
+
+function cartaoDe(matricula: string) {
+  return screen.getByText(matricula).closest('li') as HTMLElement;
 }
 
 describe('PaginaDeAeronaves', () => {
@@ -72,38 +90,45 @@ describe('PaginaDeAeronaves', () => {
   });
 
   it('mostra matrícula, modelo e situação de cada aeronave', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe(FROTA))),
-    );
+    prepararFetch(FROTA);
     envolver(<PaginaDeAeronaves />);
 
     expect(await screen.findByText('PS-MEP')).toBeInTheDocument();
-    expect(within(linhaDe('PS-MEP')).getByText('Saudável')).toBeInTheDocument();
-    expect(within(linhaDe('PT-XLB')).getByText('Atenção')).toBeInTheDocument();
-    expect(within(linhaDe('PP-JHF')).getByText('Vencido')).toBeInTheDocument();
+    expect(within(cartaoDe('PS-MEP')).getByText('Saudável')).toBeInTheDocument();
+    expect(within(cartaoDe('PT-XLB')).getByText('Atenção')).toBeInTheDocument();
+    expect(within(cartaoDe('PP-JHF')).getByText('Vencido')).toBeInTheDocument();
+  });
+
+  it('conta os proprietários do contrato vigente e abre o detalhe pela seta', async () => {
+    prepararFetch(FROTA);
+    envolver(<PaginaDeAeronaves />);
+
+    await screen.findByText('PS-MEP');
+    const cartao = cartaoDe('PS-MEP');
+    expect(await within(cartao).findByText('Proprietários')).toBeInTheDocument();
+    expect(within(cartao).getByText('3')).toBeInTheDocument();
+    // Sem contrato o número é 0 de verdade, não uma coluna em branco.
+    expect(within(cartaoDe('PT-XLB')).getByText('0')).toBeInTheDocument();
+    expect(within(cartao).getByRole('link', { name: 'Abrir PS-MEP' })).toHaveAttribute(
+      'href',
+      '/aeronaves/1',
+    );
   });
 
   it('nenhuma situação aparece sozinha: diz qual documento e quando', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe(FROTA))),
-    );
+    prepararFetch(FROTA);
     envolver(<PaginaDeAeronaves />);
 
     await screen.findByText('PT-XLB');
-    expect(within(linhaDe('PT-XLB')).getByText(/RETA · em 12 dias/)).toBeInTheDocument();
-    expect(within(linhaDe('PP-JHF')).getByText(/CVA · há 3 dias/)).toBeInTheDocument();
+    expect(within(cartaoDe('PT-XLB')).getByText(/RETA · em 12 dias/)).toBeInTheDocument();
+    expect(within(cartaoDe('PP-JHF')).getByText(/CVA · há 3 dias/)).toBeInTheDocument();
     // Saudável mostra o documento e a data, sem o prazo: número sem pergunta é ruído.
-    expect(within(linhaDe('PS-MEP')).getByText('CVA')).toBeInTheDocument();
-    expect(within(linhaDe('PS-MEP')).queryByText(/dias/)).not.toBeInTheDocument();
+    expect(within(cartaoDe('PS-MEP')).getByText('CVA')).toBeInTheDocument();
+    expect(within(cartaoDe('PS-MEP')).queryByText(/dias/)).not.toBeInTheDocument();
   });
 
   it('o resumo conta a frota e denuncia quem não pode voar', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe(FROTA))),
-    );
+    prepararFetch(FROTA);
     envolver(<PaginaDeAeronaves />);
 
     expect(await screen.findByText('3 aeronaves')).toBeInTheDocument();
@@ -111,10 +136,7 @@ describe('PaginaDeAeronaves', () => {
   });
 
   it('sem aeronave impedida, o resumo não inventa um zero', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe([FROTA[0]]))),
-    );
+    prepararFetch([FROTA[0]]);
     envolver(<PaginaDeAeronaves />);
 
     expect(await screen.findByText('1 aeronave')).toBeInTheDocument();
@@ -122,10 +144,7 @@ describe('PaginaDeAeronaves', () => {
   });
 
   it('frota vazia explica o que fazer a seguir', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe([]))),
-    );
+    prepararFetch([]);
     envolver(<PaginaDeAeronaves />);
 
     expect(await screen.findByText('Nenhuma aeronave cadastrada')).toBeInTheDocument();
@@ -133,10 +152,7 @@ describe('PaginaDeAeronaves', () => {
   });
 
   it('erro de carga suprime a grade e oferece tentar de novo', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve(respostaDe({ detail: 'Falhou' }, 500))),
-    );
+    prepararFetch({ detail: 'Falhou' }, 500);
     envolver(<PaginaDeAeronaves />);
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();

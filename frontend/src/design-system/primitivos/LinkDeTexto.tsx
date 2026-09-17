@@ -10,6 +10,8 @@ interface LinkDeTextoProps {
   children: ReactNode;
   /** Monoespaçada, para identificador: matrícula, rel. de voo, nota fiscal. */
   mono?: boolean;
+  /** Para o link que é só um glifo ("→"): o leitor de tela precisa de um nome de verdade. */
+  rotuloAcessivel?: string;
 }
 
 /**
@@ -19,9 +21,13 @@ interface LinkDeTextoProps {
  * histórico funcionam sem código nenhum. Distinto de {@code LinkDeNavegacao}, que é o item da
  * barra lateral, e de {@code BotaoDeLink}, que é ação sem navegação.
  */
-export function LinkDeTexto({ para, children, mono = false }: LinkDeTextoProps) {
+export function LinkDeTexto({ para, children, mono = false, rotuloAcessivel }: LinkDeTextoProps) {
   return (
-    <Link to={para} className={juntarClasses(estilos.link, mono && estilos.mono)}>
+    <Link
+      to={para}
+      className={juntarClasses(estilos.link, mono && estilos.mono)}
+      aria-label={rotuloAcessivel}
+    >
       {children}
     </Link>
   );

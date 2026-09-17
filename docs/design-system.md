@@ -117,26 +117,26 @@ Trocar o tema é escrever `data-theme` no elemento raiz. Nenhum componente preci
 rolagem e autofill do navegador nasçam na cor certa — os tokens sozinhos não alcançam esses
 elementos.
 
-### A tela de Aeronaves tem quatro colunas, não seis
+### A tela de Aeronaves é uma lista de cartões, com dois números dos três
 
-O protótipo mostra Matrícula · Modelo · Status · Saldo do fundo · Custo da competência ·
-Proprietários. As três últimas dependem de features que ainda não existem — aportes, lançamentos e
-participações —, e **coluna vazia não existe**: cada uma entra com a feature dona do seu número.
-Enquanto isso a grade não estica até os 1180px da régua completa, porque a trilha de rótulo é
-`1.5fr` e absorveria toda a sobra num vão entre Modelo e Situação.
+É a lista do Projeto final: um cartão por aeronave com matrícula e modelo, a etiqueta de situação
+(dot e rótulo sobre o vestígio da mesma cor), os números à direita e a seta que abre o detalhe. O
+protótipo mostra Saldo do fundo · Custo da competência · Proprietários; só o último está aqui,
+contado dos vínculos vigentes (`GET /participacoes/vigentes`) — os outros dois pertencem a aportes
+e a lançamentos, e **coluna vazia não existe**. Enquanto os vínculos não chegam o cartão omite o
+número; nunca inventa um zero.
 
 Duas diferenças deliberadas em relação ao protótipo, as duas por regra do próprio brief:
 
 - **"Situação", não "Status".** O glossário proíbe o anglicismo.
-- **Existe uma coluna de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
+- **Existe um bloco de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
   *"Estado sem consequência é proibido: ATENÇÃO sozinho não informa. Forma correta: Seguro RETA ·
-  vence em 12 dias."* A coluna ocupa a trilha de lockup, que é exatamente a forma "grandeza +
-  qualificador". O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave saudável,
-  "em 241 dias" é número sem pergunta.
+  vence em 12 dias."* O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave
+  saudável, "em 241 dias" é número sem pergunta.
 
 O seletor **"Estado"** do protótipo não foi implementado: o próprio `AETHER_PATTERNS.md` o registra
 como *"andaime de protótipo em Aeronaves e Custos"*, uma dívida declarada para demonstrar os cinco
-estados da grade. Os cinco estados existem na implementação; o seletor que os simula, não.
+estados de tela.
 
 ### Ação de linha: visível, não escondida
 
@@ -255,7 +255,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Globo pontilhado (`dotted-globe.js`) | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só |
 | Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
 | Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
-| Tela de Aeronaves (grade da frota) | **Parcial** — `features/aeronaves`. Ver a nota abaixo sobre as colunas ausentes |
+| Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
 | Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`. Seletor de tema em `compartilhado/tema` |
 | Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |

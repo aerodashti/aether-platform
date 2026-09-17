@@ -1,12 +1,8 @@
 .tela {
   display: flex;
   flex-direction: column;
-  gap: var(--espaco-4);
-  /* A largura acompanha as trilhas que existem. Com as seis colunas do protótipo a régua chega a
-     1180px; com quatro, esticar até lá abriria um vão entre Modelo e Situação — a trilha de
-     rótulo é `1.5fr` e absorveria toda a sobra. Volta a crescer quando as colunas de dinheiro
-     entrarem com as features donas. */
-  max-width: 780px;
+  gap: var(--espaco-5);
+  max-width: 1180px;
 }
 
 .cabecalho {
@@ -18,18 +14,44 @@
   min-height: var(--espaco-6);
 }
 
-.painel {
-  overflow: hidden;
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cartaoDoEsqueleto {
+  min-height: 72px;
+  padding: var(--espaco-5) var(--espaco-6);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-m);
-  box-shadow: var(--elevacao-1);
 }
 
-@media (max-width: 640px) {
-  .painel {
-    overflow-x: auto;
-  }
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-9) var(--espaco-6);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+/* Só para o leitor de tela: o anúncio de carregamento não precisa de forma visível. */
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .resumo {
