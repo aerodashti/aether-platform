@@ -60,6 +60,11 @@
   text-align: center;
 }
 
+.direita {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .espacado {
   font-family: var(--fonte-mono);
   font-size: var(--tamanho-ggg);

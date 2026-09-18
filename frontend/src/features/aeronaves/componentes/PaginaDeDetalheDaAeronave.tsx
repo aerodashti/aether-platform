@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { useSessao } from '@/compartilhado/sessao/sessao';
-import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
+import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
@@ -11,27 +11,24 @@ import { useDetalheDaAeronave } from '../api/useDetalheDaAeronave';
 
 import { CartaoDeFichaTecnica } from './CartaoDeFichaTecnica';
 import { CartaoFinanceiro } from './CartaoFinanceiro';
+import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
-import { dataCurta, prazoEmPalavras, ROTULO_DA_SITUACAO, ROTULO_DO_DOCUMENTO } from './rotulos';
+import { consequenciaDoVencimento, dataCurta, nomeDaAeronave } from './rotulos';
 import { SecaoDeContrato } from './SecaoDeContrato';
 import { SecaoDeTripulacao } from './SecaoDeTripulacao';
 
 type PainelAberto = 'ficha' | 'financeiro' | null;
 
-const CLASSE_DA_SITUACAO = {
-  REGULAR: 'regular',
-  ATENCAO: 'atencao',
-  VENCIDO: 'vencido',
-} as const;
-
 /**
- * O detalhe de uma aeronave: identidade e conformidade no cabeçalho; contrato de participações,
- * tripulação, ficha técnica e configuração financeira no corpo.
+ * O detalhe de uma aeronave, na estrutura do protótipo: cabeçalho de entidade numa linha
+ * (matrícula, modelo · base, situação e a sua consequência, vencimentos à direita) e duas
+ * colunas — contrato, histórico e tripulação à esquerda; ficha técnica e configuração
+ * financeira à direita.
  *
- * <p>As abas de Voos, Custos, Rateio e Documentos do protótipo não estão aqui: cada uma vira
- * link quando a tela dona existir — aba para tela que não existe é porta pintada na parede.
+ * <p>O "Documentos (n)" e o "Saldo do fundo" do cabeçalho do protótipo não estão aqui: pertencem
+ * a documentos e a aportes, que ainda não existem — coluna vazia não existe.
  */
 export function PaginaDeDetalheDaAeronave() {
   const { id } = useParams();
@@ -61,15 +58,34 @@ export function PaginaDeDetalheDaAeronave() {
 
   if (consulta.isPending || !detalhe) {
     return (
-      <div role="status" className={estilos.carregando}>
-        <Texto variante="apoio" tom="suave" como="p">
+      <div className={estilos.tela}>
+        <div role="status" className={estilos.apenasLeitor}>
           Carregando a aeronave…
-        </Texto>
+        </div>
+        <div className={estilos.esqueletoDoCabecalho} aria-hidden="true">
+          <Esqueleto />
+        </div>
+        <div className={estilos.grade} aria-hidden="true">
+          <div className={estilos.cartaoDoEsqueleto}>
+            <Esqueleto />
+            <Esqueleto />
+          </div>
+          <div className={estilos.cartaoDoEsqueleto}>
+            <Esqueleto />
+          </div>
+        </div>
       </div>
     );
   }
 
   const situacao = detalhe.situacaoRegular ?? 'REGULAR';
+  const subtitulo = [
+    nomeDaAeronave(detalhe.fabricante, detalhe.modelo),
+    detalhe.base,
+    detalhe.hangar,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <div className={estilos.tela}>
@@ -78,61 +94,48 @@ export function PaginaDeDetalheDaAeronave() {
       </nav>
 
       <header className={estilos.cabecalho}>
-        <div className={estilos.identidade}>
-          <span className={estilos.matricula}>{detalhe.matricula}</span>
-          <div className={estilos.nomeada}>
-            <Texto variante="subtitulo" como="h2">
-              {[detalhe.fabricante, detalhe.modelo].filter(Boolean).join(' ')}
-            </Texto>
-            <span
-              className={juntarClasses(estilos.situacao, estilos[CLASSE_DA_SITUACAO[situacao]])}
-            >
-              <span className={estilos.ponto} aria-hidden="true" />
-              {ROTULO_DA_SITUACAO[situacao]}
-            </span>
+        <span className={estilos.matricula}>{detalhe.matricula}</span>
+        <span className={estilos.subtitulo}>{subtitulo}</span>
+        <EtiquetaDeSituacao situacao={situacao} />
+        {/* "Atenção" sozinho é estado sem consequência: a linha diz qual documento e quando. */}
+        {situacao !== 'REGULAR' && detalhe.documentoDoProximoVencimento ? (
+          <Texto variante="apoio" tom={situacao === 'VENCIDO' ? 'critico' : 'atencao'} como="span">
+            {consequenciaDoVencimento(
+              detalhe.documentoDoProximoVencimento,
+              detalhe.diasAteOProximoVencimento,
+            )}
+          </Texto>
+        ) : null}
+        <span className={estilos.espaco} />
+        <dl className={estilos.vencimentos}>
+          <div className={estilos.vencimento}>
+            <dt className={estilos.vencimentoRotulo}>Vencimento CVA</dt>
+            <dd className={estilos.vencimentoValor}>{dataCurta(detalhe.vencimentoCva)}</dd>
           </div>
-        </div>
-        <dl className={estilos.metricas}>
-          <div className={estilos.metrica}>
-            <dt className={estilos.metricaRotulo}>Vencimento CVA</dt>
-            <dd className={estilos.metricaValor}>{dataCurta(detalhe.vencimentoCva)}</dd>
-          </div>
-          <div className={estilos.metrica}>
-            <dt className={estilos.metricaRotulo}>Vencimento RETA</dt>
-            <dd className={estilos.metricaValor}>{dataCurta(detalhe.vencimentoReta)}</dd>
-          </div>
-          <div className={estilos.metrica}>
-            <dt className={estilos.metricaRotulo}>
-              {detalhe.documentoDoProximoVencimento
-                ? `${ROTULO_DO_DOCUMENTO[detalhe.documentoDoProximoVencimento]} vence primeiro`
-                : 'Próximo vencimento'}
-            </dt>
-            <dd
-              className={juntarClasses(
-                estilos.metricaValor,
-                situacao !== 'REGULAR' && estilos.metricaCritica,
-              )}
-            >
-              {prazoEmPalavras(detalhe.diasAteOProximoVencimento) || '—'}
-            </dd>
+          <div className={estilos.vencimento}>
+            <dt className={estilos.vencimentoRotulo}>Vencimento RETA</dt>
+            <dd className={estilos.vencimentoValor}>{dataCurta(detalhe.vencimentoReta)}</dd>
           </div>
         </dl>
       </header>
 
-      <SecaoDeContrato aeronaveId={aeronaveId} podeGerir={podeGerir} />
-      <SecaoDeTripulacao aeronaveId={aeronaveId} podeGerir={podeGerir} />
-
-      <div className={estilos.cartoes}>
-        <CartaoDeFichaTecnica
-          detalhe={detalhe}
-          podeGerir={podeGerir}
-          aoEditar={() => setPainel('ficha')}
-        />
-        <CartaoFinanceiro
-          detalhe={detalhe}
-          podeGerir={podeGerir}
-          aoEditar={() => setPainel('financeiro')}
-        />
+      <div className={estilos.grade}>
+        <div className={estilos.coluna}>
+          <SecaoDeContrato aeronaveId={aeronaveId} podeGerir={podeGerir} />
+          <SecaoDeTripulacao aeronaveId={aeronaveId} podeGerir={podeGerir} />
+        </div>
+        <div className={estilos.coluna}>
+          <CartaoDeFichaTecnica
+            detalhe={detalhe}
+            podeGerir={podeGerir}
+            aoEditar={() => setPainel('ficha')}
+          />
+          <CartaoFinanceiro
+            detalhe={detalhe}
+            podeGerir={podeGerir}
+            aoEditar={() => setPainel('financeiro')}
+          />
+        </div>
       </div>
 
       {painel === 'ficha' ? (

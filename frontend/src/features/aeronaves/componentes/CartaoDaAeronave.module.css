@@ -40,53 +40,6 @@
   text-overflow: ellipsis;
 }
 
-/* Etiqueta de situação: dot e rótulo sobre o vestígio da mesma cor, canto 4px. */
-.situacao {
-  display: inline-flex;
-  flex: none;
-  gap: var(--espaco-3);
-  align-items: center;
-  padding: var(--espaco-2) var(--espaco-4);
-  font-size: var(--tamanho-s);
-  font-weight: var(--peso-medio);
-  line-height: var(--altura-s);
-  border-radius: var(--raio-m);
-}
-
-.ponto {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: var(--raio-redondo);
-}
-
-.regular {
-  color: var(--cor-positivo);
-  background: var(--cor-positivo-vestigio);
-}
-
-.regular .ponto {
-  background: var(--cor-positivo);
-}
-
-.atencao {
-  color: var(--cor-atencao);
-  background: var(--cor-atencao-vestigio);
-}
-
-.atencao .ponto {
-  background: var(--cor-atencao);
-}
-
-.vencido {
-  color: var(--cor-critico);
-  background: var(--cor-critico-vestigio);
-}
-
-.vencido .ponto {
-  background: var(--cor-critico);
-}
-
 .espaco {
   flex: 1;
 }

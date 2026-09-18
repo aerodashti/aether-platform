@@ -1,22 +1,16 @@
-import { juntarClasses } from '@/design-system/classes';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 
 import type { AeronaveResponse } from '../api/useAeronaves';
 
 import estilos from './CartaoDaAeronave.module.css';
-import { dataCurta, prazoEmPalavras, ROTULO_DA_SITUACAO, ROTULO_DO_DOCUMENTO } from './rotulos';
+import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
+import { dataCurta, prazoEmPalavras, ROTULO_DO_DOCUMENTO } from './rotulos';
 
 interface CartaoDaAeronaveProps {
   aeronave: AeronaveResponse;
   /** Quantos proprietários no contrato vigente; `undefined` enquanto os vínculos não chegaram. */
   proprietarios: number | undefined;
 }
-
-const CLASSE_DA_SITUACAO = {
-  REGULAR: estilos.regular,
-  ATENCAO: estilos.atencao,
-  VENCIDO: estilos.vencido,
-} as const;
 
 /**
  * Uma aeronave da frota, como no protótipo: identificação, etiqueta de situação, os números à
@@ -54,11 +48,7 @@ export function CartaoDaAeronave({ aeronave, proprietarios }: CartaoDaAeronavePr
         </span>
       </div>
 
-      <span className={juntarClasses(estilos.situacao, CLASSE_DA_SITUACAO[situacao])}>
-        {/* Dot com a cor da severidade: um dos poucos círculos permitidos. */}
-        <span className={estilos.ponto} aria-hidden="true" />
-        {ROTULO_DA_SITUACAO[situacao]}
-      </span>
+      <EtiquetaDeSituacao situacao={situacao} />
 
       <span className={estilos.espaco} />
 

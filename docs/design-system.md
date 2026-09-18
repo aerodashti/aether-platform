@@ -90,9 +90,9 @@ com `--altura-g`. Misturar degraus é o que produz linha apertada em texto corri
 | --- | --- | --- | --- |
 | `xs` | 11px | 1.45 | Rodapé, assinatura da marca, metadado |
 | `s` | 12px | 1.40 | Rótulo de campo, cabeçalho de tabela, texto de apoio |
-| `m` | 13px | 1.45 | Corpo de tabela e listas densas, botão |
+| `m` | 13px | 1.45 | Corpo de tabela e listas densas, botão, título de cartão de seção (forte) |
 | `g` | 14px | 1.50 | Texto de interface — o padrão do `body` |
-| `gg` | 18px | 1.30 | Título de seção e de card |
+| `gg` | 18px | 1.30 | Título de tela secundário e identificador no cabeçalho de entidade |
 | `ggg` | 26px | 1.12 | Título de tela e valor de KPI |
 
 O peso `--peso-maximo` (700) existe **só** no degrau `ggg`.
@@ -262,7 +262,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
 | Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
-| Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
+| Tela de Detalhe da aeronave | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
 | Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
 | Tela de Lançamentos de custos (grade, filtros, painel, CSV) | **Parcial** — `features/custos`. Mesmas ausências deliberadas do diário (paginação, densidade, seletor de "Estado" do protótipo); o "Ver últimos dados" do protótipo não existe porque o `placeholderData` do Query já segura o recorte anterior |
@@ -280,20 +280,51 @@ O **esqueleto de carregamento** virou o primitivo `Esqueleto` quando a grade de 
 segunda — precisou dele, agora com o gradiente animado do `.skel` do handoff e
 `prefers-reduced-motion` respeitado.
 
-### O Detalhe da aeronave não tem abas — ainda
+### O Detalhe da aeronave é o do Projeto final, com a coluna da direita por inferência
 
-O protótipo dá à aeronave sete abas (Visão geral, Voos, Custos, Rateio, Manutenção, Proprietários,
-Documentos); cinco são atalhos para telas que ainda não existem, e **aba para tela que não existe é
-porta pintada na parede**. A implementação empilha em uma coluna o que existe: contrato de
-participações, tripulação, ficha técnica e configuração financeira. As abas nascem quando as telas
-de destino nascerem.
+No trecho visível do protótipo o detalhe não tem barra de abas: o cabeçalho de entidade é uma
+linha (matrícula, "Fabricante Modelo · Base · Hangar", a etiqueta de situação, um espaçador e um
+bloco à direita), e o corpo é uma grade de duas colunas (`minmax(430px, 1.6fr) minmax(280px,
+0.95fr)`, uma coluna abaixo de 1024px). À esquerda, o cartão do contrato de participações como
+tabela (Proprietário · % de propriedade) que vira formulário na mesma tabela ao "Alterar
+participações", com a caixa tracejada de adicionar e a faixa da soma com as mensagens do
+protótipo; o histórico de contratos; e a tripulação como tabela com sublinhas (CANAC · contato;
+prazo da validade). À direita, ficha técnica e configuração financeira.
 
-Do contrato, as colunas "% no rateio da competência" e "Saldo acumulado" ficam de fora até o
-fechamento existir — mesma regra das colunas da frota. A fatura e a cobertura do fundo do cartão
-financeiro pertencem a aportes; a trava de "fechamento pendente" no dia da fatura pertence ao
-rateio. O "Excluir" da linha de participação existe (remover do contrato novo), mas o
-rebalanceamento guiado do protótipo — abrir a exclusão de um proprietário já distribuindo a fatia
-liberada — entra com a tela de rateio.
+**Decisões nossas, além do protótipo:**
+
+- A **matrícula em mono** (o protótipo usa a fonte de título; mono é a convenção da casa para
+  identificadores, como na frota).
+- A **consequência da situação** ao lado da etiqueta — "RETA vence em 12 dias", em âmbar para
+  Atenção e vermelho só para Vencido —, porque "Atenção" sozinho não diz o quê nem quando.
+- Os **vencimentos de CVA e RETA** à direita do cabeçalho, no lugar do "Saldo do fundo" do
+  protótipo, até aportes existir.
+- O **histórico num cartão com faixa de cabeçalho**, como as demais seções (no protótipo é um
+  cartão com o título inline).
+- **Ações de linha com texto** ("Remover", "Editar") em vez dos quadrados de glifo do protótipo:
+  ação de linha é visível e nomeada, nunca só um ícone.
+- **Etiqueta só na exceção** na tripulação: "Inativo" aparece, "Ativo" não — chip em toda linha
+  para dizer o normal seria ruído.
+- **"Tripulante"** em todo o cartão, onde o protótipo escreve "piloto": é o termo do glossário
+  (piloto é papel de usuário).
+
+**O que ficou de fora, e a feature dona:** "Documentos (n)" (documentos); "Saldo do fundo",
+"% no rateio", "Saldo acumulado", a fatura e a cobertura do fundo (aportes e rateio); licença e
+habilitações e "Remover piloto" (extensão do tripulante e endpoint de remoção — excluir de verdade
+não existe no domínio); os atalhos para Lançamentos e Voos filtrados (as telas ainda não leem
+`?aeronave=`); o botão de cor por proprietário (a cor é do cadastro de Proprietários); o
+formulário de tripulante embutido no cartão (o painel modal existente cobre todos os campos). A
+trilha "← Aeronaves" sai quando a casca ganhar o botão de voltar do protótipo.
+
+**Uma ressalva de fonte:** o `get_file` do Claude Design devolve no máximo 256 KiB, e o detalhe é
+a última tela do arquivo — o HTML termina no quinto campo do formulário de tripulante. A coluna da
+direita não foi vista, e o cartão do contrato está condicionado a um estado `detIsOwnersTab` que o
+arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões que já existiam
+(ficha técnica e configuração financeira), com o chrome de cartão do protótipo; se o arquivo
+íntegro mostrar outra composição, o ajuste é de uma PR.
+
+A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
+enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
 
 ### A Nova aeronave tem quatro seções, não cinco
 

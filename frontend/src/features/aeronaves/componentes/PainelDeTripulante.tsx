@@ -26,7 +26,7 @@ interface PainelDeTripulanteProps {
   aoFechar: () => void;
 }
 
-/** Vincular e editar piloto, no mesmo painel do protótipo. O `key` de quem monta zera o estado. */
+/** Vincular e editar tripulante, no mesmo painel do protótipo. O `key` de quem monta zera o estado. */
 export function PainelDeTripulante({ aeronaveId, tripulante, aoFechar }: PainelDeTripulanteProps) {
   const [nome, setNome] = useState(tripulante?.nome ?? '');
   const [canac, setCanac] = useState(tripulante?.canac ?? '');
@@ -71,10 +71,10 @@ export function PainelDeTripulante({ aeronaveId, tripulante, aoFechar }: PainelD
     <PainelModal
       aberto
       aoFechar={aoFechar}
-      rotulo={editando ? 'Editar piloto' : 'Adicionar piloto'}
+      rotulo={editando ? 'Editar tripulante' : 'Adicionar tripulante'}
     >
       <Texto variante="titulo" como="h2">
-        {editando ? 'Editar piloto' : 'Adicionar piloto'}
+        {editando ? 'Editar tripulante' : 'Adicionar tripulante'}
       </Texto>
 
       <CampoDeTexto
@@ -166,7 +166,7 @@ export function PainelDeTripulante({ aeronaveId, tripulante, aoFechar }: PainelD
           desabilitado={nome.trim().length === 0}
           carregando={mutacao.isPending}
         >
-          {editando ? 'Salvar alterações' : 'Adicionar piloto'}
+          {editando ? 'Salvar alterações' : 'Adicionar tripulante'}
         </Botao>
       </div>
     </PainelModal>

@@ -1,13 +1,13 @@
 import { Botao } from '@/design-system/primitivos/Botao';
-import { Texto } from '@/design-system/primitivos/Texto';
 
 import type { DetalheDaAeronaveResponse } from '../api/useDetalheDaAeronave';
 
 import estilos from './CartaoDeFichaTecnica.module.css';
+import { CartaoDeSecao } from './CartaoDeSecao';
 import { dataCurta, horasEmTexto, inteiroEmTexto } from './rotulos';
 
-function pesoEmTexto(kg: number | undefined): string {
-  return kg === undefined ? '—' : `${kg.toLocaleString('pt-BR')} kg`;
+function pesoEmTexto(kg: number | null | undefined): string {
+  return kg == null ? '—' : `${kg.toLocaleString('pt-BR')} kg`;
 }
 
 interface CartaoDeFichaTecnicaProps {
@@ -45,17 +45,16 @@ export function CartaoDeFichaTecnica({ detalhe, podeGerir, aoEditar }: CartaoDeF
   const visiveis = pares.filter(([chave, valor]) => chave !== 'Motor 3' || valor !== '—');
 
   return (
-    <section className={estilos.cartao} aria-label="Ficha técnica">
-      <div className={estilos.cabecalho}>
-        <Texto variante="legenda" tom="suave" como="h2">
-          Ficha técnica
-        </Texto>
-        {podeGerir ? (
-          <Botao variante="fantasma" tamanho="pequeno" aoClicar={aoEditar}>
+    <CartaoDeSecao
+      titulo="Ficha técnica"
+      acao={
+        podeGerir ? (
+          <Botao variante="contorno" tamanho="medio" aoClicar={aoEditar}>
             Editar
           </Botao>
-        ) : null}
-      </div>
+        ) : null
+      }
+    >
       <dl className={estilos.pares}>
         {visiveis.map(([chave, valor]) => (
           <div key={chave} className={estilos.par}>
@@ -64,6 +63,6 @@ export function CartaoDeFichaTecnica({ detalhe, podeGerir, aoEditar }: CartaoDeF
           </div>
         ))}
       </dl>
-    </section>
+    </CartaoDeSecao>
   );
 }

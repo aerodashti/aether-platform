@@ -1,24 +1,10 @@
-.cartao {
-  padding: var(--espaco-6);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-  border-radius: var(--raio-m);
-}
-
-.cabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--espaco-5);
-}
-
 .pares {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: var(--espaco-5) var(--espaco-4);
+  padding: var(--espaco-5) var(--espaco-6) var(--espaco-6);
   margin: 0;
 }
-
 .par {
   min-width: 0;
 }

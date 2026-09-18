@@ -1,0 +1,39 @@
+.cartao {
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3) var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espaco-4) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.titulos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+/* Título de seção em frase normal, 13px forte — o `.sec-titulo-sm` do protótipo. */
+.titulo {
+  margin: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  color: var(--cor-texto);
+}
+
+.acao {
+  display: flex;
+  flex: none;
+  gap: var(--espaco-3);
+}
