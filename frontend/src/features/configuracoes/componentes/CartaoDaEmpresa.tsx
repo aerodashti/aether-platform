@@ -54,9 +54,9 @@ export function CartaoDaEmpresa({ empresa }: { empresa: EmpresaResponse }) {
       />
 
       <div>
-        <Texto variante="apoio" tom="suave" como="p">
-          CNPJ (somente leitura)
-        </Texto>
+        <span className={estilos.rotulo}>
+          CNPJ <span className={estilos.rotuloApoio}>(somente leitura)</span>
+        </span>
         <div className={estilos.bloqueado}>
           <span className={estilos.documento}>{formatarCnpj(empresa.cnpj)}</span>
           <span className={estilos.selo}>BLOQUEADO</span>
@@ -78,6 +78,7 @@ export function CartaoDaEmpresa({ empresa }: { empresa: EmpresaResponse }) {
 
       <div className={estilos.acao}>
         <Botao
+          tamanho="grande"
           aoClicar={() => alterar.mutate({ nomeFantasia, razaoSocial, email, telefone })}
           desabilitado={!completo}
           carregando={alterar.isPending}

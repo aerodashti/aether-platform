@@ -17,14 +17,13 @@ interface CartaoProps {
  * independente, com sua própria ação de salvar. Sem a superfície, quatro formulários empilhados
  * viram um formulário só — e a pessoa não sabe o que o botão de baixo salva.
  *
- * <p>Fica na feature, não no design system: uma tela só o usa.
+ * <p>Fica na feature, não no design system: uma tela só o usa. O título é o `.sec-titulo` do
+ * protótipo — 14px forte, em frase normal — e não o título de tela.
  */
 export function Cartao({ titulo, descricao, children }: CartaoProps) {
   return (
-    <section className={estilos.cartao}>
-      <Texto variante="titulo" como="h2">
-        {titulo}
-      </Texto>
+    <section className={estilos.cartao} aria-label={titulo}>
+      <h2 className={estilos.titulo}>{titulo}</h2>
       {descricao ? (
         <Texto variante="apoio" tom="suave" como="p">
           {descricao}

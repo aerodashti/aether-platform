@@ -256,7 +256,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
 | Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
 | Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
-| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`. Seletor de tema em `compartilhado/tema` |
+| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
 | Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |

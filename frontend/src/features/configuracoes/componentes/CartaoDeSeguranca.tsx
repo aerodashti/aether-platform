@@ -72,6 +72,7 @@ export function CartaoDeSeguranca() {
       />
 
       <div className={estilos.token}>
+        <span className={estilos.rotulo}>Código de confirmação</span>
         <Texto variante="apoio" tom="suave" como="p">
           Por segurança, enviamos um código de seis dígitos para o e-mail cadastrado. Informe-o para
           confirmar a troca.
@@ -80,6 +81,7 @@ export function CartaoDeSeguranca() {
           <div className={estilos.campo}>
             <CampoDeTexto
               rotulo="Código de confirmação"
+              rotuloOculto
               valor={codigo}
               aoMudar={setCodigo}
               inputMode="numeric"
@@ -91,10 +93,11 @@ export function CartaoDeSeguranca() {
           </div>
           <Botao
             variante="secundario"
+            tamanho="grande"
             aoClicar={() => pedirToken.mutate()}
             carregando={pedirToken.isPending}
           >
-            Enviar código
+            Enviar código por e-mail
           </Botao>
         </div>
         {pedirToken.isSuccess ? (
@@ -105,7 +108,12 @@ export function CartaoDeSeguranca() {
       </div>
 
       <div className={estilos.acao}>
-        <Botao aoClicar={enviar} desabilitado={!completo} carregando={trocar.isPending}>
+        <Botao
+          tamanho="grande"
+          aoClicar={enviar}
+          desabilitado={!completo}
+          carregando={trocar.isPending}
+        >
           Alterar senha
         </Botao>
         {trocar.isSuccess ? (
