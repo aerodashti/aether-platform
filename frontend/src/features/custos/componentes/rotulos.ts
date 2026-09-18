@@ -37,8 +37,8 @@ const DATA = new Intl.DateTimeFormat('pt-BR', {
   year: '2-digit',
 });
 
-export function moedaEmTexto(valor: number | undefined): string {
-  return valor === undefined ? '—' : MOEDA.format(valor);
+export function moedaEmTexto(valor: number | null | undefined): string {
+  return valor == null ? '—' : MOEDA.format(valor);
 }
 
 export function dataCurta(iso: string | undefined): string {

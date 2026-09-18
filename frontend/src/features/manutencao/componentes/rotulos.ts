@@ -20,12 +20,12 @@ const DATA = new Intl.DateTimeFormat('pt-BR', {
   year: '2-digit',
 });
 
-export function numeroEmTexto(valor: number | undefined): string {
-  return valor === undefined ? '—' : NUMERO.format(valor);
+export function numeroEmTexto(valor: number | null | undefined): string {
+  return valor == null ? '—' : NUMERO.format(valor);
 }
 
-export function moedaEmTexto(valor: number | undefined): string {
-  return valor === undefined ? '—' : MOEDA.format(valor);
+export function moedaEmTexto(valor: number | null | undefined): string {
+  return valor == null ? '—' : MOEDA.format(valor);
 }
 
 export function dataCurta(iso: string | undefined): string {
@@ -45,4 +45,49 @@ export function restanteEmPalavras(
     return `estourou há ${NUMERO.format(Math.abs(restante))} ${unidade}`;
   }
   return `faltam ${NUMERO.format(restante)} ${unidade}`;
+}
+
+/** "3.000 ciclos" / "1.200 h" / a data — o limite na unidade do tipo. */
+export function limiteEmTexto(parametro: {
+  tipo?: TipoDeParametro;
+  limite?: number | null;
+  dataLimite?: string | null;
+}): string {
+  if (parametro.tipo === 'DATA') {
+    return dataCurta(parametro.dataLimite ?? undefined);
+  }
+  if (parametro.limite == null) {
+    return '—';
+  }
+  return parametro.tipo === 'HORAS'
+    ? `${NUMERO.format(parametro.limite)} h`
+    : `${NUMERO.format(parametro.limite)} ciclos`;
+}
+
+/** "hoje: 3.412,5 h" — a referência atual, na mesma unidade. */
+export function atualEmTexto(parametro: { tipo?: TipoDeParametro; atual?: number | null }): string {
+  if (parametro.atual == null || parametro.tipo === 'DATA') {
+    return '';
+  }
+  return parametro.tipo === 'HORAS'
+    ? `hoje ${NUMERO.format(parametro.atual)} h`
+    : `hoje ${NUMERO.format(parametro.atual)} ciclos`;
+}
+
+/** "avisa 100 h antes" / "avisa 30 dias antes". */
+export function janelaDeAvisoEmTexto(parametro: {
+  tipo?: TipoDeParametro;
+  aviso?: number | null;
+}): string {
+  if (parametro.aviso == null || parametro.tipo === undefined) {
+    return '—';
+  }
+  const unidade =
+    parametro.tipo === 'HORAS' ? 'h' : parametro.tipo === 'CICLOS' ? 'ciclos' : 'dias';
+  return `${NUMERO.format(parametro.aviso)} ${unidade} antes`;
+}
+
+/** A hora sem os segundos: "14:30". */
+export function horaCurta(hora: string | undefined): string {
+  return hora ? hora.slice(0, 5) : '';
 }

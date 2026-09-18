@@ -55,7 +55,8 @@ const PAINEL = {
     {
       id: 5,
       aeronaveId: 1,
-      data: '2026-09-22',
+      // Bem no futuro: a etiqueta "Programada" vira "Atrasada" quando a data passa.
+      data: '2036-09-22',
       hora: '09:00:00',
       responsavel: 'Hangar Líder — SBSP',
       descricao: 'Inspeção de 100 h — célula',
@@ -105,36 +106,50 @@ describe('PaginaDeManutencao', () => {
     vi.restoreAllMocks();
   });
 
-  it('cada parâmetro sai julgado com a consequência em palavras', async () => {
+  it('a aba de parâmetros julga cada um com a consequência em palavras', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeManutencao />);
 
-    expect(await screen.findByText('Trem de pouso — overhaul 3.000 ciclos')).toBeInTheDocument();
-    expect(screen.getByText('Próximo do limite')).toBeInTheDocument();
-    expect(screen.getByText('faltam 110 ciclos')).toBeInTheDocument();
-    expect(screen.getByText('Limite estourado')).toBeInTheDocument();
-    expect(screen.getByText('estourou há 20 dias')).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('tab', { name: /^Parâmetros/ }));
+    const parametros = screen.getByRole('region', { name: 'Parâmetros de controle' });
+    expect(
+      within(parametros).getByText('Trem de pouso — overhaul 3.000 ciclos'),
+    ).toBeInTheDocument();
+    expect(within(parametros).getByText('Próximo do limite')).toBeInTheDocument();
+    expect(within(parametros).getByText('faltam 110 ciclos')).toBeInTheDocument();
+    expect(within(parametros).getByText('Limite estourado')).toBeInTheDocument();
+    expect(within(parametros).getByText('estourou há 20 dias')).toBeInTheDocument();
   });
 
-  it('as referências mostram os contadores e a contagem de próximos do limite', async () => {
+  it('o topo mostra os contadores como chips e os indicadores contam os parâmetros', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeManutencao />);
 
-    await screen.findByText('Trem de pouso — overhaul 3.000 ciclos');
-    const proximos = screen.getByText('Próximos do limite').closest('div') as HTMLElement;
-    expect(within(proximos).getByText('2')).toBeInTheDocument();
+    await screen.findByText('Inspeção de 100 h — célula');
+    expect(screen.getByText(/^Célula: /)).toBeInTheDocument();
+    expect(screen.getByText(/^Ciclos: /)).toBeInTheDocument();
+    const proximos = screen.getByText('Próximos do limite').closest('li') as HTMLElement;
+    expect(within(proximos).getByText('1')).toBeInTheDocument();
+    const estourados = screen.getByText('Limite estourado').closest('li') as HTMLElement;
+    expect(within(estourados).getByText('1')).toBeInTheDocument();
   });
 
-  it('programadas oferecem concluir; o histórico oferece reabrir', async () => {
+  it('a agenda abre primeiro e oferece concluir; o histórico oferece reabrir', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeManutencao />);
 
     await screen.findByText('Inspeção de 100 h — célula');
     const programadas = screen.getByRole('region', { name: 'Manutenções programadas' });
     expect(within(programadas).getByRole('button', { name: 'Concluir' })).toBeInTheDocument();
+    expect(within(programadas).getByText('Programada')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('region', { name: 'Histórico de manutenções' }),
+    ).not.toBeInTheDocument();
 
+    await userEvent.click(screen.getByRole('tab', { name: /^Histórico/ }));
     const historico = screen.getByRole('region', { name: 'Histórico de manutenções' });
     expect(within(historico).getByRole('button', { name: 'Reabrir' })).toBeInTheDocument();
+    expect(within(historico).getByText('Concluída')).toBeInTheDocument();
     expect(within(historico).queryByRole('button', { name: 'Concluir' })).not.toBeInTheDocument();
   });
 
@@ -152,7 +167,7 @@ describe('PaginaDeManutencao', () => {
     envolver(<PaginaDeManutencao />);
 
     await screen.findByText('Inspeção de 100 h — célula');
-    await userEvent.click(screen.getByRole('button', { name: 'Novo parâmetro' }));
+    await userEvent.click(screen.getByRole('button', { name: '+ Novo parâmetro' }));
 
     expect(screen.getByLabelText('Horas de célula no limite')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('radio', { name: 'Data' }));

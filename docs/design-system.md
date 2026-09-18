@@ -138,6 +138,30 @@ O seletor **"Estado"** do protótipo não foi implementado: o próprio `AETHER_P
 como *"andaime de protótipo em Aeronaves e Custos"*, uma dívida declarada para demonstrar os cinco
 estados de tela.
 
+### Lançamentos e Manutenção seguem o Projeto final, sem a visão em cartões e sem o formulário embutido
+
+**Lançamentos:** filtros de recorte (aeronave e competência, que vão ao servidor), o escopo
+Todos · Fixos · Variáveis e as abas de categoria com contagem (recortes locais, só das categorias
+presentes), a grade na régua do protótipo — rel-voo com a data embaixo, tipo como etiqueta tingida
+(fixo na cor de ação, variável na de atenção: categórico, não severidade), descrição com a
+categoria, atribuição, valor com a conversão de USD, nota — e a faixa de totais fora da tabela.
+Os totais são do recorte do servidor, não da aba: a faixa se chama "Totais do recorte" por isso.
+De fora: a **visão em cartões** (opção experimental do próprio brief, DD-E02), a **paginação** (a
+lista é de uma competência e cabe numa grade) e os seletores de ano e mês separados (o campo de
+competência faz o mesmo em um controle).
+
+**Manutenção:** os contadores de célula e ciclos viram chips no topo, ao lado da referência de
+hoje; quatro indicadores em cartões (monitorados, próximos do limite, estourados, programadas);
+e as três seções em abas — Agenda, Histórico e Parâmetros —, cada uma com a tabela do protótipo
+(a de parâmetros sem "última execução", "responsável" e "Executar", que dependem de registro de
+execução ainda inexistente). De fora: o **formulário de agendamento embutido** no cartão da
+agenda (o painel modal existente cobre todos os campos) e o botão de **documentos** por
+manutenção (feature por vir). A etiqueta "Atrasada" na agenda é derivação de tela: programada com
+data anterior a hoje.
+
+O primitivo `Abas` nasceu aqui — Lançamentos e Manutenção o consomem — com `tablist`/`tab` e o
+sublinhado de 3px do protótipo.
+
 ### Ação de linha: visível, não escondida
 
 A ação destrutiva de uma linha de grade fica **sempre visível**, e perde peso contra a ação neutra
@@ -178,6 +202,8 @@ acessibilidade ficam em um lugar só.
 | `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
 | `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
+| `Abas` | `primitivos/Abas.tsx` | `contagem` por aba | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
+| `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
 | `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
 ### A variante `contorno` do `Botao`
@@ -265,8 +291,8 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Detalhe da aeronave | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
 | Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
-| Tela de Lançamentos de custos (grade, filtros, painel, CSV) | **Parcial** — `features/custos`. Mesmas ausências deliberadas do diário (paginação, densidade, seletor de "Estado" do protótipo); o "Ver últimos dados" do protótipo não existe porque o `placeholderData` do Query já segura o recorte anterior |
-| Tela de Manutenção (parâmetros, programadas, histórico) | **Parcial** — `features/manutencao`. A edição de evento usa o mesmo painel do agendamento em vez da edição inline na linha do protótipo (um formulário só, mesma validação); "Anexar NF" entra com a tela de documentos; a recorrência do parâmetro entra quando existir renovação automática |
+| Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
+| Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
