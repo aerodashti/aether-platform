@@ -1,0 +1,203 @@
+/* As três tabelas da tela (agenda, histórico, parâmetros) partilham a mesma anatomia do
+   protótipo: cabeçalho em faixa recuada, linhas em grid, divisores suaves. Cada tabela dá a sua
+   régua de colunas pela classe própria. */
+.cartao {
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.titulo {
+  padding: var(--espaco-4) var(--espaco-6);
+  margin: 0;
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+  color: var(--cor-texto);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.rolagem {
+  overflow-x: auto;
+}
+
+.tabela {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.agenda {
+  min-width: 760px;
+}
+
+.historico {
+  min-width: 680px;
+}
+
+.parametros {
+  min-width: 900px;
+}
+
+.bloco {
+  display: block;
+}
+
+.linhaDeCabecalho,
+.linha {
+  display: grid;
+  gap: var(--espaco-4);
+  align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+}
+
+.agenda .linhaDeCabecalho,
+.agenda .linha {
+  grid-template-columns: 120px minmax(0, 1.6fr) minmax(0, 1fr) 120px 112px 260px;
+}
+
+.historico .linhaDeCabecalho,
+.historico .linha {
+  grid-template-columns: 120px minmax(0, 1.6fr) minmax(0, 1fr) 120px 240px;
+}
+
+.parametros .linhaDeCabecalho,
+.parametros .linha {
+  grid-template-columns: minmax(0, 1.6fr) 120px 140px 140px 120px 132px 160px;
+}
+
+.semAcoes.agenda .linhaDeCabecalho,
+.semAcoes.agenda .linha {
+  grid-template-columns: 120px minmax(0, 1.6fr) minmax(0, 1fr) 120px 112px;
+}
+
+.semAcoes.historico .linhaDeCabecalho,
+.semAcoes.historico .linha {
+  grid-template-columns: 120px minmax(0, 1.6fr) minmax(0, 1fr) 120px 112px;
+}
+
+.semAcoes.parametros .linhaDeCabecalho,
+.semAcoes.parametros .linha {
+  grid-template-columns: minmax(0, 1.6fr) 120px 140px 140px 120px 132px;
+}
+
+.linhaDeCabecalho {
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+  white-space: nowrap;
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.linhaDeCabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.linhaDeCabecalho th.direita {
+  text-align: right;
+}
+
+.linha {
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.direita {
+  text-align: right;
+}
+
+.forte {
+  overflow: hidden;
+  font-weight: var(--peso-forte);
+  color: var(--cor-texto);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.suave {
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sublinha {
+  display: block;
+  margin-top: var(--espaco-1);
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.atencao {
+  color: var(--cor-atencao);
+}
+
+.critico {
+  color: var(--cor-critico);
+}
+
+/* Etiqueta de estado: rótulo sobre o vestígio da cor, canto 4px — a mesma da frota. */
+.etiqueta {
+  display: inline-flex;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  border-radius: var(--raio-m);
+}
+
+.etiquetaRegular {
+  color: var(--cor-positivo);
+  background: var(--cor-positivo-vestigio);
+}
+
+.etiquetaAtencao {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-vestigio);
+}
+
+.etiquetaCritica {
+  color: var(--cor-critico);
+  background: var(--cor-critico-vestigio);
+}
+
+.etiquetaNeutra {
+  color: var(--cor-acento-texto);
+  background: var(--cor-acento-vestigio);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+}
+
+.vazio {
+  padding: var(--espaco-8) var(--espaco-6);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  color: var(--cor-texto-suave);
+  text-align: center;
+}

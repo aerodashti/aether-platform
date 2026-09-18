@@ -5,7 +5,7 @@ import { juntarClasses } from '@/design-system/classes';
 import estilos from './CampoDeTexto.module.css';
 
 export type TipoDeCampo = 'texto' | 'email' | 'senha' | 'data' | 'hora' | 'mes';
-export type AlinhamentoDeCampo = 'esquerda' | 'centro';
+export type AlinhamentoDeCampo = 'esquerda' | 'centro' | 'direita';
 
 interface CampoDeTextoProps {
   rotulo: string;
@@ -19,7 +19,8 @@ interface CampoDeTextoProps {
   apoio?: string;
   autoComplete?: string;
   maxLength?: number;
-  inputMode?: 'text' | 'email' | 'numeric';
+  /** `decimal` abre o teclado com separador no celular — é o do percentual com duas casas. */
+  inputMode?: 'text' | 'email' | 'numeric' | 'decimal';
   alinhamento?: AlinhamentoDeCampo;
   /** Espaçamento largo entre caracteres, para o código de seis dígitos. */
   espacado?: boolean;

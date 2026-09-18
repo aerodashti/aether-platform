@@ -19,6 +19,7 @@
 | Proprietário | `proprietario` | Proprietário | `dono`, `owner`, `cliente` | Pessoa física ou jurídica titular da aeronave no RAB. |
 | Contrato de participação | `contratoDeParticipacao` | Contrato de participação | `sociedade`, `cotas`, `shares` | A foto de quem é dono de quanto de uma aeronave, de um instante até o próximo contrato. Não se edita — se arquiva: alterar cria um novo e encerra o vigente (ADR-0016). |
 | Participação | `participacao` | Participação | `cota`, `fatia`, `share` | A fração de um proprietário num contrato: **% de propriedade**, duas casas, soma do contrato fechando em 100. Distinta do % do rateio, que é derivado por competência. |
+| Vínculo vigente | `vinculoVigente` | Vínculo | `link`, `ownership` | Um proprietário numa aeronave pelo contrato **em vigor**: matrícula, modelo e percentual. É a linha do cartão de proprietário; sai de `GET /participacoes/vigentes`. |
 | Ficha técnica | `fichaTecnica` | Ficha técnica | `specs`, `dadosTecnicos` | Identificação e totais da aeronave no detalhe: fabricante, nº de série, hangar, contadores e seguro. |
 | Contadores da aeronave | `contadores` | — | `totalizadores`, `medidores` | Totais acumulados: horas de célula, ciclos, km voados, horas por motor e APU. Declarados no cadastro e corrigidos só por administrador até o diário de voos alimentá-los. Motor 2 e APU nulos significam "não tem", não zero. |
 | Base do rateio | `baseDoRateio` | Base do rateio | `criterio`, `metodo` | Como o custo se divide: `POR_USO` (horas/km voados) ou `POR_PROPRIEDADE` (% do contrato). |

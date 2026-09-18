@@ -1,34 +1,44 @@
+.rotulo {
+  display: block;
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.rotuloApoio {
+  font-weight: var(--peso-medio);
+}
+
+/* A caixa bloqueada do protótipo: mesma altura do campo, mas cinza e sem foco — é leitura. */
 .bloqueado {
   display: flex;
   gap: var(--espaco-3);
   align-items: center;
-  height: var(--espaco-9);
+  height: var(--controle-altura-m);
   padding: 0 var(--espaco-4);
-  margin-top: var(--espaco-2);
-  background: var(--cor-superficie-sutil);
+  background: var(--cor-fundo);
   border: 1px solid var(--cor-borda-suave);
   border-radius: var(--raio-m);
 }
 
 .documento {
   flex: 1;
-  font-family: var(--fonte-mono);
   font-size: var(--tamanho-m);
-  font-weight: var(--peso-forte);
   line-height: var(--altura-m);
   color: var(--cor-texto-suave);
   font-variant-numeric: tabular-nums;
 }
 
 .selo {
-  padding: 0 var(--espaco-3);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
-  letter-spacing: var(--rastreio-legenda);
-  background: var(--cor-borda-suave);
-  border-radius: var(--raio-s);
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
 }
 
 .par {

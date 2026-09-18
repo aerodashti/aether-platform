@@ -1,0 +1,115 @@
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.identidade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+}
+
+.nomes {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 160px;
+}
+
+.nome {
+  font-weight: var(--peso-forte);
+}
+
+.contato {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Etiqueta de situação: só a exceção ganha rótulo, num bloco neutro de canto 4px. */
+.etiqueta {
+  padding: var(--espaco-2) var(--espaco-4);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-3);
+  margin-left: auto;
+}
+
+.semVinculo {
+  padding: var(--espaco-5);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-align: center;
+  background: var(--cor-fundo);
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.vinculos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* Uma linha por aeronave: matrícula, barra do percentual e o número — a leitura do protótipo. */
+.vinculo {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  padding: var(--espaco-3) var(--espaco-4);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  background: var(--cor-fundo);
+  border-radius: var(--raio-m);
+}
+
+.matricula {
+  width: 72px;
+  flex: none;
+}
+
+.trilho {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  background: var(--cor-borda-suave);
+  border-radius: var(--raio-m);
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  background: var(--cor-acento);
+  border-radius: var(--raio-m);
+}
+
+.percentual {
+  width: 56px;
+  flex: none;
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-texto);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

@@ -189,9 +189,6 @@ export function PaginaDeNovaAeronave() {
       <nav aria-label="Trilha">
         <LinkDeTexto para="/aeronaves">← Aeronaves</LinkDeTexto>
       </nav>
-      <Texto variante="titulo" como="h1">
-        Nova aeronave
-      </Texto>
 
       <section className={estilos.secao} aria-label="Identificação">
         <Cabecalho numero="1" titulo="Identificação" descricao="Dados de registro da aeronave." />

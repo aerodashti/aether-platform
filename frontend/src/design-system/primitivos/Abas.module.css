@@ -1,0 +1,60 @@
+.lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  border-bottom: 2px solid var(--cor-borda);
+}
+
+/* A borda inferior nasce transparente: reservar os 3px desde o repouso é o que impede o rótulo de
+   pular ao trocar de aba. Ela cobre a régua da lista com margem negativa. */
+.aba {
+  display: inline-flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  height: var(--controle-altura-m);
+  padding: 0 var(--espaco-4);
+  margin-bottom: -2px;
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-m);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  transition-property: color, border-color;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.aba:hover {
+  color: var(--cor-texto);
+}
+
+.aba:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
+
+.ativa {
+  color: var(--cor-acento-escuro);
+  border-bottom-color: var(--cor-acento);
+}
+
+.contagem {
+  padding: 0 var(--espaco-2);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.ativa .contagem {
+  color: var(--cor-acento-texto);
+  background: var(--cor-acento-vestigio);
+}

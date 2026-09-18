@@ -6,6 +6,7 @@ import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 
 export type LancamentosResponse = components['schemas']['LancamentosResponse'];
 export type CustoResponse = components['schemas']['CustoResponse'];
+export type TotaisDosLancamentos = components['schemas']['TotaisDosLancamentos'];
 export type CustoRequest = components['schemas']['CustoRequest'];
 export type TipoDeCusto = NonNullable<CustoResponse['tipo']>;
 export type CategoriaDeCusto = NonNullable<CustoResponse['categoria']>;

@@ -9,6 +9,14 @@
   box-shadow: var(--elevacao-1);
 }
 
+.titulo {
+  margin: 0;
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+  color: var(--cor-texto);
+}
+
 .corpo {
   display: flex;
   flex-direction: column;

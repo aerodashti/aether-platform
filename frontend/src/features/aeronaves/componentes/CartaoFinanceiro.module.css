@@ -1,20 +1,7 @@
-.cartao {
-  padding: var(--espaco-6);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-}
-
-.cabecalho {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--espaco-4);
-}
-
 .linhas {
+  padding: var(--espaco-2) var(--espaco-6) var(--espaco-3);
   margin: 0;
 }
-
 .linha {
   display: flex;
   gap: var(--espaco-4);

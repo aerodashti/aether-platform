@@ -1,0 +1,33 @@
+.avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fonte-base);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-ggg);
+  border-radius: var(--raio-redondo);
+  user-select: none;
+}
+
+.medio {
+  width: var(--controle-altura-m);
+  height: var(--controle-altura-m);
+  font-size: var(--tamanho-m);
+}
+
+.grande {
+  width: var(--controle-altura-g);
+  height: var(--controle-altura-g);
+  font-size: var(--tamanho-g);
+}
+
+.escuro {
+  color: var(--cor-acento-contraste);
+  background: var(--cor-acento-escuro);
+}
+
+.suave {
+  color: var(--cor-acento-texto);
+  background: var(--cor-superficie-recuada);
+}

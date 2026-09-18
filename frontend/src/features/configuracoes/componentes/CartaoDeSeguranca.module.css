@@ -6,15 +6,22 @@
   border-top: 1px solid var(--cor-borda-suave);
 }
 
+.rotulo {
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
 .linha {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-3);
-  align-items: flex-end;
+  align-items: center;
 }
 
 .campo {
-  /* Cabe o rótulo "Código de confirmação" em uma linha; o campo em si precisaria de menos. */
-  width: 190px;
+  width: 110px;
 }
 
 .acao {

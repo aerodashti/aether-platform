@@ -10,7 +10,7 @@
   border-radius: var(--raio-m);
   font-family: var(--fonte-base);
   font-size: var(--tamanho-m);
-  font-weight: var(--peso-forte);
+  font-weight: var(--peso-medio);
   line-height: var(--altura-m);
   white-space: nowrap;
   cursor: pointer;
@@ -29,12 +29,12 @@
 }
 
 .medio {
-  height: var(--espaco-9);
+  height: var(--controle-altura-m);
   padding: 0 var(--espaco-5);
 }
 
 .grande {
-  height: var(--espaco-10);
+  height: var(--controle-altura-g);
   padding: 0 var(--espaco-6);
   font-size: var(--tamanho-g);
   line-height: var(--altura-g);
@@ -56,23 +56,26 @@
 
 .primario {
   background: var(--cor-acento-solido);
-  border-color: var(--cor-acento);
+  border-color: var(--cor-acento-solido);
   color: var(--cor-acento-contraste);
 }
 
 .primario:hover:not(:disabled) {
   background: var(--cor-acento-solido-hover);
+  border-color: var(--cor-acento-solido-hover);
 }
 
+/* Secundário: superfície branca, borda neutra e rótulo na cor de ação — o botão de apoio do
+   Projeto final. O hover escurece a borda, não o fundo. */
 .secundario {
   background: var(--cor-superficie);
   border-color: var(--cor-borda);
-  color: var(--cor-texto);
-  box-shadow: var(--elevacao-1);
+  color: var(--cor-acento-texto);
 }
 
 .secundario:hover:not(:disabled) {
-  border-color: var(--cor-acento);
+  background: var(--cor-fundo);
+  border-color: var(--cor-borda-forte);
 }
 
 /* Contorno que se preenche: o estado de repouso é discreto e o hover assume o azul inteiro.
@@ -81,10 +84,8 @@
   position: relative;
   overflow: hidden;
   background: var(--cor-superficie);
-  border-width: 2px;
-  border-color: var(--cor-acento);
-  color: var(--cor-acento-texto);
-  box-shadow: var(--elevacao-3);
+  border-color: var(--cor-acento-escuro);
+  color: var(--cor-acento-escuro);
 }
 
 .rotulo {
@@ -158,7 +159,7 @@
 .fantasma {
   background: transparent;
   border-color: transparent;
-  color: var(--cor-texto-suave);
+  color: var(--cor-acento-texto);
 }
 
 .fantasma:hover:not(:disabled) {
@@ -167,7 +168,8 @@
 }
 
 /* Perigo por COR, nunca por ocultação: esconder um controle focável com opacity é falha de foco
-   visível. O vermelho só acende no hover e no foco; em repouso o rótulo é discreto. */
+   visível. No Projeto final o "Excluir" já nasce vermelho ao lado do "Editar". */
+.critico,
 .critico:hover:not(:disabled),
 .critico:focus-visible {
   color: var(--cor-critico);

@@ -1,8 +1,8 @@
 import { Botao } from '@/design-system/primitivos/Botao';
-import { Texto } from '@/design-system/primitivos/Texto';
 
 import type { DetalheDaAeronaveResponse } from '../api/useDetalheDaAeronave';
 
+import { CartaoDeSecao } from './CartaoDeSecao';
 import estilos from './CartaoFinanceiro.module.css';
 import {
   moedaEmTexto,
@@ -42,17 +42,16 @@ export function CartaoFinanceiro({ detalhe, podeGerir, aoEditar }: CartaoFinance
   ];
 
   return (
-    <section className={estilos.cartao} aria-label="Configuração financeira">
-      <div className={estilos.cabecalho}>
-        <Texto variante="legenda" tom="suave" como="h2">
-          Configuração financeira
-        </Texto>
-        {podeGerir ? (
-          <Botao variante="fantasma" tamanho="pequeno" aoClicar={aoEditar}>
+    <CartaoDeSecao
+      titulo="Configuração financeira"
+      acao={
+        podeGerir ? (
+          <Botao variante="contorno" tamanho="medio" aoClicar={aoEditar}>
             Alterar
           </Botao>
-        ) : null}
-      </div>
+        ) : null
+      }
+    >
       <dl className={estilos.linhas}>
         {linhas.map(([rotulo, valor]) => (
           <div key={rotulo} className={estilos.linha}>
@@ -61,6 +60,6 @@ export function CartaoFinanceiro({ detalhe, podeGerir, aoEditar }: CartaoFinance
           </div>
         ))}
       </dl>
-    </section>
+    </CartaoDeSecao>
   );
 }

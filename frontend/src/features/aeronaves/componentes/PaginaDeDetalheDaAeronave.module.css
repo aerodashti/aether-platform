@@ -2,126 +2,103 @@
   display: flex;
   flex-direction: column;
   gap: var(--espaco-5);
+  max-width: 1180px;
 }
 
+/* O cabeçalho de entidade do protótipo: uma linha, sem cartão — matrícula, contexto, situação e,
+   à direita, os vencimentos no lugar do saldo do fundo. */
 .cabecalho {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espaco-5);
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: var(--espaco-6);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
-}
-
-.identidade {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-5);
-  align-items: baseline;
-  min-width: 0;
+  gap: var(--espaco-4) var(--espaco-5);
+  align-items: center;
 }
 
 .matricula {
   font-family: var(--fonte-mono);
-  font-size: var(--tamanho-ggg);
+  font-size: var(--tamanho-gg);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-ggg);
-  letter-spacing: var(--rastreio-codigo);
+  line-height: var(--altura-gg);
+  letter-spacing: var(--rastreio-titulo);
   font-variant-numeric: tabular-nums;
 }
 
-.nomeada {
+.subtitulo {
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  color: var(--cor-texto-suave);
+}
+
+.espaco {
+  flex: 1;
+}
+
+.vencimentos {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-4);
-  align-items: baseline;
-  min-width: 0;
-}
-
-.situacao {
-  display: inline-flex;
-  gap: var(--espaco-2);
-  align-items: center;
-  font-size: var(--tamanho-s);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-s);
-  white-space: nowrap;
-}
-
-/* Dot com a cor da severidade: um dos poucos círculos permitidos. */
-.ponto {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--raio-redondo);
-}
-
-.regular {
-  color: var(--cor-positivo);
-}
-
-.atencao {
-  color: var(--cor-atencao);
-}
-
-.vencido {
-  color: var(--cor-critico);
-}
-
-.regular .ponto {
-  background: var(--cor-positivo);
-}
-
-.atencao .ponto {
-  background: var(--cor-atencao);
-}
-
-.vencido .ponto {
-  background: var(--cor-critico);
-}
-
-.metricas {
-  display: flex;
-  gap: var(--espaco-7);
+  gap: var(--espaco-6);
   margin: 0;
 }
 
-.metrica {
+.vencimento {
   text-align: right;
 }
 
-.metricaRotulo {
-  font-size: var(--tamanho-xs);
-  line-height: var(--altura-xs);
+.vencimentoRotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
   white-space: nowrap;
 }
 
-.metricaValor {
+.vencimentoValor {
   margin: var(--espaco-1) 0 0;
-  font-size: var(--tamanho-m);
+  font-size: var(--tamanho-g);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-m);
-  white-space: nowrap;
+  line-height: var(--altura-g);
   font-variant-numeric: tabular-nums;
 }
 
-.metricaCritica {
-  color: var(--cor-critico);
-}
-
-.cartoes {
+/* Duas colunas como no protótipo: registros à esquerda, dados da aeronave à direita. */
+.grade {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(430px, 1.6fr) minmax(280px, 0.95fr);
   gap: var(--espaco-5);
   align-items: start;
+  padding-bottom: var(--espaco-9);
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-width: 0;
 }
 
 @media (max-width: 1024px) {
-  .cartoes {
+  .grade {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 640px) {
+  .vencimento {
+    text-align: left;
+  }
+}
+
+.esqueletoDoCabecalho {
+  max-width: 480px;
+}
+
+.cartaoDoEsqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-height: 120px;
+  padding: var(--espaco-5) var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .recado {
@@ -129,8 +106,11 @@
   flex-direction: column;
   gap: var(--espaco-3);
   align-items: center;
-  padding: var(--espaco-8);
+  padding: var(--espaco-9) var(--espaco-6);
   text-align: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
 }
 
 .recadoAcoes {
@@ -139,7 +119,12 @@
   align-items: center;
 }
 
-.carregando {
-  padding: var(--espaco-8);
-  text-align: center;
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

@@ -120,9 +120,27 @@ describe('PaginaDeCustos', () => {
     envolver(<PaginaDeCustos />);
 
     await screen.findByText('Jet A-1 — 1.850 L — SBRJ');
-    const totais = linhaDe('TOTAL');
-    expect(within(totais).getByText(/Fixos R\$\s*5\.906,76/)).toBeInTheDocument();
-    expect(within(totais).getByText(/21\.631,76/)).toBeInTheDocument();
+    const totais = screen.getByRole('group', { name: 'Totais do recorte' });
+    const fixos = within(totais).getByText('Fixos').closest('div') as HTMLElement;
+    expect(within(fixos).getByText(/5\.906,76/)).toBeInTheDocument();
+    const total = within(totais).getByText('Total').closest('div') as HTMLElement;
+    expect(within(total).getByText(/21\.631,76/)).toBeInTheDocument();
+  });
+
+  it('o escopo e as abas de categoria recortam a lista localmente, com contagem', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />);
+
+    await screen.findByText('Jet A-1 — 1.850 L — SBRJ');
+    expect(screen.getByRole('tab', { name: /^Todas/ })).toHaveAttribute('aria-selected', 'true');
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Fixos' }));
+    expect(screen.queryByText('Jet A-1 — 1.850 L — SBRJ')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: /^Abastecimento/ })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Todos' }));
+    await userEvent.click(screen.getByRole('tab', { name: /^Abastecimento/ }));
+    expect(screen.getByText('Jet A-1 — 1.850 L — SBRJ')).toBeInTheDocument();
   });
 
   it('o proprietário só lê: sem registrar, editar ou excluir', async () => {

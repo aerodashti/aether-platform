@@ -1,9 +1,13 @@
-/* Régua: descrição longa, data, id, estado (tipo), rótulo (atribuição), id (NF), valor, ações.
-   O monetário usa a trilha de lockup (160px): magnitude mensal com centavos não cabe nos 96px
-   da trilha numérica curta. */
+/* A régua do protótipo: rel-voo (com a data embaixo), tipo, descrição (com a categoria),
+   atribuição, valor (com a conversão), nota e ações. */
+.rolagem {
+  overflow-x: auto;
+}
+
 .grade {
   display: block;
   width: 100%;
+  min-width: 960px;
   border-spacing: 0;
 }
 
@@ -12,24 +16,28 @@
 }
 
 .cabecalho,
-.linha,
-.totais {
+.linha {
   display: grid;
-  grid-template-columns:
-    var(--armadura-rotulo-longo) var(--armadura-data) var(--armadura-id) var(--armadura-estado)
-    var(--armadura-rotulo) var(--armadura-id) var(--armadura-lockup) var(--armadura-acao-texto);
-  gap: var(--armadura-gap);
+  grid-template-columns: 104px 88px minmax(0, 2fr) minmax(0, 1.3fr) 128px 112px 152px;
+  gap: var(--espaco-4);
   align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+}
+
+.semAcoes .cabecalho,
+.semAcoes .linha {
+  grid-template-columns: 104px 88px minmax(0, 2fr) minmax(0, 1.3fr) 128px 112px;
 }
 
 .cabecalho {
-  padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
-  background: var(--cor-superficie-sutil);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -39,13 +47,13 @@
   text-align: left;
 }
 
-.cabecalho th.aDireita {
+.cabecalho th.direita {
   text-align: right;
 }
 
 .linha {
-  min-height: var(--controle-altura-p);
-  padding: var(--espaco-1) var(--espaco-6);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 
@@ -53,57 +61,42 @@
   background: var(--cor-linha-hover);
 }
 
-.totais {
-  min-height: var(--controle-altura-p);
-  padding: 0 var(--espaco-6);
-  font-size: var(--tamanho-s);
-  font-weight: var(--peso-forte);
-  color: var(--cor-texto);
-  background: var(--cor-superficie-sutil);
-  border-top: 1px solid var(--cor-borda);
-}
-
 .celula {
   min-width: 0;
   padding: 0;
 }
 
+.direita {
+  text-align: right;
+}
+
 .descricao {
   display: block;
   overflow: hidden;
-  font-size: var(--tamanho-m);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.categoria {
+.sublinha {
   display: block;
+  margin-top: var(--espaco-1);
   overflow: hidden;
-  font-size: var(--tamanho-xs);
-  line-height: var(--altura-linha-dupla);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .identificador {
+  display: block;
   overflow: hidden;
   font-family: var(--fonte-mono);
-  font-size: var(--tamanho-s);
-  line-height: var(--altura-s);
-  color: var(--cor-texto-suave);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-variant-numeric: tabular-nums;
-}
-
-.dado {
-  overflow: hidden;
-  font-size: var(--tamanho-s);
-  line-height: var(--altura-s);
-  color: var(--cor-texto-suave);
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-texto);
   white-space: nowrap;
   text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
@@ -112,14 +105,33 @@
 .numero {
   display: block;
   overflow: hidden;
-  font-size: var(--tamanho-s);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-s);
   color: var(--cor-texto);
-  text-align: right;
   white-space: nowrap;
   text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
+}
+
+/* Tipo como etiqueta tingida: fixo na cor de ação, variável na de atenção — categórico, não
+   severidade. */
+.etiqueta {
+  display: inline-flex;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  border-radius: var(--raio-m);
+}
+
+.fixo {
+  color: var(--cor-acento-texto);
+  background: var(--cor-acento-vestigio);
+}
+
+.variavel {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-vestigio);
 }
 
 .atribuicao {
@@ -153,6 +165,36 @@
   justify-content: flex-end;
 }
 
+/* A faixa de totais do protótipo: fora da tabela, no fundo recuado. */
+.totais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-7);
+  padding: var(--espaco-4) var(--espaco-6);
+  margin: 0;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  background: var(--cor-fundo);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.total {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: baseline;
+}
+
+.total dt {
+  color: var(--cor-texto-suave);
+}
+
+.total dd {
+  margin: 0;
+  font-weight: var(--peso-forte);
+  color: var(--cor-texto);
+  font-variant-numeric: tabular-nums;
+}
+
 .recado {
   display: flex;
   flex-direction: column;
@@ -170,10 +212,4 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-@media (max-width: 1080px) {
-  .grade {
-    min-width: 1080px;
-  }
 }

@@ -1,47 +1,81 @@
-.secao {
-  padding: var(--espaco-6);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
+.rolagem {
+  overflow-x: auto;
 }
 
-.cabecalho {
-  display: flex;
-  flex-wrap: wrap;
+/* A tabela do protótipo: linhas em grid, cabeçalho em faixa recuada, divisores suaves. */
+.tabela {
+  display: block;
+  width: 100%;
+  min-width: 360px;
+  border-spacing: 0;
+}
+
+.bloco {
+  display: block;
+}
+
+.linhaDeCabecalho,
+.linha {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
   gap: var(--espaco-4);
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
 }
 
-.acoesDeEdicao {
-  display: flex;
-  gap: var(--espaco-3);
+.editando .linhaDeCabecalho,
+.editando .linha {
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 1fr) 96px;
 }
 
-.lista {
+.editando {
+  min-width: 440px;
+}
+
+.linhaDeCabecalho {
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+  white-space: nowrap;
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.linhaDeCabecalho th {
   padding: 0;
-  margin: 0;
-  list-style: none;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.linhaDeCabecalho th.direita {
+  text-align: right;
 }
 
 .linha {
-  display: flex;
-  gap: var(--espaco-4);
-  align-items: center;
-  min-height: var(--controle-altura-p);
-  padding: var(--espaco-2) 0;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
   border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.direita {
+  text-align: right;
 }
 
 .dono {
   display: flex;
-  flex: 1;
   gap: var(--espaco-3);
   align-items: center;
   min-width: 0;
-  font-size: var(--tamanho-m);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-m);
+  color: var(--cor-texto);
 }
 
 .trunca {
@@ -51,71 +85,119 @@
   text-overflow: ellipsis;
 }
 
-/* Barra de participação: um retângulo de canto reto, como tudo no produto. */
-.barra {
-  flex: 1;
-  max-width: 240px;
-  height: 4px;
-  background: var(--cor-borda-suave);
-}
-
-.preenchimento {
-  display: block;
-  height: 100%;
-  background: var(--cor-acento);
-}
-
 .percentual {
-  min-width: 72px;
-  font-weight: var(--peso-forte);
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.campoDePercentual {
-  width: 112px;
-}
-
-.edicao {
+.campo {
   display: flex;
-  flex-direction: column;
-  gap: var(--espaco-4);
-}
-
-.adicionar {
-  max-width: 320px;
-  padding-top: var(--espaco-3);
-}
-
-.rodapeDeEdicao {
-  display: flex;
-  gap: var(--espaco-4);
+  gap: var(--espaco-2);
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
-.historico {
-  margin-top: var(--espaco-5);
+.campoDePercentual {
+  width: 88px;
 }
 
-.arquivado {
-  padding: var(--espaco-4);
-  margin-top: var(--espaco-3);
-  background: var(--cor-superficie-sutil);
-  border: 1px solid var(--cor-borda-suave);
+.unidade {
+  font-size: var(--tamanho-s);
+  color: var(--cor-texto-suave);
 }
 
-.arquivadoCabecalho {
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vazio {
+  padding: var(--espaco-5) var(--espaco-6);
+}
+
+/* A faixa recuada da edição: a caixa tracejada de adicionar e, abaixo, a soma. */
+.faixaDeAdicao {
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-fundo);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.caixaDeAdicao {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espaco-3);
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: var(--espaco-2);
+  gap: var(--espaco-4);
+  align-items: center;
+  padding: var(--espaco-4);
+  background: var(--cor-superficie);
+  border: 1.5px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-m);
 }
 
-.listaCompacta .linha {
-  min-height: auto;
+.mais {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--controle-altura-p);
+  height: var(--controle-altura-p);
+  font-size: var(--tamanho-gg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-gg);
+  color: var(--cor-acento-escuro);
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
+}
+
+.caixaTexto {
+  flex: 1;
+  min-width: 180px;
+}
+
+.caixaTitulo {
+  display: block;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto);
+}
+
+.selecao {
+  min-width: 190px;
+}
+
+.caixaCheia {
+  padding: var(--espaco-4) var(--espaco-5);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie);
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.faixaDaSoma {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+  background: var(--cor-fundo);
+}
+
+.somaRotulo {
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+}
+
+.somaTexto {
+  flex: 1;
+  min-width: 200px;
+}
+
+.erro {
+  padding: var(--espaco-3) var(--espaco-6);
 }
 
 .recado {
@@ -125,4 +207,14 @@
   align-items: center;
   padding: var(--espaco-6);
   text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

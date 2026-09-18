@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.participacao;
 
+import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
@@ -9,6 +10,7 @@ import br.com.aerodash.aether.proprietario.Proprietario;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +54,43 @@ public class ParticipacaoService {
     return new ContratosDaAeronaveResponse(
         vigente.map(this::paraResponse).orElse(null),
         historico.stream().map(this::paraResponse).toList());
+  }
+
+  /** As participações de todos os contratos vigentes, em ordem de matrícula e depois de fatia. */
+  @Transactional(readOnly = true)
+  public List<VinculoVigenteResponse> listarVinculosVigentes() {
+    List<ContratoDeParticipacao> vigentes = contratos.findByFimDaVigenciaIsNull();
+    Map<Long, Aeronave> frota =
+        aeronaves
+            .findAllById(vigentes.stream().map(ContratoDeParticipacao::getAeronaveId).toList())
+            .stream()
+            .collect(Collectors.toMap(Aeronave::getId, Function.identity()));
+
+    List<VinculoVigenteResponse> vinculos =
+        vigentes.stream()
+            .flatMap(
+                contrato -> {
+                  Aeronave aeronave = frota.get(contrato.getAeronaveId());
+                  return contrato.getParticipacoes().stream()
+                      .map(
+                          participacao ->
+                              new VinculoVigenteResponse(
+                                  participacao.getProprietarioId(),
+                                  contrato.getAeronaveId(),
+                                  aeronave == null ? null : aeronave.getMatricula(),
+                                  aeronave == null ? null : aeronave.getModelo(),
+                                  participacao.getPercentual()));
+                })
+            .sorted(
+                Comparator.comparing(
+                        VinculoVigenteResponse::matricula,
+                        Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(VinculoVigenteResponse::percentual, Comparator.reverseOrder()))
+            .toList();
+
+    contexto.registrar("participacao.contratosVigentes", vigentes.size());
+    contexto.registrar("participacao.vinculosVigentes", vinculos.size());
+    return vinculos;
   }
 
   /**

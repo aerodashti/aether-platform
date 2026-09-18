@@ -2,11 +2,13 @@ package br.com.aerodash.aether.participacao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
@@ -17,6 +19,7 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -154,5 +157,44 @@ class ParticipacaoServiceTest {
 
     assertThatThrownBy(() -> service.consultar(99L))
         .isInstanceOf(RecursoNaoEncontradoException.class);
+  }
+
+  @Test
+  @DisplayName("lista os vínculos vigentes com a matrícula, em ordem de matrícula e de fatia")
+  void listaVinculosVigentes() {
+    ContratoDeParticipacao doJato = new ContratoDeParticipacao(1L, "Leonardo", AGORA);
+    doJato.adicionarParticipacao(1L, new BigDecimal("40.00"));
+    doJato.adicionarParticipacao(2L, new BigDecimal("60.00"));
+    ContratoDeParticipacao doHelicoptero = new ContratoDeParticipacao(2L, "Leonardo", AGORA);
+    doHelicoptero.adicionarParticipacao(1L, new BigDecimal("100.00"));
+    when(contratos.findByFimDaVigenciaIsNull()).thenReturn(List.of(doJato, doHelicoptero));
+
+    Aeronave jato =
+        new Aeronave(
+            "PS-AER",
+            "Phenom 300E",
+            "SBSP",
+            LocalDate.of(2027, 1, 1),
+            LocalDate.of(2027, 1, 1),
+            AGORA);
+    ReflectionTestUtils.setField(jato, "id", 1L);
+    Aeronave helicoptero =
+        new Aeronave(
+            "PR-HEL", "AW109", "SBSP", LocalDate.of(2027, 1, 1), LocalDate.of(2027, 1, 1), AGORA);
+    ReflectionTestUtils.setField(helicoptero, "id", 2L);
+    when(aeronaves.findAllById(List.of(1L, 2L))).thenReturn(List.of(jato, helicoptero));
+
+    List<VinculoVigenteResponse> vinculos = service.listarVinculosVigentes();
+
+    assertThat(vinculos)
+        .extracting(
+            VinculoVigenteResponse::matricula,
+            VinculoVigenteResponse::proprietarioId,
+            VinculoVigenteResponse::percentual)
+        .containsExactly(
+            tuple("PR-HEL", 1L, new BigDecimal("100.00")),
+            tuple("PS-AER", 2L, new BigDecimal("60.00")),
+            tuple("PS-AER", 1L, new BigDecimal("40.00")));
+    assertThat(vinculos.get(0).modelo()).isEqualTo("AW109");
   }
 }

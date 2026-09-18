@@ -46,22 +46,24 @@ export function CartaoDeAviso({ empresa }: { empresa: EmpresaResponse }) {
       />
 
       <div className={estilos.personalizado}>
+        <Texto variante="apoio" tom="suave" como="span">
+          Personalizado:
+        </Texto>
         <div className={estilos.campo}>
           <CampoDeTexto
             rotulo="Personalizado"
+            rotuloOculto
             valor={dias}
             aoMudar={setDias}
             inputMode="numeric"
-            alinhamento="centro"
+            alinhamento="direita"
             maxLength={3}
             erro={valido ? erro : 'Informe de 1 a 365 dias.'}
           />
         </div>
-        <span className={estilos.unidade}>
-          <Texto variante="apoio" tom="suave" como="span">
-            dias antes
-          </Texto>
-        </span>
+        <Texto variante="apoio" tom="suave" como="span">
+          dias antes
+        </Texto>
       </div>
 
       <div className={estilos.acao}>

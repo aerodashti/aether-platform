@@ -5,23 +5,31 @@
 
 ## Origem dos valores
 
-Os tokens vêm do handoff do Claude Design (`lib/ds-tokens-teste.css` do bundle "Aether — projeto
-final"), traduzidos para os nomes em português deste repositório. O mapeamento nome a nome está na
-seção "Mapeamento com o handoff bundle".
+Os tokens vêm da página **"Projeto final Aether.dc.html"** do projeto "Aether — projeto final" do
+Claude Design. Essa página carrega os estilos inline (é dela que saem cores, raio e alturas do tema
+claro); o `lib/ds-tokens-final.css` que ela importa só é usado para o tema escuro, que o protótipo
+não desenha de outra forma. A página `Teste.dc.html` do mesmo projeto foi um experimento e **não é
+referência** — até 2026-09-14 o produto a seguia por engano, e a migração para o Projeto final
+está registrada em `docs/adr/0017-projeto-final-como-referencia-visual.md`. O mapeamento nome a
+nome está na seção "Mapeamento com o handoff bundle".
 
 A identidade que esses valores carregam — e que nenhuma mudança de token pode desfazer sem uma
 conversa antes:
 
-- **Cantos retos.** `--raio-s`, `--raio-m` e `--raio-g` são todos `0`. Não é descuido: é o que
-  separa o produto da aparência de template. `--raio-redondo` existe só para avatar, dot de situação
-  e spinner. Formato pill é proibido.
-- **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px.
-  Alturas de controle 32, 40 e 48 — o degrau de 32 é a densidade compacta da grade. Sem respiros
-  decorativos.
-- **Contraste fino.** Superfícies chapadas, divisores de 1px, sombra discreta. Nada de gradiente
-  chamativo, sombra grande ou glassmorphism.
-- **Azul petróleo.** Um acento só, em sete papéis (veja a tabela). Nenhum hex fora de `tokens.json`.
-- **Nunca `#000000` nem `#FFFFFF` absolutos.** O branco é `#fdfeff` e o preto é `#161c26`.
+- **Raio 4px.** `--raio-m` e `--raio-g` são `4px`, `--raio-s` é `3px`: controles, cartões, badges
+  e popovers têm o mesmo canto discreto. `--raio-redondo` existe só para avatar, dot de situação,
+  contador e spinner. Formato pill continua proibido.
+- **Neutros quentes, cartões brancos.** O fundo da página é `#fafafb`, os cartões são `#ffffff`
+  com borda `#e0e0e3`, a barra lateral é `#f4f4f6`. O texto é `#1d1f20` e o secundário `#5d5d60`.
+- **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px; os
+  campos e as tabelas ficam em 13px. Alturas de controle 32, 36 e 40 — o degrau de 32 é a
+  densidade compacta da grade. Sem respiros decorativos.
+- **Contraste fino.** Superfícies chapadas, divisores de 1px, sombra discreta nos cartões e uma
+  sombra maior só no popover. Nada de gradiente chamativo ou glassmorphism.
+- **Azul-aço.** Um acento só, `#5980a6`, com hover petróleo `#2c455d` e a variante de texto
+  `#416180` para rótulos de ação (botão secundário e fantasma). Nenhum hex fora de `tokens.json`.
+- **Nunca `#000000` nem `#FFFFFF` no texto.** O preto é `#1d1f20`; o branco existe só como
+  superfície de cartão.
 
 ## Fonte única
 
@@ -82,9 +90,9 @@ com `--altura-g`. Misturar degraus é o que produz linha apertada em texto corri
 | --- | --- | --- | --- |
 | `xs` | 11px | 1.45 | Rodapé, assinatura da marca, metadado |
 | `s` | 12px | 1.40 | Rótulo de campo, cabeçalho de tabela, texto de apoio |
-| `m` | 13px | 1.45 | Corpo de tabela e listas densas, botão |
+| `m` | 13px | 1.45 | Corpo de tabela e listas densas, botão, título de cartão de seção (forte) |
 | `g` | 14px | 1.50 | Texto de interface — o padrão do `body` |
-| `gg` | 18px | 1.30 | Título de seção e de card |
+| `gg` | 18px | 1.30 | Título de tela secundário e identificador no cabeçalho de entidade |
 | `ggg` | 26px | 1.12 | Título de tela e valor de KPI |
 
 O peso `--peso-maximo` (700) existe **só** no degrau `ggg`.
@@ -109,26 +117,50 @@ Trocar o tema é escrever `data-theme` no elemento raiz. Nenhum componente preci
 rolagem e autofill do navegador nasçam na cor certa — os tokens sozinhos não alcançam esses
 elementos.
 
-### A tela de Aeronaves tem quatro colunas, não seis
+### A tela de Aeronaves é uma lista de cartões, com dois números dos três
 
-O protótipo mostra Matrícula · Modelo · Status · Saldo do fundo · Custo da competência ·
-Proprietários. As três últimas dependem de features que ainda não existem — aportes, lançamentos e
-participações —, e **coluna vazia não existe**: cada uma entra com a feature dona do seu número.
-Enquanto isso a grade não estica até os 1180px da régua completa, porque a trilha de rótulo é
-`1.5fr` e absorveria toda a sobra num vão entre Modelo e Situação.
+É a lista do Projeto final: um cartão por aeronave com matrícula e modelo, a etiqueta de situação
+(dot e rótulo sobre o vestígio da mesma cor), os números à direita e a seta que abre o detalhe. O
+protótipo mostra Saldo do fundo · Custo da competência · Proprietários; só o último está aqui,
+contado dos vínculos vigentes (`GET /participacoes/vigentes`) — os outros dois pertencem a aportes
+e a lançamentos, e **coluna vazia não existe**. Enquanto os vínculos não chegam o cartão omite o
+número; nunca inventa um zero.
 
 Duas diferenças deliberadas em relação ao protótipo, as duas por regra do próprio brief:
 
 - **"Situação", não "Status".** O glossário proíbe o anglicismo.
-- **Existe uma coluna de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
+- **Existe um bloco de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
   *"Estado sem consequência é proibido: ATENÇÃO sozinho não informa. Forma correta: Seguro RETA ·
-  vence em 12 dias."* A coluna ocupa a trilha de lockup, que é exatamente a forma "grandeza +
-  qualificador". O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave saudável,
-  "em 241 dias" é número sem pergunta.
+  vence em 12 dias."* O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave
+  saudável, "em 241 dias" é número sem pergunta.
 
 O seletor **"Estado"** do protótipo não foi implementado: o próprio `AETHER_PATTERNS.md` o registra
 como *"andaime de protótipo em Aeronaves e Custos"*, uma dívida declarada para demonstrar os cinco
-estados da grade. Os cinco estados existem na implementação; o seletor que os simula, não.
+estados de tela.
+
+### Lançamentos e Manutenção seguem o Projeto final, sem a visão em cartões e sem o formulário embutido
+
+**Lançamentos:** filtros de recorte (aeronave e competência, que vão ao servidor), o escopo
+Todos · Fixos · Variáveis e as abas de categoria com contagem (recortes locais, só das categorias
+presentes), a grade na régua do protótipo — rel-voo com a data embaixo, tipo como etiqueta tingida
+(fixo na cor de ação, variável na de atenção: categórico, não severidade), descrição com a
+categoria, atribuição, valor com a conversão de USD, nota — e a faixa de totais fora da tabela.
+Os totais são do recorte do servidor, não da aba: a faixa se chama "Totais do recorte" por isso.
+De fora: a **visão em cartões** (opção experimental do próprio brief, DD-E02), a **paginação** (a
+lista é de uma competência e cabe numa grade) e os seletores de ano e mês separados (o campo de
+competência faz o mesmo em um controle).
+
+**Manutenção:** os contadores de célula e ciclos viram chips no topo, ao lado da referência de
+hoje; quatro indicadores em cartões (monitorados, próximos do limite, estourados, programadas);
+e as três seções em abas — Agenda, Histórico e Parâmetros —, cada uma com a tabela do protótipo
+(a de parâmetros sem "última execução", "responsável" e "Executar", que dependem de registro de
+execução ainda inexistente). De fora: o **formulário de agendamento embutido** no cartão da
+agenda (o painel modal existente cobre todos os campos) e o botão de **documentos** por
+manutenção (feature por vir). A etiqueta "Atrasada" na agenda é derivação de tela: programada com
+data anterior a hoje.
+
+O primitivo `Abas` nasceu aqui — Lançamentos e Manutenção o consomem — com `tablist`/`tab` e o
+sublinhado de 3px do protótipo.
 
 ### Ação de linha: visível, não escondida
 
@@ -170,6 +202,8 @@ acessibilidade ficam em um lugar só.
 | `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
 | `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
+| `Abas` | `primitivos/Abas.tsx` | `contagem` por aba | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
+| `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
 | `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
 ### A variante `contorno` do `Botao`
@@ -247,18 +281,18 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Globo pontilhado (`dotted-globe.js`) | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só |
 | Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
 | Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
-| Tela de Aeronaves (grade da frota) | **Parcial** — `features/aeronaves`. Ver a nota abaixo sobre as colunas ausentes |
-| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`. Seletor de tema em `compartilhado/tema` |
+| Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
+| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
 | Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
-| Tela de Proprietários (grade, filtros, painel de cadastro) | **Parcial** — `features/proprietarios`. Ver a nota abaixo sobre as colunas ausentes |
+| Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
 | Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
-| Tela de Detalhe da aeronave | **Parcial** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`. Ver a nota abaixo sobre abas e colunas |
+| Tela de Detalhe da aeronave | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
 | Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
-| Tela de Lançamentos de custos (grade, filtros, painel, CSV) | **Parcial** — `features/custos`. Mesmas ausências deliberadas do diário (paginação, densidade, seletor de "Estado" do protótipo); o "Ver últimos dados" do protótipo não existe porque o `placeholderData` do Query já segura o recorte anterior |
-| Tela de Manutenção (parâmetros, programadas, histórico) | **Parcial** — `features/manutencao`. A edição de evento usa o mesmo painel do agendamento em vez da edição inline na linha do protótipo (um formulário só, mesma validação); "Anexar NF" entra com a tela de documentos; a recorrência do parâmetro entra quando existir renovação automática |
+| Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
+| Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
@@ -272,20 +306,51 @@ O **esqueleto de carregamento** virou o primitivo `Esqueleto` quando a grade de 
 segunda — precisou dele, agora com o gradiente animado do `.skel` do handoff e
 `prefers-reduced-motion` respeitado.
 
-### O Detalhe da aeronave não tem abas — ainda
+### O Detalhe da aeronave é o do Projeto final, com a coluna da direita por inferência
 
-O protótipo dá à aeronave sete abas (Visão geral, Voos, Custos, Rateio, Manutenção, Proprietários,
-Documentos); cinco são atalhos para telas que ainda não existem, e **aba para tela que não existe é
-porta pintada na parede**. A implementação empilha em uma coluna o que existe: contrato de
-participações, tripulação, ficha técnica e configuração financeira. As abas nascem quando as telas
-de destino nascerem.
+No trecho visível do protótipo o detalhe não tem barra de abas: o cabeçalho de entidade é uma
+linha (matrícula, "Fabricante Modelo · Base · Hangar", a etiqueta de situação, um espaçador e um
+bloco à direita), e o corpo é uma grade de duas colunas (`minmax(430px, 1.6fr) minmax(280px,
+0.95fr)`, uma coluna abaixo de 1024px). À esquerda, o cartão do contrato de participações como
+tabela (Proprietário · % de propriedade) que vira formulário na mesma tabela ao "Alterar
+participações", com a caixa tracejada de adicionar e a faixa da soma com as mensagens do
+protótipo; o histórico de contratos; e a tripulação como tabela com sublinhas (CANAC · contato;
+prazo da validade). À direita, ficha técnica e configuração financeira.
 
-Do contrato, as colunas "% no rateio da competência" e "Saldo acumulado" ficam de fora até o
-fechamento existir — mesma regra das colunas da frota. A fatura e a cobertura do fundo do cartão
-financeiro pertencem a aportes; a trava de "fechamento pendente" no dia da fatura pertence ao
-rateio. O "Excluir" da linha de participação existe (remover do contrato novo), mas o
-rebalanceamento guiado do protótipo — abrir a exclusão de um proprietário já distribuindo a fatia
-liberada — entra com a tela de rateio.
+**Decisões nossas, além do protótipo:**
+
+- A **matrícula em mono** (o protótipo usa a fonte de título; mono é a convenção da casa para
+  identificadores, como na frota).
+- A **consequência da situação** ao lado da etiqueta — "RETA vence em 12 dias", em âmbar para
+  Atenção e vermelho só para Vencido —, porque "Atenção" sozinho não diz o quê nem quando.
+- Os **vencimentos de CVA e RETA** à direita do cabeçalho, no lugar do "Saldo do fundo" do
+  protótipo, até aportes existir.
+- O **histórico num cartão com faixa de cabeçalho**, como as demais seções (no protótipo é um
+  cartão com o título inline).
+- **Ações de linha com texto** ("Remover", "Editar") em vez dos quadrados de glifo do protótipo:
+  ação de linha é visível e nomeada, nunca só um ícone.
+- **Etiqueta só na exceção** na tripulação: "Inativo" aparece, "Ativo" não — chip em toda linha
+  para dizer o normal seria ruído.
+- **"Tripulante"** em todo o cartão, onde o protótipo escreve "piloto": é o termo do glossário
+  (piloto é papel de usuário).
+
+**O que ficou de fora, e a feature dona:** "Documentos (n)" (documentos); "Saldo do fundo",
+"% no rateio", "Saldo acumulado", a fatura e a cobertura do fundo (aportes e rateio); licença e
+habilitações e "Remover piloto" (extensão do tripulante e endpoint de remoção — excluir de verdade
+não existe no domínio); os atalhos para Lançamentos e Voos filtrados (as telas ainda não leem
+`?aeronave=`); o botão de cor por proprietário (a cor é do cadastro de Proprietários); o
+formulário de tripulante embutido no cartão (o painel modal existente cobre todos os campos). A
+trilha "← Aeronaves" sai quando a casca ganhar o botão de voltar do protótipo.
+
+**Uma ressalva de fonte:** o `get_file` do Claude Design devolve no máximo 256 KiB, e o detalhe é
+a última tela do arquivo — o HTML termina no quinto campo do formulário de tripulante. A coluna da
+direita não foi vista, e o cartão do contrato está condicionado a um estado `detIsOwnersTab` que o
+arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões que já existiam
+(ficha técnica e configuração financeira), com o chrome de cartão do protótipo; se o arquivo
+íntegro mostrar outra composição, o ajuste é de uma PR.
+
+A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
+enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
 
 ### A Nova aeronave tem quatro seções, não cinco
 
@@ -305,16 +370,18 @@ protótipo também tem o gatilho dentro do combobox vazio ("Nenhum proprietário
 existe aqui: a seleção é um `<select>` nativo, sem estado vazio próprio — o botão do cabeçalho
 cobre o caso.
 
-### A tela de Proprietários tem quatro colunas, não seis
+### A tela de Proprietários é uma grade de cartões, sem o saldo
 
-Mesma regra da tela de Aeronaves: o protótipo mostra Proprietário · Aeronave · Participação ·
-Saldo · Situação · Ações, e as três do meio dependem do contrato de participação e do rateio, que
-ainda não existem — **coluna vazia não existe**. No lugar delas há uma coluna de CPF/CNPJ, que é
-dado do cadastro. O documento pontuado é nowrap de largura fixa e ocupa a trilha de lockup
-(160px): a régua do handoff não tem trilha própria de documento, e criar uma agora seria token
-para uma tela só. O "Excluir" do protótipo também não está aqui: ele abre um rebalanceamento de
-participações antes de inativar, fluxo que pertence ao contrato de participação — até lá, a ação
-destrutiva é Desativar/Reativar, como em Usuários.
+É a tela do Projeto final: um cartão por proprietário, com avatar de iniciais, documento e contato
+numa linha, as ações à direita e, embaixo, uma linha por aeronave em que ele participa — matrícula,
+barra do percentual e o número. Os vínculos vêm de `GET /participacoes/vigentes`, uma chamada só
+para a grade inteira (o contrato é quem sabe quem é dono de quanto, por isso a rota é da
+participação, não do proprietário), e chegam à parte da lista de proprietários: enquanto não
+chegam, o cartão diz "sem vínculo", nunca fica em branco.
+
+O **saldo** que o protótipo mostra ao lado de cada barra não está aqui: pertence a aportes, e
+**coluna vazia não existe**. O "Excluir" do protótipo é "Desativar": excluir de verdade não existe
+neste domínio (glossário), e o inativo mostra a etiqueta e o "Reativar", como em Usuários.
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
 bundle). O produto é entregue em português; inglês e espanhol não estão nesta fase.

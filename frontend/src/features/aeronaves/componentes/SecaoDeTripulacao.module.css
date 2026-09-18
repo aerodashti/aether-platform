@@ -1,45 +1,42 @@
-.secao {
-  padding: var(--espaco-6);
-  background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
+.rolagem {
+  overflow-x: auto;
 }
 
-.cabecalho {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espaco-4);
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--espaco-4);
-}
-
-.grade {
+/* A tabela do protótipo: régua própria de seis colunas, cabeçalho em faixa, sublinhas. */
+.tabela {
   display: block;
   width: 100%;
+  min-width: 720px;
   border-spacing: 0;
 }
 
-.corpo {
+.bloco {
   display: block;
 }
 
 .linhaDeCabecalho,
 .linha {
   display: grid;
-  grid-template-columns:
-    var(--armadura-rotulo) var(--armadura-estado) var(--armadura-data) var(--armadura-data)
-    var(--armadura-data) var(--armadura-acao-texto);
-  gap: var(--armadura-gap);
+  grid-template-columns: 1.5fr 0.85fr 1fr 1fr 0.6fr 96px;
+  gap: var(--espaco-4);
   align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+}
+
+.semAcoes .linhaDeCabecalho,
+.semAcoes .linha {
+  grid-template-columns: 1.5fr 0.85fr 1fr 1fr 0.6fr;
 }
 
 .linhaDeCabecalho {
-  padding: var(--espaco-3) 0;
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -49,9 +46,13 @@
   text-align: left;
 }
 
+.linhaDeCabecalho th.direita {
+  text-align: right;
+}
+
 .linha {
-  min-height: var(--controle-altura-p);
-  padding: var(--espaco-1) 0;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 
@@ -60,7 +61,12 @@
   padding: 0;
 }
 
-.nomes {
+.direita {
+  text-align: right;
+}
+
+.nomes,
+.validade {
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -69,11 +75,10 @@
 .nome {
   display: flex;
   gap: var(--espaco-3);
-  align-items: baseline;
+  align-items: center;
   min-width: 0;
-  font-size: var(--tamanho-m);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-linha-dupla);
+  color: var(--cor-texto);
 }
 
 .trunca {
@@ -83,41 +88,50 @@
   text-overflow: ellipsis;
 }
 
+/* Só a exceção ganha etiqueta: chip neutro em toda linha para dizer o normal seria ruído. */
 .etiqueta {
   flex: none;
-  font-size: var(--tamanho-xs);
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
   font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
 }
 
-.canac {
-  font-family: var(--fonte-mono);
-  font-size: var(--tamanho-xs);
-  line-height: var(--altura-linha-dupla);
-  color: var(--cor-texto-suave);
-  font-variant-numeric: tabular-nums;
-}
-
-.funcao,
-.validade,
-.horas {
+.sublinha {
+  margin-top: var(--espaco-1);
   overflow: hidden;
   font-size: var(--tamanho-s);
   line-height: var(--altura-s);
   color: var(--cor-texto-suave);
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.forte {
+  font-weight: var(--peso-forte);
+  color: var(--cor-texto);
   font-variant-numeric: tabular-nums;
 }
 
-.vencida {
-  font-weight: var(--peso-forte);
+.vencida .forte,
+.vencida .sublinha {
   color: var(--cor-critico);
 }
 
 .acoes {
   display: flex;
   justify-content: flex-end;
+}
+
+.vazio {
+  padding: var(--espaco-8);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  color: var(--cor-texto-suave);
+  text-align: center;
 }
 
 .recado {
@@ -137,14 +151,4 @@
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-  .grade {
-    min-width: 640px;
-  }
-
-  .secao {
-    overflow-x: auto;
-  }
 }

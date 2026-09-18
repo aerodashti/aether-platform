@@ -16,7 +16,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--espaco-3);
-  align-items: flex-start;
+  align-items: center;
 }
 
 .competencia {
@@ -28,7 +28,9 @@
 }
 
 .painel {
-  overflow-x: auto;
+  overflow: hidden;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
 }

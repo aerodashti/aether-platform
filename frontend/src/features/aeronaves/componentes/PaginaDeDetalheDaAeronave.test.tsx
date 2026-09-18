@@ -111,7 +111,13 @@ const PROPRIETARIOS = [
   { id: 3, nome: 'Helena Sarraf', corDeIdentificacao: 'VERDE', situacao: 'ATIVO' },
 ];
 
-function montar(sessao: unknown) {
+/** As respostas que um caso pode trocar: sem histórico, sem tripulação. */
+interface Respostas {
+  contratos?: unknown;
+  tripulantes?: unknown;
+}
+
+function montar(sessao: unknown, respostas: Respostas = {}) {
   vi.stubGlobal(
     'fetch',
     vi.fn((entrada: string) => {
@@ -119,10 +125,10 @@ function montar(sessao: unknown) {
         return Promise.resolve(respostaDe(sessao));
       }
       if (entrada.startsWith('/api/aeronaves/1/contratos')) {
-        return Promise.resolve(respostaDe(CONTRATOS));
+        return Promise.resolve(respostaDe(respostas.contratos ?? CONTRATOS));
       }
       if (entrada.startsWith('/api/aeronaves/1/tripulantes')) {
-        return Promise.resolve(respostaDe(TRIPULANTES));
+        return Promise.resolve(respostaDe(respostas.tripulantes ?? TRIPULANTES));
       }
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));
@@ -163,42 +169,116 @@ describe('PaginaDeDetalheDaAeronave', () => {
 
     expect((await screen.findAllByText('PS-MEP')).length).toBeGreaterThan(0);
     expect(screen.getByText('Atenção')).toBeInTheDocument();
-    expect(screen.getByText('RETA vence primeiro')).toBeInTheDocument();
-    expect(screen.getByText('em 12 dias')).toBeInTheDocument();
+    expect(screen.getByText('RETA vence em 12 dias')).toBeInTheDocument();
+    expect(
+      screen.getByText('Cessna Citation XLS+ · SBSP · Hangar 7 — Congonhas'),
+    ).toBeInTheDocument();
   });
 
-  it('mostra o contrato vigente com as fatias e o histórico fechado', async () => {
+  it('o cabeçalho não inventa saldo nem documentos: coluna vazia não existe', async () => {
+    montar(GESTORA);
+
+    await screen.findAllByText('PS-MEP');
+    expect(screen.queryByText('Saldo do fundo')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Documentos/ })).not.toBeInTheDocument();
+  });
+
+  it('mostra o contrato vigente numa tabela e o histórico num cartão próprio', async () => {
     montar(GESTORA);
 
     const contrato = await screen.findByRole('region', { name: 'Contrato de participações' });
     expect(await within(contrato).findByText('Ricardo Meirelles')).toBeInTheDocument();
+    expect(
+      within(contrato).getByRole('columnheader', { name: '% de propriedade' }),
+    ).toBeInTheDocument();
     expect(within(contrato).getByText('60%')).toBeInTheDocument();
     expect(
-      within(contrato).getByRole('button', { name: 'Histórico de contratos (1)' }),
+      within(contrato).getByText(/Contrato vigente · jul\. de 2026 – atual/),
     ).toBeInTheDocument();
+
+    const historico = screen.getByRole('region', {
+      name: 'Histórico de contratos de participação',
+    });
+    expect(within(historico).getByText('100%')).toBeInTheDocument();
+    expect(within(historico).getByText(/criado por Leonardo Andrade/)).toBeInTheDocument();
   });
 
-  it('a soma manda no salvar: 90% desabilita, 100% habilita', async () => {
+  it('sem histórico, o cartão de histórico não aparece', async () => {
+    montar(GESTORA, { contratos: { ...CONTRATOS, historico: [] } });
+
+    await screen.findByRole('region', { name: 'Contrato de participações' });
+    expect(
+      screen.queryByRole('region', { name: 'Histórico de contratos de participação' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('a soma manda no salvar: 90% desabilita, 100% sem mudança mantém, 100% com mudança habilita', async () => {
     montar(GESTORA);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Alterar participações' }));
-    const campo = screen.getByLabelText('Participação de Ricardo Meirelles em %');
+    const ricardo = screen.getByLabelText('Participação de Ricardo Meirelles em %');
+    const vetor = screen.getByLabelText('Participação de Vetor Participações em %');
+    const salvar = () => screen.getByRole('button', { name: 'Salvar novo contrato' });
 
-    await userEvent.clear(campo);
-    await userEvent.type(campo, '50');
-    expect(screen.getByRole('button', { name: 'Salvar novo contrato' })).toBeDisabled();
+    // Sem mexer, 60/40 é o contrato vigente: salvar não arquivaria nada.
+    expect(salvar()).toBeDisabled();
+    expect(
+      screen.getByText(/Nenhuma alteração nas participações — contrato mantido\./),
+    ).toBeInTheDocument();
 
-    await userEvent.clear(campo);
-    await userEvent.type(campo, '60');
-    expect(screen.getByRole('button', { name: 'Salvar novo contrato' })).toBeEnabled();
+    await userEvent.clear(ricardo);
+    await userEvent.type(ricardo, '50');
+    expect(salvar()).toBeDisabled();
+    expect(screen.getByText(/Ajuste os percentuais para somar 100%\./)).toBeInTheDocument();
+
+    await userEvent.clear(ricardo);
+    await userEvent.type(ricardo, '70');
+    await userEvent.clear(vetor);
+    await userEvent.type(vetor, '30');
+    expect(salvar()).toBeEnabled();
+    expect(
+      screen.getByText(/Fechado em 100% — salvar cria um novo contrato vigente\./),
+    ).toBeInTheDocument();
+  });
+
+  it('a edição oferece os proprietários que ainda não estão no contrato', async () => {
+    montar(GESTORA);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Alterar participações' }));
+    const selecao = screen.getByLabelText('Adicionar proprietário ao contrato');
+    expect(within(selecao).getByRole('option', { name: 'Helena Sarraf' })).toBeInTheDocument();
+    expect(
+      within(selecao).queryByRole('option', { name: 'Ricardo Meirelles' }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(selecao, '3');
+    expect(screen.getByLabelText('Participação de Helena Sarraf em %')).toBeInTheDocument();
+    expect(
+      screen.getByText('Todos os proprietários cadastrados já estão neste contrato.'),
+    ).toBeInTheDocument();
   });
 
   it('o CHT vencido sai com a palavra, não só com a cor', async () => {
     montar(GESTORA);
 
     const tripulacao = await screen.findByRole('region', { name: 'Tripulação' });
-    expect(await within(tripulacao).findByText(/venceu|vencida/)).toBeInTheDocument();
-    expect(within(tripulacao).getByText('CANAC 445566')).toBeInTheDocument();
+    expect(await within(tripulacao).findByText(/vencida/)).toBeInTheDocument();
+    expect(within(tripulacao).getByText(/CANAC 445566/)).toBeInTheDocument();
+    expect(
+      within(tripulacao).getByText('1 tripulante · validades de CMA e habilitação (CHT)'),
+    ).toBeInTheDocument();
+  });
+
+  it('tripulação vazia diz que não há tripulante vinculado', async () => {
+    montar(GESTORA, { tripulantes: [] });
+
+    const tripulacao = await screen.findByRole('region', { name: 'Tripulação' });
+    expect(
+      await within(tripulacao).findByText('Nenhum tripulante vinculado a esta aeronave.'),
+    ).toBeInTheDocument();
+    expect(
+      within(tripulacao).getByText('Nenhum tripulante · validades de CMA e habilitação (CHT)'),
+    ).toBeInTheDocument();
   });
 
   it('para quem não gere, a tela é só leitura', async () => {
@@ -206,7 +286,7 @@ describe('PaginaDeDetalheDaAeronave', () => {
 
     await screen.findAllByText('PS-MEP');
     expect(screen.queryByRole('button', { name: 'Alterar participações' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Adicionar piloto' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Adicionar tripulante' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
   });
 
