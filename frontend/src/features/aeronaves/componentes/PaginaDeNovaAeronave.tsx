@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ErroDeApi } from '@/api/cliente';
-import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
+import { PainelDeProprietario } from '@/compartilhado/proprietarios/PainelDeProprietario';
+import {
+  useProprietarios,
+  type ProprietarioResponse,
+} from '@/compartilhado/proprietarios/useProprietarios';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { GrupoDeOpcoes } from '@/design-system/primitivos/GrupoDeOpcoes';
@@ -84,6 +88,19 @@ export function PaginaDeNovaAeronave() {
 
   // 4 — Proprietários (opcional no cadastro)
   const [vinculos, setVinculos] = useState<Vinculo[]>([]);
+  const [cadastrandoProprietario, setCadastrandoProprietario] = useState(false);
+
+  function vincular(dono: ProprietarioResponse) {
+    setVinculos((atuais) => [
+      ...atuais,
+      {
+        proprietarioId: dono.id ?? 0,
+        nome: dono.nome ?? '',
+        cor: (dono.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao,
+        percentual: '',
+      },
+    ]);
+  }
 
   const quantidadeDeMotores = Number(motores);
   const somaDosVinculos = vinculos.reduce((total, vinculo) => {
@@ -361,6 +378,15 @@ export function PaginaDeNovaAeronave() {
           numero="4"
           titulo="Proprietários"
           descricao="Cada proprietário entra com um percentual de participação. Opcional — dá para definir depois, no detalhe."
+          acao={
+            <Botao
+              variante="secundario"
+              tamanho="pequeno"
+              aoClicar={() => setCadastrandoProprietario(true)}
+            >
+              + Cadastrar proprietário
+            </Botao>
+          }
         />
         {vinculos.length > 0 ? (
           <ul className={estilos.vinculos}>
@@ -418,22 +444,14 @@ export function PaginaDeNovaAeronave() {
               aoMudar={(escolhido) => {
                 const dono = disponiveis.find((cada) => String(cada.id) === escolhido);
                 if (dono) {
-                  setVinculos((atuais) => [
-                    ...atuais,
-                    {
-                      proprietarioId: dono.id ?? 0,
-                      nome: dono.nome ?? '',
-                      cor: (dono.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao,
-                      percentual: '',
-                    },
-                  ]);
+                  vincular(dono);
                 }
               }}
             />
           ) : (
             <Texto variante="apoio" tom="suave" como="p">
               {vinculos.length === 0
-                ? 'Nenhum proprietário cadastrado — cadastre na tela de Proprietários.'
+                ? 'Nenhum proprietário cadastrado ainda — cadastre o primeiro por aqui.'
                 : 'Todos os proprietários cadastrados já estão vinculados.'}
             </Texto>
           )}
@@ -489,6 +507,15 @@ export function PaginaDeNovaAeronave() {
           aoFechar={() => setConversorAberto(false)}
         />
       ) : null}
+
+      {/* O cadastro rápido é o mesmo painel da tela de Proprietários; o recém-criado já entra
+          vinculado, com o percentual por preencher. */}
+      {cadastrandoProprietario ? (
+        <PainelDeProprietario
+          aoSalvar={vincular}
+          aoFechar={() => setCadastrandoProprietario(false)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -497,17 +524,19 @@ function Cabecalho({
   numero,
   titulo,
   descricao,
+  acao,
 }: {
   numero: string;
   titulo: string;
   descricao: string;
+  acao?: ReactNode;
 }) {
   return (
     <div className={estilos.cabecalhoDaSecao}>
       <span className={estilos.numero} aria-hidden="true">
         {numero}
       </span>
-      <div>
+      <div className={estilos.textoDaSecao}>
         <Texto variante="subtitulo" como="h2">
           {titulo}
         </Texto>
@@ -515,6 +544,7 @@ function Cabecalho({
           {descricao}
         </Texto>
       </div>
+      {acao ? <div className={estilos.acaoDaSecao}>{acao}</div> : null}
     </div>
   );
 }

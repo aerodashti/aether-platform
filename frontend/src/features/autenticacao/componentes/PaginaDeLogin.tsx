@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Texto } from '@/design-system/primitivos/Texto';
 import { usePassosDeAcesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
@@ -19,7 +20,15 @@ import { PassoDeNovaSenha } from './PassoDeNovaSenha';
  * convite a compartilhar um estado que só vale com o código já conferido.
  */
 export function PaginaDeLogin() {
-  const acesso = usePassosDeAcesso();
+  const navegar = useNavigate();
+  const localizacao = useLocation();
+
+  // Quem foi barrado numa rota volta para ela; quem veio direto vai para a raiz. `replace` tira
+  // a tela de entrada do histórico: o Voltar de quem acabou de entrar não deve reabri-la.
+  const destino = (localizacao.state as { de?: string } | null)?.de ?? '/';
+  const aoEntrar = useCallback(() => void navegar(destino, { replace: true }), [destino, navegar]);
+
+  const acesso = usePassosDeAcesso(aoEntrar);
   const areaDoPasso = useRef<HTMLDivElement>(null);
 
   // Trocar de passo troca o formulário inteiro: sem mover o foco, ele cairia no `body` — o botão

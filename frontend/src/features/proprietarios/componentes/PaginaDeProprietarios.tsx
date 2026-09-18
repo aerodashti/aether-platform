@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from 'react';
 
+import { PainelDeProprietario } from '@/compartilhado/proprietarios/PainelDeProprietario';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
@@ -13,7 +14,6 @@ import {
 } from '../api/useProprietarios';
 
 import estilos from './PaginaDeProprietarios.module.css';
-import { PainelDeProprietario } from './PainelDeProprietario';
 import { OPCOES_DE_SITUACAO } from './rotulos';
 import { TabelaDeProprietarios } from './TabelaDeProprietarios';
 

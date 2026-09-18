@@ -297,6 +297,14 @@ criaria uma linha sem a coluna que dá sentido à tela. O contrato inicial de pa
 segundo POST na rota do contrato: `aeronave` importar `participacao` criaria ciclo entre features,
 e aeronave sem contrato é estado válido do domínio.
 
+O "+ Cadastrar proprietário" da seção 4 é o do protótipo: abre o mesmo painel da tela de
+Proprietários e já vincula o recém-criado, com o percentual por preencher. O painel e as mutações
+de criar e atualizar moram em `compartilhado/proprietarios` porque duas features os abrem; o CRUD
+completo (grade, filtros, desativar e reativar) continua sendo a tela de Proprietários. O
+protótipo também tem o gatilho dentro do combobox vazio ("Nenhum proprietário encontrado"), que não
+existe aqui: a seleção é um `<select>` nativo, sem estado vazio próprio — o botão do cabeçalho
+cobre o caso.
+
 ### A tela de Proprietários tem quatro colunas, não seis
 
 Mesma regra da tela de Aeronaves: o protótipo mostra Proprietário · Aeronave · Participação ·

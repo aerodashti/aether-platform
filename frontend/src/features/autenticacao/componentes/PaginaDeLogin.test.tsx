@@ -2,13 +2,25 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeLogin } from './PaginaDeLogin';
 
-function envolver(conteudo: ReactNode) {
+/** A tela de entrada e um destino para o pós-login, com o `state.de` que `RotaAutenticada` grava. */
+function envolver(conteudo: ReactNode, de?: string) {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>);
+  return render(
+    <MemoryRouter initialEntries={[{ pathname: '/entrar', state: de ? { de } : null }]}>
+      <QueryClientProvider client={cliente}>
+        <Routes>
+          <Route path="/entrar" element={conteudo} />
+          <Route path="/" element={<p>tela inicial</p>} />
+          <Route path="/aeronaves/nova" element={<p>nova aeronave</p>} />
+        </Routes>
+      </QueryClientProvider>
+    </MemoryRouter>,
+  );
 }
 
 function respostaDe(corpo: unknown, status = 200) {
@@ -108,6 +120,34 @@ describe('PaginaDeLogin', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('E-mail ou senha incorretos.');
+  });
+
+  it('depois de entrar, volta para a rota que barrou a pessoa — ou para a raiz', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(respostaDe({ nome: 'Leonardo', papel: 'ADMINISTRADOR' }))),
+    );
+    envolver(<PaginaDeLogin />, '/aeronaves/nova');
+
+    await userEvent.type(screen.getByLabelText('E-mail'), 'leonardo@administraair.com.br');
+    await userEvent.type(screen.getByLabelText('Senha'), 'aether-dev-2026');
+    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByText('nova aeronave')).toBeInTheDocument();
+  });
+
+  it('sem rota de origem, entrar leva à raiz', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(respostaDe({ nome: 'Leonardo', papel: 'ADMINISTRADOR' }))),
+    );
+    envolver(<PaginaDeLogin />);
+
+    await userEvent.type(screen.getByLabelText('E-mail'), 'leonardo@administraair.com.br');
+    await userEvent.type(screen.getByLabelText('Senha'), 'aether-dev-2026');
+    await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
+
+    expect(await screen.findByText('tela inicial')).toBeInTheDocument();
   });
 
   it('percorre os quatro passos até voltar à entrada com a senha redefinida', async () => {
