@@ -115,7 +115,6 @@ class DocumentoIntegracaoTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.length()").value(2))
             .andReturn();
-    long id = json.readTree(enviados.getResponse().getContentAsString()).get(0).get("id").asLong();
     return json.readTree(enviados.getResponse().getContentAsString()).get(0).get("id").asLong();
   }
 
