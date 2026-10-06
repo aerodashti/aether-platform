@@ -92,7 +92,6 @@ export function PainelDeManutencaoAgendada({
         aoMudar={setDescricao}
         exemplo="Inspeção de 100 h — célula"
         maxLength={200}
-        erro={erro}
       />
       <CampoDeTexto
         rotulo="Valor (R$)"
@@ -101,6 +100,15 @@ export function PainelDeManutencaoAgendada({
         inputMode="numeric"
         apoio="Opcional — entra no histórico e, no futuro, nos custos."
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

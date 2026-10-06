@@ -115,7 +115,6 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
         aoMudar={setValorDoAporte}
         inputMode="numeric"
         exemplo="85000,00"
-        erro={erro}
       />
       <CampoDeTexto
         rotulo="Dia de fechamento da fatura"
@@ -132,6 +131,15 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
         alinhamento="direita"
         apoio="O ponto de partida do fechamento. Corrigi-lo muda o saldo de todos os meses."
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

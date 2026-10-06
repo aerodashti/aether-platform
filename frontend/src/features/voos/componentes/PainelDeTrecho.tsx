@@ -139,7 +139,6 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
           aoMudar={setRelatorioDeVoo}
           exemplo="RV-2026-044"
           maxLength={20}
-          erro={erro}
         />
         <CampoDeTexto
           rotulo="Trecho"
@@ -205,6 +204,15 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
         aoMudar={setObservacoes}
         maxLength={500}
       />
+
+      {/* Junto do botão, não num campo: o painel rola, e a recusa pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

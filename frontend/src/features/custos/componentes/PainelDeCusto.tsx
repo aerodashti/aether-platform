@@ -204,7 +204,6 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
           valor={valor}
           aoMudar={setValor}
           inputMode="numeric"
-          erro={erro}
         />
         {moeda === 'USD' ? (
           <CampoDeTexto
@@ -238,6 +237,15 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
         aoMudar={setNotaFiscal}
         maxLength={40}
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

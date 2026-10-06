@@ -171,4 +171,39 @@ describe('PaginaDeVoos', () => {
     // Virada de meia-noite: 1,5 h, não negativo.
     expect(screen.getByText(/Duração \(automática\): 1,5 h/)).toBeInTheDocument();
   });
+  it('a recusa do servidor aparece junto do botão, dizendo qual campo falhou', async () => {
+    prepararFetch(PILOTO);
+    const buscarPadrao = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((entrada, opcoes) =>
+      opcoes?.method === 'POST'
+        ? Promise.resolve(
+            respostaDe(
+              {
+                detail: 'Verifique os campos informados e tente novamente.',
+                campos: { km: 'Os quilômetros precisam ser maiores que zero.' },
+              },
+              400,
+            ),
+          )
+        : (buscarPadrao as typeof fetch)(entrada, opcoes),
+    );
+    envolver(<PaginaDeVoos />);
+
+    await screen.findByText('RV-2026-041');
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
+    const painel = screen.getByRole('dialog');
+    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
+    await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
+    await userEvent.type(within(painel).getByLabelText('Rel. Voo'), 'RV-2026-044');
+    await userEvent.type(within(painel).getByLabelText('Data do trecho'), '2026-10-05');
+    await userEvent.type(within(painel).getByLabelText('Origem'), 'SBSP');
+    await userEvent.type(within(painel).getByLabelText('Destino'), 'SBGR');
+    await userEvent.type(within(painel).getByLabelText('KM'), '0');
+    await userEvent.click(within(painel).getByRole('button', { name: 'Registrar trecho' }));
+
+    expect(await within(painel).findByRole('alert')).toHaveTextContent(
+      'Os quilômetros precisam ser maiores que zero.',
+    );
+    expect(within(painel).getByLabelText('Rel. Voo')).not.toHaveAttribute('aria-invalid', 'true');
+  });
 });

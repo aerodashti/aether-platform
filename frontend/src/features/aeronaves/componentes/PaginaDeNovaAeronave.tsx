@@ -197,7 +197,6 @@ export function PaginaDeNovaAeronave() {
             aoMudar={setMatricula}
             exemplo="PS-AER"
             maxLength={7}
-            erro={erro}
           />
           <CampoDeTexto
             rotulo="Fabricante"

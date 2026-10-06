@@ -9,12 +9,20 @@ const BASE = '/api';
 export class ErroDeApi extends Error {
   readonly status: number;
   readonly requisicao: string | null;
+  /** A mensagem de cada campo recusado pela validação, pelo nome do campo no JSON. */
+  readonly campos: Record<string, string>;
 
-  constructor(mensagem: string, status: number, requisicao: string | null) {
+  constructor(
+    mensagem: string,
+    status: number,
+    requisicao: string | null,
+    campos: Record<string, string> = {},
+  ) {
     super(mensagem);
     this.name = 'ErroDeApi';
     this.status = status;
     this.requisicao = requisicao;
+    this.campos = campos;
   }
 }
 
@@ -22,14 +30,27 @@ export class ErroDeApi extends Error {
 interface ProblemDetail {
   title?: string;
   detail?: string;
+  campos?: Record<string, string>;
 }
 
-async function lerDetalhe(resposta: Response): Promise<string> {
+/**
+ * O detalhe do erro e os campos recusados. Num 400 de validação o `detail` é sempre o genérico
+ * "Verifique os campos informados", que não diz o quê: a mensagem passa a ser a dos campos.
+ */
+async function lerProblema(
+  resposta: Response,
+): Promise<{ mensagem: string; campos: Record<string, string> }> {
   try {
     const problema = (await resposta.json()) as ProblemDetail;
-    return problema.detail ?? problema.title ?? resposta.statusText;
+    const campos = problema.campos ?? {};
+    const doCampo = Object.values(campos);
+    const mensagem =
+      doCampo.length > 0
+        ? doCampo.join(' ')
+        : (problema.detail ?? problema.title ?? resposta.statusText);
+    return { mensagem, campos };
   } catch {
-    return resposta.statusText;
+    return { mensagem: resposta.statusText, campos: {} };
   }
 }
 
@@ -110,9 +131,9 @@ async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
   contexto.registrar('requisicao', requisicao ?? 'sem-identificador');
 
   if (!resposta.ok) {
-    const detalhe = await lerDetalhe(resposta);
+    const { mensagem, campos } = await lerProblema(resposta);
     contexto.erro('Falha na requisição à API');
-    throw new ErroDeApi(detalhe, resposta.status, requisicao);
+    throw new ErroDeApi(mensagem, resposta.status, requisicao, campos);
   }
 
   if (resposta.status === 204 || resposta.headers.get('Content-Length') === '0') {

@@ -142,7 +142,6 @@ export function PainelDeAporte({ aporte, aeronaveInicial, aoFechar }: PainelDeAp
           inputMode="decimal"
           alinhamento="direita"
           exemplo="25.000,00"
-          erro={erro}
         />
       </div>
 
@@ -150,6 +149,15 @@ export function PainelDeAporte({ aporte, aeronaveInicial, aoFechar }: PainelDeAp
         O aporte é registrado como <strong>recebido</strong> — registre apenas depois que a
         transferência cair na conta.
       </Texto>
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>
