@@ -59,13 +59,18 @@
 }
 
 /* Dívida com o fundo: o mesmo número, em vermelho. */
-.saldoDevedor {
+/* O saldo é o número da tela, maior que os vencimentos, como no protótipo. */
+.saldoValor {
   margin: var(--espaco-1) 0 0;
-  font-size: var(--tamanho-g);
+  font-size: var(--tamanho-gg);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-g);
-  color: var(--cor-critico);
+  line-height: var(--altura-gg);
+  letter-spacing: var(--rastreio-titulo);
   font-variant-numeric: tabular-nums;
+}
+
+.saldoDevedor {
+  color: var(--cor-critico);
 }
 
 /* Duas colunas como no protótipo: registros à esquerda, dados da aeronave à direita. */

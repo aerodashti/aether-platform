@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDocumentos } from '@/compartilhado/documentos/useDocumentos';
 import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useSessao } from '@/compartilhado/sessao/sessao';
+import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
@@ -130,9 +131,10 @@ export function PaginaDeDetalheDaAeronave() {
             <div className={estilos.vencimento}>
               <dt className={estilos.vencimentoRotulo}>Saldo do fundo</dt>
               <dd
-                className={
-                  (saldo.saldoDoFundo ?? 0) < 0 ? estilos.saldoDevedor : estilos.vencimentoValor
-                }
+                className={juntarClasses(
+                  estilos.saldoValor,
+                  (saldo.saldoDoFundo ?? 0) < 0 && estilos.saldoDevedor,
+                )}
               >
                 {moedaEmTexto(saldo.saldoDoFundo)}
               </dd>

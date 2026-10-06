@@ -62,7 +62,7 @@
   display: grid;
   /* A coluna de ações tem largura fixa, do tamanho da confirmação: cada linha é uma grid, e uma
      coluna `auto` cresceria só na linha que está confirmando, desalinhando as outras. */
-  grid-template-columns: minmax(240px, 1fr) var(--armadura-data) var(--armadura-numero) 280px;
+  grid-template-columns: minmax(240px, 1fr) 160px 120px 280px;
   gap: var(--armadura-gap);
   align-items: center;
 }
