@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.manutencao;
 
+import br.com.aerodash.aether.aeronave.ContadoresDaAeronave;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -89,6 +90,24 @@ public class ParametroDeControle {
       return BigDecimal.valueOf(ChronoUnit.DAYS.between(hoje, dataLimite));
     }
     return limite.subtract(atual);
+  }
+
+  /**
+   * O valor do contador que este parâmetro acompanha: horas de célula, ciclos, ou nenhum — o de
+   * data se mede pelo calendário. Nulo é "não se aplica", não zero.
+   */
+  public BigDecimal atualEm(ContadoresDaAeronave contadores) {
+    return switch (tipo) {
+      case HORAS -> contadores.horasDeCelula();
+      case CICLOS -> BigDecimal.valueOf(contadores.ciclos());
+      case DATA -> null;
+    };
+  }
+
+  /** A situação a partir dos contadores da aeronave, sem quem pergunta saber qual contador vale. */
+  public SituacaoDoParametro situacaoEm(ContadoresDaAeronave contadores, LocalDate hoje) {
+    BigDecimal atual = atualEm(contadores);
+    return situacao(atual == null ? BigDecimal.ZERO : atual, hoje);
   }
 
   public SituacaoDoParametro situacao(BigDecimal atual, LocalDate hoje) {

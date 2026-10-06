@@ -11,4 +11,8 @@ public interface ManutencaoRepository extends JpaRepository<Manutencao, Long> {
 
   List<Manutencao> findByAeronaveIdAndStatusOrderByDataDesc(
       Long aeronaveId, StatusDaManutencao status);
+
+  /** As programadas cuja data já passou, da frota inteira: a Central de avisos as cobra. */
+  List<Manutencao> findByStatusAndDataBeforeOrderByDataAsc(
+      StatusDaManutencao status, java.time.LocalDate data);
 }
