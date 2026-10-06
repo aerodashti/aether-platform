@@ -66,6 +66,7 @@
 | Matrícula | `matricula` | Matrícula | `prefixo`, `registration`, `tailNumber` | Identidade da aeronave no RAB (`PS-MEP`). Sempre em maiúsculas e **sempre em monoespaçada na interface**. |
 | Situação regular | `situacaoRegular` | Situação | **`status`** | Conformidade regulatória agora: `REGULAR` ("Saudável"), `ATENCAO` ("Atenção"), `VENCIDO` ("Vencido"). Derivada dos vencimentos, nunca gravada. O protótipo escreve "Status" no cabeçalho da coluna; aqui é **Situação**. |
 | Documento da aeronave | `documentoDaAeronave` | — | `doc`, `certificado` (genérico) | Documento com vencimento próprio: hoje `CVA` e `RETA`. São os dois que decidem se a aeronave voa. |
+| Documento | `documento` | Documento | `anexo`, `arquivo` (como entidade), `doc` | Arquivo anexado a uma aeronave — contrato, apólice, CVA digitalizado, laudo. O banco guarda nome, tipo, tamanho e quem enviou; o conteúdo fica no armazenamento, sob uma chave UUID (ADR-0020). **Não confundir com Documento da aeronave** (linha acima), o tipo regulatório com vencimento. Remover apaga de verdade. |
 | Próximo vencimento | `proximoVencimento` | Próximo vencimento | `validade`, `dueDate` | O documento que vence primeiro. Conformidade é elo mais fraco, não média. |
 | Janela de atenção | `diasDeAtencao` | — | `threshold`, `alerta` | A partir de quantos dias para o vencimento a aeronave entra em atenção. Política por inquilino, não norma da ANAC. |
 | Poder voar | `podeVoar` | — | `ativa`, `disponivel` | Nenhum documento vencido. É a pergunta que a conformidade responde. |

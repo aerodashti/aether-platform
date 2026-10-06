@@ -16,6 +16,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 /**
  * Ponto único de tradução de exceção para resposta HTTP, no formato RFC 9457 Problem Details.
@@ -80,6 +81,16 @@ public class TratadorGlobalDeErros {
           default -> "O corpo da requisição não pôde ser lido.";
         };
     return montar(HttpStatus.BAD_REQUEST, "Requisição inválida", detalhe);
+  }
+
+  /** O multipart recusou o envio pelo tamanho antes de chegar a qualquer controller. */
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ProblemDetail tratarEnvioGrandeDemais(MaxUploadSizeExceededException excecao) {
+    contexto.registrarErro(excecao);
+    return montar(
+        HttpStatus.PAYLOAD_TOO_LARGE,
+        "Arquivo grande demais",
+        "Cada arquivo pode ter até 20 MB, e cada envio até 100 MB.");
   }
 
   @ExceptionHandler(Exception.class)

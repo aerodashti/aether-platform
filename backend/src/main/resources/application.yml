@@ -22,6 +22,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  # Documentos da aeronave: até 20 MB por arquivo, e um envio de vários de uma vez.
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 100MB
 
 server:
   port: 8080
@@ -51,6 +56,11 @@ aether:
     remetente: ${AETHER_EMAIL_REMETENTE:nao-responda@aether.aerodash.com.br}
     # Em desenvolvimento o front roda em http://localhost: um cookie `Secure` não seria enviado.
     cookie-seguro: ${AETHER_COOKIE_SEGURO:false}
+
+  # Onde os arquivos dos documentos ficam. Em produção, um diretório num volume persistente e
+  # incluído no backup (ADR-0020); trocar por bucket é trocar o adaptador de armazenamento.
+  documentos:
+    diretorio: ${AETHER_DOCUMENTOS_DIRETORIO:${user.home}/.aether/documentos}
 
 # Observabilidade: SDK do OpenTelemetry configurado por propriedade, sem Java Agent.
 otel:
