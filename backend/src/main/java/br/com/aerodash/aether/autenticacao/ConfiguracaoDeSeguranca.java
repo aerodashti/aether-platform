@@ -91,7 +91,7 @@ public class ConfiguracaoDeSeguranca {
         .hasRole(PapelDoUsuario.ADMINISTRADOR.name());
   }
 
-  /** As telas da operação: manutenção, custos, voos, frota e proprietários. */
+  /** As telas da operação: manutenção, custos, aportes, voos, frota e proprietários. */
   private void autorizarOperacao(
       AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
           rotas) {
@@ -105,6 +105,13 @@ public class ConfiguracaoDeSeguranca {
         .requestMatchers(HttpMethod.GET, "/custos", "/custos/**")
         .authenticated()
         .requestMatchers("/custos", "/custos/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // O fundo segue a mesma regra dos custos: o proprietário vê o que aportou e o que o
+        // fundo rendeu; registrar entrada de dinheiro é de quem gere a conta.
+        .requestMatchers(
+            HttpMethod.GET, "/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
+        .authenticated()
+        .requestMatchers("/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
         .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
         // Lançar e corrigir voo inclui o piloto: é ele quem volta do voo com os
         // horários realizados na mão. Ler continua sendo de quem tem sessão.
