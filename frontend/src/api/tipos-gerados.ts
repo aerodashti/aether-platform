@@ -718,6 +718,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/aeronaves/{aeronaveId}/documentos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista os documentos da aeronave, do mais recente ao mais antigo */
+        get: operations["listar_9"];
+        put?: never;
+        /** Anexa um ou mais arquivos, de até 20 MB cada */
+        post: operations["enviar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/aeronaves/{aeronaveId}/contratos": {
         parameters: {
             query?: never;
@@ -795,7 +813,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista as participações de todos os contratos vigentes */
-        get: operations["listar_9"];
+        get: operations["listar_10"];
         put?: never;
         post?: never;
         delete?: never;
@@ -885,6 +903,40 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/aeronaves/{aeronaveId}/documentos/{id}/conteudo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Baixa o arquivo */
+        get: operations["baixar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/aeronaves/{aeronaveId}/documentos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove o documento e o arquivo — não pode ser desfeito */
+        delete: operations["remover"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1641,6 +1693,23 @@ export interface components {
             /** @description Rateio e fundo */
             configuracaoFinanceira: components["schemas"]["ConfiguracaoFinanceiraRequest"];
         };
+        /** @description Documento anexado a uma aeronave */
+        DocumentoResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            nome?: string;
+            tipoDeConteudo?: string;
+            /**
+             * Format: int64
+             * @description Em bytes
+             */
+            tamanho?: number;
+            enviadoPor?: string;
+            /** Format: date-time */
+            criadoEm?: string;
+        };
         /** @description Definição de um novo contrato de participação */
         DefinirContratoRequest: {
             participacoes?: components["schemas"]["ParticipacaoRequest"][];
@@ -1999,6 +2068,15 @@ export interface components {
              * @example true
              */
             podeVoar?: boolean;
+        };
+        /** @description Documentos de uma aeronave */
+        DocumentosResponse: {
+            documentos?: components["schemas"]["DocumentoResponse"][];
+            /**
+             * Format: int64
+             * @description Soma dos tamanhos, em bytes
+             */
+            tamanhoTotal?: number;
         };
     };
     responses: never;
@@ -3351,6 +3429,56 @@ export interface operations {
             };
         };
     };
+    listar_9: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aeronaveId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentosResponse"];
+                };
+            };
+        };
+    };
+    enviar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aeronaveId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    arquivos: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["DocumentoResponse"][];
+                };
+            };
+        };
+    };
     consultar_1: {
         parameters: {
             query?: never;
@@ -3459,7 +3587,7 @@ export interface operations {
             };
         };
     };
-    listar_9: {
+    listar_10: {
         parameters: {
             query?: never;
             header?: never;
@@ -3607,6 +3735,50 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
                 };
+            };
+        };
+    };
+    baixar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aeronaveId: number;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    remover: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                aeronaveId: number;
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

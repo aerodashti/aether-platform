@@ -146,6 +146,11 @@ function montar(sessao: unknown, respostas: Respostas = {}) {
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));
       }
+      if (entrada.startsWith('/api/aeronaves/1/documentos')) {
+        return Promise.resolve(
+          respostaDe({ documentos: [{ id: 1 }, { id: 2 }], tamanhoTotal: 2048 }),
+        );
+      }
       if (entrada.startsWith('/api/fechamentos/saldos')) {
         return Promise.resolve(respostaDe(SALDOS));
       }
@@ -191,12 +196,12 @@ describe('PaginaDeDetalheDaAeronave', () => {
     ).toBeInTheDocument();
   });
 
-  it('o cabeçalho traz o saldo do fundo do fechamento, e não inventa documentos', async () => {
+  it('o cabeçalho traz o saldo do fundo do fechamento e a contagem de documentos', async () => {
     montar(GESTORA);
 
     const saldo = (await screen.findByText('Saldo do fundo')).parentElement as HTMLElement;
     expect(within(saldo).getByText(/1\.250,50/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Documentos/ })).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Documentos (2)' })).toBeInTheDocument();
   });
 
   it('o contrato mostra o % no rateio e o saldo de cada um, e os esconde ao editar', async () => {

@@ -70,23 +70,8 @@ class DocumentoIntegracaoTest {
     Cookie sessao = entrar();
     byte[] pdf = "%PDF-1.4 apólice".getBytes(StandardCharsets.UTF_8);
 
-    MvcResult enviados =
-        mockMvc
-            .perform(
-                multipart("/aeronaves/%d/documentos".formatted(psMep))
-                    .file(
-                        new MockMultipartFile(
-                            "arquivos", "Apólice RETA.pdf", "application/pdf", pdf))
-                    .file(
-                        new MockMultipartFile("arquivos", "foto.jpg", "image/jpeg", new byte[] {1}))
-                    .cookie(sessao))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.length()").value(2))
-            .andReturn();
-    long id = json.readTree(enviados.getResponse().getContentAsString()).get(0).get("id").asLong();
-    try (var arquivos = Files.list(pasta)) {
-      assertThat(arquivos.filter(Files::isRegularFile)).hasSize(2);
-    }
+    long id = enviarDois(psMep, pdf, sessao);
+    assertThat(arquivosNoDisco()).isEqualTo(2);
 
     mockMvc
         .perform(get("/aeronaves/%d/documentos".formatted(psMep)).cookie(sessao))
@@ -112,8 +97,31 @@ class DocumentoIntegracaoTest {
     mockMvc
         .perform(delete("/aeronaves/%d/documentos/%d".formatted(psMep, id)).cookie(sessao))
         .andExpect(status().isNoContent());
+    assertThat(arquivosNoDisco()).isEqualTo(1);
+  }
+
+  /** Envia o PDF e uma foto; devolve o id do PDF. */
+  private long enviarDois(Long aeronaveId, byte[] pdf, Cookie sessao) throws Exception {
+    MvcResult enviados =
+        mockMvc
+            .perform(
+                multipart("/aeronaves/%d/documentos".formatted(aeronaveId))
+                    .file(
+                        new MockMultipartFile(
+                            "arquivos", "Apólice RETA.pdf", "application/pdf", pdf))
+                    .file(
+                        new MockMultipartFile("arquivos", "foto.jpg", "image/jpeg", new byte[] {1}))
+                    .cookie(sessao))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andReturn();
+    long id = json.readTree(enviados.getResponse().getContentAsString()).get(0).get("id").asLong();
+    return json.readTree(enviados.getResponse().getContentAsString()).get(0).get("id").asLong();
+  }
+
+  private static long arquivosNoDisco() throws Exception {
     try (var arquivos = Files.list(pasta)) {
-      assertThat(arquivos.filter(Files::isRegularFile)).hasSize(1);
+      return arquivos.filter(Files::isRegularFile).count();
     }
   }
 

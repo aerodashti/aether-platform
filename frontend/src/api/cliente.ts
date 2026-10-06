@@ -72,6 +72,33 @@ export async function enviar<T>(
 }
 
 /**
+ * Envia arquivos como `multipart/form-data`, cada um sob o mesmo `campo`. O Content-Type não é
+ * definido aqui: o navegador o monta com o boundary, e defini-lo à mão quebraria o envio.
+ */
+export async function enviarArquivos<T>(
+  caminho: string,
+  campo: string,
+  arquivos: File[],
+): Promise<T> {
+  const formulario = new FormData();
+  for (const arquivo of arquivos) {
+    formulario.append(campo, arquivo);
+  }
+  const resposta = await fetch(`${BASE}${caminho}`, {
+    method: 'POST',
+    headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
+    credentials: 'same-origin',
+    body: formulario,
+  });
+  return conferir<T>(caminho, resposta);
+}
+
+/** O endereço de um recurso para o navegador abrir ou baixar, com o mesmo prefixo das chamadas. */
+export function enderecoDaApi(caminho: string): string {
+  return `${BASE}${caminho}`;
+}
+
+/**
  * Registra a correlação, traduz o erro e devolve o corpo. O 204 do backend não tem corpo: tentar
  * lê-lo como JSON quebraria os passos da recuperação, que respondem exatamente isso.
  */

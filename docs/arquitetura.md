@@ -162,6 +162,8 @@ src/
   `compartilhado/recorte/useRecorteDaUrl`, e `?registrar=1` pede à tela que abra o formulário de
   novo registro. É assim que o detalhe da aeronave chega aos lançamentos dela e que o "+ Registrar"
   da casca abre o formulário de outra feature sem importá-la (ADR-0018).
+- `compartilhado/documentos` tem a lista de documentos de uma aeronave: a tela de Documentos lista,
+  o detalhe conta.
 - `compartilhado/fundo` tem o saldo do fundo de cada aeronave e proprietário, do fechamento: a
   frota, o detalhe e os cartões de proprietário o mostram.
 
