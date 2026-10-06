@@ -10,6 +10,7 @@ import { useSair } from '@/features/autenticacao/api/useAcesso';
 
 import {
   IconeAeronave,
+  IconeBalanca,
   IconeCalendario,
   IconeCartaoDeIdentidade,
   IconeChave,
@@ -32,6 +33,7 @@ const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/voos/, titulo: 'Diário de voos' },
   { padrao: /^\/custos/, titulo: 'Lançamentos' },
   { padrao: /^\/aportes/, titulo: 'Aportes' },
+  { padrao: /^\/fechamento/, titulo: 'Fechamento' },
   { padrao: /^\/manutencao/, titulo: 'Manutenção' },
   { padrao: /^\/calendario/, titulo: 'Calendário' },
   { padrao: /^\/proprietarios/, titulo: 'Proprietários' },
@@ -148,6 +150,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/aportes" icone={<IconeMoedas />}>
               Aportes
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/fechamento" icone={<IconeBalanca />}>
+              Fechamento
             </LinkDeNavegacao>
           </li>
           <li>

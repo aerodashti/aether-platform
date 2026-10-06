@@ -1,0 +1,101 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 1280px;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: flex-end;
+}
+
+.competencia {
+  min-width: 180px;
+}
+
+/* As regras da aeronave ao lado do recorte, como no protótipo: quem lê o rateio sabe por qual
+   critério ele foi feito sem abrir a aeronave. */
+.regras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-left: auto;
+}
+
+.chip {
+  padding: var(--espaco-2) var(--espaco-4);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--espaco-4);
+  margin: 0;
+}
+
+.indicador {
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.indicadorRotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.indicadorValor {
+  margin: var(--espaco-2) 0 0;
+  font-size: var(--tamanho-gg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-gg);
+  font-variant-numeric: tabular-nums;
+}
+
+.painel {
+  overflow-x: auto;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.aviso {
+  padding: var(--espaco-4) var(--espaco-5);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  background: var(--cor-atencao-vestigio);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

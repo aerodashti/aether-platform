@@ -81,6 +81,19 @@ export function IconeMoedas() {
   );
 }
 
+/** Uma balança: o rateio que divide o mês entre os proprietários. */
+export function IconeBalanca() {
+  return (
+    <svg {...comuns}>
+      <path d="M12 4v16" />
+      <path d="M8 20h8" />
+      <path d="M5 7h14" />
+      <path d="M5 7l-3 6a3 3 0 0 0 6 0z" />
+      <path d="M19 7l-3 6a3 3 0 0 0 6 0z" />
+    </svg>
+  );
+}
+
 export function IconeChave() {
   return (
     <svg {...comuns}>

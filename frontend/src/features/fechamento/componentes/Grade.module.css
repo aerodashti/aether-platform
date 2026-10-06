@@ -1,0 +1,135 @@
+/* A régua da armadura. Mensal: proprietário, participação, horas, % uso, fixo, variável, total,
+   aportes e saldo. Período: competência, horas, fixo, variável, total, aportes, rendimentos,
+   resultado e saldo final. */
+.grade {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha,
+.totais {
+  display: grid;
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.mensal {
+  grid-template-columns:
+    var(--armadura-rotulo) var(--armadura-numero) var(--armadura-numero) var(--armadura-numero)
+    var(--armadura-numero) var(--armadura-numero) var(--armadura-numero) var(--armadura-numero)
+    var(--armadura-numero);
+}
+
+.periodo {
+  grid-template-columns:
+    var(--armadura-rotulo) var(--armadura-numero) var(--armadura-numero) var(--armadura-numero)
+    var(--armadura-numero) var(--armadura-numero) var(--armadura-numero) var(--armadura-numero)
+    var(--armadura-numero);
+}
+
+.cabecalho {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: right;
+}
+
+.cabecalho th:first-child {
+  text-align: left;
+}
+
+.linha {
+  min-height: var(--controle-altura-p);
+  padding: var(--espaco-1) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.totais {
+  min-height: var(--controle-altura-p);
+  padding: 0 var(--espaco-6);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  background: var(--cor-superficie-sutil);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.numero {
+  display: block;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.suave {
+  color: var(--cor-texto-suave);
+}
+
+.forte {
+  font-weight: var(--peso-forte);
+}
+
+/* Saldo é a única coluna com cor: dívida em vermelho, porque é o número que pede ação. */
+.devedor {
+  color: var(--cor-critico);
+}
+
+.dono {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .grade {
+    min-width: 960px;
+  }
+}
