@@ -8,7 +8,7 @@ export type AvisosResponse = components['schemas']['AvisosResponse'];
 export type AvisoResponse = components['schemas']['AvisoResponse'];
 export type CategoriaDoAviso = NonNullable<AvisoResponse['categoria']>;
 
-const CHAVE = ['avisos'] as const;
+export const CHAVE_DOS_AVISOS = ['avisos'] as const;
 
 /**
  * Os avisos da frota, derivados no servidor a cada leitura. O sino da casca e a Central leem o
@@ -17,7 +17,7 @@ const CHAVE = ['avisos'] as const;
  */
 export function useAvisos() {
   return useQuery({
-    queryKey: CHAVE,
+    queryKey: CHAVE_DOS_AVISOS,
     queryFn: () => buscar<AvisosResponse>('/avisos'),
     staleTime: 60_000,
   });
@@ -31,6 +31,6 @@ export function useMarcarLeitura() {
         contexto.registrar('avisos.quantidade', chaves.length);
         return enviar<void>('/avisos/leitura', { chaves, lido }, 'PUT');
       }),
-    onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE }),
+    onSuccess: () => void cliente.invalidateQueries({ queryKey: CHAVE_DOS_AVISOS }),
   });
 }
