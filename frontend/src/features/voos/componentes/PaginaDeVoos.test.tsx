@@ -32,7 +32,10 @@ const PROPRIETARIO_LOGADO = { nome: 'Rubens', email: 'rubens@x.com.br', papel: '
 const AERONAVES = [{ id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' }];
 const PROPRIETARIOS = [
   { id: 7, nome: 'Ricardo Meirelles', corDeIdentificacao: 'PETROLEO', situacao: 'ATIVO' },
+  // Ativo, mas sem participação na PS-MEP: não pode receber atribuição dela.
+  { id: 8, nome: 'Otávio Lins', corDeIdentificacao: 'AZUL', situacao: 'ATIVO' },
 ];
+const VINCULOS = [{ aeronaveId: 1, proprietarioId: 7, matricula: 'PS-MEP', percentual: 100 }];
 const DIARIO = {
   trechos: [
     {
@@ -77,6 +80,9 @@ function prepararFetch(sessao: unknown) {
       }
       if (entrada.startsWith('/api/aeronaves')) {
         return Promise.resolve(respostaDe(AERONAVES));
+      }
+      if (entrada.startsWith('/api/participacoes/vigentes')) {
+        return Promise.resolve(respostaDe(VINCULOS));
       }
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));
@@ -205,5 +211,21 @@ describe('PaginaDeVoos', () => {
       'Os quilômetros precisam ser maiores que zero.',
     );
     expect(within(painel).getByLabelText('Rel. Voo')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+  it('a atribuição só oferece quem é dono da aeronave escolhida', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />);
+
+    await screen.findByText('RV-2026-041');
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
+    const painel = screen.getByRole('dialog');
+    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
+    await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
+
+    const atribuicao = within(painel).getByLabelText('Atribuição (quem usou)');
+    expect(
+      await within(atribuicao).findByRole('option', { name: 'Ricardo Meirelles' }),
+    ).toBeInTheDocument();
+    expect(within(atribuicao).queryByRole('option', { name: 'Otávio Lins' })).toBeNull();
   });
 });

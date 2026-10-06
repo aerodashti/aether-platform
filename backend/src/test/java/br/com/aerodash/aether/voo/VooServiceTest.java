@@ -42,6 +42,7 @@ class VooServiceTest {
   @Mock private TrechoRepository trechos;
   @Mock private AeronaveRepository aeronaves;
   @Mock private ProprietarioRepository proprietarios;
+  @Mock private ParticipantesDoVoo participantes;
   @Mock private ContextoDaRequisicao contexto;
 
   private VooService service;
@@ -52,7 +53,12 @@ class VooServiceTest {
   void montar() {
     service =
         new VooService(
-            trechos, aeronaves, proprietarios, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
+            trechos,
+            aeronaves,
+            proprietarios,
+            participantes,
+            Clock.fixed(AGORA, ZoneOffset.UTC),
+            contexto);
     aeronave =
         new Aeronave(
             "PS-MEP",
@@ -70,6 +76,7 @@ class VooServiceTest {
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
     when(trechos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(true);
   }
 
   private TrechoRequest request(Long proprietarioId) {
@@ -87,6 +94,17 @@ class VooServiceTest {
         null,
         proprietarioId,
         null);
+  }
+
+  @Test
+  @DisplayName("quem nunca participou da aeronave não recebe o trecho: o rateio lhe cobraria o voo")
+  void recusaQuemNuncaParticipou() {
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(false);
+
+    assertThatThrownBy(() -> service.criar(request(7L)))
+        .isInstanceOf(VooInvalidoException.class)
+        .hasMessageContaining("Ricardo");
+    assertThat(aeronave.getContadores().ciclos()).isZero();
   }
 
   @Test

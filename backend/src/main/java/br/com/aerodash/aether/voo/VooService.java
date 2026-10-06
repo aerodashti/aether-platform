@@ -29,6 +29,7 @@ public class VooService {
   private final TrechoRepository trechos;
   private final AeronaveRepository aeronaves;
   private final ProprietarioRepository proprietarios;
+  private final ParticipantesDoVoo participantes;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
@@ -36,11 +37,13 @@ public class VooService {
       TrechoRepository trechos,
       AeronaveRepository aeronaves,
       ProprietarioRepository proprietarios,
+      ParticipantesDoVoo participantes,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.trechos = trechos;
     this.aeronaves = aeronaves;
     this.proprietarios = proprietarios;
+    this.participantes = participantes;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -75,7 +78,7 @@ public class VooService {
   @Transactional
   public TrechoResponse criar(TrechoRequest request) {
     Aeronave aeronave = exigirAeronave(request.aeronaveId());
-    validarAtribuicao(request.proprietarioId());
+    validarAtribuicao(aeronave.getId(), request.proprietarioId());
 
     Instant agora = Instant.now(relogio);
     Trecho trecho = new Trecho(aeronave.getId(), dadosDe(request), agora);
@@ -99,7 +102,7 @@ public class VooService {
       throw new VooInvalidoException(
           "A aeronave do trecho não muda: exclua o lançamento e relance na aeronave certa.");
     }
-    validarAtribuicao(request.proprietarioId());
+    validarAtribuicao(trecho.getAeronaveId(), request.proprietarioId());
 
     Aeronave aeronave = exigirAeronave(trecho.getAeronaveId());
     Instant agora = Instant.now(relogio);
@@ -120,7 +123,7 @@ public class VooService {
     contexto.registrar("trecho.excluido", id);
   }
 
-  private void validarAtribuicao(Long proprietarioId) {
+  private void validarAtribuicao(Long aeronaveId, Long proprietarioId) {
     if (proprietarioId == null) {
       contexto.decisao("trecho.vooDeManutencao", true);
       return;
@@ -135,6 +138,13 @@ public class VooService {
           "Proprietário inativo não recebe atribuição de voo: reative "
               + proprietario.getNome()
               + " antes.");
+    }
+    boolean participa = participantes.participaOuParticipou(aeronaveId, proprietarioId);
+    contexto.decisao("trecho.proprietarioParticipa", participa);
+    if (!participa) {
+      throw new VooInvalidoException(
+          proprietario.getNome()
+              + " nunca participou desta aeronave: inclua-o no contrato ou lance como manutenção.");
     }
   }
 

@@ -41,6 +41,7 @@ class CustoServiceTest {
   @Mock private CustoRepository custos;
   @Mock private AeronaveRepository aeronaves;
   @Mock private ProprietarioRepository proprietarios;
+  @Mock private ParticipantesDoCusto participantes;
   @Mock private ContextoDaRequisicao contexto;
 
   private CustoService service;
@@ -50,7 +51,12 @@ class CustoServiceTest {
   void montar() {
     service =
         new CustoService(
-            custos, aeronaves, proprietarios, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
+            custos,
+            aeronaves,
+            proprietarios,
+            participantes,
+            Clock.fixed(AGORA, ZoneOffset.UTC),
+            contexto);
     Aeronave aeronave =
         new Aeronave(
             "PS-MEP",
@@ -68,6 +74,7 @@ class CustoServiceTest {
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
     when(custos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(true);
   }
 
   private CustoRequest request(MoedaDoCusto moeda, BigDecimal cambio, Long dono) {
@@ -112,6 +119,17 @@ class CustoServiceTest {
     assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.BRL, null, 7L)))
         .isInstanceOf(CustoInvalidoException.class)
         .hasMessageContaining("Ricardo");
+  }
+
+  @Test
+  @DisplayName("quem nunca participou da aeronave não recebe o custo: o fechamento o cobraria")
+  void recusaQuemNuncaParticipou() {
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(false);
+
+    assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.BRL, null, 7L)))
+        .isInstanceOf(CustoInvalidoException.class)
+        .hasMessageContaining("Ricardo");
+    verify(custos, never()).save(any());
   }
 
   @Test

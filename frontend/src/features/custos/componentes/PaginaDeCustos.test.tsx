@@ -32,7 +32,10 @@ const PROPRIETARIO_LOGADO = { nome: 'Rubens', email: 'rubens@x.com.br', papel: '
 const AERONAVES = [{ id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' }];
 const PROPRIETARIOS = [
   { id: 7, nome: 'Ricardo Meirelles', corDeIdentificacao: 'PETROLEO', situacao: 'ATIVO' },
+  // Ativo, mas sem participação na PS-MEP: não pode receber atribuição dela.
+  { id: 8, nome: 'Otávio Lins', corDeIdentificacao: 'AZUL', situacao: 'ATIVO' },
 ];
+const VINCULOS = [{ aeronaveId: 1, proprietarioId: 7, matricula: 'PS-MEP', percentual: 100 }];
 const LANCAMENTOS = {
   custos: [
     {
@@ -79,6 +82,9 @@ function prepararFetch(sessao: unknown) {
       }
       if (entrada.startsWith('/api/aeronaves')) {
         return Promise.resolve(respostaDe(AERONAVES));
+      }
+      if (entrada.startsWith('/api/participacoes/vigentes')) {
+        return Promise.resolve(respostaDe(VINCULOS));
       }
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));

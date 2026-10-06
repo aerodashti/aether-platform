@@ -25,6 +25,7 @@ public class CustoService {
   private final CustoRepository custos;
   private final AeronaveRepository aeronaves;
   private final ProprietarioRepository proprietarios;
+  private final ParticipantesDoCusto participantes;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
@@ -32,11 +33,13 @@ public class CustoService {
       CustoRepository custos,
       AeronaveRepository aeronaves,
       ProprietarioRepository proprietarios,
+      ParticipantesDoCusto participantes,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.custos = custos;
     this.aeronaves = aeronaves;
     this.proprietarios = proprietarios;
+    this.participantes = participantes;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -107,6 +110,14 @@ public class CustoService {
             "Proprietário inativo não recebe atribuição de custo: reative "
                 + dono.getNome()
                 + " antes.");
+      }
+      boolean participa =
+          participantes.participaOuParticipou(request.aeronaveId(), request.proprietarioId());
+      contexto.decisao("custo.proprietarioParticipa", participa);
+      if (!participa) {
+        throw new CustoInvalidoException(
+            dono.getNome()
+                + " nunca participou desta aeronave: inclua-o no contrato ou rateie o custo.");
       }
     }
   }

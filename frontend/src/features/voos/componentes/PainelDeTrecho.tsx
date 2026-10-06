@@ -2,6 +2,10 @@ import { useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import {
+  podeReceberAtribuicao,
+  useVinculosVigentes,
+} from '@/compartilhado/participacoes/useVinculosVigentes';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
 import { AreaDeTexto } from '@/design-system/primitivos/AreaDeTexto';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -68,6 +72,13 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
 
   const aeronaves = useAeronaves();
   const proprietarios = useProprietarios();
+  const vinculos = useVinculosVigentes();
+  // Só quem é dono da aeronave recebe custo ou voo: o fechamento não tem conta para os outros.
+  const podeReceber = podeReceberAtribuicao(
+    vinculos.data,
+    aeronaveId,
+    trecho?.proprietarioId != null ? String(trecho.proprietarioId) : '',
+  );
   const registrar = useRegistrarTrecho();
   const corrigir = useCorrigirTrecho();
   const mutacao = editando ? corrigir : registrar;
@@ -131,7 +142,11 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
               rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
             })),
           ]}
-          aoMudar={setAeronaveId}
+          aoMudar={(escolhida) => {
+            setAeronaveId(escolhida);
+            // O dono de uma aeronave não é dono da outra.
+            setAtribuicao('');
+          }}
         />
         <CampoDeTexto
           rotulo="Rel. Voo"
@@ -192,7 +207,7 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
         opcoes={[
           { valor: '', rotulo: ATRIBUICAO_DE_MANUTENCAO },
           ...(proprietarios.data ?? [])
-            .filter((dono) => dono.situacao === 'ATIVO')
+            .filter((dono) => dono.situacao === 'ATIVO' && podeReceber(dono.id))
             .map((dono) => ({ valor: String(dono.id), rotulo: dono.nome ?? '' })),
         ]}
         aoMudar={setAtribuicao}
