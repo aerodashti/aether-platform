@@ -102,7 +102,7 @@ export function CartaoDeSeguranca() {
         </div>
         {pedirToken.isSuccess ? (
           <Texto variante="apoio" tom="positivo" como="p">
-            Código enviado para o e-mail cadastrado.
+            ✓ Código enviado para o e-mail cadastrado.
           </Texto>
         ) : null}
       </div>
