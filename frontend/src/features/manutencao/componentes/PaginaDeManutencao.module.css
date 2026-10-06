@@ -60,6 +60,8 @@
   font-weight: var(--peso-medio);
   line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
 }
 

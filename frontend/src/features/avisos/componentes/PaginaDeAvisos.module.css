@@ -29,16 +29,27 @@
 
 .indicadorRotulo {
   font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
   line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
 }
 
 .indicadorValor {
   margin: var(--espaco-2) 0 0;
-  font-size: var(--tamanho-gg);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-gg);
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-maximo);
+  line-height: var(--altura-ggg);
   font-variant-numeric: tabular-nums;
+}
+
+.valorCritico {
+  color: var(--cor-critico);
+}
+
+.valorAtencao {
+  color: var(--cor-atencao);
 }
 
 .indicadorApoio {
