@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Selecao } from '@/design-system/primitivos/Selecao';
@@ -14,6 +14,7 @@ import estilos from './PaginaDeCalendario.module.css';
 import {
   competenciaAtual,
   DIAS_DA_SEMANA,
+  hoje as diaDeHoje,
   semanasDaCompetencia,
   somarMeses,
   tituloDaCompetencia,
@@ -24,18 +25,24 @@ import {
  *
  * <p>É uma visualização, não um editor: clicar num trecho abre o diário — a tela dona da edição —
  * já no recorte certo. O protótipo edita aqui; a adaptação está em `docs/design-system.md`.
+ *
+ * <p>Aeronave e mês moram na URL, como nas telas de registro: o "Abrir" de um aviso chega aqui
+ * por `?aeronave=` e o recarregamento mantém o mês.
  */
 export function PaginaDeCalendario() {
   const aeronaves = useAeronaves();
   const primeira = aeronaves.data?.[0]?.id;
-  const [escolhida, setEscolhida] = useState('');
-  const [competencia, setCompetencia] = useState(competenciaAtual());
+  const recorte = useRecorteDaUrl(competenciaAtual());
   const navegar = useNavigate();
 
-  const aeronaveId = escolhida || (primeira != null ? String(primeira) : '');
+  const aeronaveId = recorte.aeronaveId || (primeira != null ? String(primeira) : '');
+  // Sem competência na URL (ou vazia, que aqui não tem sentido de "histórico"), o mês corrente.
+  const competencia = recorte.competencia || competenciaAtual();
+  const setCompetencia = (mudanca: (atual: string) => string) =>
+    recorte.setCompetencia(mudanca(competencia));
   const calendario = useCalendario(aeronaveId, competencia);
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = diaDeHoje();
   const semanas = semanasDaCompetencia(competencia);
 
   return (
@@ -49,7 +56,7 @@ export function PaginaDeCalendario() {
             valor: String(aeronave.id),
             rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
           }))}
-          aoMudar={setEscolhida}
+          aoMudar={recorte.setAeronaveId}
         />
         <div className={estilos.navegacaoDoMes}>
           <Botao
@@ -116,7 +123,9 @@ export function PaginaDeCalendario() {
                         variante="fantasma"
                         tamanho="pequeno"
                         rotuloAcessivel={`Abrir o diário no trecho ${trecho.relatorioDeVoo}`}
-                        aoClicar={() => void navegar('/voos')}
+                        aoClicar={() =>
+                          void navegar(`/voos?aeronave=${aeronaveId}&competencia=${competencia}`)
+                        }
                       >
                         <span className={estilos.trecho}>
                           <PontoDeCor

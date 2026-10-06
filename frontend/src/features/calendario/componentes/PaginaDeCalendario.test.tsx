@@ -1,17 +1,28 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeCalendario } from './PaginaDeCalendario';
 import { competenciaAtual } from './rotulos';
 
-function envolver(conteudo: ReactNode) {
+function OndeEstou() {
+  const local = useLocation();
+  return <p>em {local.pathname + local.search}</p>;
+}
+
+function envolver(conteudo: ReactNode, url = '/calendario') {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <MemoryRouter>
-      <QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>
+    <MemoryRouter initialEntries={[url]}>
+      <QueryClientProvider client={cliente}>
+        <Routes>
+          <Route path="/calendario" element={conteudo} />
+          <Route path="/voos" element={<OndeEstou />} />
+        </Routes>
+      </QueryClientProvider>
     </MemoryRouter>,
   );
 }
@@ -27,7 +38,10 @@ function respostaDe(corpo: unknown) {
 }
 
 const SESSAO = { nome: 'Patrícia', email: 'p@x.com.br', papel: 'GESTOR' };
-const AERONAVES = [{ id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' }];
+const AERONAVES = [
+  { id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' },
+  { id: 2, matricula: 'PR-KRT', modelo: 'Phenom 300E' },
+];
 const HOJE = new Date().toISOString().slice(0, 10);
 
 const DIARIO = {
@@ -69,7 +83,7 @@ describe('PaginaDeCalendario', () => {
     vi.restoreAllMocks();
   });
 
-  it('pinta o trecho do dia e marca a manutenção programada', async () => {
+  function prepararFetch() {
     vi.stubGlobal(
       'fetch',
       vi.fn((entrada: string) => {
@@ -85,7 +99,10 @@ describe('PaginaDeCalendario', () => {
         return Promise.resolve(respostaDe(PAINEL));
       }),
     );
+  }
 
+  it('pinta o trecho do dia e marca a manutenção programada', async () => {
+    prepararFetch();
     envolver(<PaginaDeCalendario />);
 
     expect(await screen.findByText('SBSP→SBRJ')).toBeInTheDocument();
@@ -95,6 +112,21 @@ describe('PaginaDeCalendario', () => {
     expect(ano && mes).toBeTruthy();
     expect(
       screen.getByRole('button', { name: /Abrir o diário no trecho RV-2026-041/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('chega na aeronave da URL e o trecho abre o diário no mesmo recorte', async () => {
+    prepararFetch();
+    envolver(<PaginaDeCalendario />, '/calendario?aeronave=2');
+
+    await screen.findByRole('option', { name: 'PR-KRT — Phenom 300E' });
+    expect(screen.getByRole('combobox', { name: 'Aeronave' })).toHaveValue('2');
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Abrir o diário no trecho RV-2026-041/ }),
+    );
+
+    expect(
+      await screen.findByText(`em /voos?aeronave=2&competencia=${competenciaAtual()}`),
     ).toBeInTheDocument();
   });
 });

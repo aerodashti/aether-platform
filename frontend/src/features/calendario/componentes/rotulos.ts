@@ -73,3 +73,9 @@ export function competenciaAtual(): string {
   const agora = new Date();
   return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
 }
+
+/** O dia de hoje no fuso de quem usa, "AAAA-MM-DD" — o mesmo cuidado da competência atual. */
+export function hoje(): string {
+  const agora = new Date();
+  return `${competenciaAtual()}-${String(agora.getDate()).padStart(2, '0')}`;
+}
