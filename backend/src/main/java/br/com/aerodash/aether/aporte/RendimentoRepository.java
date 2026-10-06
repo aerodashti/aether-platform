@@ -11,4 +11,7 @@ public interface RendimentoRepository extends JpaRepository<Rendimento, Long> {
       Long aeronaveId, LocalDate inicio, LocalDate fim);
 
   List<Rendimento> findByDataBetweenOrderByDataDescIdDesc(LocalDate inicio, LocalDate fim);
+
+  /** O histórico inteiro da aeronave, para o saldo acumulado do fechamento. */
+  List<Rendimento> findByAeronaveId(Long aeronaveId);
 }

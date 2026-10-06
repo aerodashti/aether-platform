@@ -106,6 +106,9 @@ public class ConfiguracaoDeSeguranca {
         .authenticated()
         .requestMatchers("/custos", "/custos/**")
         .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // O fechamento é só leitura, calculado a cada pedido: todo papel o lê.
+        .requestMatchers(HttpMethod.GET, "/fechamentos/**")
+        .authenticated()
         // O fundo segue a mesma regra dos custos: o proprietário vê o que aportou e o que o
         // fundo rendeu; registrar entrada de dinheiro é de quem gere a conta.
         .requestMatchers(

@@ -16,4 +16,7 @@ public record ConfiguracaoFinanceiraRequest(
     @NotNull(message = "Informe o dia de fechamento.")
         @Min(value = 1, message = "O dia de fechamento vai de 1 a 28.")
         @Max(value = 28, message = "O dia de fechamento vai de 1 a 28.")
-        Integer diaDeFechamento) {}
+        Integer diaDeFechamento,
+    @Schema(description = "Saldo atual do fundo; negativo quando os proprietários devem")
+        @NotNull(message = "Informe o saldo atual do fundo.")
+        BigDecimal saldoDeAbertura) {}

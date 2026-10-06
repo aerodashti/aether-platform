@@ -180,7 +180,7 @@ class AeronaveControllerTest {
                      "vencimentoCva":"2027-06-01","vencimentoReta":"2027-08-01",
                      "contadores":{"horasDeCelula":0,"ciclos":0,"kmVoados":0},
                      "configuracaoFinanceira":{"baseDoRateio":"POR_USO","modeloDeAporte":"FIXO",
-                       "periodicidadeDoAporteMeses":1,"diaDeFechamento":1}}
+                       "periodicidadeDoAporteMeses":1,"diaDeFechamento":1,"saldoDeAbertura":0}}
                     """))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.matricula").exists());

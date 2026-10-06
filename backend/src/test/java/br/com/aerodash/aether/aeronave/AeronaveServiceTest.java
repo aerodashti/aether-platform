@@ -84,7 +84,7 @@ class AeronaveServiceTest {
                 service.atualizarConfiguracaoFinanceira(
                     1L,
                     new ConfiguracaoFinanceiraRequest(
-                        BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1)))
+                        BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1, BigDecimal.ZERO)))
         .isInstanceOf(ConfiguracaoFinanceiraInvalidaException.class)
         .hasMessageContaining("1, 2, 3, 4, 6 ou 12");
   }
@@ -118,7 +118,12 @@ class AeronaveServiceTest {
         new ContadoresRequest(
             new BigDecimal("1200.0"), 950, new BigDecimal("510000"), null, null, null, null),
         new ConfiguracaoFinanceiraRequest(
-            BaseDoRateio.POR_PROPRIEDADE, ModeloDeAporte.FIXO, 1, new BigDecimal("60000"), 5));
+            BaseDoRateio.POR_PROPRIEDADE,
+            ModeloDeAporte.FIXO,
+            1,
+            new BigDecimal("60000"),
+            5,
+            new BigDecimal("-12500.00")));
   }
 
   @Test

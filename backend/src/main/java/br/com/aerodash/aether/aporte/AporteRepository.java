@@ -14,4 +14,7 @@ public interface AporteRepository extends JpaRepository<Aporte, Long> {
       Long aeronaveId, YearMonth de, YearMonth ate);
 
   List<Aporte> findByCompetenciaBetweenOrderByDataDescIdDesc(YearMonth de, YearMonth ate);
+
+  /** O histórico inteiro da aeronave: o fechamento acumula o saldo desde o primeiro aporte. */
+  List<Aporte> findByAeronaveId(Long aeronaveId);
 }

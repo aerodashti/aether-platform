@@ -131,13 +131,14 @@ class AeronaveIntegracaoTest {
                        "horasMotor1":118.0,"horasMotor2":118.0},
                      "configuracaoFinanceira":{"baseDoRateio":"POR_PROPRIEDADE",
                        "modeloDeAporte":"FIXO","periodicidadeDoAporteMeses":3,
-                       "valorDoAporte":45000,"diaDeFechamento":10}}
+                       "valorDoAporte":45000,"diaDeFechamento":10,"saldoDeAbertura":-8200.50}}
                     """))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.matricula").value("PS-NOV"))
         .andExpect(jsonPath("$.base").value("SBJD"))
         .andExpect(jsonPath("$.contadores.ciclos").value(98))
-        .andExpect(jsonPath("$.configuracaoFinanceira.diaDeFechamento").value(10));
+        .andExpect(jsonPath("$.configuracaoFinanceira.diaDeFechamento").value(10))
+        .andExpect(jsonPath("$.configuracaoFinanceira.saldoDeAbertura").value(-8200.50));
 
     mockMvc
         .perform(get("/aeronaves").cookie(sessao))
@@ -160,7 +161,7 @@ class AeronaveIntegracaoTest {
                      "contadores":{"horasDeCelula":0,"ciclos":0,"kmVoados":0},
                      "configuracaoFinanceira":{"baseDoRateio":"POR_USO",
                        "modeloDeAporte":"FIXO","periodicidadeDoAporteMeses":1,
-                       "diaDeFechamento":1}}
+                       "diaDeFechamento":1,"saldoDeAbertura":0}}
                     """))
         .andExpect(status().isConflict());
   }

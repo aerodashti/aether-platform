@@ -48,7 +48,8 @@ public class AeronaveMapper {
             f.modeloDeAporte(),
             f.periodicidadeDoAporteMeses(),
             f.valorDoAporte(),
-            f.diaDeFechamento()));
+            f.diaDeFechamento(),
+            f.saldoDeAbertura()));
   }
 
   public AeronaveResponse paraLinhaDaFrota(Aeronave aeronave, LocalDate hoje, int diasDeAtencao) {

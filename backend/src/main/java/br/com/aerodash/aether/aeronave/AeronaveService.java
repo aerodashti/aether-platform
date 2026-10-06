@@ -146,7 +146,8 @@ public class AeronaveService {
             request.modeloDeAporte(),
             request.periodicidadeDoAporteMeses(),
             request.valorDoAporte(),
-            request.diaDeFechamento());
+            request.diaDeFechamento(),
+            request.saldoDeAbertura());
     contexto.decisao("aeronave.periodicidadeValida", nova.possuiPeriodicidadeValida());
     if (!nova.possuiPeriodicidadeValida()) {
       throw new ConfiguracaoFinanceiraInvalidaException(
