@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 import { enviar } from '@/api/cliente';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
@@ -43,10 +44,16 @@ export function useEntrar() {
  */
 export function useSair() {
   const cliente = useQueryClient();
+  const navegar = useNavigate();
   return useMutation({
     mutationFn: () =>
       contexto.interacao('sair', () => enviar<void>('/autenticacao/sessao', undefined, 'DELETE')),
-    onSuccess: () => cliente.clear(),
+    // Primeiro sai da área logada, depois esvazia o cache: `clear` não avisa quem já está montado,
+    // e a guarda da rota continuaria vendo a sessão antiga — a casca ficava na tela, vazia.
+    onSuccess: () => {
+      void navegar('/entrar', { replace: true });
+      cliente.clear();
+    },
   });
 }
 
