@@ -69,11 +69,13 @@
 
 .cabecalhoDaGrade {
   padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
-  background: var(--cor-superficie-sutil);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -89,7 +91,7 @@
 
 .linha {
   min-height: var(--controle-altura-g);
-  padding: var(--espaco-2) var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-6);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 

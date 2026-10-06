@@ -15,19 +15,21 @@
   display: grid;
   grid-template-columns:
     var(--armadura-rotulo-longo) var(--armadura-estado) var(--armadura-estado)
-    var(--armadura-data) var(--armadura-acao-texto);
+    var(--armadura-estado) var(--armadura-acao-texto);
   gap: var(--armadura-gap);
   align-items: center;
 }
 
 .cabecalho {
   padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
-  background: var(--cor-superficie-sutil);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -39,7 +41,7 @@
 
 .linha {
   min-height: var(--controle-altura-p);
-  padding: 0 var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-6);
   /* Fio de 1px entre linhas; a régua de estrutura fica reservada para seções e totais. */
   border-bottom: 1px solid var(--cor-borda-suave);
 }
