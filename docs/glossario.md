@@ -24,7 +24,12 @@
 | Contadores da aeronave | `contadores` | — | `totalizadores`, `medidores` | Totais acumulados: horas de célula, ciclos, km voados, horas por motor e APU. Declarados no cadastro e corrigidos só por administrador até o diário de voos alimentá-los. Motor 2 e APU nulos significam "não tem", não zero. |
 | Base do rateio | `baseDoRateio` | Base do rateio | `criterio`, `metodo` | Como o custo se divide: `POR_USO` (horas/km voados) ou `POR_PROPRIEDADE` (% do contrato). |
 | Aporte | `aporte` | Aporte | `contribuicao`, `deposito` | Entrada de dinheiro do proprietário no fundo da aeronave, registrada **só depois de recebida** (data do crédito nunca no futuro) e só por quem participa ou participou da aeronave. O modelo de cobrança é `FIXO` ou `PROPORCIONAL_AO_USO`, com periodicidade em meses (1, 2, 3, 4, 6 ou 12). |
-| Fundo | `fundo` | Fundo da aeronave | `caixa`, `conta`, `reserva` | O dinheiro de uma aeronave: entra por aportes e rendimentos, sai pelos custos. O saldo por proprietário é do fechamento, porque depende do rateio. |
+| Fundo | `fundo` | Fundo da aeronave | `caixa`, `conta`, `reserva` | O dinheiro de uma aeronave: parte do saldo de abertura, entra por aportes e rendimentos, sai pelos custos. O saldo por proprietário é do fechamento, porque depende do rateio. |
+| Saldo de abertura | `saldoDeAbertura` | Saldo atual do fundo (no cadastro) | `saldoInicial`, `saldoAnterior` (é outra coisa) | O dinheiro que o fundo já tinha quando a aeronave chegou ao Aether. Pode ser negativo, quando os proprietários devem. É o ponto de partida do fechamento, distribuído pela participação do primeiro contrato. |
+| Fechamento | `fechamento` | Fechamento | `apuracao` (como tela), `closing` | O rateio de uma competência: quanto de cada custo coube a cada proprietário e o saldo dele no fundo. Calculado a cada leitura, nunca gravado (ADR-0019). |
+| Rateio | `rateio` | Rateio | `divisao`, `split`, `alocacao` | A divisão de um custo entre os proprietários. Atribuído → inteiro para ele; fixo → pelo % do contrato vigente na data; variável → pelas horas do voo vinculado, senão pelas horas do mês (base por uso), senão pelo %. Rendimento e saldo de abertura → pelo %. |
+| Saldo acumulado | `saldoAcumulado` | Saldo acum. | `saldo` (sozinho, quando ambíguo), `balance` | A conta de um proprietário no fundo de uma aeronave: saldo anterior + aportes + rendimentos − o que lhe coube pagar. Positivo é crédito; negativo, valor a aportar. A soma das contas é o saldo do fundo. |
+| % no rateio | `percentualNoRateio` | % no rateio | `percentualDeCusto` | A fatia dos custos de uma competência que coube a um proprietário. Distinto do **% de propriedade**: com base por uso, quem voou mais paga mais. Sem custo no mês, não existe (—). |
 | Rendimento | `rendimento` | Rendimento | `juros`, `receita`, `yield` | O que a aplicação do saldo do fundo rendeu num crédito. Não tem proprietário: é rateado pela participação. O valor é o creditado pelo banco; saldo aplicado e taxa são só o extrato. |
 | Competência | `competencia` | Competência | `mesDeReferencia`, `periodo` (para um mês só) | O mês a que um registro se refere, `AAAA-MM`. No aporte, é independente da data do crédito — o de setembro cai em outubro; no rendimento e no custo, é o mês da data. |
 | Dia de fechamento | `diaDeFechamento` | Dia de fechamento da fatura | `dataDeCorte` | Dia do mês em que a fatura da aeronave fecha, de 1 a 28 — fevereiro decide o teto. |
@@ -121,4 +126,5 @@ O bundle foi lido e a **tela de entrada** teve seus rótulos incorporados na se�
 A tela de **Usuários** teve seu vocabulário incorporado na mesma seção, junto com o backend que a
 serve. As demais telas do bundle (visão geral, frota, lançamentos, rateio, manutenção, voos, aportes,
 fechamento) ainda não: cada uma traz vocabulário próprio — rateio, saldo — que entra aqui quando
-a tela for implementada, não antes. Aportes trouxe fundo, rendimento e competência.
+a tela for implementada, não antes. Aportes trouxe fundo, rendimento e competência; o Fechamento
+trouxe rateio, saldo de abertura, saldo acumulado e % no rateio.

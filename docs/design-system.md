@@ -117,14 +117,13 @@ Trocar o tema é escrever `data-theme` no elemento raiz. Nenhum componente preci
 rolagem e autofill do navegador nasçam na cor certa — os tokens sozinhos não alcançam esses
 elementos.
 
-### A tela de Aeronaves é uma lista de cartões, com dois números dos três
+### A tela de Aeronaves é uma lista de cartões, com os três números
 
 É a lista do Projeto final: um cartão por aeronave com matrícula e modelo, a etiqueta de situação
-(dot e rótulo sobre o vestígio da mesma cor), os números à direita e a seta que abre o detalhe. O
-protótipo mostra Saldo do fundo · Custo da competência · Proprietários; só o último está aqui,
-contado dos vínculos vigentes (`GET /participacoes/vigentes`) — os outros dois pertencem a aportes
-e a lançamentos, e **coluna vazia não existe**. Enquanto os vínculos não chegam o cartão omite o
-número; nunca inventa um zero.
+(dot e rótulo sobre o vestígio da mesma cor), os números à direita e a seta que abre o detalhe.
+Saldo do fundo e custo da competência vêm do fechamento (`GET /fechamentos/saldos`), saldo
+devedor em vermelho; proprietários, dos vínculos vigentes (`GET /participacoes/vigentes`).
+Enquanto cada fonte não chega o cartão omite o número dela; nunca inventa um zero.
 
 Duas diferenças deliberadas em relação ao protótipo, as duas por regra do próprio brief:
 
@@ -295,6 +294,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
 | Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
@@ -326,8 +326,7 @@ Lançamentos e Voos já filtrados pela aeronave (`?aeronave=`).
   identificadores, como na frota).
 - A **consequência da situação** ao lado da etiqueta — "RETA vence em 12 dias", em âmbar para
   Atenção e vermelho só para Vencido —, porque "Atenção" sozinho não diz o quê nem quando.
-- Os **vencimentos de CVA e RETA** à direita do cabeçalho, no lugar do "Saldo do fundo" do
-  protótipo, até aportes existir.
+- Os **vencimentos de CVA e RETA** à direita do cabeçalho, ao lado do "Saldo do fundo".
 - O **histórico num cartão com faixa de cabeçalho**, como as demais seções (no protótipo é um
   cartão com o título inline).
 - **Ações de linha com texto** ("Remover", "Editar") em vez dos quadrados de glifo do protótipo:
@@ -337,8 +336,8 @@ Lançamentos e Voos já filtrados pela aeronave (`?aeronave=`).
 - **"Tripulante"** em todo o cartão, onde o protótipo escreve "piloto": é o termo do glossário
   (piloto é papel de usuário).
 
-**O que ficou de fora, e a feature dona:** "Documentos (n)" (documentos); "Saldo do fundo",
-"% no rateio", "Saldo acumulado", a fatura e a cobertura do fundo (aportes e rateio); licença e
+**O que ficou de fora, e a feature dona:** "Documentos (n)" (documentos); a fatura e a cobertura
+do fundo (ciclo de fatura); licença e
 habilitações e "Remover piloto" (extensão do tripulante e endpoint de remoção — excluir de verdade
 não existe no domínio); o botão de cor por proprietário (a cor é do cadastro de Proprietários); o
 formulário de tripulante embutido no cartão (o painel modal existente cobre todos os campos).
@@ -352,6 +351,23 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
+
+### Fechamento segue o Projeto final, sem a exportação de extratos
+
+Uma aeronave por vez (o seletor não tem "todas": o rateio é de um fundo), Mensal ou Período, os
+chips com as regras da aeronave e os indicadores do protótipo. No mensal, a grade por proprietário
+com o TOTAL, saldo devedor em vermelho; o nome abre o **extrato**, que vai do saldo anterior ao
+acumulado linha a linha. No período, uma linha por competência, e clicar abre o mês. O extrato e
+os indicadores vieram das strings do protótipo (`i18n-en.js`), porque o HTML é truncado antes.
+
+**Decisões nossas:** "Aportes e rendimentos" como um indicador só (o protótipo tem "Aportes
+recebidos"; o rendimento também entra no fundo e esconder isso desfecha a conta); a coluna
+**Rendimentos** no período; a nota sob a grade que explica a conta do saldo e por que as horas do
+TOTAL não incluem voo de manutenção; o **aviso** quando há custo sem contrato para ratear.
+
+**De fora:** a seleção de linhas e o **"Baixar extratos"** (Excel/PDF) — exportação é peça
+própria; e o **ciclo de fatura** pelo dia de fechamento ("a fatura atual será estendida…") — a
+competência aqui é o mês civil, como em Lançamentos.
 
 ### Aportes segue o Projeto final, com o formulário do aporte e os indicadores por inferência
 
@@ -368,16 +384,15 @@ o aporte de setembro cai em outubro; o proprietário vem do **contrato vigente**
 servidor também aceita quem já participou, para quitar o que devia); a exclusão confirma **na
 linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×").
 
-**De fora, e a feature dona:** o **saldo do fundo** — ele desconta os custos rateados, e quem
-rateia é o fechamento; a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
+**De fora:** a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
 **atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
 meses e os campos De/Até fazem o resto.
 
 ### A Nova aeronave tem quatro seções, não cinco
 
-Do protótipo ficaram de fora, cada uma esperando a feature dona: o **saldo atual do fundo** e a
-distribuição dele por proprietário (pertencem a aportes) e a seção de **documentos** (pertence à
-tela de documentos, que envolve armazenamento de arquivo). Entrou o que o protótipo não tem: o
+Do protótipo ficou de fora a seção de **documentos** (pertence à tela de documentos, que envolve
+armazenamento de arquivo). O **saldo atual do fundo** está na seção Rateio e fundo, obrigatório e
+aceitando negativo; o fechamento o distribui pela participação do primeiro contrato. Entrou o que o protótipo não tem: o
 **vencimento do CVA** — a situação regulatória da frota é derivada dele, e cadastrar sem CVA
 criaria uma linha sem a coluna que dá sentido à tela. O contrato inicial de participações é um
 segundo POST na rota do contrato: `aeronave` importar `participacao` criaria ciclo entre features,
@@ -391,7 +406,7 @@ protótipo também tem o gatilho dentro do combobox vazio ("Nenhum proprietário
 existe aqui: a seleção é um `<select>` nativo, sem estado vazio próprio — o botão do cabeçalho
 cobre o caso.
 
-### A tela de Proprietários é uma grade de cartões, sem o saldo
+### A tela de Proprietários é uma grade de cartões
 
 É a tela do Projeto final: um cartão por proprietário, com avatar de iniciais, documento e contato
 numa linha, as ações à direita e, embaixo, uma linha por aeronave em que ele participa — matrícula,
@@ -400,8 +415,8 @@ para a grade inteira (o contrato é quem sabe quem é dono de quanto, por isso a
 participação, não do proprietário), e chegam à parte da lista de proprietários: enquanto não
 chegam, o cartão diz "sem vínculo", nunca fica em branco.
 
-O **saldo** que o protótipo mostra ao lado de cada barra não está aqui: pertence a aportes, e
-**coluna vazia não existe**. O "Excluir" do protótipo é "Desativar": excluir de verdade não existe
+O **saldo** ao lado de cada barra é a conta do proprietário no fundo daquela aeronave, do
+fechamento (`compartilhado/fundo`), em vermelho quando devedor. O "Excluir" do protótipo é "Desativar": excluir de verdade não existe
 neste domínio (glossário), e o inativo mostra a etiqueta e o "Reativar", como em Usuários.
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
