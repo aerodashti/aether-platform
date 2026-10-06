@@ -183,6 +183,20 @@ describe('PaginaDeDetalheDaAeronave', () => {
     expect(screen.queryByRole('button', { name: /Documentos/ })).not.toBeInTheDocument();
   });
 
+  it('os atalhos levam aos lançamentos e aos voos já filtrados por esta aeronave', async () => {
+    montar(GESTORA);
+
+    const atalhos = await screen.findByRole('navigation', { name: 'Registros desta aeronave' });
+    expect(within(atalhos).getByRole('link', { name: 'Lançamentos →' })).toHaveAttribute(
+      'href',
+      '/custos?aeronave=1',
+    );
+    expect(within(atalhos).getByRole('link', { name: 'Voos →' })).toHaveAttribute(
+      'href',
+      '/voos?aeronave=1',
+    );
+  });
+
   it('mostra o contrato vigente numa tabela e o histórico num cartão próprio', async () => {
     montar(GESTORA);
 

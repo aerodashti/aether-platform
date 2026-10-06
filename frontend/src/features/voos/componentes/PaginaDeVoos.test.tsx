@@ -2,13 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeVoos } from './PaginaDeVoos';
 
-function envolver(conteudo: ReactNode) {
+function envolver(conteudo: ReactNode, url = '/') {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={cliente}>
+      <MemoryRouter initialEntries={[url]}>{conteudo}</MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
 
 function respostaDe(corpo: unknown, status = 200) {
@@ -120,6 +125,15 @@ describe('PaginaDeVoos', () => {
     expect(within(totais).getByText('1,2 h')).toBeInTheDocument();
     expect(within(totais).getByText('423')).toBeInTheDocument();
     expect(within(totais).getByText('2 pousos')).toBeInTheDocument();
+  });
+
+  it('chega filtrada pela URL, e ?registrar=1 abre o painel de trecho', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?aeronave=1&registrar=1');
+
+    expect(await screen.findByLabelText('Partida prevista')).toBeInTheDocument();
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas.some((url) => url.startsWith('/api/voos?aeronave=1&competencia='))).toBe(true);
   });
 
   it('o piloto lança e corrige; o proprietário só lê', async () => {

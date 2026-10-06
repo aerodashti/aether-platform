@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
@@ -17,8 +18,8 @@ import { TabelaDeTrechos } from './TabelaDeTrechos';
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; trecho: TrechoResponse } | null;
 
 export function PaginaDeVoos() {
-  const [aeronaveId, setAeronaveId] = useState('');
-  const [competencia, setCompetencia] = useState(competenciaAtual());
+  const { aeronaveId, competencia, pediuRegistro, setAeronaveId, setCompetencia, atenderRegistro } =
+    useRecorteDaUrl(competenciaAtual());
   const [painel, setPainel] = useState<Painel>(null);
   const { usuario } = useSessao();
   const aeronaves = useAeronaves();
@@ -29,6 +30,14 @@ export function PaginaDeVoos() {
     usuario?.papel === 'ADMINISTRADOR' ||
     usuario?.papel === 'GESTOR' ||
     usuario?.papel === 'PILOTO';
+
+  // O "+ Registrar" da casca chega aqui por ?registrar=1.
+  useEffect(() => {
+    if (pediuRegistro && podeLancar) {
+      setPainel({ modo: 'novo' });
+      atenderRegistro();
+    }
+  }, [pediuRegistro, podeLancar, atenderRegistro]);
 
   return (
     <div className={estilos.tela}>

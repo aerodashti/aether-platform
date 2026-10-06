@@ -135,6 +135,11 @@ export function PaginaDeDetalheDaAeronave() {
             podeGerir={podeGerir}
             aoEditar={() => setPainel('financeiro')}
           />
+          {/* Os registros desta aeronave moram nas telas donas deles; o link chega já filtrado. */}
+          <nav className={estilos.atalhos} aria-label="Registros desta aeronave">
+            <LinkDeTexto para={`/custos?aeronave=${aeronaveId}`}>Lançamentos →</LinkDeTexto>
+            <LinkDeTexto para={`/voos?aeronave=${aeronaveId}`}>Voos →</LinkDeTexto>
+          </nav>
         </div>
       </div>
 
