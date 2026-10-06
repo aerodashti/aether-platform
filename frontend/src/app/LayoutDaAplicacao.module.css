@@ -128,8 +128,17 @@
 
   /* Com o "+ Registrar" na barra, nome e e-mail espremeriam o título até sumir: no celular o
      avatar basta para dizer quem está logado. */
+  /* O título ganha a linha inteira e as ações descem: com "+ Registrar", sino, avatar e "Sair"
+     na mesma linha, o título virava "A…". */
   .topo {
-    padding: 0 var(--espaco-5);
+    flex-wrap: wrap;
+    row-gap: var(--espaco-3);
+    height: auto;
+    padding: var(--espaco-4) var(--espaco-5);
+  }
+
+  .titulo {
+    flex-basis: 100%;
   }
 
   .nomeEEmail {

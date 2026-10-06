@@ -75,7 +75,7 @@ export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAer
               {moedaEmTexto(saldo.saldoDoFundo)}
             </span>
           </span>
-          <span className={estilos.numero}>
+          <span className={juntarClasses(estilos.numero, estilos.foraDoCelular)}>
             <span className={estilos.rotulo}>Custo {competenciaAbreviada(saldo.competencia)}</span>
             <span className={estilos.valor}>{moedaEmTexto(saldo.custoDaCompetencia)}</span>
           </span>
@@ -83,7 +83,7 @@ export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAer
       ) : null}
 
       {proprietarios !== undefined ? (
-        <span className={estilos.numero}>
+        <span className={juntarClasses(estilos.numero, estilos.foraDoCelular)}>
           <span className={estilos.rotulo}>Proprietários</span>
           <span className={estilos.valor}>{proprietarios}</span>
         </span>
