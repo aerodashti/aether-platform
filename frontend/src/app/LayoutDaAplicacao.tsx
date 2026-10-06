@@ -29,6 +29,7 @@ import estilos from './LayoutDaAplicacao.module.css';
 const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/$/, titulo: 'Saúde' },
   { padrao: /^\/aeronaves\/nova$/, titulo: 'Nova aeronave' },
+  { padrao: /^\/aeronaves\/[^/]+\/documentos$/, titulo: 'Documentos' },
   { padrao: /^\/aeronaves\/[^/]+$/, titulo: 'Aeronave' },
   { padrao: /^\/aeronaves$/, titulo: 'Aeronaves' },
   { padrao: /^\/voos/, titulo: 'Diário de voos' },

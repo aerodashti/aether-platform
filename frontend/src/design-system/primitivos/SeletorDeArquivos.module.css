@@ -1,0 +1,47 @@
+/* O mesmo cromo do Botao secundário médio: na tela, ele é um botão. */
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--controle-altura-m);
+  padding: 0 var(--espaco-5);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-m);
+  color: var(--cor-acento-texto);
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  transition-property: background-color, border-color;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.botao:hover {
+  background: var(--cor-fundo);
+  border-color: var(--cor-borda-forte);
+}
+
+/* O foco é do input escondido; quem mostra o anel é o rótulo que o contém. */
+.botao:focus-within {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.carregando {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.entrada {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

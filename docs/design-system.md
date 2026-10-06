@@ -203,6 +203,7 @@ acessibilidade ficam em um lugar só.
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
 | `Abas` | `primitivos/Abas.tsx` | `contagem` por aba | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
 | `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
+| `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando` | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo com cromo de botão secundário. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo |
 | `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo` opcional | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
 | `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
@@ -294,6 +295,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Documentos (resumo, envio de vários, grade, remoção) | **Implementada** — `features/documentos`, do Projeto final. Ver a nota abaixo |
 | Tela de Trocas de KM (filtro por proprietário, abas, grade, painel) | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo |
 | Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
 | Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
@@ -353,6 +355,22 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
 
+### Documentos segue o Projeto final, com o voltar na casca
+
+Em `/aeronaves/:id/documentos`, aberta pelo "Documentos (n)" do cabeçalho do detalhe. A matrícula
+e o resumo ("2 documentos · 293 KB"), o "+ Adicionar documentos" (vários de uma vez) e a grade
+com nome, data de adição e tamanho. O nome baixa o arquivo.
+
+**Decisões nossas:** o "← PS-MEP" do protótipo é o voltar da casca, com a matrícula no resumo;
+"enviado por" embaixo do nome; o "×" é **Remover** com texto e confirmação na linha que diz "Não
+pode ser desfeito" (decisão de produto: remover apaga de verdade); arquivo acima de 20 MB é
+recusado antes de sair do navegador. O armazenamento é o disco do servidor, atrás de uma porta
+(ADR-0020).
+
+**De fora:** a seção de documentos do cadastro de aeronave (anexa-se depois de criar, pelo
+detalhe) e a pré-visualização do arquivo na tela — o download é sempre como anexo, por
+segurança.
+
 ### Trocas de KM segue o Projeto final, sem a observação editável na linha
 
 O filtro por proprietário, as abas Pendentes · Realizadas com contagem, a grade (data, aeronave,
@@ -408,8 +426,9 @@ meses e os campos De/Até fazem o resto.
 
 ### A Nova aeronave tem quatro seções, não cinco
 
-Do protótipo ficou de fora a seção de **documentos** (pertence à tela de documentos, que envolve
-armazenamento de arquivo). O **saldo atual do fundo** está na seção Rateio e fundo, obrigatório e
+Do protótipo ficou de fora a seção de **documentos**: os arquivos se anexam depois de criar, pela
+tela de Documentos da aeronave — anexar antes de a aeronave existir pediria um armazenamento
+provisório só para isso. O **saldo atual do fundo** está na seção Rateio e fundo, obrigatório e
 aceitando negativo; o fechamento o distribui pela participação do primeiro contrato. Entrou o que o protótipo não tem: o
 **vencimento do CVA** — a situação regulatória da frota é derivada dele, e cadastrar sem CVA
 criaria uma linha sem a coluna que dá sentido à tela. O contrato inicial de participações é um

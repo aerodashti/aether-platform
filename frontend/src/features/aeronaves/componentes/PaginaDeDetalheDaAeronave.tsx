@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { useDocumentos } from '@/compartilhado/documentos/useDocumentos';
 import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -28,8 +29,7 @@ type PainelAberto = 'ficha' | 'financeiro' | null;
  * colunas — contrato, histórico e tripulação à esquerda; ficha técnica e configuração
  * financeira à direita.
  *
- * <p>O "Documentos (n)" do cabeçalho do protótipo não está aqui: pertence a documentos, que ainda
- * não existe — coluna vazia não existe. O saldo do fundo vem do fechamento.
+ * <p>"Documentos (n)" abre a tela de documentos da aeronave; o saldo do fundo vem do fechamento.
  */
 export function PaginaDeDetalheDaAeronave() {
   const { id } = useParams();
@@ -38,6 +38,8 @@ export function PaginaDeDetalheDaAeronave() {
   const { usuario, ehAdministrador } = useSessao();
   const [painel, setPainel] = useState<PainelAberto>(null);
   const saldos = useSaldosDoFundo();
+  const documentos = useDocumentos(aeronaveId);
+  const navegar = useNavigate();
   const saldo = saldoDaAeronave(saldos.data, aeronaveId);
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
@@ -105,6 +107,15 @@ export function PaginaDeDetalheDaAeronave() {
             )}
           </Texto>
         ) : null}
+        <Botao
+          variante="secundario"
+          tamanho="pequeno"
+          aoClicar={() => void navegar(`/aeronaves/${aeronaveId}/documentos`)}
+        >
+          {documentos.data
+            ? `Documentos (${documentos.data.documentos?.length ?? 0})`
+            : 'Documentos'}
+        </Botao>
         <span className={estilos.espaco} />
         <dl className={estilos.vencimentos}>
           <div className={estilos.vencimento}>

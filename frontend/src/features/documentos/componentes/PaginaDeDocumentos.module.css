@@ -1,0 +1,151 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 1280px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.resumo {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: baseline;
+}
+
+/* A matrícula em mono, como em toda a interface: o "← PS-MEP" do protótipo, com o voltar na
+   casca. */
+.matricula {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+}
+
+.alerta {
+  padding: var(--espaco-4) var(--espaco-5);
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  background: var(--cor-critico-vestigio);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.painel {
+  overflow-x: auto;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+/* Nome, data, tamanho e a ação: o nome leva o resto da largura. */
+.grade {
+  display: block;
+  width: 100%;
+  min-width: 640px;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalhoDaGrade,
+.linha {
+  display: grid;
+  /* A coluna de ações tem largura fixa, do tamanho da confirmação: cada linha é uma grid, e uma
+     coluna `auto` cresceria só na linha que está confirmando, desalinhando as outras. */
+  grid-template-columns: minmax(240px, 1fr) var(--armadura-data) var(--armadura-numero) 280px;
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.cabecalhoDaGrade {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalhoDaGrade th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.cabecalhoDaGrade th.aDireita {
+  text-align: right;
+}
+
+.linha {
+  min-height: var(--controle-altura-g);
+  padding: var(--espaco-2) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.sub {
+  display: block;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+}
+
+.dado {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.numero {
+  display: block;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
