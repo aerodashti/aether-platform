@@ -55,9 +55,17 @@
   border-bottom: 1px solid var(--cor-borda);
 }
 
-/* O título da tela ocupa o começo da barra e empurra a identificação para o fim. */
-.topo > h1 {
+/* O título da tela (com o voltar, nas telas internas) ocupa o começo da barra e empurra o
+   "+ Registrar" e a identificação para o fim. */
+.titulo {
+  display: flex;
   flex: 1;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.titulo > h1 {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;

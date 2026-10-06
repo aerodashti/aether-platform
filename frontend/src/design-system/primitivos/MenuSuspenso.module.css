@@ -1,0 +1,109 @@
+.raiz {
+  position: relative;
+  flex: none;
+}
+
+/* O gatilho é o botão secundário do Projeto final com a borda um degrau mais forte: é a ação
+   global da casca, e precisa se destacar do branco do cabeçalho sem virar primária. */
+.gatilho {
+  display: inline-flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  height: var(--controle-altura-g);
+  padding: 0 var(--espaco-5);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: var(--raio-m);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-m);
+  color: var(--cor-acento-texto);
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: background-color, border-color;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.gatilho:hover {
+  background: var(--cor-hover);
+}
+
+.gatilho:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.seta {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+}
+
+.painel {
+  position: absolute;
+  top: calc(100% + var(--espaco-3));
+  right: 0;
+  z-index: var(--camada-menu);
+  width: 262px;
+  padding: var(--espaco-3);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-3);
+}
+
+.painel[hidden] {
+  display: none;
+}
+
+.titulo {
+  padding: var(--espaco-2) var(--espaco-4) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  letter-spacing: var(--rastreio-legenda);
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  width: 100%;
+  padding: var(--espaco-3) var(--espaco-4);
+  background: transparent;
+  border: 0;
+  border-radius: var(--raio-m);
+  font-family: var(--fonte-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--cor-hover);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
+
+.itemRotulo {
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  color: var(--cor-texto);
+}
+
+.itemApoio {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}

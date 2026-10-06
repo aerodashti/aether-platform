@@ -89,10 +89,6 @@ export function PaginaDeDetalheDaAeronave() {
 
   return (
     <div className={estilos.tela}>
-      <nav aria-label="Trilha">
-        <LinkDeTexto para="/aeronaves">← Aeronaves</LinkDeTexto>
-      </nav>
-
       <header className={estilos.cabecalho}>
         <span className={estilos.matricula}>{detalhe.matricula}</span>
         <span className={estilos.subtitulo}>{subtitulo}</span>
