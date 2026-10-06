@@ -63,10 +63,12 @@
 }
 
 /* Um aviso por linha: o que é, onde e até quando, a situação e as ações. A régua à esquerda tem a
-   cor da gravidade — a única cor da linha, e só enquanto não lido. */
+   cor da gravidade — a única cor da linha, e só enquanto não lido. Cada linha é uma grade própria:
+   com a coluna de ações em `auto`, o "Marcar como não lido", mais largo, desalinhava a linha lida
+   das outras. */
 .aviso {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 180px 96px auto;
+  grid-template-columns: minmax(0, 1fr) 180px 96px 232px;
   gap: var(--espaco-5);
   align-items: center;
   padding: var(--espaco-4) var(--espaco-6);
