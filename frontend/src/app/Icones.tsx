@@ -94,6 +94,16 @@ export function IconeBalanca() {
   );
 }
 
+/** Duas setas em sentidos opostos: horas que vão e voltam entre proprietários. */
+export function IconeTroca() {
+  return (
+    <svg {...comuns}>
+      <path d="M4 8h14l-3-3" />
+      <path d="M20 16H6l3 3" />
+    </svg>
+  );
+}
+
 export function IconeChave() {
   return (
     <svg {...comuns}>

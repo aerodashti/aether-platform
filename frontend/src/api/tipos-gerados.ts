@@ -22,6 +22,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/trocas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Corrige uma troca */
+        put: operations["atualizar_1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rendimentos/{id}": {
         parameters: {
             query?: never;
@@ -31,7 +48,7 @@ export interface paths {
         };
         get?: never;
         /** Corrige um rendimento */
-        put: operations["atualizar_1"];
+        put: operations["atualizar_2"];
         post?: never;
         /** Exclui um rendimento registrado por engano */
         delete: operations["excluir_1"];
@@ -49,7 +66,7 @@ export interface paths {
         };
         get?: never;
         /** Atualiza o cadastro de um proprietário */
-        put: operations["atualizar_2"];
+        put: operations["atualizar_3"];
         post?: never;
         delete?: never;
         options?: never;
@@ -66,7 +83,7 @@ export interface paths {
         };
         get?: never;
         /** Corrige uma manutenção */
-        put: operations["atualizar_3"];
+        put: operations["atualizar_4"];
         post?: never;
         /** Exclui um evento */
         delete: operations["excluir_2"];
@@ -137,7 +154,7 @@ export interface paths {
         };
         get?: never;
         /** Corrige um lançamento */
-        put: operations["atualizar_4"];
+        put: operations["atualizar_5"];
         post?: never;
         /** Exclui um lançamento feito por engano */
         delete: operations["excluir_3"];
@@ -155,7 +172,7 @@ export interface paths {
         };
         get?: never;
         /** Corrige um aporte */
-        put: operations["atualizar_5"];
+        put: operations["atualizar_6"];
         post?: never;
         /** Exclui um aporte registrado por engano */
         delete: operations["excluir_4"];
@@ -224,7 +241,7 @@ export interface paths {
         };
         get?: never;
         /** Atualiza um tripulante, situação incluída */
-        put: operations["atualizar_6"];
+        put: operations["atualizar_7"];
         post?: never;
         delete?: never;
         options?: never;
@@ -319,6 +336,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/trocas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** As trocas de uma situação, com as contagens e o saldo do proprietário */
+        get: operations["listar_2"];
+        put?: never;
+        /** Registra uma troca, pendente até a devolução */
+        post: operations["registrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trocas/{id}/reabertura": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Volta a troca para pendente — para o engano */
+        post: operations["reabrir"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trocas/{id}/conclusao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registra a devolução das horas */
+        post: operations["concluir"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/rendimentos": {
         parameters: {
             query?: never;
@@ -327,7 +396,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista os rendimentos do recorte, com o total somado no servidor */
-        get: operations["listar_2"];
+        get: operations["listar_3"];
         put?: never;
         /** Registra um rendimento já creditado */
         post: operations["criar_1"];
@@ -345,7 +414,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista os proprietários em ordem de nome */
-        get: operations["listar_3"];
+        get: operations["listar_4"];
         put?: never;
         /** Cadastra um proprietário */
         post: operations["criar_2"];
@@ -417,7 +486,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Reabre uma conclusão feita por engano */
-        post: operations["reabrir"];
+        post: operations["reabrir_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -434,7 +503,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Conclui: sai das programadas e entra no histórico permanente */
-        post: operations["concluir"];
+        post: operations["concluir_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -466,7 +535,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista o recorte pedido, com fixos e variáveis somados no servidor */
-        get: operations["listar_4"];
+        get: operations["listar_5"];
         put?: never;
         /** Registra um lançamento; em USD o BRL é derivado do câmbio, uma vez */
         post: operations["criar_3"];
@@ -603,7 +672,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista os aportes do recorte, com o total aportado somado no servidor */
-        get: operations["listar_5"];
+        get: operations["listar_6"];
         put?: never;
         /** Registra um aporte já recebido */
         post: operations["criar_4"];
@@ -621,7 +690,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-        get: operations["listar_6"];
+        get: operations["listar_7"];
         put?: never;
         /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
         post: operations["criar_5"];
@@ -639,7 +708,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-        get: operations["listar_7"];
+        get: operations["listar_8"];
         put?: never;
         /** Vincula um tripulante à aeronave */
         post: operations["criar_6"];
@@ -726,7 +795,7 @@ export interface paths {
             cookie?: never;
         };
         /** Lista as participações de todos os contratos vigentes */
-        get: operations["listar_8"];
+        get: operations["listar_9"];
         put?: never;
         post?: never;
         delete?: never;
@@ -893,6 +962,64 @@ export interface components {
             corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
             vooDeManutencao?: boolean;
             observacoes?: string;
+        };
+        /** @description Horas cedidas entre proprietários de uma aeronave */
+        TrocaRequest: {
+            /** Format: int64 */
+            aeronaveId: number;
+            /** Format: date */
+            data: string;
+            /**
+             * Format: int64
+             * @description Quem cedeu as horas
+             */
+            cedenteId: number;
+            /**
+             * Format: int64
+             * @description Quem recebeu e vai devolver
+             */
+            recebedorId: number;
+            horas: number;
+            km?: number;
+            /** @description Valor combinado por hora, para acerto em dinheiro */
+            valorPorHora?: number;
+            relatorioDeVoo?: string;
+            observacao?: string;
+        };
+        /** @description Troca de KM */
+        TrocaResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            aeronaveId?: number;
+            matricula?: string;
+            modelo?: string;
+            /** Format: date */
+            data?: string;
+            /** Format: int64 */
+            cedenteId?: number;
+            nomeDoCedente?: string;
+            /** @enum {string} */
+            corDoCedente?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
+            /** Format: int64 */
+            recebedorId?: number;
+            nomeDoRecebedor?: string;
+            /** @enum {string} */
+            corDoRecebedor?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
+            horas?: number;
+            km?: number;
+            valorPorHora?: number;
+            /** @description Horas × R$/hora; nulo sem valor combinado */
+            valorTotal?: number;
+            relatorioDeVoo?: string;
+            observacao?: string;
+            /** @enum {string} */
+            situacao?: "PENDENTE" | "CONCLUIDA";
+            /**
+             * Format: date
+             * @description Data da devolução; nula enquanto pendente
+             */
+            concluidaEm?: string;
         };
         /** @description Um rendimento da aplicação do fundo */
         RendimentoRequest: {
@@ -1605,6 +1732,23 @@ export interface components {
              */
             totalDePaginas?: number;
         };
+        /** @description Horas a devolver nas trocas pendentes */
+        SaldoDeHoras: {
+            /** Format: int64 */
+            proprietarioId?: number;
+            /** @description Positivo: ele deve horas; negativo: devem a ele; zero: quite */
+            horasADevolver?: number;
+        };
+        /** @description Trocas de KM de um recorte */
+        TrocasResponse: {
+            trocas?: components["schemas"]["TrocaResponse"][];
+            /** Format: int64 */
+            pendentes?: number;
+            /** Format: int64 */
+            concluidas?: number;
+            /** @description Só com proprietário no filtro */
+            saldo?: components["schemas"]["SaldoDeHoras"];
+        };
         /** @description Situação de um componente da plataforma */
         ComponenteDeSaudeResponse: {
             /**
@@ -1922,6 +2066,32 @@ export interface operations {
         };
         requestBody: {
             content: {
+                "application/json": components["schemas"]["TrocaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrocaResponse"];
+                };
+            };
+        };
+    };
+    atualizar_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
                 "application/json": components["schemas"]["RendimentoRequest"];
             };
         };
@@ -1957,7 +2127,7 @@ export interface operations {
             };
         };
     };
-    atualizar_2: {
+    atualizar_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -1983,7 +2153,7 @@ export interface operations {
             };
         };
     };
-    atualizar_3: {
+    atualizar_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2143,7 +2313,7 @@ export interface operations {
             };
         };
     };
-    atualizar_4: {
+    atualizar_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -2189,7 +2359,7 @@ export interface operations {
             };
         };
     };
-    atualizar_5: {
+    atualizar_6: {
         parameters: {
             query?: never;
             header?: never;
@@ -2313,7 +2483,7 @@ export interface operations {
             };
         };
     };
-    atualizar_6: {
+    atualizar_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -2504,6 +2674,98 @@ export interface operations {
         parameters: {
             query?: {
                 aeronave?: number;
+                proprietario?: number;
+                situacao?: "PENDENTE" | "CONCLUIDA";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrocasResponse"];
+                };
+            };
+        };
+    };
+    registrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrocaRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrocaResponse"];
+                };
+            };
+        };
+    };
+    reabrir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrocaResponse"];
+                };
+            };
+        };
+    };
+    concluir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TrocaResponse"];
+                };
+            };
+        };
+    };
+    listar_3: {
+        parameters: {
+            query?: {
+                aeronave?: number;
                 de?: string;
                 ate?: string;
             };
@@ -2548,7 +2810,7 @@ export interface operations {
             };
         };
     };
-    listar_3: {
+    listar_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -2682,7 +2944,7 @@ export interface operations {
             };
         };
     };
-    reabrir: {
+    reabrir_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2704,7 +2966,7 @@ export interface operations {
             };
         };
     };
-    concluir: {
+    concluir_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -2750,7 +3012,7 @@ export interface operations {
             };
         };
     };
-    listar_4: {
+    listar_5: {
         parameters: {
             query?: {
                 aeronave?: number;
@@ -2949,7 +3211,7 @@ export interface operations {
             };
         };
     };
-    listar_5: {
+    listar_6: {
         parameters: {
             query?: {
                 aeronave?: number;
@@ -2997,7 +3259,7 @@ export interface operations {
             };
         };
     };
-    listar_6: {
+    listar_7: {
         parameters: {
             query?: never;
             header?: never;
@@ -3041,7 +3303,7 @@ export interface operations {
             };
         };
     };
-    listar_7: {
+    listar_8: {
         parameters: {
             query?: never;
             header?: never;
@@ -3197,7 +3459,7 @@ export interface operations {
             };
         };
     };
-    listar_8: {
+    listar_9: {
         parameters: {
             query?: never;
             header?: never;

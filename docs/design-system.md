@@ -294,6 +294,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Trocas de KM (filtro por proprietário, abas, grade, painel) | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo |
 | Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
 | Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
@@ -351,6 +352,23 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
+
+### Trocas de KM segue o Projeto final, sem a observação editável na linha
+
+O filtro por proprietário, as abas Pendentes · Realizadas com contagem, a grade (data, aeronave,
+cedeu → recebeu, horas, KM, R$/hora com o total embaixo, observação) e as ações: Concluir na
+pendente, Reabrir na realizada, Editar nas duas. O painel e as mensagens vieram das strings do
+protótipo. Com proprietário no filtro, a frase do saldo de horas ("tem 1,3 h a receber de volta",
+"está quite") — o "a devolver" do protótipo dito dos dois lados.
+
+**Decisões nossas:** a troca **não mexe no rateio** (decisão de produto de 2026-10-06): o custo
+continua com quem voou, e a tela diz isso; o Rel. Voo é opcional e aparece na observação; a data
+da devolução aparece na linha da realizada ("↩"); "Recebeu" não oferece quem já está em "Cedeu".
+A grade sai da armadura nas colunas de proprietário e R$/hora, que precisam de mais largura.
+
+**De fora:** a observação editável direto na linha (o Editar cobre), a paginação (trocas são
+dezenas por ano) e a "Permuta" das strings do protótipo, que ajustaria as horas do rateio — o
+oposto da decisão acima.
 
 ### Fechamento segue o Projeto final, sem a exportação de extratos
 

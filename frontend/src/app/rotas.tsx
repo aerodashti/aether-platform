@@ -14,6 +14,7 @@ import { PaginaDeFechamento } from '@/features/fechamento/componentes/PaginaDeFe
 import { PaginaDeManutencao } from '@/features/manutencao/componentes/PaginaDeManutencao';
 import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/PaginaDeProprietarios';
 import { PaginaSaude } from '@/features/saude/componentes/PaginaSaude';
+import { PaginaDeTrocas } from '@/features/trocas/componentes/PaginaDeTrocas';
 import { PaginaDeUsuarios } from '@/features/usuarios/componentes/PaginaDeUsuarios';
 import { PaginaDeVoos } from '@/features/voos/componentes/PaginaDeVoos';
 
@@ -35,6 +36,7 @@ export function Rotas() {
           <Route path="/aeronaves/nova" element={<PaginaDeNovaAeronave />} />
           <Route path="/aeronaves/:id" element={<PaginaDeDetalheDaAeronave />} />
           <Route path="/voos" element={<PaginaDeVoos />} />
+          <Route path="/trocas" element={<PaginaDeTrocas />} />
           <Route path="/custos" element={<PaginaDeCustos />} />
           <Route path="/aportes" element={<PaginaDeAportes />} />
           <Route path="/fechamento" element={<PaginaDeFechamento />} />
