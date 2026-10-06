@@ -1,6 +1,7 @@
 /* Um cartão por aeronave: identificação, situação, números à direita e a seta — o item de lista
    do protótipo, com cada bloco numa coluna de largura própria. */
 .cartao {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: var(--espaco-5);
@@ -27,6 +28,8 @@
 }
 
 .matricula {
+  position: relative;
+  z-index: 1;
   font-size: var(--tamanho-g);
   line-height: var(--altura-g);
 }
@@ -85,4 +88,13 @@
     min-width: 0;
     text-align: left;
   }
+}
+
+/* O cartão inteiro abre o detalhe, como no protótipo: o link da seta se estende sobre ele. Continua
+   sendo um link de verdade — abrir em nova aba e o teclado funcionam —, e a matrícula, que leva ao
+   mesmo lugar, fica por cima. */
+.seta a::after {
+  position: absolute;
+  inset: 0;
+  content: '';
 }
