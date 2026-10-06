@@ -17,6 +17,10 @@ public interface ContratoDeParticipacaoRepository
   @EntityGraph(attributePaths = "participacoes")
   List<ContratoDeParticipacao> findByFimDaVigenciaIsNull();
 
+  /** Todos os contratos da aeronave, do primeiro ao vigente, com as participações: o fechamento. */
+  @EntityGraph(attributePaths = "participacoes")
+  List<ContratoDeParticipacao> findByAeronaveIdOrderByInicioDaVigenciaAsc(Long aeronaveId);
+
   /** Se o proprietário está ou esteve em algum contrato da aeronave, vigente ou arquivado. */
   boolean existsByAeronaveIdAndParticipacoesProprietarioId(Long aeronaveId, Long proprietarioId);
 

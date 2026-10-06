@@ -64,6 +64,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+.devedor {
+  color: var(--cor-critico);
+}
+
 .qualificador {
   font-size: var(--tamanho-xs);
   line-height: var(--altura-xs);

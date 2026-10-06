@@ -22,14 +22,17 @@ public record ConfiguracaoFinanceira(
     @Column(name = "periodicidade_do_aporte_meses", nullable = false)
         int periodicidadeDoAporteMeses,
     @Column(name = "valor_do_aporte") BigDecimal valorDoAporte,
-    @Column(name = "dia_de_fechamento", nullable = false) int diaDeFechamento) {
+    @Column(name = "dia_de_fechamento", nullable = false) int diaDeFechamento,
+    /** O saldo do fundo no cadastro; pode ser negativo, quando os proprietários devem. */
+    @Column(name = "saldo_de_abertura", nullable = false) BigDecimal saldoDeAbertura) {
 
   /** As periodicidades que existem no produto; qualquer outra é erro de entrada. */
   public static final Set<Integer> PERIODICIDADES_VALIDAS = Set.of(1, 2, 3, 4, 6, 12);
 
   /** O padrão de quem ainda não configurou: rateio por uso, aporte fixo mensal, fatura no dia 1. */
   public static ConfiguracaoFinanceira padrao() {
-    return new ConfiguracaoFinanceira(BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 1, null, 1);
+    return new ConfiguracaoFinanceira(
+        BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 1, null, 1, BigDecimal.ZERO);
   }
 
   public boolean possuiPeriodicidadeValida() {

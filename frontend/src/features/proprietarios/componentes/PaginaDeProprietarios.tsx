@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from 'react';
 
+import { useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import {
   agruparPorProprietario,
   useVinculosVigentes,
@@ -43,6 +44,7 @@ export function PaginaDeProprietarios() {
   // Os vínculos chegam à parte e não seguram a grade: sem eles o cartão mostra "sem vínculo"
   // por um instante, e com eles as barras aparecem — nunca um cartão em branco.
   const vinculos = useVinculosVigentes();
+  const saldos = useSaldosDoFundo();
   const vinculosPorProprietario = agruparPorProprietario(vinculos.data);
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
@@ -134,6 +136,7 @@ export function PaginaDeProprietarios() {
               key={proprietario.id}
               proprietario={proprietario}
               vinculos={vinculosPorProprietario.get(proprietario.id ?? 0) ?? []}
+              saldos={saldos.data}
               podeGerir={podeGerir}
               aoEditar={(alvo) => setPainel({ modo: 'editar', proprietario: alvo })}
             />

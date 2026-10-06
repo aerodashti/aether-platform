@@ -10,6 +10,7 @@ import { PaginaDeLogin } from '@/features/autenticacao/componentes/PaginaDeLogin
 import { PaginaDeCalendario } from '@/features/calendario/componentes/PaginaDeCalendario';
 import { PaginaDeConfiguracoes } from '@/features/configuracoes/componentes/PaginaDeConfiguracoes';
 import { PaginaDeCustos } from '@/features/custos/componentes/PaginaDeCustos';
+import { PaginaDeFechamento } from '@/features/fechamento/componentes/PaginaDeFechamento';
 import { PaginaDeManutencao } from '@/features/manutencao/componentes/PaginaDeManutencao';
 import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/PaginaDeProprietarios';
 import { PaginaSaude } from '@/features/saude/componentes/PaginaSaude';
@@ -36,6 +37,7 @@ export function Rotas() {
           <Route path="/voos" element={<PaginaDeVoos />} />
           <Route path="/custos" element={<PaginaDeCustos />} />
           <Route path="/aportes" element={<PaginaDeAportes />} />
+          <Route path="/fechamento" element={<PaginaDeFechamento />} />
           <Route path="/manutencao" element={<PaginaDeManutencao />} />
           <Route path="/calendario" element={<PaginaDeCalendario />} />
           <Route path="/proprietarios" element={<PaginaDeProprietarios />} />

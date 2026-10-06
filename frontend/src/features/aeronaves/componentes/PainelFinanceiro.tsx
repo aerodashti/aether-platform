@@ -15,7 +15,12 @@ import {
 } from '../api/useDetalheDaAeronave';
 
 import estilos from './PainelFinanceiro.module.css';
-import { PERIODICIDADES, ROTULO_DA_BASE_DO_RATEIO, ROTULO_DO_MODELO_DE_APORTE } from './rotulos';
+import {
+  PERIODICIDADES,
+  ROTULO_DA_BASE_DO_RATEIO,
+  ROTULO_DO_MODELO_DE_APORTE,
+  lerMoeda,
+} from './rotulos';
 
 interface PainelFinanceiroProps {
   detalhe: DetalheDaAeronaveResponse;
@@ -41,6 +46,9 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
     financeiro?.valorDoAporte === undefined ? '' : String(financeiro.valorDoAporte),
   );
   const [diaDeFechamento, setDiaDeFechamento] = useState(String(financeiro?.diaDeFechamento ?? 1));
+  const [saldoDeAbertura, setSaldoDeAbertura] = useState(
+    String(financeiro?.saldoDeAbertura ?? 0).replace('.', ','),
+  );
 
   const atualizar = useAtualizarConfiguracaoFinanceira(detalhe.id ?? 0);
 
@@ -53,6 +61,7 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
         periodicidadeDoAporteMeses: Number(periodicidade),
         valorDoAporte: valor === '' ? undefined : Number(valor),
         diaDeFechamento: Number(diaDeFechamento),
+        saldoDeAbertura: lerMoeda(saldoDeAbertura),
       },
       { onSuccess: aoFechar },
     );
@@ -61,6 +70,7 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
   const erro = atualizar.error instanceof ErroDeApi ? atualizar.error.message : undefined;
   const dia = Number(diaDeFechamento);
   const diaValido = Number.isInteger(dia) && dia >= 1 && dia <= 28;
+  const saldoValido = Number.isFinite(lerMoeda(saldoDeAbertura));
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo="Alterar configuração financeira">
@@ -114,12 +124,24 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
         inputMode="numeric"
         apoio="De 1 a 28, para o dia existir em todo mês."
       />
+      <CampoDeTexto
+        rotulo="Saldo do fundo no cadastro (R$)"
+        valor={saldoDeAbertura}
+        aoMudar={setSaldoDeAbertura}
+        inputMode="decimal"
+        alinhamento="direita"
+        apoio="O ponto de partida do fechamento. Corrigi-lo muda o saldo de todos os meses."
+      />
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>
           Cancelar
         </Botao>
-        <Botao aoClicar={salvar} desabilitado={!diaValido} carregando={atualizar.isPending}>
+        <Botao
+          aoClicar={salvar}
+          desabilitado={!diaValido || !saldoValido}
+          carregando={atualizar.isPending}
+        >
           Salvar
         </Botao>
       </div>

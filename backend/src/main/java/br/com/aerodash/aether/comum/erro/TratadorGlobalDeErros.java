@@ -9,10 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Ponto único de tradução de exceção para resposta HTTP, no formato RFC 9457 Problem Details.
@@ -54,6 +57,29 @@ public class TratadorGlobalDeErros {
             "Verifique os campos informados e tente novamente.");
     problema.setProperty("campos", campos);
     return problema;
+  }
+
+  /**
+   * Parâmetro que falta, que não converte ({@code ?competencia=setembro}) ou corpo que não é JSON:
+   * é erro de quem chamou, não do servidor. Sem isto cairiam na falha inesperada — 500 e um ERROR
+   * com stack trace para cada URL digitada errado.
+   */
+  @ExceptionHandler({
+    MissingServletRequestParameterException.class,
+    MethodArgumentTypeMismatchException.class,
+    HttpMessageNotReadableException.class
+  })
+  public ProblemDetail tratarRequisicaoMalformada(Exception excecao) {
+    contexto.registrarErro(excecao);
+    String detalhe =
+        switch (excecao) {
+          case MissingServletRequestParameterException falta ->
+              "Informe o parâmetro \"" + falta.getParameterName() + "\".";
+          case MethodArgumentTypeMismatchException tipo ->
+              "O parâmetro \"" + tipo.getName() + "\" não está no formato esperado.";
+          default -> "O corpo da requisição não pôde ser lido.";
+        };
+    return montar(HttpStatus.BAD_REQUEST, "Requisição inválida", detalhe);
   }
 
   @ExceptionHandler(Exception.class)

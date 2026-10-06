@@ -48,5 +48,6 @@ public record DetalheDaAeronaveResponse(
       ModeloDeAporte modeloDeAporte,
       int periodicidadeDoAporteMeses,
       BigDecimal valorDoAporte,
-      int diaDeFechamento) {}
+      int diaDeFechamento,
+      @Schema(description = "Saldo do fundo no cadastro") BigDecimal saldoDeAbertura) {}
 }

@@ -77,6 +77,7 @@ async function preencherObrigatorios() {
   await userEvent.type(screen.getByLabelText('Vigência do seguro (vencimento)'), '2027-08-01');
   await userEvent.type(screen.getByLabelText('Horas de voo (célula)'), '1200');
   await userEvent.type(screen.getByLabelText('Kilômetros voados'), '510000');
+  await userEvent.type(screen.getByLabelText('Saldo atual do fundo (R$)'), '-12.500,00');
 }
 
 describe('PaginaDeNovaAeronave', () => {
@@ -179,9 +180,15 @@ describe('PaginaDeNovaAeronave', () => {
     expect(await screen.findByText('detalhe da aeronave 9')).toBeInTheDocument();
     const [criacao, contrato] = chamadas;
     expect(criacao?.url).toBe('/api/aeronaves');
-    const cadastro = criacao?.corpo as { matricula: string; contadores: { kmVoados: number } };
+    const cadastro = criacao?.corpo as {
+      matricula: string;
+      contadores: { kmVoados: number };
+      configuracaoFinanceira: { saldoDeAbertura: number };
+    };
     expect(cadastro.matricula).toBe('ps-aer');
     expect(cadastro.contadores.kmVoados).toBe(510000);
+    // Negativo e no formato brasileiro: os proprietários devem 12.500 ao fundo no cadastro.
+    expect(cadastro.configuracaoFinanceira.saldoDeAbertura).toBe(-12500);
     expect(contrato?.url).toBe('/api/aeronaves/9/contratos');
     expect(contrato?.corpo).toEqual({
       participacoes: [{ proprietarioId: 1, percentual: 100 }],

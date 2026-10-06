@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
@@ -172,9 +173,11 @@ class AeronaveTest {
     @DisplayName("periodicidade fora da tabela e dia 29 não passam")
     void configuracaoInvalida() {
       ConfiguracaoFinanceira meses5 =
-          new ConfiguracaoFinanceira(BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1);
+          new ConfiguracaoFinanceira(
+              BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1, BigDecimal.ZERO);
       ConfiguracaoFinanceira dia29 =
-          new ConfiguracaoFinanceira(BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 1, null, 29);
+          new ConfiguracaoFinanceira(
+              BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 1, null, 29, BigDecimal.ZERO);
 
       assertThat(meses5.possuiPeriodicidadeValida()).isFalse();
       assertThat(dia29.possuiDiaDeFechamentoValido()).isFalse();

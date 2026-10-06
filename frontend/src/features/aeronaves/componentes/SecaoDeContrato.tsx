@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
+import {
+  competenciaAbreviada,
+  contaNoFundo,
+  saldoDaAeronave,
+  useSaldosDoFundo,
+} from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -20,6 +26,7 @@ import {
   mensagemDaSoma,
   percentualEmTexto,
   periodoDoContrato,
+  moedaEmTexto,
 } from './rotulos';
 import estilos from './SecaoDeContrato.module.css';
 
@@ -57,14 +64,41 @@ function mesmasParticipacoes(linhas: LinhaDeEdicao[], vigente: ContratoResponse 
 }
 
 /**
+ * O % do custo da competência que coube ao proprietário e o saldo dele no fundo, do fechamento.
+ * Sem custo no mês, o % é "—": dividir zero não é 0%.
+ */
+function ColunasDoFundo({
+  conta,
+}: {
+  conta: { saldo?: number; percentualNoRateio?: number } | undefined;
+}) {
+  const saldo = conta?.saldo ?? 0;
+  return (
+    <>
+      <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
+        <span className={estilos.percentual}>
+          {conta?.percentualNoRateio == null ? '—' : percentualEmTexto(conta.percentualNoRateio)}
+        </span>
+      </td>
+      <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
+        <span className={juntarClasses(estilos.percentual, saldo < 0 && estilos.devedor)}>
+          {moedaEmTexto(saldo)}
+        </span>
+      </td>
+    </>
+  );
+}
+
+/**
  * O contrato de participações, como no protótipo: o vigente numa tabela, a edição que cria um
- * contrato novo na mesma tabela, e o histórico dos arquivados num segundo cartão. As colunas de
- * rateio e saldo acumulado entram com o fechamento — coluna vazia não existe.
+ * contrato novo na mesma tabela, e o histórico dos arquivados num segundo cartão. Fora da edição,
+ * o % no rateio da competência e o saldo acumulado de cada um, do fechamento.
  */
 export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps) {
   const consulta = useContratos(aeronaveId);
   const definir = useDefinirContrato(aeronaveId);
   const proprietarios = useProprietarios();
+  const saldos = useSaldosDoFundo();
   const [linhas, setLinhas] = useState<LinhaDeEdicao[] | null>(null);
   // Entrar e sair da edição troca os botões do cabeçalho: o que tinha o foco some do DOM e o foco
   // cairia no <body>. Ele vai para o primeiro campo ao entrar e volta ao "Alterar" ao sair.
@@ -76,6 +110,8 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
   const vigente = consulta.data?.vigente;
   const historico = consulta.data?.historico ?? [];
   const editando = linhas !== null;
+  // As colunas do fundo só existem fora da edição e quando o fechamento já respondeu.
+  const fundo = editando ? undefined : saldoDaAeronave(saldos.data, aeronaveId);
 
   useEffect(() => {
     if (focoPendente.current === 'entrar') {
@@ -217,7 +253,11 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
           <div className={estilos.rolagem}>
             <table
               role="table"
-              className={juntarClasses(estilos.tabela, editando && estilos.editando)}
+              className={juntarClasses(
+                estilos.tabela,
+                editando && estilos.editando,
+                fundo && estilos.comFundo,
+              )}
             >
               <thead role="rowgroup" className={estilos.bloco}>
                 <tr role="row" className={estilos.linhaDeCabecalho}>
@@ -227,6 +267,16 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                   <th role="columnheader" scope="col" className={estilos.direita}>
                     % de propriedade
                   </th>
+                  {fundo ? (
+                    <>
+                      <th role="columnheader" scope="col" className={estilos.direita}>
+                        % no rateio {competenciaAbreviada(fundo.competencia)}
+                      </th>
+                      <th role="columnheader" scope="col" className={estilos.direita}>
+                        Saldo acumulado
+                      </th>
+                    </>
+                  ) : null}
                   {editando ? (
                     <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                       Ações
@@ -253,6 +303,15 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                             {percentualEmTexto(participacao.percentual)}
                           </span>
                         </td>
+                        {fundo ? (
+                          <ColunasDoFundo
+                            conta={contaNoFundo(
+                              saldos.data,
+                              aeronaveId,
+                              participacao.proprietarioId,
+                            )}
+                          />
+                        ) : null}
                       </tr>
                     ))
                   : (linhas ?? []).map((linha, indice) => (

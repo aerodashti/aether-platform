@@ -30,6 +30,7 @@ import {
   PERIODICIDADES,
   ROTULO_DA_BASE_DO_RATEIO,
   ROTULO_DO_MODELO_DE_APORTE,
+  lerMoeda,
 } from './rotulos';
 
 interface Vinculo {
@@ -46,10 +47,9 @@ function numeroOuNulo(valor: string): number | undefined {
 }
 
 /**
- * O cadastro de aeronave, nas seções do protótipo. Duas ausências deliberadas, registradas em
- * `docs/design-system.md`: o saldo do fundo (pertence a aportes) e o passo de documentos
- * (pertence à tela de documentos). E uma presença: o vencimento do CVA, sem o qual a frota não
- * sabe julgar a situação regulatória.
+ * O cadastro de aeronave, nas seções do protótipo. Uma ausência deliberada, registrada em
+ * `docs/design-system.md`: o passo de documentos (pertence à tela de documentos). E uma presença:
+ * o vencimento do CVA, sem o qual a frota não sabe julgar a situação regulatória.
  */
 export function PaginaDeNovaAeronave() {
   const navegar = useNavigate();
@@ -84,6 +84,7 @@ export function PaginaDeNovaAeronave() {
   const [periodicidade, setPeriodicidade] = useState('1');
   const [valorDoAporte, setValorDoAporte] = useState('');
   const [diaDeFechamento, setDiaDeFechamento] = useState('1');
+  const [saldoDeAbertura, setSaldoDeAbertura] = useState('');
 
   // 4 — Proprietários (opcional no cadastro)
   const [vinculos, setVinculos] = useState<Vinculo[]>([]);
@@ -119,7 +120,8 @@ export function PaginaDeNovaAeronave() {
     vencimentoCva !== '' &&
     vencimentoReta !== '' &&
     horasDeCelula.trim() !== '' &&
-    kmVoados.trim() !== '';
+    kmVoados.trim() !== '' &&
+    Number.isFinite(lerMoeda(saldoDeAbertura));
 
   function cadastrar() {
     criar.mutate(
@@ -150,6 +152,7 @@ export function PaginaDeNovaAeronave() {
           periodicidadeDoAporteMeses: Number(periodicidade),
           valorDoAporte: numeroOuNulo(valorDoAporte),
           diaDeFechamento: Number(diaDeFechamento),
+          saldoDeAbertura: lerMoeda(saldoDeAbertura),
         },
       },
       {
@@ -316,7 +319,7 @@ export function PaginaDeNovaAeronave() {
         <Cabecalho
           numero="3"
           titulo="Rateio e fundo"
-          descricao="Como os custos são divididos entre os proprietários."
+          descricao="Como os custos são divididos e quanto o fundo tem hoje."
         />
         <div className={estilos.grade}>
           <Selecao
@@ -359,10 +362,16 @@ export function PaginaDeNovaAeronave() {
             inputMode="numeric"
             apoio="Define o período de apuração dos custos. De 1 a 28."
           />
+          <CampoDeTexto
+            rotulo="Saldo atual do fundo (R$)"
+            valor={saldoDeAbertura}
+            aoMudar={setSaldoDeAbertura}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="0,00"
+            apoio="Distribuído entre os proprietários pela participação. Negativo quando eles devem."
+          />
         </div>
-        <Texto variante="apoio" tom="suave" como="p">
-          O saldo atual do fundo e a distribuição entre proprietários entram com a tela de aportes.
-        </Texto>
       </section>
 
       <section className={estilos.secao} aria-label="Proprietários">

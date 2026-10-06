@@ -119,6 +119,18 @@ export function inteiroEmTexto(valor: number | null | undefined): string {
   return valor == null ? '—' : INTEIRO.format(valor);
 }
 
+/**
+ * Valor em reais como se digita no Brasil, inclusive negativo: "-12.500,00", "8500,5". Com vírgula,
+ * o ponto é milhar; sem vírgula, é decimal. Vazio ou ilegível é NaN — quem chama decide.
+ */
+export function lerMoeda(texto: string): number {
+  const limpo = texto.trim().replace(/\s|R\$/g, '');
+  if (limpo === '') {
+    return Number.NaN;
+  }
+  return Number(limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo);
+}
+
 export function moedaEmTexto(valor: number | null | undefined): string {
   return valor == null ? '—' : MOEDA.format(valor);
 }

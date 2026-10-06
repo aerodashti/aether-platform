@@ -162,6 +162,15 @@ src/
   `compartilhado/recorte/useRecorteDaUrl`, e `?registrar=1` pede à tela que abra o formulário de
   novo registro. É assim que o detalhe da aeronave chega aos lançamentos dela e que o "+ Registrar"
   da casca abre o formulário de outra feature sem importá-la (ADR-0018).
+- `compartilhado/fundo` tem o saldo do fundo de cada aeronave e proprietário, do fechamento: a
+  frota, o detalhe e os cartões de proprietário o mostram.
+
+### Uma feature que só lê outras
+
+`fechamento` não grava nada: consolida, a cada leitura, custos, voos, aportes, rendimentos e
+contratos (ADR-0019). Por isso importa os repositórios dessas features direto, sem porta — e
+nenhuma delas pode importar `fechamento`. A regra mora numa calculadora pura
+(`CalculadoraDoFechamento`), testada sem banco.
 
 ### Fronteiras (falham o lint)
 

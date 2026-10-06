@@ -39,6 +39,7 @@ export function CartaoFinanceiro({ detalhe, podeGerir, aoEditar }: CartaoFinance
     ['Periodicidade do aporte', periodicidade],
     ['Valor do aporte', moedaEmTexto(financeiro?.valorDoAporte)],
     ['Dia de fechamento da fatura', financeiro ? `Dia ${financeiro.diaDeFechamento}` : '—'],
+    ['Saldo do fundo no cadastro', moedaEmTexto(financeiro?.saldoDeAbertura)],
   ];
 
   return (

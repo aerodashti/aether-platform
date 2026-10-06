@@ -113,3 +113,26 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+.saldo {
+  min-width: 110px;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.devedor {
+  color: var(--cor-critico);
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

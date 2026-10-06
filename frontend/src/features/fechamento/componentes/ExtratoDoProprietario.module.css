@@ -1,0 +1,36 @@
+.lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.item,
+.total {
+  display: flex;
+  gap: var(--espaco-4);
+  justify-content: space-between;
+  padding: var(--espaco-3) 0;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.item dt {
+  color: var(--cor-texto-suave);
+}
+
+.total {
+  font-weight: var(--peso-forte);
+  border-bottom-color: var(--cor-borda);
+}
+
+.item dd,
+.total dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+}
