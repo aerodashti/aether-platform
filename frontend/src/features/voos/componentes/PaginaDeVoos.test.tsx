@@ -127,10 +127,9 @@ describe('PaginaDeVoos', () => {
     envolver(<PaginaDeVoos />);
 
     await screen.findByText('RV-2026-041');
-    const totais = linhaDe('TOTAIS');
+    const totais = linhaDe('TOTAIS · 2 pousos');
     expect(within(totais).getByText('1,2 h')).toBeInTheDocument();
     expect(within(totais).getByText('423')).toBeInTheDocument();
-    expect(within(totais).getByText('2 pousos')).toBeInTheDocument();
   });
 
   it('chega filtrada pela URL, e ?registrar=1 abre o painel de trecho', async () => {

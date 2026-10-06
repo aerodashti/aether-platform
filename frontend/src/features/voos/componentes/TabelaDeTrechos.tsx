@@ -194,7 +194,8 @@ export function TabelaDeTrechos({
       <tfoot role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={estilos.totais}>
           <td role="cell" className={estilos.celula}>
-            TOTAIS
+            TOTAIS · {diario?.totais?.pousos ?? 0}{' '}
+            {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
           </td>
           <td role="cell" className={estilos.celula} />
           <td role="cell" className={estilos.celula} />
@@ -205,12 +206,7 @@ export function TabelaDeTrechos({
           <td role="cell" className={estilos.celula}>
             <span className={estilos.numero}>{kmEmTexto(diario?.totais?.km)}</span>
           </td>
-          <td role="cell" className={estilos.celula}>
-            <span className={estilos.dado}>
-              {diario?.totais?.pousos ?? 0}{' '}
-              {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
-            </span>
-          </td>
+          <td role="cell" className={estilos.celula} />
           <td role="cell" className={estilos.celula} />
         </tr>
       </tfoot>

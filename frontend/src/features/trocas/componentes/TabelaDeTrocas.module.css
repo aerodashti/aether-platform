@@ -17,7 +17,7 @@
   /* Os dois proprietários e o R$/hora com total pedem mais que a régua padrão: nome cortado ao
      meio é exatamente o que a coluna existe para dizer. */
   grid-template-columns:
-    var(--armadura-data) var(--armadura-id) minmax(130px, 1fr) minmax(130px, 1fr) 72px 72px
+    var(--armadura-data) 132px minmax(130px, 1fr) minmax(130px, 1fr) 72px 72px
     120px minmax(120px, 1.2fr) 170px;
   gap: var(--armadura-gap);
   align-items: center;

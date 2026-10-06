@@ -74,10 +74,13 @@ export function PainelDeProprietario({
       <Texto variante="titulo" como="h2">
         {editando ? 'Editar proprietário' : 'Novo proprietário'}
       </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar, com
-        percentuais diferentes em cada uma.
-      </Texto>
+      {/* A orientação é de cadastro: na edição, o proprietário já existe e já pode estar vinculado. */}
+      {editando ? null : (
+        <Texto variante="apoio" tom="suave" como="p">
+          Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar, com
+          percentuais diferentes em cada uma.
+        </Texto>
+      )}
 
       <CampoDeTexto
         rotulo="Nome / Nome fantasia"
