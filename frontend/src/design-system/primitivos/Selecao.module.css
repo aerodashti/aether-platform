@@ -29,7 +29,7 @@
   padding: 0 var(--espaco-4);
   font-family: var(--fonte-base);
   font-size: var(--tamanho-m);
-  font-weight: var(--peso-forte);
+  font-weight: var(--peso-normal);
   line-height: var(--altura-m);
   color: var(--cor-texto);
   background: var(--cor-superficie);

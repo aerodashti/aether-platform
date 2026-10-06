@@ -12,9 +12,12 @@
   color: var(--cor-texto-suave);
 }
 
+/* 40px, a altura da `Selecao`: os dois dividem as barras de filtro e precisam alinhar. O piso é
+   altura mínima, não fixa, para o campo do código de seis dígitos crescer com a fonte dele. */
 .entrada {
   width: 100%;
-  padding: var(--espaco-4) var(--espaco-5);
+  min-height: var(--controle-altura-g);
+  padding: var(--espaco-3) var(--espaco-4);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-m);
   background: var(--cor-superficie);
