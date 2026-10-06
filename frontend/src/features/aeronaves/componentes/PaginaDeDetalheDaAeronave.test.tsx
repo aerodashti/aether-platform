@@ -183,6 +183,20 @@ describe('PaginaDeDetalheDaAeronave', () => {
     expect(screen.queryByRole('button', { name: /Documentos/ })).not.toBeInTheDocument();
   });
 
+  it('os atalhos levam aos lançamentos e aos voos já filtrados por esta aeronave', async () => {
+    montar(GESTORA);
+
+    const atalhos = await screen.findByRole('navigation', { name: 'Registros desta aeronave' });
+    expect(within(atalhos).getByRole('link', { name: 'Lançamentos →' })).toHaveAttribute(
+      'href',
+      '/custos?aeronave=1',
+    );
+    expect(within(atalhos).getByRole('link', { name: 'Voos →' })).toHaveAttribute(
+      'href',
+      '/voos?aeronave=1',
+    );
+  });
+
   it('mostra o contrato vigente numa tabela e o histórico num cartão próprio', async () => {
     montar(GESTORA);
 
@@ -239,6 +253,16 @@ describe('PaginaDeDetalheDaAeronave', () => {
     expect(
       screen.getByText(/Fechado em 100% — salvar cria um novo contrato vigente\./),
     ).toBeInTheDocument();
+  });
+
+  it('o foco entra no primeiro percentual ao editar e volta ao "Alterar" ao cancelar', async () => {
+    montar(GESTORA);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Alterar participações' }));
+    expect(screen.getByLabelText('Participação de Ricardo Meirelles em %')).toHaveFocus();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByRole('button', { name: 'Alterar participações' })).toHaveFocus();
   });
 
   it('a edição oferece os proprietários que ainda não estão no contrato', async () => {

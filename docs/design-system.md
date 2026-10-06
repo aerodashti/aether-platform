@@ -204,6 +204,7 @@ acessibilidade ficam em um lugar só.
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
 | `Abas` | `primitivos/Abas.tsx` | `contagem` por aba | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
 | `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
+| `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo` opcional | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
 | `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
 ### A variante `contorno` do `Botao`
@@ -283,7 +284,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
 | Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
 | Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
-| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`, no mínimo que as telas em pé exigem. Sem busca global, sem seletor de tema, sem fila de avisos, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
+| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima) e o "+ Registrar" com o Registro rápido: cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela. Sem o sino (é a porta da Central de avisos, que não existe), sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
 | Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
@@ -294,6 +295,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados
@@ -315,7 +317,8 @@ bloco à direita), e o corpo é uma grade de duas colunas (`minmax(430px, 1.6fr)
 tabela (Proprietário · % de propriedade) que vira formulário na mesma tabela ao "Alterar
 participações", com a caixa tracejada de adicionar e a faixa da soma com as mensagens do
 protótipo; o histórico de contratos; e a tripulação como tabela com sublinhas (CANAC · contato;
-prazo da validade). À direita, ficha técnica e configuração financeira.
+prazo da validade). À direita, ficha técnica, configuração financeira e os atalhos para
+Lançamentos e Voos já filtrados pela aeronave (`?aeronave=`).
 
 **Decisões nossas, além do protótipo:**
 
@@ -337,10 +340,8 @@ prazo da validade). À direita, ficha técnica e configuração financeira.
 **O que ficou de fora, e a feature dona:** "Documentos (n)" (documentos); "Saldo do fundo",
 "% no rateio", "Saldo acumulado", a fatura e a cobertura do fundo (aportes e rateio); licença e
 habilitações e "Remover piloto" (extensão do tripulante e endpoint de remoção — excluir de verdade
-não existe no domínio); os atalhos para Lançamentos e Voos filtrados (as telas ainda não leem
-`?aeronave=`); o botão de cor por proprietário (a cor é do cadastro de Proprietários); o
-formulário de tripulante embutido no cartão (o painel modal existente cobre todos os campos). A
-trilha "← Aeronaves" sai quando a casca ganhar o botão de voltar do protótipo.
+não existe no domínio); o botão de cor por proprietário (a cor é do cadastro de Proprietários); o
+formulário de tripulante embutido no cartão (o painel modal existente cobre todos os campos).
 
 **Uma ressalva de fonte:** o `get_file` do Claude Design devolve no máximo 256 KiB, e o detalhe é
 a última tela do arquivo — o HTML termina no quinto campo do formulário de tripulante. A coluna da
@@ -351,6 +352,26 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
+
+### Aportes segue o Projeto final, com o formulário do aporte e os indicadores por inferência
+
+O HTML do Final vem truncado antes do formulário de aporte e do script, então três partes vieram
+das strings do protótipo (`i18n-en.js`) e não do markup: o **painel de aporte** (aeronave,
+proprietário, data do crédito, competência, valor e o aviso "registrado como recebido"), os
+**quatro indicadores** (Total aportado, Aportes registrados, Rendimentos e "Entrou no fundo",
+soma dos dois) e o item **Aporte** do "+ Registrar". O resto segue o markup: recorte Mensal ·
+Período, abas com contagem, as colunas das duas grades e o formulário de rendimento embutido
+abaixo da grade.
+
+**Decisões nossas:** a competência tem **campo próprio** no aporte, separada da data do crédito —
+o aporte de setembro cai em outubro; o proprietário vem do **contrato vigente** da aeronave (o
+servidor também aceita quem já participou, para quitar o que devia); a exclusão confirma **na
+linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×").
+
+**De fora, e a feature dona:** o **saldo do fundo** — ele desconta os custos rateados, e quem
+rateia é o fechamento; a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
+**atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
+meses e os campos De/Até fazem o resto.
 
 ### A Nova aeronave tem quatro seções, não cinco
 

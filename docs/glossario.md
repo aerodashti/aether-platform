@@ -23,7 +23,10 @@
 | Ficha técnica | `fichaTecnica` | Ficha técnica | `specs`, `dadosTecnicos` | Identificação e totais da aeronave no detalhe: fabricante, nº de série, hangar, contadores e seguro. |
 | Contadores da aeronave | `contadores` | — | `totalizadores`, `medidores` | Totais acumulados: horas de célula, ciclos, km voados, horas por motor e APU. Declarados no cadastro e corrigidos só por administrador até o diário de voos alimentá-los. Motor 2 e APU nulos significam "não tem", não zero. |
 | Base do rateio | `baseDoRateio` | Base do rateio | `criterio`, `metodo` | Como o custo se divide: `POR_USO` (horas/km voados) ou `POR_PROPRIEDADE` (% do contrato). |
-| Aporte | `aporte` | Aporte | `contribuicao`, `deposito` | Entrada de dinheiro do proprietário no fundo da aeronave. O modelo é `FIXO` ou `PROPORCIONAL_AO_USO`, com periodicidade em meses (1, 2, 3, 4, 6 ou 12). |
+| Aporte | `aporte` | Aporte | `contribuicao`, `deposito` | Entrada de dinheiro do proprietário no fundo da aeronave, registrada **só depois de recebida** (data do crédito nunca no futuro) e só por quem participa ou participou da aeronave. O modelo de cobrança é `FIXO` ou `PROPORCIONAL_AO_USO`, com periodicidade em meses (1, 2, 3, 4, 6 ou 12). |
+| Fundo | `fundo` | Fundo da aeronave | `caixa`, `conta`, `reserva` | O dinheiro de uma aeronave: entra por aportes e rendimentos, sai pelos custos. O saldo por proprietário é do fechamento, porque depende do rateio. |
+| Rendimento | `rendimento` | Rendimento | `juros`, `receita`, `yield` | O que a aplicação do saldo do fundo rendeu num crédito. Não tem proprietário: é rateado pela participação. O valor é o creditado pelo banco; saldo aplicado e taxa são só o extrato. |
+| Competência | `competencia` | Competência | `mesDeReferencia`, `periodo` (para um mês só) | O mês a que um registro se refere, `AAAA-MM`. No aporte, é independente da data do crédito — o de setembro cai em outubro; no rendimento e no custo, é o mês da data. |
 | Dia de fechamento | `diaDeFechamento` | Dia de fechamento da fatura | `dataDeCorte` | Dia do mês em que a fatura da aeronave fecha, de 1 a 28 — fevereiro decide o teto. |
 | Peso máximo de decolagem | `pesoMaxDecolagemKg` | Peso máx. de decolagem (kg) | `MTOW` (como identificador), `pesoDecolagem` | O MTOW do certificado, em kg inteiros. Nulo é "não informado" — peso zero não existe. Mesma regra para o `pesoMaxPousoKg` (MLW). |
 | Milha náutica | `milhaNautica` | Milha náutica (NM) | `milha` (sozinho), `mile` | Unidade do conversor do cadastro: 1 NM = 1,852 km, por definição. O produto grava sempre km. |
@@ -117,5 +120,5 @@ viram parte do nome em camelCase: `vencimentoCva`, `apoliceReta`.
 O bundle foi lido e a **tela de entrada** teve seus rótulos incorporados na seção "Acesso" acima.
 A tela de **Usuários** teve seu vocabulário incorporado na mesma seção, junto com o backend que a
 serve. As demais telas do bundle (visão geral, frota, lançamentos, rateio, manutenção, voos, aportes,
-fechamento) ainda não: cada uma traz vocabulário próprio — competência, rateio, aporte,
-saldo, trecho — que entra aqui quando a tela for implementada, não antes.
+fechamento) ainda não: cada uma traz vocabulário próprio — rateio, saldo — que entra aqui quando
+a tela for implementada, não antes. Aportes trouxe fundo, rendimento e competência.

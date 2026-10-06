@@ -2,13 +2,18 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PaginaDeCustos } from './PaginaDeCustos';
 
-function envolver(conteudo: ReactNode) {
+function envolver(conteudo: ReactNode, url = '/') {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={cliente}>{conteudo}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={cliente}>
+      <MemoryRouter initialEntries={[url]}>{conteudo}</MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
 
 function respostaDe(corpo: unknown, status = 200) {
@@ -141,6 +146,22 @@ describe('PaginaDeCustos', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'Todos' }));
     await userEvent.click(screen.getByRole('tab', { name: /^Abastecimento/ }));
     expect(screen.getByText('Jet A-1 — 1.850 L — SBRJ')).toBeInTheDocument();
+  });
+
+  it('chega filtrada pela URL: ?aeronave= e ?competencia= vão direto ao servidor', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />, '/custos?aeronave=1&competencia=2026-08');
+
+    await screen.findByText('Jet A-1 — 1.850 L — SBRJ');
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas).toContain('/api/custos?aeronave=1&competencia=2026-08');
+  });
+
+  it('?registrar=1 abre o painel de novo lançamento, como pede o "+ Registrar" da casca', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />, '/custos?registrar=1');
+
+    expect(await screen.findByLabelText('Categoria')).toBeInTheDocument();
   });
 
   it('o proprietário só lê: sem registrar, editar ou excluir', async () => {

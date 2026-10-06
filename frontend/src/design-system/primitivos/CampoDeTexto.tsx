@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type Ref } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 
@@ -31,6 +31,8 @@ interface CampoDeTextoProps {
    */
   rotuloOculto?: boolean;
   desabilitado?: boolean;
+  /** Para quem precisa devolver o foco ao campo — a edição que acabou de abrir, por exemplo. */
+  ref?: Ref<HTMLInputElement>;
 }
 
 const tipoNativo: Record<TipoDeCampo, string> = {
@@ -58,6 +60,7 @@ export function CampoDeTexto({
   espacado = false,
   rotuloOculto = false,
   desabilitado = false,
+  ref,
 }: CampoDeTextoProps) {
   const id = useId();
   const idDoErro = `${id}-erro`;
@@ -75,6 +78,7 @@ export function CampoDeTexto({
         {rotulo}
       </label>
       <input
+        ref={ref}
         id={id}
         className={juntarClasses(
           estilos.entrada,

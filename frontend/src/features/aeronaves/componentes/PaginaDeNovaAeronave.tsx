@@ -10,7 +10,6 @@ import {
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { GrupoDeOpcoes } from '@/design-system/primitivos/GrupoDeOpcoes';
-import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 import { Selecao } from '@/design-system/primitivos/Selecao';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
@@ -186,10 +185,6 @@ export function PaginaDeNovaAeronave() {
 
   return (
     <div className={estilos.tela}>
-      <nav aria-label="Trilha">
-        <LinkDeTexto para="/aeronaves">← Aeronaves</LinkDeTexto>
-      </nav>
-
       <section className={estilos.secao} aria-label="Identificação">
         <Cabecalho numero="1" titulo="Identificação" descricao="Dados de registro da aeronave." />
         <div className={estilos.grade}>

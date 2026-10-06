@@ -89,10 +89,6 @@ export function PaginaDeDetalheDaAeronave() {
 
   return (
     <div className={estilos.tela}>
-      <nav aria-label="Trilha">
-        <LinkDeTexto para="/aeronaves">← Aeronaves</LinkDeTexto>
-      </nav>
-
       <header className={estilos.cabecalho}>
         <span className={estilos.matricula}>{detalhe.matricula}</span>
         <span className={estilos.subtitulo}>{subtitulo}</span>
@@ -135,6 +131,11 @@ export function PaginaDeDetalheDaAeronave() {
             podeGerir={podeGerir}
             aoEditar={() => setPainel('financeiro')}
           />
+          {/* Os registros desta aeronave moram nas telas donas deles; o link chega já filtrado. */}
+          <nav className={estilos.atalhos} aria-label="Registros desta aeronave">
+            <LinkDeTexto para={`/custos?aeronave=${aeronaveId}`}>Lançamentos →</LinkDeTexto>
+            <LinkDeTexto para={`/voos?aeronave=${aeronaveId}`}>Voos →</LinkDeTexto>
+          </nav>
         </div>
       </div>
 

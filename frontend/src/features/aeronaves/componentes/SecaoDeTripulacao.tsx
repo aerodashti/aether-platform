@@ -70,24 +70,35 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
         <div className={estilos.vazio}>Nenhum tripulante vinculado a esta aeronave.</div>
       ) : (
         <div className={estilos.rolagem}>
-          <table className={juntarClasses(estilos.tabela, !podeGerir && estilos.semAcoes)}>
-            <thead className={estilos.bloco}>
-              <tr className={estilos.linhaDeCabecalho}>
-                <th scope="col">Tripulante</th>
-                <th scope="col">Função</th>
-                <th scope="col">Validade CMA</th>
-                <th scope="col">Validade CHT</th>
-                <th scope="col" className={estilos.direita}>
+          <table
+            role="table"
+            className={juntarClasses(estilos.tabela, !podeGerir && estilos.semAcoes)}
+          >
+            <thead role="rowgroup" className={estilos.bloco}>
+              <tr role="row" className={estilos.linhaDeCabecalho}>
+                <th role="columnheader" scope="col">
+                  Tripulante
+                </th>
+                <th role="columnheader" scope="col">
+                  Função
+                </th>
+                <th role="columnheader" scope="col">
+                  Validade CMA
+                </th>
+                <th role="columnheader" scope="col">
+                  Validade CHT
+                </th>
+                <th role="columnheader" scope="col" className={estilos.direita}>
                   Horas
                 </th>
                 {podeGerir ? (
-                  <th scope="col" className={estilos.apenasLeitor}>
+                  <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                     Ações
                   </th>
                 ) : null}
               </tr>
             </thead>
-            <tbody className={estilos.bloco}>
+            <tbody role="rowgroup" className={estilos.bloco}>
               {itens.map((tripulante) => {
                 const inativo = tripulante.situacao === 'INATIVO';
                 const sublinha = [
@@ -98,8 +109,8 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
                   .filter(Boolean)
                   .join(' · ');
                 return (
-                  <tr className={estilos.linha} key={tripulante.id}>
-                    <td className={estilos.celula}>
+                  <tr role="row" className={estilos.linha} key={tripulante.id}>
+                    <td role="cell" className={estilos.celula}>
                       <span className={estilos.nomes}>
                         <span className={estilos.nome}>
                           <span className={estilos.trunca}>{tripulante.nome}</span>
@@ -108,22 +119,22 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
                         {sublinha ? <span className={estilos.sublinha}>{sublinha}</span> : null}
                       </span>
                     </td>
-                    <td className={estilos.celula}>
+                    <td role="cell" className={estilos.celula}>
                       <span className={estilos.forte}>
                         {tripulante.funcao ? ROTULO_DA_FUNCAO[tripulante.funcao] : '—'}
                       </span>
                     </td>
-                    <td className={estilos.celula}>
+                    <td role="cell" className={estilos.celula}>
                       <Validade data={tripulante.validadeCma} vencida={tripulante.cmaVencido} />
                     </td>
-                    <td className={estilos.celula}>
+                    <td role="cell" className={estilos.celula}>
                       <Validade data={tripulante.validadeCht} vencida={tripulante.chtVencido} />
                     </td>
-                    <td className={juntarClasses(estilos.celula, estilos.direita)}>
+                    <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
                       <span className={estilos.forte}>{horasEmTexto(tripulante.horasTotais)}</span>
                     </td>
                     {podeGerir ? (
-                      <td className={juntarClasses(estilos.celula, estilos.acoes)}>
+                      <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
                         <Botao
                           variante="fantasma"
                           tamanho="pequeno"

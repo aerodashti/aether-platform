@@ -68,5 +68,8 @@ export function somarMeses(competencia: string, delta: number): string {
 }
 
 export function competenciaAtual(): string {
-  return new Date().toISOString().slice(0, 7);
+  // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,
+  // já estaria no mês seguinte.
+  const agora = new Date();
+  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
 }

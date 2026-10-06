@@ -31,7 +31,7 @@ const LINHAS_DO_ESQUELETO = 4;
 /**
  * A grade de usuários.
  *
- * <p>É `<table>` de verdade, com a régua aplicada por `display: grid` em cada linha: as trilhas
+ * <p>É `<table role="table">` de verdade, com a régua aplicada por `display: grid` em cada linha: as trilhas
  * ficam alinhadas como numa grade CSS, e cabeçalho, associação célula–coluna e navegação por
  * leitor de tela continuam vindo da semântica da tabela.
  *
@@ -71,24 +71,24 @@ export function TabelaDeUsuarios({
         <div role="status" className={estilos.apenasLeitor}>
           Carregando usuários…
         </div>
-        <table className={estilos.grade}>
+        <table role="table" className={estilos.grade}>
           <Cabecalho />
-          <tbody className={estilos.corpo}>
+          <tbody role="rowgroup" className={estilos.corpo}>
             {Array.from({ length: LINHAS_DO_ESQUELETO }, (_, indice) => (
-              <tr className={estilos.linha} key={indice} aria-hidden="true">
-                <td className={estilos.celula}>
+              <tr role="row" className={estilos.linha} key={indice} aria-hidden="true">
+                <td role="cell" className={estilos.celula}>
                   <Esqueleto />
                 </td>
-                <td className={estilos.celula}>
+                <td role="cell" className={estilos.celula}>
                   <Esqueleto />
                 </td>
-                <td className={estilos.celula}>
+                <td role="cell" className={estilos.celula}>
                   <Esqueleto />
                 </td>
-                <td className={estilos.celula}>
+                <td role="cell" className={estilos.celula}>
                   <Esqueleto />
                 </td>
-                <td className={estilos.celula} />
+                <td role="cell" className={estilos.celula} />
               </tr>
             ))}
           </tbody>
@@ -111,9 +111,9 @@ export function TabelaDeUsuarios({
   }
 
   return (
-    <table className={estilos.grade}>
+    <table role="table" className={estilos.grade}>
       <Cabecalho />
-      <tbody className={estilos.corpo}>
+      <tbody role="rowgroup" className={estilos.corpo}>
         {itens.map((usuario) => {
           const id = Number(usuario.id);
           const ehVoce = usuario.email !== undefined && usuario.email === emailDaSessao;
@@ -122,8 +122,8 @@ export function TabelaDeUsuarios({
           const rotulo = usuario.situacao ? ROTULO_DA_SITUACAO[usuario.situacao] : undefined;
 
           return (
-            <tr className={estilos.linha} key={id}>
-              <td className={estilos.celula}>
+            <tr role="row" className={estilos.linha} key={id}>
+              <td role="cell" className={estilos.celula}>
                 <div className={estilos.pessoa}>
                   <span className={estilos.avatar} aria-hidden="true">
                     {iniciais(usuario.nome)}
@@ -140,26 +140,26 @@ export function TabelaDeUsuarios({
                 </div>
               </td>
 
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.papel}>
                   {usuario.papel ? ROTULO_DO_PAPEL[usuario.papel] : ''}
                 </span>
               </td>
 
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 {/* ATIVO não vira etiqueta: só a exceção precisa de rótulo. */}
                 <span className={pendente ? estilos.situacaoAtencao : estilos.situacao}>
                   {rotulo ?? ''}
                 </span>
               </td>
 
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.acesso} title={ultimoAcessoCompleto(usuario.ultimoAcesso)}>
                   {ultimoAcessoCurto(usuario.ultimoAcesso)}
                 </span>
               </td>
 
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.acoes}>
                   {pendente ? (
                     <Botao
@@ -196,14 +196,22 @@ export function TabelaDeUsuarios({
 
 function Cabecalho() {
   return (
-    <thead className={estilos.corpo}>
-      <tr className={estilos.cabecalho}>
-        <th scope="col">Usuário · e-mail</th>
-        <th scope="col">Papel</th>
-        <th scope="col">Situação</th>
-        <th scope="col">Último acesso</th>
+    <thead role="rowgroup" className={estilos.corpo}>
+      <tr role="row" className={estilos.cabecalho}>
+        <th role="columnheader" scope="col">
+          Usuário · e-mail
+        </th>
+        <th role="columnheader" scope="col">
+          Papel
+        </th>
+        <th role="columnheader" scope="col">
+          Situação
+        </th>
+        <th role="columnheader" scope="col">
+          Último acesso
+        </th>
         {/* A coluna de ação não mostra rótulo, mas precisa de nome acessível. */}
-        <th scope="col" className={estilos.apenasLeitor}>
+        <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
           Ações
         </th>
       </tr>

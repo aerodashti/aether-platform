@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
@@ -66,10 +66,30 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
   const definir = useDefinirContrato(aeronaveId);
   const proprietarios = useProprietarios();
   const [linhas, setLinhas] = useState<LinhaDeEdicao[] | null>(null);
+  // Entrar e sair da edição troca os botões do cabeçalho: o que tinha o foco some do DOM e o foco
+  // cairia no <body>. Ele vai para o primeiro campo ao entrar e volta ao "Alterar" ao sair.
+  const focoAoEntrar = useRef<HTMLInputElement>(null);
+  const selecaoAoEntrar = useRef<HTMLSelectElement>(null);
+  const focoAoSair = useRef<HTMLButtonElement>(null);
+  const focoPendente = useRef<'entrar' | 'sair' | null>(null);
 
   const vigente = consulta.data?.vigente;
   const historico = consulta.data?.historico ?? [];
   const editando = linhas !== null;
+
+  useEffect(() => {
+    if (focoPendente.current === 'entrar') {
+      (focoAoEntrar.current ?? selecaoAoEntrar.current)?.focus();
+    } else if (focoPendente.current === 'sair') {
+      focoAoSair.current?.focus();
+    }
+    focoPendente.current = null;
+  }, [editando]);
+
+  function sairDaEdicao() {
+    focoPendente.current = 'sair';
+    setLinhas(null);
+  }
 
   function comecarEdicao() {
     setLinhas(
@@ -81,6 +101,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
       })),
     );
     definir.reset();
+    focoPendente.current = 'entrar';
   }
 
   function salvar() {
@@ -94,7 +115,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
           percentual: lerPercentual(linha.percentual),
         })),
       },
-      { onSuccess: () => setLinhas(null) },
+      { onSuccess: sairDaEdicao },
     );
   }
 
@@ -148,7 +169,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
 
   const acao = consulta.isPending ? null : editando ? (
     <>
-      <Botao variante="secundario" tamanho="medio" aoClicar={() => setLinhas(null)}>
+      <Botao variante="secundario" tamanho="medio" aoClicar={sairDaEdicao}>
         Cancelar
       </Botao>
       <Botao
@@ -161,7 +182,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
       </Botao>
     </>
   ) : podeGerir ? (
-    <Botao variante="contorno" tamanho="medio" aoClicar={comecarEdicao}>
+    <Botao variante="contorno" tamanho="medio" aoClicar={comecarEdicao} ref={focoAoSair}>
       {vigente ? 'Alterar participações' : 'Definir participações'}
     </Botao>
   ) : null;
@@ -194,25 +215,30 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
           </div>
         ) : (
           <div className={estilos.rolagem}>
-            <table className={juntarClasses(estilos.tabela, editando && estilos.editando)}>
-              <thead className={estilos.bloco}>
-                <tr className={estilos.linhaDeCabecalho}>
-                  <th scope="col">Proprietário</th>
-                  <th scope="col" className={estilos.direita}>
+            <table
+              role="table"
+              className={juntarClasses(estilos.tabela, editando && estilos.editando)}
+            >
+              <thead role="rowgroup" className={estilos.bloco}>
+                <tr role="row" className={estilos.linhaDeCabecalho}>
+                  <th role="columnheader" scope="col">
+                    Proprietário
+                  </th>
+                  <th role="columnheader" scope="col" className={estilos.direita}>
                     % de propriedade
                   </th>
                   {editando ? (
-                    <th scope="col" className={estilos.apenasLeitor}>
+                    <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                       Ações
                     </th>
                   ) : null}
                 </tr>
               </thead>
-              <tbody className={estilos.bloco}>
+              <tbody role="rowgroup" className={estilos.bloco}>
                 {!editando
                   ? (vigente?.participacoes ?? []).map((participacao) => (
-                      <tr key={participacao.proprietarioId} className={estilos.linha}>
-                        <td className={estilos.celula}>
+                      <tr role="row" key={participacao.proprietarioId} className={estilos.linha}>
+                        <td role="cell" className={estilos.celula}>
                           <span className={estilos.dono}>
                             <PontoDeCor
                               cor={
@@ -222,26 +248,27 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                             <span className={estilos.trunca}>{participacao.nome}</span>
                           </span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.direita)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
                           <span className={estilos.percentual}>
                             {percentualEmTexto(participacao.percentual)}
                           </span>
                         </td>
                       </tr>
                     ))
-                  : (linhas ?? []).map((linha) => (
-                      <tr key={linha.proprietarioId} className={estilos.linha}>
-                        <td className={estilos.celula}>
+                  : (linhas ?? []).map((linha, indice) => (
+                      <tr role="row" key={linha.proprietarioId} className={estilos.linha}>
+                        <td role="cell" className={estilos.celula}>
                           <span className={estilos.dono}>
                             <PontoDeCor cor={linha.cor} />
                             <span className={estilos.trunca}>{linha.nome}</span>
                           </span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.campo)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.campo)}>
                           <span className={estilos.campoDePercentual}>
                             <CampoDeTexto
                               rotulo={`Participação de ${linha.nome} em %`}
                               rotuloOculto
+                              ref={indice === 0 ? focoAoEntrar : undefined}
                               valor={linha.percentual}
                               inputMode="decimal"
                               alinhamento="direita"
@@ -258,7 +285,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                           </span>
                           <span className={estilos.unidade}>%</span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.acoes)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
                           <Botao
                             variante="fantasma"
                             tamanho="pequeno"
@@ -315,6 +342,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                     <Selecao
                       rotulo="Adicionar proprietário ao contrato"
                       rotuloOculto
+                      ref={selecaoAoEntrar}
                       valor=""
                       opcoes={[
                         { valor: '', rotulo: 'Selecione…' },

@@ -1,9 +1,10 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { LinkDeNavegacao } from '@/design-system/primitivos/LinkDeNavegacao';
+import { MenuSuspenso, type ItemDeMenu } from '@/design-system/primitivos/MenuSuspenso';
 import { Texto } from '@/design-system/primitivos/Texto';
 import { useSair } from '@/features/autenticacao/api/useAcesso';
 
@@ -14,6 +15,7 @@ import {
   IconeChave,
   IconeDiario,
   IconeEngrenagem,
+  IconeMoedas,
   IconePessoas,
   IconePulso,
   IconeRecibo,
@@ -29,6 +31,7 @@ const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/aeronaves$/, titulo: 'Aeronaves' },
   { padrao: /^\/voos/, titulo: 'Diário de voos' },
   { padrao: /^\/custos/, titulo: 'Lançamentos' },
+  { padrao: /^\/aportes/, titulo: 'Aportes' },
   { padrao: /^\/manutencao/, titulo: 'Manutenção' },
   { padrao: /^\/calendario/, titulo: 'Calendário' },
   { padrao: /^\/proprietarios/, titulo: 'Proprietários' },
@@ -40,18 +43,75 @@ function tituloDaRota(caminho: string): string {
   return TITULOS.find(({ padrao }) => padrao.test(caminho))?.titulo ?? 'Aether';
 }
 
+/** A tela de cima, para quem chegou direto (link colado, recarregamento) e não tem para onde voltar. */
+function telaDeCima(caminho: string): string | null {
+  const partes = caminho.split('/').filter(Boolean);
+  return partes.length > 1 ? `/${partes.slice(0, -1).join('/')}` : null;
+}
+
+interface Registro {
+  rotulo: string;
+  apoio: string;
+  tela: string;
+  podeRegistrar: (papel: string | undefined) => boolean;
+}
+
+const gere = (papel: string | undefined) => papel === 'ADMINISTRADOR' || papel === 'GESTOR';
+
 /**
- * A casca da área logada: navegação à esquerda, título da tela e identificação no alto, tela no
- * meio — a moldura do Projeto final.
+ * O "Registro rápido" do protótipo. Cada item leva à tela dona do registro com `?registrar=1`,
+ * que abre o formulário de lá: a casca não conhece formulário de feature nenhuma. A "Troca de KM"
+ * do protótipo entra quando a tela dela existir.
+ */
+const REGISTROS: Registro[] = [
+  {
+    rotulo: 'Custo',
+    apoio: 'Despesa fixa ou variável',
+    tela: '/custos',
+    podeRegistrar: gere,
+  },
+  {
+    rotulo: 'Trecho',
+    apoio: 'Perna voada, horas e KM',
+    tela: '/voos',
+    // Como no diário: quem volta do voo com os horários na mão é o piloto.
+    podeRegistrar: (papel) => gere(papel) || papel === 'PILOTO',
+  },
+  {
+    rotulo: 'Aporte',
+    apoio: 'Entrada no fundo da aeronave',
+    tela: '/aportes',
+    podeRegistrar: gere,
+  },
+];
+
+/**
+ * A casca da área logada: navegação à esquerda; no alto, o voltar das telas internas, o título,
+ * o "+ Registrar" e a identificação; a tela no meio — a moldura do Projeto final.
  *
- * <p>É deliberadamente o mínimo que as telas existentes exigem. A casca do protótipo tem ainda o
- * "+ Registrar", a fila de avisos e o seletor de idioma — nada disso foi implementado porque
- * nenhuma tela em pé consome. Ver `docs/design-system.md`.
+ * <p>Do protótipo ainda faltam o sino de notificações, que é a porta da Central de avisos, e o
+ * seletor de idioma, fora de escopo por decisão de produto. Ver `docs/design-system.md`.
  */
 export function LayoutDaAplicacao() {
   const { usuario, ehAdministrador } = useSessao();
   const sair = useSair();
   const localizacao = useLocation();
+  const navegar = useNavigate();
+
+  const acima = telaDeCima(localizacao.pathname);
+  // A chave "default" é a da primeira entrada desta aba: não há tela do Aether para onde voltar.
+  const voltar = () => (localizacao.key === 'default' ? navegar(acima ?? '/') : navegar(-1));
+
+  // Estando numa aeronave, o registro já nasce nela.
+  const aeronaveAberta = /^\/aeronaves\/(\d+)$/.exec(localizacao.pathname)?.[1];
+  const registros: ItemDeMenu[] = REGISTROS.filter((registro) =>
+    registro.podeRegistrar(usuario?.papel),
+  ).map((registro) => ({
+    rotulo: registro.rotulo,
+    apoio: registro.apoio,
+    aoEscolher: () =>
+      navegar(`${registro.tela}?${aeronaveAberta ? `aeronave=${aeronaveAberta}&` : ''}registrar=1`),
+  }));
 
   return (
     <div className={estilos.moldura}>
@@ -83,6 +143,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/custos" icone={<IconeRecibo />}>
               Lançamentos
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/aportes" icone={<IconeMoedas />}>
+              Aportes
             </LinkDeNavegacao>
           </li>
           <li>
@@ -119,9 +184,24 @@ export function LayoutDaAplicacao() {
       </nav>
       <div className={estilos.coluna}>
         <header className={estilos.topo}>
-          <Texto variante="subtitulo" como="h1">
-            {tituloDaRota(localizacao.pathname)}
-          </Texto>
+          <div className={estilos.titulo}>
+            {acima ? (
+              <Botao
+                variante="secundario"
+                tamanho="pequeno"
+                rotuloAcessivel="Voltar"
+                aoClicar={voltar}
+              >
+                <span aria-hidden="true">←</span>
+              </Botao>
+            ) : null}
+            <Texto variante="subtitulo" como="h1">
+              {tituloDaRota(localizacao.pathname)}
+            </Texto>
+          </div>
+          {registros.length > 0 ? (
+            <MenuSuspenso rotulo="+ Registrar" titulo="Registro rápido" itens={registros} />
+          ) : null}
           <div className={estilos.identidade}>
             <Avatar nome={usuario?.nome} tom="escuro" />
             <div className={estilos.nomeEEmail}>
