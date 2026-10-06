@@ -4,2791 +4,2821 @@
  */
 
 export interface paths {
-    "/voos/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Corrige um trecho, estornando e reaplicando os contadores */
-        put: operations["atualizar"];
-        post?: never;
-        /** Exclui um trecho lançado por engano, estornando os contadores */
-        delete: operations["excluir"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  '/voos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/proprietarios/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Atualiza o cadastro de um proprietário */
-        put: operations["atualizar_1"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Corrige um trecho, estornando e reaplicando os contadores */
+    put: operations['atualizar'];
+    post?: never;
+    /** Exclui um trecho lançado por engano, estornando os contadores */
+    delete: operations['excluir'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/proprietarios/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Corrige uma manutenção */
-        put: operations["atualizar_2"];
-        post?: never;
-        /** Exclui um evento */
-        delete: operations["excluir_1"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Atualiza o cadastro de um proprietário */
+    put: operations['atualizar_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes/parametros/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Atualiza um parâmetro de controle */
-        put: operations["atualizarParametro"];
-        post?: never;
-        /** Exclui um parâmetro de controle */
-        delete: operations["excluirParametro"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Corrige uma manutenção */
+    put: operations['atualizar_2'];
+    post?: never;
+    /** Exclui um evento */
+    delete: operations['excluir_1'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes/parametros/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/empresa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Devolve os dados da empresa e a antecedência de aviso vigente */
-        get: operations["consultar"];
-        /** Altera os dados de contato da empresa; o CNPJ não muda */
-        put: operations["alterarDados"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Atualiza um parâmetro de controle */
+    put: operations['atualizarParametro'];
+    post?: never;
+    /** Exclui um parâmetro de controle */
+    delete: operations['excluirParametro'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/empresa': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/empresa/aviso-de-vencimento": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Altera com quantos dias de antecedência o sistema avisa */
-        put: operations["alterarAviso"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Devolve os dados da empresa e a antecedência de aviso vigente */
+    get: operations['consultar'];
+    /** Altera os dados de contato da empresa; o CNPJ não muda */
+    put: operations['alterarDados'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/empresa/aviso-de-vencimento': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/custos/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Corrige um lançamento */
-        put: operations["atualizar_3"];
-        post?: never;
-        /** Exclui um lançamento feito por engano */
-        delete: operations["excluir_2"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Altera com quantos dias de antecedência o sistema avisa */
+    put: operations['alterarAviso'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/custos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{id}/ficha-tecnica": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Atualiza os dados de identificação da ficha técnica */
-        put: operations["atualizarFichaTecnica"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Corrige um lançamento */
+    put: operations['atualizar_3'];
+    post?: never;
+    /** Exclui um lançamento feito por engano */
+    delete: operations['excluir_2'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{id}/ficha-tecnica': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{id}/contadores": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Corrige os totais acumulados — rota de administrador */
-        put: operations["corrigirContadores"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Atualiza os dados de identificação da ficha técnica */
+    put: operations['atualizarFichaTecnica'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{id}/contadores': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{id}/configuracao-financeira": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Atualiza a base do rateio, o aporte e o dia de fechamento */
-        put: operations["atualizarConfiguracaoFinanceira"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Corrige os totais acumulados — rota de administrador */
+    put: operations['corrigirContadores'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{id}/configuracao-financeira': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{aeronaveId}/tripulantes/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Atualiza um tripulante, situação incluída */
-        put: operations["atualizar_4"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Atualiza a base do rateio, o aporte e o dia de fechamento */
+    put: operations['atualizarConfiguracaoFinanceira'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{aeronaveId}/tripulantes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/voos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista o recorte pedido, com a linha de totais somada no servidor */
-        get: operations["listar"];
-        put?: never;
-        /** Lança um trecho e alimenta os contadores da aeronave */
-        post: operations["criar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Atualiza um tripulante, situação incluída */
+    put: operations['atualizar_4'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/voos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/usuarios": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista os usuários, com busca por nome ou e-mail e filtros de papel e situação */
-        get: operations["listar_1"];
-        put?: never;
-        /** Convida alguém: cria o acesso em PENDENTE e envia o link do convite */
-        post: operations["convidar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista o recorte pedido, com a linha de totais somada no servidor */
+    get: operations['listar'];
+    put?: never;
+    /** Lança um trecho e alimenta os contadores da aeronave */
+    post: operations['criar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/usuarios': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/usuarios/{id}/reativacao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Devolve o acesso ao estado de onde ele saiu */
-        post: operations["reativar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista os usuários, com busca por nome ou e-mail e filtros de papel e situação */
+    get: operations['listar_1'];
+    put?: never;
+    /** Convida alguém: cria o acesso em PENDENTE e envia o link do convite */
+    post: operations['convidar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/usuarios/{id}/reativacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/usuarios/{id}/desativacao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoga o acesso, sem apagar a pessoa nem seu histórico */
-        post: operations["desativar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Devolve o acesso ao estado de onde ele saiu */
+    post: operations['reativar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/usuarios/{id}/desativacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/usuarios/{id}/convite": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reenvia o convite, invalidando o link anterior */
-        post: operations["reenviarConvite"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Revoga o acesso, sem apagar a pessoa nem seu histórico */
+    post: operations['desativar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/usuarios/{id}/convite': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/proprietarios": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista os proprietários em ordem de nome */
-        get: operations["listar_2"];
-        put?: never;
-        /** Cadastra um proprietário */
-        post: operations["criar_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Reenvia o convite, invalidando o link anterior */
+    post: operations['reenviarConvite'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/proprietarios': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/proprietarios/{id}/reativacao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reativa um proprietário desativado */
-        post: operations["reativar_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista os proprietários em ordem de nome */
+    get: operations['listar_2'];
+    put?: never;
+    /** Cadastra um proprietário */
+    post: operations['criar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/proprietarios/{id}/reativacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/proprietarios/{id}/desativacao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Desativa um proprietário, preservando o histórico */
-        post: operations["desativar_1"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Reativa um proprietário desativado */
+    post: operations['reativar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/proprietarios/{id}/desativacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** O painel de uma aeronave: parâmetros julgados, programadas e histórico */
-        get: operations["painel"];
-        put?: never;
-        /** Agenda uma manutenção; ela aparece no calendário de voos */
-        post: operations["agendar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Desativa um proprietário, preservando o histórico */
+    post: operations['desativar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes/{id}/reabertura": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reabre uma conclusão feita por engano */
-        post: operations["reabrir"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** O painel de uma aeronave: parâmetros julgados, programadas e histórico */
+    get: operations['painel'];
+    put?: never;
+    /** Agenda uma manutenção; ela aparece no calendário de voos */
+    post: operations['agendar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes/{id}/reabertura': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes/{id}/conclusao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Conclui: sai das programadas e entra no histórico permanente */
-        post: operations["concluir"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Reabre uma conclusão feita por engano */
+    post: operations['reabrir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes/{id}/conclusao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/manutencoes/parametros": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Cria um parâmetro de controle */
-        post: operations["criarParametro"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Conclui: sai das programadas e entra no histórico permanente */
+    post: operations['concluir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/manutencoes/parametros': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/custos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista o recorte pedido, com fixos e variáveis somados no servidor */
-        get: operations["listar_3"];
-        put?: never;
-        /** Registra um lançamento; em USD o BRL é derivado do câmbio, uma vez */
-        post: operations["criar_2"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Cria um parâmetro de controle */
+    post: operations['criarParametro'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/custos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/senha": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Troca a própria senha: exige a senha atual e o código enviado por e-mail */
-        post: operations["trocarSenha"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista o recorte pedido, com fixos e variáveis somados no servidor */
+    get: operations['listar_3'];
+    put?: never;
+    /** Registra um lançamento; em USD o BRL é derivado do câmbio, uma vez */
+    post: operations['criar_2'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/senha': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/senha/token": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Envia o código de confirmação para trocar a própria senha */
-        post: operations["solicitarTokenDeTroca"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Troca a própria senha: exige a senha atual e o código enviado por e-mail */
+    post: operations['trocarSenha'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/senha/token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/recuperacao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Envia um código de seis dígitos para o e-mail informado */
-        post: operations["solicitarCodigo"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Envia o código de confirmação para trocar a própria senha */
+    post: operations['solicitarTokenDeTroca'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/recuperacao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/recuperacao/senha": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Troca a senha usando o código recebido por e-mail */
-        post: operations["redefinirSenha"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Envia um código de seis dígitos para o e-mail informado */
+    post: operations['solicitarCodigo'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/recuperacao/senha': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/recuperacao/codigo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Confere o código antes de permitir a troca da senha */
-        post: operations["validarCodigo"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Troca a senha usando o código recebido por e-mail */
+    post: operations['redefinirSenha'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/recuperacao/codigo': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/entrar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Abre uma sessão a partir de e-mail e senha */
-        post: operations["entrar"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Confere o código antes de permitir a troca da senha */
+    post: operations['validarCodigo'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/entrar': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/convite/senha": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** O convidado cria a própria senha e ativa o acesso */
-        post: operations["concluirConvite"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Abre uma sessão a partir de e-mail e senha */
+    post: operations['entrar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/convite/senha': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-        get: operations["listar_4"];
-        put?: never;
-        /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
-        post: operations["criar_3"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** O convidado cria a própria senha e ativa o acesso */
+    post: operations['concluirConvite'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{aeronaveId}/tripulantes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-        get: operations["listar_5"];
-        put?: never;
-        /** Vincula um tripulante à aeronave */
-        post: operations["criar_4"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
+    get: operations['listar_4'];
+    put?: never;
+    /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
+    post: operations['criar_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{aeronaveId}/tripulantes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{aeronaveId}/contratos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Devolve o contrato vigente e o histórico */
-        get: operations["consultar_1"];
-        put?: never;
-        /** Define um novo contrato e arquiva o vigente */
-        post: operations["definir"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
+    get: operations['listar_5'];
+    put?: never;
+    /** Vincula um tripulante à aeronave */
+    post: operations['criar_4'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{aeronaveId}/contratos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/saude": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Verifica e devolve a situação consolidada da plataforma */
-        get: operations["verificarSituacaoGeral"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Devolve o contrato vigente e o histórico */
+    get: operations['consultar_1'];
+    put?: never;
+    /** Define um novo contrato e arquiva o vigente */
+    post: operations['definir'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/saude': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/saude/falha-proposital": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Falha de propósito, para demonstrar as duas linhas de log de um erro */
-        get: operations["falharDeProposito"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Verifica e devolve a situação consolidada da plataforma */
+    get: operations['verificarSituacaoGeral'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/saude/falha-proposital': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/saude/componente/{componente}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Consulta a situação de um componente específico */
-        get: operations["consultarComponente"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Falha de propósito, para demonstrar as duas linhas de log de um erro */
+    get: operations['falharDeProposito'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/saude/componente/{componente}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/participacoes/vigentes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lista as participações de todos os contratos vigentes */
-        get: operations["listar_6"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Consulta a situação de um componente específico */
+    get: operations['consultarComponente'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/participacoes/vigentes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/autenticacao/sessao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Devolve o usuário da sessão corrente */
-        get: operations["consultarSessao"];
-        put?: never;
-        post?: never;
-        /** Encerra a sessão corrente */
-        delete: operations["sair"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Lista as participações de todos os contratos vigentes */
+    get: operations['listar_6'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/autenticacao/sessao': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/aeronaves/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Devolve o detalhe de uma aeronave: ficha técnica e configuração */
-        get: operations["buscar"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Devolve o usuário da sessão corrente */
+    get: operations['consultarSessao'];
+    put?: never;
+    post?: never;
+    /** Encerra a sessão corrente */
+    delete: operations['sair'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aeronaves/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /** Devolve o detalhe de uma aeronave: ficha técnica e configuração */
+    get: operations['buscar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** @description Um trecho do diário de voos */
-        TrechoRequest: {
-            /** Format: int64 */
-            aeronaveId: number;
-            /**
-             * @description Identificador do voo
-             * @example RV-2026-018
-             */
-            relatorioDeVoo?: string;
-            /** Format: int32 */
-            numeroDoTrecho: number;
-            /** Format: date */
-            data: string;
-            origem?: string;
-            destino?: string;
-            km: number;
-            /** @example 14:30:00 */
-            partidaPrevista?: string;
-            /** @example 14:30:00 */
-            pousoPrevisto?: string;
-            /** @example 14:30:00 */
-            partidaRealizada?: string;
-            /** @example 14:30:00 */
-            pousoRealizado?: string;
-            /**
-             * Format: int64
-             * @description Quem usou; nulo é voo de manutenção, dividido entre todos
-             */
-            proprietarioId?: number;
-            observacoes?: string;
-        };
-        /** @description Trecho do diário de voos */
-        TrechoResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** Format: int64 */
-            aeronaveId?: number;
-            /**
-             * @description Matrícula da aeronave
-             * @example PS-MEP
-             */
-            matricula?: string;
-            relatorioDeVoo?: string;
-            /** Format: int32 */
-            numeroDoTrecho?: number;
-            /** Format: date */
-            data?: string;
-            origem?: string;
-            destino?: string;
-            /** @description Duração em horas, uma casa; nula sem par de horários */
-            horas?: number;
-            km?: number;
-            /** @example 14:30:00 */
-            partidaPrevista?: string;
-            /** @example 14:30:00 */
-            pousoPrevisto?: string;
-            /** @example 14:30:00 */
-            partidaRealizada?: string;
-            /** @example 14:30:00 */
-            pousoRealizado?: string;
-            /** Format: int64 */
-            proprietarioId?: number;
-            /** @description Nome de quem usou; nulo em voo de manutenção */
-            nomeDoProprietario?: string;
-            /** @enum {string} */
-            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
-            vooDeManutencao?: boolean;
-            observacoes?: string;
-        };
-        /** @description Dados cadastrais de um proprietário */
-        ProprietarioRequest: {
-            /**
-             * @description Nome ou nome fantasia
-             * @example Ricardo Meirelles
-             */
-            nome?: string;
-            /**
-             * @description CPF ou CNPJ, com ou sem pontuação
-             * @example 123.456.789-01
-             */
-            cpfCnpj?: string;
-            /**
-             * @description E-mail de contato
-             * @example ricardo@exemplo.com.br
-             */
-            email?: string;
-            /**
-             * @description Telefone de contato
-             * @example +55 11 98888-0000
-             */
-            telefone?: string;
-            /**
-             * @description Cor de identificação na interface
-             * @example PETROLEO
-             * @enum {string}
-             */
-            corDeIdentificacao: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
-        };
-        /** @description Proprietário cadastrado */
-        ProprietarioResponse: {
-            /**
-             * Format: int64
-             * @description Identificador
-             * @example 1
-             */
-            id?: number;
-            /**
-             * @description Nome ou nome fantasia
-             * @example Ricardo Meirelles
-             */
-            nome?: string;
-            /**
-             * @description CPF ou CNPJ, só dígitos
-             * @example 12345678901
-             */
-            cpfCnpj?: string;
-            /**
-             * @description E-mail de contato
-             * @example ricardo@exemplo.com.br
-             */
-            email?: string;
-            /**
-             * @description Telefone de contato
-             * @example +55 11 98888-0000
-             */
-            telefone?: string;
-            /**
-             * @description Cor de identificação na interface
-             * @example PETROLEO
-             * @enum {string}
-             */
-            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
-            /**
-             * @description Se participa da operação hoje
-             * @example ATIVO
-             * @enum {string}
-             */
-            situacao?: "ATIVO" | "INATIVO";
-        };
-        /** @description Evento de manutenção */
-        ManutencaoRequest: {
-            /** Format: int64 */
-            aeronaveId: number;
-            /** Format: date */
-            data: string;
-            /** @example 14:30:00 */
-            hora?: string;
-            responsavel?: string;
-            descricao?: string;
-            valor?: number;
-        };
-        /** @description Evento de manutenção */
-        ManutencaoResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** Format: int64 */
-            aeronaveId?: number;
-            /** Format: date */
-            data?: string;
-            /** @example 14:30:00 */
-            hora?: string;
-            responsavel?: string;
-            descricao?: string;
-            valor?: number;
-            /** @enum {string} */
-            status?: "PROGRAMADA" | "CONCLUIDA";
-        };
-        /** @description Parâmetro de controle */
-        ParametroRequest: {
-            /** Format: int64 */
-            aeronaveId: number;
-            nome?: string;
-            /** @enum {string} */
-            tipo: "HORAS" | "CICLOS" | "DATA";
-            limite?: number;
-            /** Format: date */
-            dataLimite?: string;
-            aviso: number;
-        };
-        /** @description Parâmetro de controle, julgado */
-        ParametroResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** Format: int64 */
-            aeronaveId?: number;
-            nome?: string;
-            /** @enum {string} */
-            tipo?: "HORAS" | "CICLOS" | "DATA";
-            limite?: number;
-            /** Format: date */
-            dataLimite?: string;
-            aviso?: number;
-            /** @description Horas de célula, ciclos ou o dia de hoje, conforme o tipo */
-            atual?: number;
-            /** @description Quanto falta na unidade do tipo; negativo é estouro */
-            restante?: number;
-            /** @enum {string} */
-            situacao?: "REGULAR" | "ATENCAO" | "ESTOURADO";
-        };
-        /** @description Alteração dos dados da empresa */
-        AlterarEmpresaRequest: {
-            nomeFantasia?: string;
-            razaoSocial?: string;
-            email?: string;
-            telefone?: string;
-        };
-        /** @description A empresa dona desta instalação */
-        EmpresaResponse: {
-            /**
-             * @description Nome fantasia
-             * @example Administra Air
-             */
-            nomeFantasia?: string;
-            /**
-             * @description Razão social
-             * @example Administra Air Gestão de Aeronaves LTDA
-             */
-            razaoSocial?: string;
-            /**
-             * @description CNPJ, somente dígitos. Somente leitura
-             * @example 19274653000188
-             */
-            cnpj?: string;
-            /** @description E-mail de contato */
-            email?: string;
-            /**
-             * @description Telefone de contato
-             * @example +55 11 3000-0000
-             */
-            telefone?: string;
-            /**
-             * Format: int32
-             * @description Antecedência do aviso de vencimento, em dias
-             * @example 30
-             */
-            diasDeAviso?: number;
-        };
-        /** @description Antecedência do aviso de vencimento */
-        AlterarAvisoRequest: {
-            /**
-             * Format: int32
-             * @description Dias de antecedência
-             * @example 30
-             */
-            diasDeAviso?: number;
-        };
-        /** @description Um lançamento de custo */
-        CustoRequest: {
-            /** Format: int64 */
-            aeronaveId: number;
-            /** @enum {string} */
-            categoria: "FOLHA_TRIPULACAO" | "HANGARAGEM" | "MANUTENCAO_PROGRAMADA" | "SEGURO" | "ASSINATURAS_OPERACIONAIS" | "LIMPEZA_MENSAL" | "TAXA_DE_ADMINISTRACAO" | "LEASING" | "PUBLICACOES_TECNICAS" | "ABASTECIMENTO" | "TARIFAS_AEROPORTUARIAS" | "COMISSARIA" | "ACERTO_DE_VIAGEM" | "COORDENACAO_VOO_INTERNACIONAL" | "DESPESAS_COM_FREELANCER";
-            /** Format: date */
-            data: string;
-            descricao?: string;
-            relatorioDeVoo?: string;
-            /**
-             * Format: int64
-             * @description Quem paga; nulo é rateado entre todos
-             */
-            proprietarioId?: number;
-            notaFiscal?: string;
-            /** @enum {string} */
-            moeda: "BRL" | "USD";
-            valor: number;
-            cambio?: number;
-        };
-        /** @description Lançamento de custo */
-        CustoResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** Format: int64 */
-            aeronaveId?: number;
-            matricula?: string;
-            /** @enum {string} */
-            tipo?: "FIXO" | "VARIAVEL";
-            /** @enum {string} */
-            categoria?: "FOLHA_TRIPULACAO" | "HANGARAGEM" | "MANUTENCAO_PROGRAMADA" | "SEGURO" | "ASSINATURAS_OPERACIONAIS" | "LIMPEZA_MENSAL" | "TAXA_DE_ADMINISTRACAO" | "LEASING" | "PUBLICACOES_TECNICAS" | "ABASTECIMENTO" | "TARIFAS_AEROPORTUARIAS" | "COMISSARIA" | "ACERTO_DE_VIAGEM" | "COORDENACAO_VOO_INTERNACIONAL" | "DESPESAS_COM_FREELANCER";
-            /** Format: date */
-            data?: string;
-            descricao?: string;
-            relatorioDeVoo?: string;
-            /** Format: int64 */
-            proprietarioId?: number;
-            /** @description Nome de quem paga; nulo quando rateado */
-            nomeDoProprietario?: string;
-            /** @enum {string} */
-            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
-            rateado?: boolean;
-            notaFiscal?: string;
-            /** @enum {string} */
-            moeda?: "BRL" | "USD";
-            /** @description Valor original na moeda estrangeira; nulo em BRL */
-            valorOriginal?: number;
-            cambio?: number;
-            /** @description Valor em BRL, o que o rateio consome */
-            valor?: number;
-        };
-        /** @description Dados de identificação da ficha técnica */
-        FichaTecnicaRequest: {
-            fabricante?: string;
-            modelo?: string;
-            numeroDeSerie?: string;
-            base?: string;
-            hangar?: string;
-            apoliceDoSeguro?: string;
-            /** Format: int32 */
-            pesoMaxDecolagemKg?: number;
-            /** Format: int32 */
-            pesoMaxPousoKg?: number;
-        };
-        /** @description Totais acumulados da aeronave */
-        Contadores: {
-            horasDeCelula?: number;
-            /** Format: int32 */
-            ciclos?: number;
-            kmVoados?: number;
-            horasMotor1?: number;
-            horasMotor2?: number;
-            horasMotor3?: number;
-            horasApu?: number;
-        };
-        /** @description Detalhe de uma aeronave */
-        DetalheDaAeronaveResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** @example PS-MEP */
-            matricula?: string;
-            /** @example Cessna */
-            fabricante?: string;
-            /** @example Citation XLS+ */
-            modelo?: string;
-            /** @example 560-6321 */
-            numeroDeSerie?: string;
-            /**
-             * @description Aeródromo base, em código ICAO
-             * @example SBSP
-             */
-            base?: string;
-            /** @example Hangar 7 — Congonhas */
-            hangar?: string;
-            /** @description Número da apólice; a vigência é o vencimento da RETA */
-            apoliceDoSeguro?: string;
-            /**
-             * Format: int32
-             * @description MTOW em kg
-             * @example 9163
-             */
-            pesoMaxDecolagemKg?: number;
-            /**
-             * Format: int32
-             * @description MLW em kg
-             * @example 8482
-             */
-            pesoMaxPousoKg?: number;
-            /** @enum {string} */
-            situacaoRegular?: "REGULAR" | "ATENCAO" | "VENCIDO";
-            /** @enum {string} */
-            documentoDoProximoVencimento?: "CVA" | "RETA";
-            /** Format: date */
-            proximoVencimento?: string;
-            /** Format: int64 */
-            diasAteOProximoVencimento?: number;
-            podeVoar?: boolean;
-            /** Format: date */
-            vencimentoCva?: string;
-            /** Format: date */
-            vencimentoReta?: string;
-            /** @description Totais acumulados declarados */
-            contadores?: components["schemas"]["Contadores"];
-            /** @description Rateio e fundo */
-            configuracaoFinanceira?: components["schemas"]["Financeiro"];
-        };
-        /** @description Configuração financeira da aeronave */
-        Financeiro: {
-            /** @enum {string} */
-            baseDoRateio?: "POR_USO" | "POR_PROPRIEDADE";
-            /** @enum {string} */
-            modeloDeAporte?: "FIXO" | "PROPORCIONAL_AO_USO";
-            /** Format: int32 */
-            periodicidadeDoAporteMeses?: number;
-            valorDoAporte?: number;
-            /** Format: int32 */
-            diaDeFechamento?: number;
-        };
-        /** @description Correção dos totais acumulados da aeronave */
-        ContadoresRequest: {
-            horasDeCelula: number;
-            /** Format: int32 */
-            ciclos: number;
-            kmVoados: number;
-            horasMotor1?: number;
-            horasMotor2?: number;
-            horasMotor3?: number;
-            horasApu?: number;
-        };
-        /** @description Rateio e fundo da aeronave */
-        ConfiguracaoFinanceiraRequest: {
-            /** @enum {string} */
-            baseDoRateio: "POR_USO" | "POR_PROPRIEDADE";
-            /** @enum {string} */
-            modeloDeAporte: "FIXO" | "PROPORCIONAL_AO_USO";
-            /** Format: int32 */
-            periodicidadeDoAporteMeses: number;
-            valorDoAporte?: number;
-            /** Format: int32 */
-            diaDeFechamento: number;
-        };
-        /** @description Dados de um tripulante da aeronave */
-        TripulanteRequest: {
-            nome?: string;
-            /**
-             * @description Código ANAC, com ou sem máscara
-             * @example 123456
-             */
-            canac?: string;
-            /** @enum {string} */
-            funcao: "COMANDANTE" | "COPILOTO" | "INSTRUTOR" | "EXAMINADOR";
-            /**
-             * Format: date
-             * @description Validade do Certificado Médico Aeronáutico
-             */
-            validadeCma?: string;
-            /**
-             * Format: date
-             * @description Validade do Certificado de Habilitação Técnica
-             */
-            validadeCht?: string;
-            horasTotais?: number;
-            telefone?: string;
-            email?: string;
-            /** @enum {string} */
-            situacao: "ATIVO" | "INATIVO";
-        };
-        /** @description Tripulante vinculado à aeronave */
-        TripulanteResponse: {
-            /** Format: int64 */
-            id?: number;
-            nome?: string;
-            /** @description Código ANAC, só dígitos */
-            canac?: string;
-            /** @enum {string} */
-            funcao?: "COMANDANTE" | "COPILOTO" | "INSTRUTOR" | "EXAMINADOR";
-            /** Format: date */
-            validadeCma?: string;
-            /** @description Se o CMA já venceu; falso quando não informado */
-            cmaVencido?: boolean;
-            /** Format: date */
-            validadeCht?: string;
-            /** @description Se o CHT já venceu; falso quando não informado */
-            chtVencido?: boolean;
-            horasTotais?: number;
-            telefone?: string;
-            email?: string;
-            /** @enum {string} */
-            situacao?: "ATIVO" | "INATIVO";
-        };
-        /** @description Convite de acesso ao Aether */
-        ConvidarUsuarioRequest: {
-            /**
-             * @description Nome de exibição
-             * @example Camila Nogueira
-             */
-            nome?: string;
-            /**
-             * @description E-mail de acesso
-             * @example camila@administraair.com.br
-             */
-            email?: string;
-            /**
-             * @description O que a pessoa será no Aether
-             * @example GESTOR
-             * @enum {string}
-             */
-            papel: "ADMINISTRADOR" | "GESTOR" | "PROPRIETARIO" | "PILOTO";
-        };
-        /** @description Usuário com acesso ao Aether */
-        UsuarioResponse: {
-            /**
-             * Format: int64
-             * @description Identificador
-             * @example 1
-             */
-            id?: number;
-            /**
-             * @description Nome de exibição
-             * @example Leonardo Andrade
-             */
-            nome?: string;
-            /**
-             * @description E-mail cadastrado
-             * @example leonardo@administraair.com.br
-             */
-            email?: string;
-            /**
-             * @description O que a pessoa é no Aether
-             * @example ADMINISTRADOR
-             * @enum {string}
-             */
-            papel?: "ADMINISTRADOR" | "GESTOR" | "PROPRIETARIO" | "PILOTO";
-            /**
-             * @description Onde está no ciclo de vida
-             * @example ATIVO
-             * @enum {string}
-             */
-            situacao?: "ATIVO" | "PENDENTE" | "INATIVO";
-            /**
-             * Format: date-time
-             * @description Última entrada bem-sucedida; nulo para quem nunca entrou
-             */
-            ultimoAcesso?: string;
-        };
-        /** @description Troca da própria senha */
-        TrocarSenhaRequest: {
-            senhaAtual?: string;
-            novaSenha?: string;
-            /**
-             * @description Código de seis dígitos
-             * @example 042917
-             */
-            codigo?: string;
-        };
-        /** @description Pedido de código de recuperação */
-        SolicitarRecuperacaoRequest: {
-            /**
-             * @description E-mail cadastrado
-             * @example leonardo@administraair.com.br
-             */
-            email?: string;
-        };
-        /** @description Redefinição de senha com o código recebido */
-        RedefinirSenhaRequest: {
-            /** @description E-mail cadastrado */
-            email?: string;
-            /**
-             * @description Código de seis dígitos recebido por e-mail
-             * @example 519274
-             */
-            codigo?: string;
-            /** @description Senha nova, de no mínimo oito caracteres */
-            novaSenha?: string;
-        };
-        /** @description Conferência do código de recuperação */
-        ValidarCodigoRequest: {
-            /** @description E-mail cadastrado */
-            email?: string;
-            /**
-             * @description Código de seis dígitos recebido por e-mail
-             * @example 519274
-             */
-            codigo?: string;
-        };
-        /** @description Credenciais de entrada */
-        EntrarRequest: {
-            /**
-             * @description E-mail cadastrado
-             * @example leonardo@administraair.com.br
-             */
-            email?: string;
-            /** @description Senha da conta */
-            senha?: string;
-        };
-        /** @description Usuário da sessão corrente */
-        SessaoResponse: {
-            /**
-             * @description Nome de exibição
-             * @example Leonardo Andrade
-             */
-            nome?: string;
-            /**
-             * @description E-mail cadastrado
-             * @example leonardo@administraair.com.br
-             */
-            email?: string;
-            /**
-             * @description O que a pessoa é no Aether
-             * @example ADMINISTRADOR
-             * @enum {string}
-             */
-            papel?: "ADMINISTRADOR" | "GESTOR" | "PROPRIETARIO" | "PILOTO";
-        };
-        /** @description Conclusão do convite */
-        ConcluirConviteRequest: {
-            /** @description Token que veio no link do convite */
-            convite?: string;
-            /** @description Senha escolhida pela própria pessoa */
-            novaSenha?: string;
-        };
-        /** @description Cadastro de uma nova aeronave */
-        CriarAeronaveRequest: {
-            /**
-             * @description Matrícula no RAB
-             * @example PS-AER
-             */
-            matricula?: string;
-            fabricante?: string;
-            modelo?: string;
-            numeroDeSerie?: string;
-            base?: string;
-            hangar?: string;
-            apoliceDoSeguro?: string;
-            /** Format: int32 */
-            pesoMaxDecolagemKg?: number;
-            /** Format: int32 */
-            pesoMaxPousoKg?: number;
-            /**
-             * Format: date
-             * @description Vencimento do CVA
-             */
-            vencimentoCva: string;
-            /**
-             * Format: date
-             * @description Vigência do seguro RETA (vencimento)
-             */
-            vencimentoReta: string;
-            /** @description Valores acumulados na data do cadastro */
-            contadores: components["schemas"]["ContadoresRequest"];
-            /** @description Rateio e fundo */
-            configuracaoFinanceira: components["schemas"]["ConfiguracaoFinanceiraRequest"];
-        };
-        /** @description Definição de um novo contrato de participação */
-        DefinirContratoRequest: {
-            participacoes?: components["schemas"]["ParticipacaoRequest"][];
-        };
-        /** @description A fatia de um proprietário */
-        ParticipacaoRequest: {
-            /** Format: int64 */
-            proprietarioId: number;
-            percentual: number;
-        };
-        /** @description Um contrato de participação */
-        ContratoResponse: {
-            /** Format: int64 */
-            id?: number;
-            /** Format: date-time */
-            inicioDaVigencia?: string;
-            /** Format: date-time */
-            fimDaVigencia?: string;
-            /** @description Quem salvou o contrato */
-            criadoPor?: string;
-            participacoes?: components["schemas"]["ParticipacaoResponse"][];
-        };
-        /** @description Contratos de participação de uma aeronave */
-        ContratosDaAeronaveResponse: {
-            /** @description O contrato em vigor, ou nulo se nenhum foi definido */
-            vigente?: components["schemas"]["ContratoResponse"];
-            /** @description Contratos arquivados, do mais recente para o mais antigo */
-            historico?: components["schemas"]["ContratoResponse"][];
-        };
-        /** @description A fatia de um proprietário no contrato */
-        ParticipacaoResponse: {
-            /** Format: int64 */
-            proprietarioId?: number;
-            nome?: string;
-            /** @enum {string} */
-            corDeIdentificacao?: "PETROLEO" | "AZUL" | "CELESTE" | "VERDE" | "AMBAR" | "CINZA";
-            /**
-             * @description Percentual de propriedade, duas casas
-             * @example 33.34
-             */
-            percentual?: number;
-        };
-        /** @description Diário de voos de um recorte */
-        DiarioDeVoosResponse: {
-            trechos?: components["schemas"]["TrechoResponse"][];
-            /** @description Totais do recorte */
-            totais?: components["schemas"]["TotaisDoDiario"];
-        };
-        /** @description Totais do recorte */
-        TotaisDoDiario: {
-            horas?: number;
-            km?: number;
-            /** Format: int64 */
-            pousos?: number;
-        };
-        Pageable: {
-            /** Format: int32 */
-            page?: number;
-            /** Format: int32 */
-            size?: number;
-            sort?: string[];
-        };
-        /** @description Página da lista de usuários */
-        PaginaDeUsuariosResponse: {
-            /** @description Os usuários desta página */
-            itens?: components["schemas"]["UsuarioResponse"][];
-            /**
-             * Format: int32
-             * @description Página corrente, começando em zero
-             * @example 0
-             */
-            pagina?: number;
-            /**
-             * Format: int32
-             * @description Tamanho pedido
-             * @example 20
-             */
-            tamanho?: number;
-            /**
-             * Format: int64
-             * @description Total de usuários que passam pelo filtro
-             * @example 4
-             */
-            total?: number;
-            /**
-             * Format: int32
-             * @description Total de páginas
-             * @example 1
-             */
-            totalDePaginas?: number;
-        };
-        /** @description Situação de um componente da plataforma */
-        ComponenteDeSaudeResponse: {
-            /**
-             * @description Nome do componente monitorado
-             * @example banco
-             */
-            componente?: string;
-            /**
-             * @description Situação atual do componente
-             * @enum {string}
-             */
-            situacao?: "OPERANTE" | "DEGRADADO" | "INDISPONIVEL";
-            /**
-             * Format: date-time
-             * @description Momento da última verificação
-             */
-            verificadoEm?: string;
-            /** @description Verdadeiro quando o componente está operante e foi verificado há pouco */
-            saudavel?: boolean;
-        };
-        /** @description Situação consolidada da plataforma */
-        SaudeResponse: {
-            /**
-             * @description Pior situação entre os componentes
-             * @enum {string}
-             */
-            situacaoGeral?: "OPERANTE" | "DEGRADADO" | "INDISPONIVEL";
-            /**
-             * @description Versão da aplicação
-             * @example 0.1.0
-             */
-            versao?: string;
-            /** @description Situação de cada componente monitorado */
-            componentes?: components["schemas"]["ComponenteDeSaudeResponse"][];
-        };
-        /** @description Participação vigente de um proprietário numa aeronave */
-        VinculoVigenteResponse: {
-            /**
-             * Format: int64
-             * @description Identificador do proprietário
-             * @example 1
-             */
-            proprietarioId?: number;
-            /**
-             * Format: int64
-             * @description Identificador da aeronave
-             * @example 3
-             */
-            aeronaveId?: number;
-            /**
-             * @description Matrícula da aeronave
-             * @example PS-AER
-             */
-            matricula?: string;
-            /**
-             * @description Modelo da aeronave
-             * @example Phenom 300E
-             */
-            modelo?: string;
-            /**
-             * @description Percentual de propriedade, duas casas
-             * @example 33.34
-             */
-            percentual?: number;
-        };
-        /** @description Manutenção de uma aeronave */
-        PainelDeManutencaoResponse: {
-            /** @description Horas de célula atuais, a referência dos parâmetros */
-            horasDeCelula?: number;
-            /** Format: int32 */
-            ciclos?: number;
-            parametros?: components["schemas"]["ParametroResponse"][];
-            /** @description Programadas, em ordem de proximidade */
-            programadas?: components["schemas"]["ManutencaoResponse"][];
-            /** @description Concluídas, da mais recente para a mais antiga */
-            historico?: components["schemas"]["ManutencaoResponse"][];
-        };
-        /** @description Lançamentos de custo de um recorte */
-        LancamentosResponse: {
-            custos?: components["schemas"]["CustoResponse"][];
-            /** @description Totais do recorte */
-            totais?: components["schemas"]["TotaisDosLancamentos"];
-        };
-        /** @description Totais do recorte, em BRL */
-        TotaisDosLancamentos: {
-            fixos?: number;
-            variaveis?: number;
-            total?: number;
-        };
-        /** @description Aeronave sob gestão */
-        AeronaveResponse: {
-            /**
-             * Format: int64
-             * @description Identificador
-             * @example 1
-             */
-            id?: number;
-            /**
-             * @description Matrícula no RAB
-             * @example PS-MEP
-             */
-            matricula?: string;
-            /**
-             * @description Modelo
-             * @example Cessna Citation XLS+
-             */
-            modelo?: string;
-            /**
-             * @description Aeródromo base, em código ICAO
-             * @example SBSP
-             */
-            base?: string;
-            /**
-             * @description Conformidade regulatória agora
-             * @example REGULAR
-             * @enum {string}
-             */
-            situacaoRegular?: "REGULAR" | "ATENCAO" | "VENCIDO";
-            /**
-             * @description Documento que vence primeiro
-             * @example CVA
-             * @enum {string}
-             */
-            documentoDoProximoVencimento?: "CVA" | "RETA";
-            /**
-             * Format: date
-             * @description Data do vencimento mais próximo
-             */
-            proximoVencimento?: string;
-            /**
-             * Format: int64
-             * @description Dias até esse vencimento; negativo quando já passou
-             * @example 12
-             */
-            diasAteOProximoVencimento?: number;
-            /**
-             * @description Se a aeronave está liberada para voar
-             * @example true
-             */
-            podeVoar?: boolean;
-        };
+  schemas: {
+    /** @description Um trecho do diário de voos */
+    TrechoRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      /**
+       * @description Identificador do voo
+       * @example RV-2026-018
+       */
+      relatorioDeVoo?: string;
+      /** Format: int32 */
+      numeroDoTrecho: number;
+      /** Format: date */
+      data: string;
+      origem?: string;
+      destino?: string;
+      km: number;
+      /** @example 14:30:00 */
+      partidaPrevista?: string;
+      /** @example 14:30:00 */
+      pousoPrevisto?: string;
+      /** @example 14:30:00 */
+      partidaRealizada?: string;
+      /** @example 14:30:00 */
+      pousoRealizado?: string;
+      /**
+       * Format: int64
+       * @description Quem usou; nulo é voo de manutenção, dividido entre todos
+       */
+      proprietarioId?: number;
+      observacoes?: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** @description Trecho do diário de voos */
+    TrechoResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      /**
+       * @description Matrícula da aeronave
+       * @example PS-MEP
+       */
+      matricula?: string;
+      relatorioDeVoo?: string;
+      /** Format: int32 */
+      numeroDoTrecho?: number;
+      /** Format: date */
+      data?: string;
+      origem?: string;
+      destino?: string;
+      /** @description Duração em horas, uma casa; nula sem par de horários */
+      horas?: number;
+      km?: number;
+      /** @example 14:30:00 */
+      partidaPrevista?: string;
+      /** @example 14:30:00 */
+      pousoPrevisto?: string;
+      /** @example 14:30:00 */
+      partidaRealizada?: string;
+      /** @example 14:30:00 */
+      pousoRealizado?: string;
+      /** Format: int64 */
+      proprietarioId?: number;
+      /** @description Nome de quem usou; nulo em voo de manutenção */
+      nomeDoProprietario?: string;
+      /** @enum {string} */
+      corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+      vooDeManutencao?: boolean;
+      observacoes?: string;
+    };
+    /** @description Dados cadastrais de um proprietário */
+    ProprietarioRequest: {
+      /**
+       * @description Nome ou nome fantasia
+       * @example Ricardo Meirelles
+       */
+      nome?: string;
+      /**
+       * @description CPF ou CNPJ, com ou sem pontuação
+       * @example 123.456.789-01
+       */
+      cpfCnpj?: string;
+      /**
+       * @description E-mail de contato
+       * @example ricardo@exemplo.com.br
+       */
+      email?: string;
+      /**
+       * @description Telefone de contato
+       * @example +55 11 98888-0000
+       */
+      telefone?: string;
+      /**
+       * @description Cor de identificação na interface
+       * @example PETROLEO
+       * @enum {string}
+       */
+      corDeIdentificacao: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+    };
+    /** @description Proprietário cadastrado */
+    ProprietarioResponse: {
+      /**
+       * Format: int64
+       * @description Identificador
+       * @example 1
+       */
+      id?: number;
+      /**
+       * @description Nome ou nome fantasia
+       * @example Ricardo Meirelles
+       */
+      nome?: string;
+      /**
+       * @description CPF ou CNPJ, só dígitos
+       * @example 12345678901
+       */
+      cpfCnpj?: string;
+      /**
+       * @description E-mail de contato
+       * @example ricardo@exemplo.com.br
+       */
+      email?: string;
+      /**
+       * @description Telefone de contato
+       * @example +55 11 98888-0000
+       */
+      telefone?: string;
+      /**
+       * @description Cor de identificação na interface
+       * @example PETROLEO
+       * @enum {string}
+       */
+      corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+      /**
+       * @description Se participa da operação hoje
+       * @example ATIVO
+       * @enum {string}
+       */
+      situacao?: 'ATIVO' | 'INATIVO';
+    };
+    /** @description Evento de manutenção */
+    ManutencaoRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      /** Format: date */
+      data: string;
+      /** @example 14:30:00 */
+      hora?: string;
+      responsavel?: string;
+      descricao?: string;
+      valor?: number;
+    };
+    /** @description Evento de manutenção */
+    ManutencaoResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      /** Format: date */
+      data?: string;
+      /** @example 14:30:00 */
+      hora?: string;
+      responsavel?: string;
+      descricao?: string;
+      valor?: number;
+      /** @enum {string} */
+      status?: 'PROGRAMADA' | 'CONCLUIDA';
+    };
+    /** @description Parâmetro de controle */
+    ParametroRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      nome?: string;
+      /** @enum {string} */
+      tipo: 'HORAS' | 'CICLOS' | 'DATA';
+      limite?: number;
+      /** Format: date */
+      dataLimite?: string;
+      aviso: number;
+    };
+    /** @description Parâmetro de controle, julgado */
+    ParametroResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      nome?: string;
+      /** @enum {string} */
+      tipo?: 'HORAS' | 'CICLOS' | 'DATA';
+      limite?: number;
+      /** Format: date */
+      dataLimite?: string;
+      aviso?: number;
+      /** @description Horas de célula, ciclos ou o dia de hoje, conforme o tipo */
+      atual?: number;
+      /** @description Quanto falta na unidade do tipo; negativo é estouro */
+      restante?: number;
+      /** @enum {string} */
+      situacao?: 'REGULAR' | 'ATENCAO' | 'ESTOURADO';
+    };
+    /** @description Alteração dos dados da empresa */
+    AlterarEmpresaRequest: {
+      nomeFantasia?: string;
+      razaoSocial?: string;
+      email?: string;
+      telefone?: string;
+    };
+    /** @description A empresa dona desta instalação */
+    EmpresaResponse: {
+      /**
+       * @description Nome fantasia
+       * @example Administra Air
+       */
+      nomeFantasia?: string;
+      /**
+       * @description Razão social
+       * @example Administra Air Gestão de Aeronaves LTDA
+       */
+      razaoSocial?: string;
+      /**
+       * @description CNPJ, somente dígitos. Somente leitura
+       * @example 19274653000188
+       */
+      cnpj?: string;
+      /** @description E-mail de contato */
+      email?: string;
+      /**
+       * @description Telefone de contato
+       * @example +55 11 3000-0000
+       */
+      telefone?: string;
+      /**
+       * Format: int32
+       * @description Antecedência do aviso de vencimento, em dias
+       * @example 30
+       */
+      diasDeAviso?: number;
+    };
+    /** @description Antecedência do aviso de vencimento */
+    AlterarAvisoRequest: {
+      /**
+       * Format: int32
+       * @description Dias de antecedência
+       * @example 30
+       */
+      diasDeAviso?: number;
+    };
+    /** @description Um lançamento de custo */
+    CustoRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      /** @enum {string} */
+      categoria:
+        | 'FOLHA_TRIPULACAO'
+        | 'HANGARAGEM'
+        | 'MANUTENCAO_PROGRAMADA'
+        | 'SEGURO'
+        | 'ASSINATURAS_OPERACIONAIS'
+        | 'LIMPEZA_MENSAL'
+        | 'TAXA_DE_ADMINISTRACAO'
+        | 'LEASING'
+        | 'PUBLICACOES_TECNICAS'
+        | 'ABASTECIMENTO'
+        | 'TARIFAS_AEROPORTUARIAS'
+        | 'COMISSARIA'
+        | 'ACERTO_DE_VIAGEM'
+        | 'COORDENACAO_VOO_INTERNACIONAL'
+        | 'DESPESAS_COM_FREELANCER';
+      /** Format: date */
+      data: string;
+      descricao?: string;
+      relatorioDeVoo?: string;
+      /**
+       * Format: int64
+       * @description Quem paga; nulo é rateado entre todos
+       */
+      proprietarioId?: number;
+      notaFiscal?: string;
+      /** @enum {string} */
+      moeda: 'BRL' | 'USD';
+      valor: number;
+      cambio?: number;
+    };
+    /** @description Lançamento de custo */
+    CustoResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      matricula?: string;
+      /** @enum {string} */
+      tipo?: 'FIXO' | 'VARIAVEL';
+      /** @enum {string} */
+      categoria?:
+        | 'FOLHA_TRIPULACAO'
+        | 'HANGARAGEM'
+        | 'MANUTENCAO_PROGRAMADA'
+        | 'SEGURO'
+        | 'ASSINATURAS_OPERACIONAIS'
+        | 'LIMPEZA_MENSAL'
+        | 'TAXA_DE_ADMINISTRACAO'
+        | 'LEASING'
+        | 'PUBLICACOES_TECNICAS'
+        | 'ABASTECIMENTO'
+        | 'TARIFAS_AEROPORTUARIAS'
+        | 'COMISSARIA'
+        | 'ACERTO_DE_VIAGEM'
+        | 'COORDENACAO_VOO_INTERNACIONAL'
+        | 'DESPESAS_COM_FREELANCER';
+      /** Format: date */
+      data?: string;
+      descricao?: string;
+      relatorioDeVoo?: string;
+      /** Format: int64 */
+      proprietarioId?: number;
+      /** @description Nome de quem paga; nulo quando rateado */
+      nomeDoProprietario?: string;
+      /** @enum {string} */
+      corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+      rateado?: boolean;
+      notaFiscal?: string;
+      /** @enum {string} */
+      moeda?: 'BRL' | 'USD';
+      /** @description Valor original na moeda estrangeira; nulo em BRL */
+      valorOriginal?: number;
+      cambio?: number;
+      /** @description Valor em BRL, o que o rateio consome */
+      valor?: number;
+    };
+    /** @description Dados de identificação da ficha técnica */
+    FichaTecnicaRequest: {
+      fabricante?: string;
+      modelo?: string;
+      numeroDeSerie?: string;
+      base?: string;
+      hangar?: string;
+      apoliceDoSeguro?: string;
+      /** Format: int32 */
+      pesoMaxDecolagemKg?: number;
+      /** Format: int32 */
+      pesoMaxPousoKg?: number;
+    };
+    /** @description Totais acumulados da aeronave */
+    Contadores: {
+      horasDeCelula?: number;
+      /** Format: int32 */
+      ciclos?: number;
+      kmVoados?: number;
+      horasMotor1?: number;
+      horasMotor2?: number;
+      horasMotor3?: number;
+      horasApu?: number;
+    };
+    /** @description Detalhe de uma aeronave */
+    DetalheDaAeronaveResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** @example PS-MEP */
+      matricula?: string;
+      /** @example Cessna */
+      fabricante?: string;
+      /** @example Citation XLS+ */
+      modelo?: string;
+      /** @example 560-6321 */
+      numeroDeSerie?: string;
+      /**
+       * @description Aeródromo base, em código ICAO
+       * @example SBSP
+       */
+      base?: string;
+      /** @example Hangar 7 — Congonhas */
+      hangar?: string;
+      /** @description Número da apólice; a vigência é o vencimento da RETA */
+      apoliceDoSeguro?: string;
+      /**
+       * Format: int32
+       * @description MTOW em kg
+       * @example 9163
+       */
+      pesoMaxDecolagemKg?: number;
+      /**
+       * Format: int32
+       * @description MLW em kg
+       * @example 8482
+       */
+      pesoMaxPousoKg?: number;
+      /** @enum {string} */
+      situacaoRegular?: 'REGULAR' | 'ATENCAO' | 'VENCIDO';
+      /** @enum {string} */
+      documentoDoProximoVencimento?: 'CVA' | 'RETA';
+      /** Format: date */
+      proximoVencimento?: string;
+      /** Format: int64 */
+      diasAteOProximoVencimento?: number;
+      podeVoar?: boolean;
+      /** Format: date */
+      vencimentoCva?: string;
+      /** Format: date */
+      vencimentoReta?: string;
+      /** @description Totais acumulados declarados */
+      contadores?: components['schemas']['Contadores'];
+      /** @description Rateio e fundo */
+      configuracaoFinanceira?: components['schemas']['Financeiro'];
+    };
+    /** @description Configuração financeira da aeronave */
+    Financeiro: {
+      /** @enum {string} */
+      baseDoRateio?: 'POR_USO' | 'POR_PROPRIEDADE';
+      /** @enum {string} */
+      modeloDeAporte?: 'FIXO' | 'PROPORCIONAL_AO_USO';
+      /** Format: int32 */
+      periodicidadeDoAporteMeses?: number;
+      valorDoAporte?: number;
+      /** Format: int32 */
+      diaDeFechamento?: number;
+    };
+    /** @description Correção dos totais acumulados da aeronave */
+    ContadoresRequest: {
+      horasDeCelula: number;
+      /** Format: int32 */
+      ciclos: number;
+      kmVoados: number;
+      horasMotor1?: number;
+      horasMotor2?: number;
+      horasMotor3?: number;
+      horasApu?: number;
+    };
+    /** @description Rateio e fundo da aeronave */
+    ConfiguracaoFinanceiraRequest: {
+      /** @enum {string} */
+      baseDoRateio: 'POR_USO' | 'POR_PROPRIEDADE';
+      /** @enum {string} */
+      modeloDeAporte: 'FIXO' | 'PROPORCIONAL_AO_USO';
+      /** Format: int32 */
+      periodicidadeDoAporteMeses: number;
+      valorDoAporte?: number;
+      /** Format: int32 */
+      diaDeFechamento: number;
+    };
+    /** @description Dados de um tripulante da aeronave */
+    TripulanteRequest: {
+      nome?: string;
+      /**
+       * @description Código ANAC, com ou sem máscara
+       * @example 123456
+       */
+      canac?: string;
+      /** @enum {string} */
+      funcao: 'COMANDANTE' | 'COPILOTO' | 'INSTRUTOR' | 'EXAMINADOR';
+      /**
+       * Format: date
+       * @description Validade do Certificado Médico Aeronáutico
+       */
+      validadeCma?: string;
+      /**
+       * Format: date
+       * @description Validade do Certificado de Habilitação Técnica
+       */
+      validadeCht?: string;
+      horasTotais?: number;
+      telefone?: string;
+      email?: string;
+      /** @enum {string} */
+      situacao: 'ATIVO' | 'INATIVO';
+    };
+    /** @description Tripulante vinculado à aeronave */
+    TripulanteResponse: {
+      /** Format: int64 */
+      id?: number;
+      nome?: string;
+      /** @description Código ANAC, só dígitos */
+      canac?: string;
+      /** @enum {string} */
+      funcao?: 'COMANDANTE' | 'COPILOTO' | 'INSTRUTOR' | 'EXAMINADOR';
+      /** Format: date */
+      validadeCma?: string;
+      /** @description Se o CMA já venceu; falso quando não informado */
+      cmaVencido?: boolean;
+      /** Format: date */
+      validadeCht?: string;
+      /** @description Se o CHT já venceu; falso quando não informado */
+      chtVencido?: boolean;
+      horasTotais?: number;
+      telefone?: string;
+      email?: string;
+      /** @enum {string} */
+      situacao?: 'ATIVO' | 'INATIVO';
+    };
+    /** @description Convite de acesso ao Aether */
+    ConvidarUsuarioRequest: {
+      /**
+       * @description Nome de exibição
+       * @example Camila Nogueira
+       */
+      nome?: string;
+      /**
+       * @description E-mail de acesso
+       * @example camila@administraair.com.br
+       */
+      email?: string;
+      /**
+       * @description O que a pessoa será no Aether
+       * @example GESTOR
+       * @enum {string}
+       */
+      papel: 'ADMINISTRADOR' | 'GESTOR' | 'PROPRIETARIO' | 'PILOTO';
+    };
+    /** @description Usuário com acesso ao Aether */
+    UsuarioResponse: {
+      /**
+       * Format: int64
+       * @description Identificador
+       * @example 1
+       */
+      id?: number;
+      /**
+       * @description Nome de exibição
+       * @example Leonardo Andrade
+       */
+      nome?: string;
+      /**
+       * @description E-mail cadastrado
+       * @example leonardo@administraair.com.br
+       */
+      email?: string;
+      /**
+       * @description O que a pessoa é no Aether
+       * @example ADMINISTRADOR
+       * @enum {string}
+       */
+      papel?: 'ADMINISTRADOR' | 'GESTOR' | 'PROPRIETARIO' | 'PILOTO';
+      /**
+       * @description Onde está no ciclo de vida
+       * @example ATIVO
+       * @enum {string}
+       */
+      situacao?: 'ATIVO' | 'PENDENTE' | 'INATIVO';
+      /**
+       * Format: date-time
+       * @description Última entrada bem-sucedida; nulo para quem nunca entrou
+       */
+      ultimoAcesso?: string;
+    };
+    /** @description Troca da própria senha */
+    TrocarSenhaRequest: {
+      senhaAtual?: string;
+      novaSenha?: string;
+      /**
+       * @description Código de seis dígitos
+       * @example 042917
+       */
+      codigo?: string;
+    };
+    /** @description Pedido de código de recuperação */
+    SolicitarRecuperacaoRequest: {
+      /**
+       * @description E-mail cadastrado
+       * @example leonardo@administraair.com.br
+       */
+      email?: string;
+    };
+    /** @description Redefinição de senha com o código recebido */
+    RedefinirSenhaRequest: {
+      /** @description E-mail cadastrado */
+      email?: string;
+      /**
+       * @description Código de seis dígitos recebido por e-mail
+       * @example 519274
+       */
+      codigo?: string;
+      /** @description Senha nova, de no mínimo oito caracteres */
+      novaSenha?: string;
+    };
+    /** @description Conferência do código de recuperação */
+    ValidarCodigoRequest: {
+      /** @description E-mail cadastrado */
+      email?: string;
+      /**
+       * @description Código de seis dígitos recebido por e-mail
+       * @example 519274
+       */
+      codigo?: string;
+    };
+    /** @description Credenciais de entrada */
+    EntrarRequest: {
+      /**
+       * @description E-mail cadastrado
+       * @example leonardo@administraair.com.br
+       */
+      email?: string;
+      /** @description Senha da conta */
+      senha?: string;
+    };
+    /** @description Usuário da sessão corrente */
+    SessaoResponse: {
+      /**
+       * @description Nome de exibição
+       * @example Leonardo Andrade
+       */
+      nome?: string;
+      /**
+       * @description E-mail cadastrado
+       * @example leonardo@administraair.com.br
+       */
+      email?: string;
+      /**
+       * @description O que a pessoa é no Aether
+       * @example ADMINISTRADOR
+       * @enum {string}
+       */
+      papel?: 'ADMINISTRADOR' | 'GESTOR' | 'PROPRIETARIO' | 'PILOTO';
+    };
+    /** @description Conclusão do convite */
+    ConcluirConviteRequest: {
+      /** @description Token que veio no link do convite */
+      convite?: string;
+      /** @description Senha escolhida pela própria pessoa */
+      novaSenha?: string;
+    };
+    /** @description Cadastro de uma nova aeronave */
+    CriarAeronaveRequest: {
+      /**
+       * @description Matrícula no RAB
+       * @example PS-AER
+       */
+      matricula?: string;
+      fabricante?: string;
+      modelo?: string;
+      numeroDeSerie?: string;
+      base?: string;
+      hangar?: string;
+      apoliceDoSeguro?: string;
+      /** Format: int32 */
+      pesoMaxDecolagemKg?: number;
+      /** Format: int32 */
+      pesoMaxPousoKg?: number;
+      /**
+       * Format: date
+       * @description Vencimento do CVA
+       */
+      vencimentoCva: string;
+      /**
+       * Format: date
+       * @description Vigência do seguro RETA (vencimento)
+       */
+      vencimentoReta: string;
+      /** @description Valores acumulados na data do cadastro */
+      contadores: components['schemas']['ContadoresRequest'];
+      /** @description Rateio e fundo */
+      configuracaoFinanceira: components['schemas']['ConfiguracaoFinanceiraRequest'];
+    };
+    /** @description Definição de um novo contrato de participação */
+    DefinirContratoRequest: {
+      participacoes?: components['schemas']['ParticipacaoRequest'][];
+    };
+    /** @description A fatia de um proprietário */
+    ParticipacaoRequest: {
+      /** Format: int64 */
+      proprietarioId: number;
+      percentual: number;
+    };
+    /** @description Um contrato de participação */
+    ContratoResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: date-time */
+      inicioDaVigencia?: string;
+      /** Format: date-time */
+      fimDaVigencia?: string;
+      /** @description Quem salvou o contrato */
+      criadoPor?: string;
+      participacoes?: components['schemas']['ParticipacaoResponse'][];
+    };
+    /** @description Contratos de participação de uma aeronave */
+    ContratosDaAeronaveResponse: {
+      /** @description O contrato em vigor, ou nulo se nenhum foi definido */
+      vigente?: components['schemas']['ContratoResponse'];
+      /** @description Contratos arquivados, do mais recente para o mais antigo */
+      historico?: components['schemas']['ContratoResponse'][];
+    };
+    /** @description A fatia de um proprietário no contrato */
+    ParticipacaoResponse: {
+      /** Format: int64 */
+      proprietarioId?: number;
+      nome?: string;
+      /** @enum {string} */
+      corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+      /**
+       * @description Percentual de propriedade, duas casas
+       * @example 33.34
+       */
+      percentual?: number;
+    };
+    /** @description Diário de voos de um recorte */
+    DiarioDeVoosResponse: {
+      trechos?: components['schemas']['TrechoResponse'][];
+      /** @description Totais do recorte */
+      totais?: components['schemas']['TotaisDoDiario'];
+    };
+    /** @description Totais do recorte */
+    TotaisDoDiario: {
+      horas?: number;
+      km?: number;
+      /** Format: int64 */
+      pousos?: number;
+    };
+    Pageable: {
+      /** Format: int32 */
+      page?: number;
+      /** Format: int32 */
+      size?: number;
+      sort?: string[];
+    };
+    /** @description Página da lista de usuários */
+    PaginaDeUsuariosResponse: {
+      /** @description Os usuários desta página */
+      itens?: components['schemas']['UsuarioResponse'][];
+      /**
+       * Format: int32
+       * @description Página corrente, começando em zero
+       * @example 0
+       */
+      pagina?: number;
+      /**
+       * Format: int32
+       * @description Tamanho pedido
+       * @example 20
+       */
+      tamanho?: number;
+      /**
+       * Format: int64
+       * @description Total de usuários que passam pelo filtro
+       * @example 4
+       */
+      total?: number;
+      /**
+       * Format: int32
+       * @description Total de páginas
+       * @example 1
+       */
+      totalDePaginas?: number;
+    };
+    /** @description Situação de um componente da plataforma */
+    ComponenteDeSaudeResponse: {
+      /**
+       * @description Nome do componente monitorado
+       * @example banco
+       */
+      componente?: string;
+      /**
+       * @description Situação atual do componente
+       * @enum {string}
+       */
+      situacao?: 'OPERANTE' | 'DEGRADADO' | 'INDISPONIVEL';
+      /**
+       * Format: date-time
+       * @description Momento da última verificação
+       */
+      verificadoEm?: string;
+      /** @description Verdadeiro quando o componente está operante e foi verificado há pouco */
+      saudavel?: boolean;
+    };
+    /** @description Situação consolidada da plataforma */
+    SaudeResponse: {
+      /**
+       * @description Pior situação entre os componentes
+       * @enum {string}
+       */
+      situacaoGeral?: 'OPERANTE' | 'DEGRADADO' | 'INDISPONIVEL';
+      /**
+       * @description Versão da aplicação
+       * @example 0.1.0
+       */
+      versao?: string;
+      /** @description Situação de cada componente monitorado */
+      componentes?: components['schemas']['ComponenteDeSaudeResponse'][];
+    };
+    /** @description Participação vigente de um proprietário numa aeronave */
+    VinculoVigenteResponse: {
+      /**
+       * Format: int64
+       * @description Identificador do proprietário
+       * @example 1
+       */
+      proprietarioId?: number;
+      /**
+       * Format: int64
+       * @description Identificador da aeronave
+       * @example 3
+       */
+      aeronaveId?: number;
+      /**
+       * @description Matrícula da aeronave
+       * @example PS-AER
+       */
+      matricula?: string;
+      /**
+       * @description Modelo da aeronave
+       * @example Phenom 300E
+       */
+      modelo?: string;
+      /**
+       * @description Percentual de propriedade, duas casas
+       * @example 33.34
+       */
+      percentual?: number;
+    };
+    /** @description Manutenção de uma aeronave */
+    PainelDeManutencaoResponse: {
+      /** @description Horas de célula atuais, a referência dos parâmetros */
+      horasDeCelula?: number;
+      /** Format: int32 */
+      ciclos?: number;
+      parametros?: components['schemas']['ParametroResponse'][];
+      /** @description Programadas, em ordem de proximidade */
+      programadas?: components['schemas']['ManutencaoResponse'][];
+      /** @description Concluídas, da mais recente para a mais antiga */
+      historico?: components['schemas']['ManutencaoResponse'][];
+    };
+    /** @description Lançamentos de custo de um recorte */
+    LancamentosResponse: {
+      custos?: components['schemas']['CustoResponse'][];
+      /** @description Totais do recorte */
+      totais?: components['schemas']['TotaisDosLancamentos'];
+    };
+    /** @description Totais do recorte, em BRL */
+    TotaisDosLancamentos: {
+      fixos?: number;
+      variaveis?: number;
+      total?: number;
+    };
+    /** @description Aeronave sob gestão */
+    AeronaveResponse: {
+      /**
+       * Format: int64
+       * @description Identificador
+       * @example 1
+       */
+      id?: number;
+      /**
+       * @description Matrícula no RAB
+       * @example PS-MEP
+       */
+      matricula?: string;
+      /**
+       * @description Modelo
+       * @example Cessna Citation XLS+
+       */
+      modelo?: string;
+      /**
+       * @description Aeródromo base, em código ICAO
+       * @example SBSP
+       */
+      base?: string;
+      /**
+       * @description Conformidade regulatória agora
+       * @example REGULAR
+       * @enum {string}
+       */
+      situacaoRegular?: 'REGULAR' | 'ATENCAO' | 'VENCIDO';
+      /**
+       * @description Documento que vence primeiro
+       * @example CVA
+       * @enum {string}
+       */
+      documentoDoProximoVencimento?: 'CVA' | 'RETA';
+      /**
+       * Format: date
+       * @description Data do vencimento mais próximo
+       */
+      proximoVencimento?: string;
+      /**
+       * Format: int64
+       * @description Dias até esse vencimento; negativo quando já passou
+       * @example 12
+       */
+      diasAteOProximoVencimento?: number;
+      /**
+       * @description Se a aeronave está liberada para voar
+       * @example true
+       */
+      podeVoar?: boolean;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    atualizar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrechoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TrechoResponse"];
-                };
-            };
-        };
+  atualizar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    excluir: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TrechoRequest'];
+      };
     };
-    atualizar_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProprietarioRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['TrechoResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProprietarioResponse"];
-                };
-            };
-        };
+      };
     };
-    atualizar_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManutencaoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ManutencaoResponse"];
-                };
-            };
-        };
+  };
+  excluir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    excluir_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+        content?: never;
+      };
     };
-    atualizarParametro: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ParametroRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ParametroResponse"];
-                };
-            };
-        };
+  };
+  atualizar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    excluirParametro: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ProprietarioRequest'];
+      };
     };
-    consultar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["EmpresaResponse"];
-                };
-            };
+        content: {
+          '*/*': components['schemas']['ProprietarioResponse'];
         };
+      };
     };
-    alterarDados: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AlterarEmpresaRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["EmpresaResponse"];
-                };
-            };
-        };
+  };
+  atualizar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    alterarAviso: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AlterarAvisoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["EmpresaResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ManutencaoRequest'];
+      };
     };
-    atualizar_3: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CustoRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['ManutencaoResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CustoResponse"];
-                };
-            };
-        };
+      };
     };
-    excluir_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  excluir_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    atualizarFichaTecnica: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FichaTecnicaRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    corrigirContadores: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ContadoresRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
-                };
-            };
-        };
+  };
+  atualizarParametro: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    atualizarConfiguracaoFinanceira: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConfiguracaoFinanceiraRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ParametroRequest'];
+      };
     };
-    atualizar_4: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                aeronaveId: number;
-                id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TripulanteRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['ParametroResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TripulanteResponse"];
-                };
-            };
-        };
+      };
     };
-    listar: {
-        parameters: {
-            query?: {
-                aeronave?: number;
-                competencia?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DiarioDeVoosResponse"];
-                };
-            };
-        };
+  };
+  excluirParametro: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    criar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrechoRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TrechoResponse"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    listar_1: {
-        parameters: {
-            query: {
-                busca?: string;
-                papel?: "ADMINISTRADOR" | "GESTOR" | "PROPRIETARIO" | "PILOTO";
-                situacao?: "ATIVO" | "PENDENTE" | "INATIVO";
-                paginacao: components["schemas"]["Pageable"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PaginaDeUsuariosResponse"];
-                };
-            };
-        };
+  };
+  consultar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    convidar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConvidarUsuarioRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['EmpresaResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UsuarioResponse"];
-                };
-            };
-        };
+      };
     };
-    reativar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UsuarioResponse"];
-                };
-            };
-        };
+  };
+  alterarDados: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    desativar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["UsuarioResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlterarEmpresaRequest'];
+      };
     };
-    reenviarConvite: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          '*/*': components['schemas']['EmpresaResponse'];
         };
+      };
     };
-    listar_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProprietarioResponse"][];
-                };
-            };
-        };
+  };
+  alterarAviso: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    criar_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProprietarioRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProprietarioResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AlterarAvisoRequest'];
+      };
     };
-    reativar_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProprietarioResponse"];
-                };
-            };
+        content: {
+          '*/*': components['schemas']['EmpresaResponse'];
         };
+      };
     };
-    desativar_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProprietarioResponse"];
-                };
-            };
-        };
+  };
+  atualizar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    painel: {
-        parameters: {
-            query: {
-                aeronave: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PainelDeManutencaoResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CustoRequest'];
+      };
     };
-    agendar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ManutencaoRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['CustoResponse'];
         };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ManutencaoResponse"];
-                };
-            };
-        };
+      };
     };
-    reabrir: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ManutencaoResponse"];
-                };
-            };
-        };
+  };
+  excluir_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    concluir: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ManutencaoResponse"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    criarParametro: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ParametroRequest"];
-            };
-        };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ParametroResponse"];
-                };
-            };
-        };
+  };
+  atualizarFichaTecnica: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    listar_3: {
-        parameters: {
-            query?: {
-                aeronave?: number;
-                competencia?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["LancamentosResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['FichaTecnicaRequest'];
+      };
     };
-    criar_2: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CustoRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['DetalheDaAeronaveResponse'];
         };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CustoResponse"];
-                };
-            };
-        };
+      };
     };
-    trocarSenha: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TrocarSenhaRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  corrigirContadores: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    solicitarTokenDeTroca: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ContadoresRequest'];
+      };
     };
-    solicitarCodigo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolicitarRecuperacaoRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['DetalheDaAeronaveResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+      };
     };
-    redefinirSenha: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RedefinirSenhaRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  atualizarConfiguracaoFinanceira: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
-    validarCodigo: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ValidarCodigoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConfiguracaoFinanceiraRequest'];
+      };
     };
-    entrar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EntrarRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['DetalheDaAeronaveResponse'];
         };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SessaoResponse"];
-                };
-            };
-        };
+      };
     };
-    concluirConvite: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConcluirConviteRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  atualizar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aeronaveId: number;
+        id: number;
+      };
+      cookie?: never;
     };
-    listar_4: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["AeronaveResponse"][];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TripulanteRequest'];
+      };
     };
-    criar_3: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CriarAeronaveRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['TripulanteResponse'];
         };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
-                };
-            };
-        };
+      };
     };
-    listar_5: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                aeronaveId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TripulanteResponse"][];
-                };
-            };
-        };
+  };
+  listar: {
+    parameters: {
+      query?: {
+        aeronave?: number;
+        competencia?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    criar_4: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                aeronaveId: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TripulanteRequest"];
-            };
+        content: {
+          '*/*': components['schemas']['DiarioDeVoosResponse'];
         };
-        responses: {
-            /** @description Created */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TripulanteResponse"];
-                };
-            };
-        };
+      };
     };
-    consultar_1: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                aeronaveId: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ContratosDaAeronaveResponse"];
-                };
-            };
-        };
+  };
+  criar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    definir: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                aeronaveId: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DefinirContratoRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ContratosDaAeronaveResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TrechoRequest'];
+      };
     };
-    verificarSituacaoGeral: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SaudeResponse"];
-                };
-            };
+        content: {
+          '*/*': components['schemas']['TrechoResponse'];
         };
+      };
     };
-    falharDeProposito: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
+  };
+  listar_1: {
+    parameters: {
+      query: {
+        busca?: string;
+        papel?: 'ADMINISTRADOR' | 'GESTOR' | 'PROPRIETARIO' | 'PILOTO';
+        situacao?: 'ATIVO' | 'PENDENTE' | 'INATIVO';
+        paginacao: components['schemas']['Pageable'];
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    consultarComponente: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                componente: string;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ComponenteDeSaudeResponse"];
-                };
-            };
+        content: {
+          '*/*': components['schemas']['PaginaDeUsuariosResponse'];
         };
+      };
     };
-    listar_6: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["VinculoVigenteResponse"][];
-                };
-            };
-        };
+  };
+  convidar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    consultarSessao: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                aether_sessao?: string;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["SessaoResponse"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConvidarUsuarioRequest'];
+      };
     };
-    sair: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                aether_sessao?: string;
-            };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          '*/*': components['schemas']['UsuarioResponse'];
         };
+      };
     };
-    buscar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DetalheDaAeronaveResponse"];
-                };
-            };
-        };
+  };
+  reativar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
     };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['UsuarioResponse'];
+        };
+      };
+    };
+  };
+  desativar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['UsuarioResponse'];
+        };
+      };
+    };
+  };
+  reenviarConvite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ProprietarioResponse'][];
+        };
+      };
+    };
+  };
+  criar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ProprietarioRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ProprietarioResponse'];
+        };
+      };
+    };
+  };
+  reativar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ProprietarioResponse'];
+        };
+      };
+    };
+  };
+  desativar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ProprietarioResponse'];
+        };
+      };
+    };
+  };
+  painel: {
+    parameters: {
+      query: {
+        aeronave: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['PainelDeManutencaoResponse'];
+        };
+      };
+    };
+  };
+  agendar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ManutencaoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ManutencaoResponse'];
+        };
+      };
+    };
+  };
+  reabrir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ManutencaoResponse'];
+        };
+      };
+    };
+  };
+  concluir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ManutencaoResponse'];
+        };
+      };
+    };
+  };
+  criarParametro: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ParametroRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ParametroResponse'];
+        };
+      };
+    };
+  };
+  listar_3: {
+    parameters: {
+      query?: {
+        aeronave?: number;
+        competencia?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['LancamentosResponse'];
+        };
+      };
+    };
+  };
+  criar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CustoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['CustoResponse'];
+        };
+      };
+    };
+  };
+  trocarSenha: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TrocarSenhaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  solicitarTokenDeTroca: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  solicitarCodigo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SolicitarRecuperacaoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  redefinirSenha: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RedefinirSenhaRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  validarCodigo: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ValidarCodigoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  entrar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EntrarRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SessaoResponse'];
+        };
+      };
+    };
+  };
+  concluirConvite: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ConcluirConviteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  listar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AeronaveResponse'][];
+        };
+      };
+    };
+  };
+  criar_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CriarAeronaveRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheDaAeronaveResponse'];
+        };
+      };
+    };
+  };
+  listar_5: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aeronaveId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TripulanteResponse'][];
+        };
+      };
+    };
+  };
+  criar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aeronaveId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['TripulanteRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['TripulanteResponse'];
+        };
+      };
+    };
+  };
+  consultar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aeronaveId: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ContratosDaAeronaveResponse'];
+        };
+      };
+    };
+  };
+  definir: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        aeronaveId: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DefinirContratoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ContratosDaAeronaveResponse'];
+        };
+      };
+    };
+  };
+  verificarSituacaoGeral: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SaudeResponse'];
+        };
+      };
+    };
+  };
+  falharDeProposito: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  consultarComponente: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        componente: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['ComponenteDeSaudeResponse'];
+        };
+      };
+    };
+  };
+  listar_6: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['VinculoVigenteResponse'][];
+        };
+      };
+    };
+  };
+  consultarSessao: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: {
+        aether_sessao?: string;
+      };
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['SessaoResponse'];
+        };
+      };
+    };
+  };
+  sair: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: {
+        aether_sessao?: string;
+      };
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  buscar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['DetalheDaAeronaveResponse'];
+        };
+      };
+    };
+  };
 }

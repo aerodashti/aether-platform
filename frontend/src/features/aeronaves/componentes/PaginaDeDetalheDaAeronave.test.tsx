@@ -241,6 +241,16 @@ describe('PaginaDeDetalheDaAeronave', () => {
     ).toBeInTheDocument();
   });
 
+  it('o foco entra no primeiro percentual ao editar e volta ao "Alterar" ao cancelar', async () => {
+    montar(GESTORA);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Alterar participações' }));
+    expect(screen.getByLabelText('Participação de Ricardo Meirelles em %')).toHaveFocus();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByRole('button', { name: 'Alterar participações' })).toHaveFocus();
+  });
+
   it('a edição oferece os proprietários que ainda não estão no contrato', async () => {
     montar(GESTORA);
 

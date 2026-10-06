@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ReactNode, Ref } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 
@@ -24,6 +24,8 @@ interface BotaoProps {
   rotuloAcessivel?: string;
   /** Deixa o rótulo em tom de perigo. A ação segue sendo secundária; só a cor muda. */
   tom?: 'padrao' | 'critico';
+  /** Para quem precisa devolver o foco ao botão quando o que o substituiu sai de cena. */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Botao({
@@ -38,9 +40,11 @@ export function Botao({
   largura = 'natural',
   rotuloAcessivel,
   tom = 'padrao',
+  ref,
 }: BotaoProps) {
   return (
     <button
+      ref={ref}
       type={tipo === 'submit' ? 'submit' : 'button'}
       className={juntarClasses(
         estilos.botao,

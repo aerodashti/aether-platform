@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type Ref } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 
@@ -21,6 +21,8 @@ interface SelecaoProps {
    */
   rotuloOculto?: boolean;
   desabilitado?: boolean;
+  /** Para quem precisa levar o foco à seleção — o primeiro controle de uma edição que abriu. */
+  ref?: Ref<HTMLSelectElement>;
 }
 
 /**
@@ -37,6 +39,7 @@ export function Selecao({
   aoMudar,
   rotuloOculto = false,
   desabilitado = false,
+  ref,
 }: SelecaoProps) {
   const id = useId();
 
@@ -49,6 +52,7 @@ export function Selecao({
         {rotulo}
       </label>
       <select
+        ref={ref}
         id={id}
         className={estilos.entrada}
         value={valor}
