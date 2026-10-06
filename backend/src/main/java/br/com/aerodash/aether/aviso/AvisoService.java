@@ -62,7 +62,7 @@ public class AvisoService {
     contexto.registrar("avisos.naoLidos", naoLidos);
     return new AvisosResponse(
         resposta,
-        new AvisosResponse.Indicadores(
+        new AvisosResponse.IndicadoresDosAvisos(
             avisos.size(),
             naoLidos,
             vencidos,

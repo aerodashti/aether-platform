@@ -25,7 +25,25 @@ function Endereco() {
 function montar(papel: string, url: string) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(() => Promise.resolve(respostaDe({ nome: 'Patrícia', email: 'p@x.com.br', papel }))),
+    vi.fn((entrada: string) =>
+      Promise.resolve(
+        entrada.startsWith('/api/avisos')
+          ? respostaDe({
+              avisos: [
+                {
+                  chave: 'RETA:3:2026-09-21',
+                  titulo: 'Seguro RETA vencido',
+                  detalhe: 'Venceu em 21/09/2026.',
+                  matricula: 'PT-XLB',
+                  destino: '/aeronaves/3',
+                  lido: false,
+                },
+              ],
+              indicadores: { ativos: 1, naoLidos: 1 },
+            })
+          : respostaDe({ nome: 'Patrícia', email: 'p@x.com.br', papel }),
+      ),
+    ),
   );
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
@@ -73,5 +91,17 @@ describe('LayoutDaAplicacao', () => {
     montar('PROPRIETARIO', '/');
     await screen.findByText('Patrícia');
     expect(screen.queryByRole('button', { name: /Registrar/ })).not.toBeInTheDocument();
+  });
+
+  it('o sino conta os não lidos e leva ao aviso e à Central', async () => {
+    montar('GESTOR', '/');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Notificações: 1 não lidos' }));
+    await userEvent.click(screen.getByRole('button', { name: /^Seguro RETA vencido/ }));
+    expect(screen.getByTestId('endereco')).toHaveTextContent('/aeronaves/3');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Notificações: 1 não lidos' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir central de avisos' }));
+    expect(screen.getByTestId('endereco')).toHaveTextContent('/avisos');
   });
 });

@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { useAvisos } from '@/compartilhado/avisos/useAvisos';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -21,6 +22,7 @@ import {
   IconePulso,
   IconeRecibo,
   IconeSaida,
+  IconeSino,
   IconeTroca,
 } from './Icones';
 import estilos from './LayoutDaAplicacao.module.css';
@@ -28,6 +30,7 @@ import estilos from './LayoutDaAplicacao.module.css';
 /** O título que o cabeçalho mostra para cada rota, como o `screenTitle` do protótipo. */
 const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/$/, titulo: 'Saúde' },
+  { padrao: /^\/avisos/, titulo: 'Central de avisos' },
   { padrao: /^\/aeronaves\/nova$/, titulo: 'Nova aeronave' },
   { padrao: /^\/aeronaves\/[^/]+\/documentos$/, titulo: 'Documentos' },
   { padrao: /^\/aeronaves\/[^/]+$/, titulo: 'Aeronave' },
@@ -99,14 +102,17 @@ const REGISTROS: Registro[] = [
  * A casca da área logada: navegação à esquerda; no alto, o voltar das telas internas, o título,
  * o "+ Registrar" e a identificação; a tela no meio — a moldura do Projeto final.
  *
- * <p>Do protótipo ainda faltam o sino de notificações, que é a porta da Central de avisos, e o
- * seletor de idioma, fora de escopo por decisão de produto. Ver `docs/design-system.md`.
+ * <p>O sino mostra os avisos não lidos e leva à Central. Do protótipo falta só o seletor de
+ * idioma, fora de escopo por decisão de produto. Ver `docs/design-system.md`.
  */
 export function LayoutDaAplicacao() {
   const { usuario, ehAdministrador } = useSessao();
   const sair = useSair();
   const localizacao = useLocation();
   const navegar = useNavigate();
+
+  const avisos = useAvisos();
+  const naoLidos = (avisos.data?.avisos ?? []).filter((aviso) => !aviso.lido);
 
   const acima = telaDeCima(localizacao.pathname);
   // A chave "default" é a da primeira entrada desta aba: não há tela do Aether para onde voltar.
@@ -138,6 +144,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/" exata icone={<IconePulso />}>
               Saúde
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/avisos" icone={<IconeSino />}>
+              Central de avisos
             </LinkDeNavegacao>
           </li>
           <li>
@@ -222,6 +233,22 @@ export function LayoutDaAplicacao() {
           {registros.length > 0 ? (
             <MenuSuspenso rotulo="+ Registrar" titulo="Registro rápido" itens={registros} />
           ) : null}
+          <MenuSuspenso
+            rotulo="Notificações"
+            titulo="Notificações"
+            icone={<IconeSino />}
+            contagem={naoLidos.length}
+            vazio="Nenhum alerta no momento."
+            itens={naoLidos.slice(0, 5).map((aviso) => ({
+              rotulo: aviso.titulo ?? '',
+              apoio: [aviso.matricula, aviso.detalhe].filter(Boolean).join(' · '),
+              aoEscolher: () => void navegar(aviso.destino ?? '/avisos'),
+            }))}
+            rodape={{
+              rotulo: 'Abrir central de avisos',
+              aoEscolher: () => void navegar('/avisos'),
+            }}
+          />
           <div className={estilos.identidade}>
             <Avatar nome={usuario?.nome} tom="escuro" />
             <div className={estilos.nomeEEmail}>

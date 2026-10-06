@@ -163,6 +163,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/avisos/leitura": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Marca avisos como lidos ou não lidos */
+        put: operations["marcar"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/aportes/{id}": {
         parameters: {
             query?: never;
@@ -873,6 +890,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/avisos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Os avisos ativos, do mais urgente ao menos, com o que este usuário já leu */
+        get: operations["listar_11"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/autenticacao/sessao": {
         parameters: {
             query?: never;
@@ -1330,6 +1364,12 @@ export interface components {
             cambio?: number;
             /** @description Valor em BRL, o que o rateio consome */
             valor?: number;
+        };
+        /** @description Leitura de avisos */
+        LeituraRequest: {
+            chaves?: string[];
+            /** @description Verdadeiro marca como lido; falso devolve a não lido */
+            lido?: boolean;
         };
         /** @description Um aporte de proprietário no fundo da aeronave */
         AporteRequest: {
@@ -2012,6 +2052,47 @@ export interface components {
             variaveis?: number;
             total?: number;
         };
+        /** @description Aviso da Central, derivado do estado da frota */
+        AvisoResponse: {
+            /** @description Identidade estável; muda quando o prazo muda */
+            chave?: string;
+            /** @enum {string} */
+            categoria?: "DOCUMENTOS" | "MANUTENCAO" | "TRIPULACAO" | "FUNDOS";
+            /** @enum {string} */
+            gravidade?: "VENCIDO" | "PROXIMO";
+            titulo?: string;
+            detalhe?: string;
+            /** Format: int64 */
+            aeronaveId?: number;
+            matricula?: string;
+            modelo?: string;
+            /**
+             * Format: date
+             * @description Nulo quando o limite é de horas ou ciclos
+             */
+            prazo?: string;
+            /** @description A tela onde o aviso se resolve */
+            destino?: string;
+            lido?: boolean;
+        };
+        /** @description Avisos ativos da frota */
+        AvisosResponse: {
+            avisos?: components["schemas"]["AvisoResponse"][];
+            indicadores?: components["schemas"]["IndicadoresDosAvisos"];
+        };
+        /** @description Os números do topo da Central e do sino */
+        IndicadoresDosAvisos: {
+            /** Format: int64 */
+            ativos?: number;
+            /** Format: int64 */
+            naoLidos?: number;
+            /** Format: int64 */
+            vencidos?: number;
+            /** Format: int64 */
+            proximos?: number;
+            /** Format: int64 */
+            aeronavesEnvolvidas?: number;
+        };
         /** @description Aportes de um recorte */
         AportesResponse: {
             aportes?: components["schemas"]["AporteResponse"][];
@@ -2427,6 +2508,28 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    marcar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeituraRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -3670,6 +3773,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FechamentoMensalResponse"];
+                };
+            };
+        };
+    };
+    listar_11: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AvisosResponse"];
                 };
             };
         };

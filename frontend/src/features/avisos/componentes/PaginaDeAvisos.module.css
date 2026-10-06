@@ -1,0 +1,209 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 1180px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-4);
+  margin: 0;
+}
+
+.indicador {
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.indicadorRotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.indicadorValor {
+  margin: var(--espaco-2) 0 0;
+  font-size: var(--tamanho-gg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-gg);
+  font-variant-numeric: tabular-nums;
+}
+
+.indicadorApoio {
+  margin: 0;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+/* Um aviso por linha: o que é, onde e até quando, a situação e as ações. A régua à esquerda tem a
+   cor da gravidade — a única cor da linha, e só enquanto não lido. */
+.aviso {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 96px auto;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-4) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+  border-left: 3px solid transparent;
+}
+
+.aviso:last-child {
+  border-bottom: 0;
+}
+
+.vencido {
+  border-left-color: var(--cor-critico);
+}
+
+.proximo {
+  border-left-color: var(--cor-atencao);
+}
+
+.lido {
+  border-left-color: transparent;
+}
+
+.lido .tituloTexto {
+  font-weight: var(--peso-normal);
+  color: var(--cor-texto-suave);
+}
+
+.oQue,
+.onde {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  min-width: 0;
+}
+
+.titulo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: baseline;
+}
+
+.tituloTexto {
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.categoria {
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  letter-spacing: var(--rastreio-legenda);
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.detalhe {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-overflow: ellipsis;
+}
+
+.matricula {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+}
+
+.prazo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  font-variant-numeric: tabular-nums;
+}
+
+.situacao {
+  justify-self: start;
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  border-radius: var(--raio-s);
+}
+
+.situacaoVencida {
+  color: var(--cor-critico);
+  background: var(--cor-critico-vestigio);
+}
+
+.situacaoProxima {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-vestigio);
+}
+
+.situacaoLida {
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie-sutil);
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .aviso {
+    grid-template-columns: 1fr;
+    gap: var(--espaco-3);
+  }
+
+  .acoes {
+    justify-content: flex-start;
+  }
+}

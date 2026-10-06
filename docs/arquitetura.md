@@ -167,7 +167,10 @@ src/
 - `compartilhado/fundo` tem o saldo do fundo de cada aeronave e proprietário, do fechamento: a
   frota, o detalhe e os cartões de proprietário o mostram.
 
-### Uma feature que só lê outras
+### Features que só leem outras
+
+`aviso` deriva a Central de avisos do estado das outras features a cada leitura, do mesmo jeito,
+e grava só quem leu qual aviso.
 
 `fechamento` não grava nada: consolida, a cada leitura, custos, voos, aportes, rendimentos e
 contratos (ADR-0019). Por isso importa os repositórios dessas features direto, sem porta — e

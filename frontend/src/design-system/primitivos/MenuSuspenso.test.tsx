@@ -56,4 +56,23 @@ describe('MenuSuspenso', () => {
 
     expect(gatilho).toHaveAttribute('aria-expanded', 'false');
   });
+
+  it('com ícone, o nome acessível carrega a contagem; vazio e rodapé aparecem', async () => {
+    const abrirCentral = vi.fn();
+    render(
+      <MenuSuspenso
+        rotulo="Notificações"
+        icone={<svg aria-hidden="true" />}
+        contagem={3}
+        itens={[]}
+        vazio="Nenhum alerta no momento."
+        rodape={{ rotulo: 'Abrir central de avisos', aoEscolher: abrirCentral }}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Notificações: 3 não lidos' }));
+    expect(screen.getByText('Nenhum alerta no momento.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir central de avisos' }));
+    expect(abrirCentral).toHaveBeenCalledOnce();
+  });
 });

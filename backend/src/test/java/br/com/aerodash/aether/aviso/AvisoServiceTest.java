@@ -64,7 +64,8 @@ class AvisoServiceTest {
     AvisosResponse resposta = service.listar(5L);
 
     assertThat(resposta.avisos().get(0).lido()).isTrue();
-    assertThat(resposta.indicadores()).isEqualTo(new AvisosResponse.Indicadores(3, 2, 1, 2, 2));
+    assertThat(resposta.indicadores())
+        .isEqualTo(new AvisosResponse.IndicadoresDosAvisos(3, 2, 1, 2, 2));
   }
 
   @Test
