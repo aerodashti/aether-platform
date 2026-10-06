@@ -148,12 +148,7 @@ public class ManutencaoService {
 
   private ParametroResponse julgar(
       ParametroDeControle parametro, Aeronave aeronave, LocalDate hoje) {
-    BigDecimal atual =
-        switch (parametro.getTipo()) {
-          case HORAS -> aeronave.getContadores().horasDeCelula();
-          case CICLOS -> BigDecimal.valueOf(aeronave.getContadores().ciclos());
-          case DATA -> null;
-        };
+    BigDecimal atual = parametro.atualEm(aeronave.getContadores());
     BigDecimal referencia = atual == null ? BigDecimal.ZERO : atual;
     return new ParametroResponse(
         parametro.getId(),

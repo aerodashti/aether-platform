@@ -60,6 +60,7 @@ public class ConfiguracaoDeSeguranca {
           rotas) {
     autorizarAreaAbertaEConta(rotas);
     autorizarOperacao(rotas);
+    autorizarFinanceiroEAvisos(rotas);
     rotas.anyRequest().authenticated();
   }
 
@@ -91,7 +92,7 @@ public class ConfiguracaoDeSeguranca {
         .hasRole(PapelDoUsuario.ADMINISTRADOR.name());
   }
 
-  /** As telas da operação: manutenção, custos, aportes, voos, frota e proprietários. */
+  /** As telas da operação: manutenção, voos, frota e proprietários. */
   private void autorizarOperacao(
       AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
           rotas) {
@@ -100,26 +101,6 @@ public class ConfiguracaoDeSeguranca {
         .requestMatchers(HttpMethod.GET, "/manutencoes", "/manutencoes/**")
         .authenticated()
         .requestMatchers("/manutencoes", "/manutencoes/**")
-        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-        // O proprietário vê o que paga; lançar custo é de quem gere a conta.
-        .requestMatchers(HttpMethod.GET, "/custos", "/custos/**")
-        .authenticated()
-        .requestMatchers("/custos", "/custos/**")
-        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-        // Trocas de KM: o proprietário vê o que deve e o que lhe devem; registrar é de quem gere.
-        .requestMatchers(HttpMethod.GET, "/trocas", "/trocas/**")
-        .authenticated()
-        .requestMatchers("/trocas", "/trocas/**")
-        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
-        // O fechamento é só leitura, calculado a cada pedido: todo papel o lê.
-        .requestMatchers(HttpMethod.GET, "/fechamentos/**")
-        .authenticated()
-        // O fundo segue a mesma regra dos custos: o proprietário vê o que aportou e o que o
-        // fundo rendeu; registrar entrada de dinheiro é de quem gere a conta.
-        .requestMatchers(
-            HttpMethod.GET, "/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
-        .authenticated()
-        .requestMatchers("/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
         .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
         // Lançar e corrigir voo inclui o piloto: é ele quem volta do voo com os
         // horários realizados na mão. Ler continua sendo de quem tem sessão.
@@ -144,6 +125,39 @@ public class ConfiguracaoDeSeguranca {
         .requestMatchers(HttpMethod.GET, "/proprietarios")
         .authenticated()
         .requestMatchers("/proprietarios", "/proprietarios/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name());
+  }
+
+  /**
+   * O dinheiro e o que pede ação: custos, aportes, trocas, fechamento e a Central de avisos. O
+   * proprietário lê tudo o que é dele; registrar é de quem gere a conta.
+   */
+  private void autorizarFinanceiroEAvisos(
+      AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
+          rotas) {
+    rotas
+        // O proprietário vê o que paga; lançar custo é de quem gere a conta.
+        .requestMatchers(HttpMethod.GET, "/custos", "/custos/**")
+        .authenticated()
+        .requestMatchers("/custos", "/custos/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // Trocas de KM: o proprietário vê o que deve e o que lhe devem; registrar é de quem gere.
+        .requestMatchers(HttpMethod.GET, "/trocas", "/trocas/**")
+        .authenticated()
+        .requestMatchers("/trocas", "/trocas/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // A Central de avisos é de todo papel; a leitura (lido/não lido) é de cada um.
+        .requestMatchers("/avisos", "/avisos/**")
+        .authenticated()
+        // O fechamento é só leitura, calculado a cada pedido: todo papel o lê.
+        .requestMatchers(HttpMethod.GET, "/fechamentos/**")
+        .authenticated()
+        // O fundo segue a mesma regra dos custos: o proprietário vê o que aportou e o que o
+        // fundo rendeu; registrar entrada de dinheiro é de quem gere a conta.
+        .requestMatchers(
+            HttpMethod.GET, "/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
+        .authenticated()
+        .requestMatchers("/aportes", "/aportes/**", "/rendimentos", "/rendimentos/**")
         .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name());
   }
 }

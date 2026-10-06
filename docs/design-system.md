@@ -204,7 +204,7 @@ acessibilidade ficam em um lugar só.
 | `Abas` | `primitivos/Abas.tsx` | `contagem` por aba | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
 | `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
 | `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando` | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo com cromo de botão secundário. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo |
-| `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo` opcional | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
+| `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo`, `icone` + `contagem` (o sino), `vazio`, `rodape` | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
 | `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
 
 ### A variante `contorno` do `Botao`
@@ -284,7 +284,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
 | Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
 | Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
-| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima) e o "+ Registrar" com o Registro rápido: cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela. Sem o sino (é a porta da Central de avisos, que não existe), sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
+| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima), o "+ Registrar" com o Registro rápido (cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela) e o sino, com os cinco avisos não lidos mais urgentes e a porta da Central. Sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
 | Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
@@ -295,6 +295,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Central de avisos (indicadores, chips, lista) e o sino da casca | **Implementada** — `features/avisos` e `app/LayoutDaAplicacao`, do Projeto final. Ver a nota abaixo |
 | Tela de Documentos (resumo, envio de vários, grade, remoção) | **Implementada** — `features/documentos`, do Projeto final. Ver a nota abaixo |
 | Tela de Trocas de KM (filtro por proprietário, abas, grade, painel) | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo |
 | Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
@@ -354,6 +355,24 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
+
+### A Central de avisos segue o Projeto final, sem o "Notificar responsáveis"
+
+Os quatro indicadores (ativos, vencidos, próximos do limite, aeronaves envolvidas), os chips por
+categoria com contagem e a lista do mais urgente ao menos: título e categoria, o detalhe, a
+aeronave e o prazo, a situação (Vencido, Próximo, Lido) e as ações "Marcar como lido" e "Abrir",
+que leva à tela onde o aviso se resolve. O sino da casca lê o mesmo cache.
+
+**Decisões nossas:** os avisos são **derivados a cada leitura**, nunca gravados — renovado o
+seguro, o aviso some; só a leitura é gravada, por usuário. As categorias são as fontes que o
+Aether tem: **Seguros e certificados** (CVA e RETA), **Manutenção** (parâmetros e manutenções
+programadas atrasadas), **Tripulação** (CMA e CHT, que o protótipo não tinha) e **Fundos e
+aportes** (saldo negativo). A régua à esquerda tem a cor da gravidade só enquanto o aviso não foi
+lido; "Marcar como lido" vira "Marcar como não lido".
+
+**De fora:** o **"Notificar responsáveis"** (e-mail a responsáveis e proprietários é feature
+própria: quem recebe o quê, e quando), o **"Saldo abaixo da margem"** (precisa de uma margem
+definida por política) e o **"Aporte pendente"** (precisa de cobrança, que o Aether não emite).
 
 ### Documentos segue o Projeto final, com o voltar na casca
 

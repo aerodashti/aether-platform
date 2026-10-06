@@ -138,6 +138,8 @@ describe('PaginaDeNovaAeronave', () => {
 
     await screen.findByRole('button', { name: 'Cadastrar aeronave' });
     await preencherObrigatorios();
+    // As opções de vínculo vêm da lista de proprietários, por fetch: esperar por elas.
+    await screen.findByRole('option', { name: 'Ricardo Meirelles' });
 
     await userEvent.selectOptions(screen.getByLabelText('Adicionar vínculo'), '1');
     await userEvent.type(screen.getByLabelText('Participação de Ricardo Meirelles em %'), '60');
@@ -172,6 +174,7 @@ describe('PaginaDeNovaAeronave', () => {
 
     await screen.findByRole('button', { name: 'Cadastrar aeronave' });
     await preencherObrigatorios();
+    await screen.findByRole('option', { name: 'Ricardo Meirelles' });
     await userEvent.selectOptions(screen.getByLabelText('Adicionar vínculo'), '1');
     await userEvent.type(screen.getByLabelText('Participação de Ricardo Meirelles em %'), '100');
 

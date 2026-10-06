@@ -1,4 +1,14 @@
-import { useEffect, useId, useRef, useState, type FocusEvent, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type FocusEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+
+import { juntarClasses } from '@/design-system/classes';
 
 import estilos from './MenuSuspenso.module.css';
 
@@ -10,11 +20,19 @@ export interface ItemDeMenu {
 }
 
 interface MenuSuspensoProps {
-  /** O rótulo do botão que abre o menu. */
+  /** O rótulo do botão que abre o menu; com `icone`, vira o nome acessível do botão. */
   rotulo: string;
   /** O título em versalete no alto da lista — "Registro rápido". */
   titulo?: string;
   itens: ItemDeMenu[];
+  /** Gatilho só de ícone, quadrado — o sino da casca. */
+  icone?: ReactNode;
+  /** O número no canto do gatilho — avisos não lidos. Zero não aparece. */
+  contagem?: number;
+  /** O que a lista diz quando não há itens. */
+  vazio?: string;
+  /** Uma ação fixa no pé da lista, separada dos itens — "Abrir central de avisos". */
+  rodape?: ItemDeMenu;
 }
 
 /**
@@ -25,7 +43,15 @@ interface MenuSuspensoProps {
  * ganha mais com o Tab que todo mundo já conhece. Esc fecha e devolve o foco ao botão; clicar
  * fora ou levar o foco para fora também fecha.
  */
-export function MenuSuspenso({ rotulo, titulo, itens }: MenuSuspensoProps) {
+export function MenuSuspenso({
+  rotulo,
+  titulo,
+  itens,
+  icone,
+  contagem = 0,
+  vazio,
+  rodape,
+}: MenuSuspensoProps) {
   const [aberto, setAberto] = useState(false);
   const id = useId();
   const raiz = useRef<HTMLDivElement>(null);
@@ -65,15 +91,29 @@ export function MenuSuspenso({ rotulo, titulo, itens }: MenuSuspensoProps) {
       <button
         ref={gatilho}
         type="button"
-        className={estilos.gatilho}
+        className={juntarClasses(estilos.gatilho, icone != null && estilos.soIcone)}
         aria-expanded={aberto}
         aria-controls={id}
+        aria-label={
+          icone != null ? (contagem > 0 ? `${rotulo}: ${contagem} não lidos` : rotulo) : undefined
+        }
         onClick={() => setAberto((atual) => !atual)}
       >
-        <span>{rotulo}</span>
-        <span className={estilos.seta} aria-hidden="true">
-          ▾
-        </span>
+        {icone != null ? (
+          icone
+        ) : (
+          <>
+            <span>{rotulo}</span>
+            <span className={estilos.seta} aria-hidden="true">
+              ▾
+            </span>
+          </>
+        )}
+        {contagem > 0 ? (
+          <span className={estilos.contagem} aria-hidden="true">
+            {contagem > 99 ? '99+' : contagem}
+          </span>
+        ) : null}
       </button>
       <div id={id} className={estilos.painel} hidden={!aberto}>
         {titulo ? (
@@ -98,6 +138,19 @@ export function MenuSuspenso({ rotulo, titulo, itens }: MenuSuspensoProps) {
             </li>
           ))}
         </ul>
+        {itens.length === 0 && vazio ? <p className={estilos.vazio}>{vazio}</p> : null}
+        {rodape ? (
+          <button
+            type="button"
+            className={estilos.rodape}
+            onClick={() => {
+              setAberto(false);
+              rodape.aoEscolher();
+            }}
+          >
+            {rodape.rotulo}
+          </button>
+        ) : null}
       </div>
     </div>
   );

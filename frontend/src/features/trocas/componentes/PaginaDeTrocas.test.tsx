@@ -120,6 +120,10 @@ describe('PaginaDeTrocas', () => {
     montar(GESTORA);
 
     await screen.findByText(OBSERVACAO);
+    // As opções do filtro vêm da lista de proprietários, por fetch: esperar por elas.
+    await within(screen.getByLabelText('Filtrar por proprietário')).findByRole('option', {
+      name: 'Ricardo Meirelles',
+    });
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por proprietário'), '1');
 
     expect(
@@ -143,6 +147,8 @@ describe('PaginaDeTrocas', () => {
     montar(GESTORA, '/trocas?registrar=1');
 
     const painel = await screen.findByRole('dialog', { name: 'Nova troca de KM' });
+    // A lista de aeronaves chega por fetch: selecionar antes de a opção existir é corrida.
+    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
     await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
     await screen.findAllByRole('option', { name: 'Ricardo Meirelles' });
     await userEvent.selectOptions(within(painel).getByLabelText('Cedeu'), '1');

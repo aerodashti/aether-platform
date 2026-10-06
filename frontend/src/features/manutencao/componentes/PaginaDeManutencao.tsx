@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { juntarClasses } from '@/design-system/classes';
 import { Abas } from '@/design-system/primitivos/Abas';
@@ -63,7 +64,8 @@ const HOJE = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
 export function PaginaDeManutencao() {
   const aeronaves = useAeronaves();
   const primeira = aeronaves.data?.[0]?.id;
-  const [escolhida, setEscolhida] = useState('');
+  // A aeronave mora na URL: a Central de avisos e os atalhos chegam aqui por ?aeronave=.
+  const { aeronaveId: escolhida, setAeronaveId: setEscolhida } = useRecorteDaUrl('');
   const aeronaveId = escolhida || (primeira != null ? String(primeira) : '');
   const consulta = usePainelDeManutencao(aeronaveId);
   const { usuario } = useSessao();

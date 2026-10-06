@@ -107,3 +107,62 @@
   line-height: var(--altura-s);
   color: var(--cor-texto-suave);
 }
+
+/* O gatilho só de ícone: quadrado, do tamanho da altura, com o número no canto. */
+.soIcone {
+  position: relative;
+  justify-content: center;
+  width: var(--controle-altura-g);
+  padding: 0;
+}
+
+.contagem {
+  position: absolute;
+  top: calc(var(--espaco-3) * -1);
+  right: calc(var(--espaco-3) * -1);
+  min-width: 18px;
+  padding: 0 var(--espaco-2);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-acento-contraste);
+  text-align: center;
+  background: var(--cor-critico);
+  border-radius: var(--raio-g);
+  font-variant-numeric: tabular-nums;
+}
+
+.vazio {
+  margin: 0;
+  padding: var(--espaco-4);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.rodape {
+  display: block;
+  width: 100%;
+  margin-top: var(--espaco-2);
+  padding: var(--espaco-3) var(--espaco-4);
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-acento-texto);
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--cor-borda-suave);
+  border-radius: 0;
+}
+
+.rodape:hover {
+  background: var(--cor-hover);
+}
+
+.rodape:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: -2px;
+}
