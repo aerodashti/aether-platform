@@ -15,6 +15,7 @@ import {
   IconeChave,
   IconeDiario,
   IconeEngrenagem,
+  IconeMoedas,
   IconePessoas,
   IconePulso,
   IconeRecibo,
@@ -30,6 +31,7 @@ const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/aeronaves$/, titulo: 'Aeronaves' },
   { padrao: /^\/voos/, titulo: 'Diário de voos' },
   { padrao: /^\/custos/, titulo: 'Lançamentos' },
+  { padrao: /^\/aportes/, titulo: 'Aportes' },
   { padrao: /^\/manutencao/, titulo: 'Manutenção' },
   { padrao: /^\/calendario/, titulo: 'Calendário' },
   { padrao: /^\/proprietarios/, titulo: 'Proprietários' },
@@ -74,6 +76,12 @@ const REGISTROS: Registro[] = [
     tela: '/voos',
     // Como no diário: quem volta do voo com os horários na mão é o piloto.
     podeRegistrar: (papel) => gere(papel) || papel === 'PILOTO',
+  },
+  {
+    rotulo: 'Aporte',
+    apoio: 'Entrada no fundo da aeronave',
+    tela: '/aportes',
+    podeRegistrar: gere,
   },
 ];
 
@@ -135,6 +143,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/custos" icone={<IconeRecibo />}>
               Lançamentos
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/aportes" icone={<IconeMoedas />}>
+              Aportes
             </LinkDeNavegacao>
           </li>
           <li>

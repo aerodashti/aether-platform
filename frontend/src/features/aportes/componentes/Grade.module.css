@@ -1,0 +1,185 @@
+/* A régua da armadura, como no diário. Aportes: data, competência, [aeronave], proprietário,
+   valor e ações. Rendimentos: crédito, competência, [aeronave], aplicação, saldo aplicado, taxa,
+   rendimento e ações. A coluna de aeronave só existe quando o recorte é a frota inteira. */
+.grade {
+  display: block;
+  width: 100%;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha,
+.totais {
+  display: grid;
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.aportes {
+  grid-template-columns:
+    var(--armadura-data) var(--armadura-data) var(--armadura-rotulo)
+    var(--armadura-numero) var(--armadura-acao-texto);
+}
+
+.aportes.comAeronave {
+  grid-template-columns:
+    var(--armadura-data) var(--armadura-data) var(--armadura-id) var(--armadura-rotulo)
+    var(--armadura-numero) var(--armadura-acao-texto);
+}
+
+.rendimentos {
+  grid-template-columns:
+    var(--armadura-data) var(--armadura-data) var(--armadura-rotulo) var(--armadura-numero)
+    var(--armadura-numero) var(--armadura-numero) var(--armadura-acao-texto);
+}
+
+.rendimentos.comAeronave {
+  grid-template-columns:
+    var(--armadura-data) var(--armadura-data) var(--armadura-id) var(--armadura-rotulo)
+    var(--armadura-numero) var(--armadura-numero) var(--armadura-numero)
+    var(--armadura-acao-texto);
+}
+
+.cabecalho {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.cabecalho th.aDireita {
+  text-align: right;
+}
+
+.linha {
+  min-height: var(--controle-altura-p);
+  padding: var(--espaco-1) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.totais {
+  min-height: var(--controle-altura-p);
+  padding: 0 var(--espaco-6);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  color: var(--cor-texto);
+  background: var(--cor-superficie-sutil);
+  border-top: 1px solid var(--cor-borda);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.identificador {
+  overflow: hidden;
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dado {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.texto {
+  display: block;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.numero {
+  display: block;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto);
+  text-align: right;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.forte {
+  font-weight: var(--peso-forte);
+}
+
+.dono {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--peso-forte);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .grade {
+    min-width: 760px;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
@@ -42,31 +42,18 @@ const ESCOPOS: Array<{ valor: Escopo; rotulo: string }> = [
  * competência, que cabe numa grade; e "visão" é opção experimental do próprio brief (DD-E02).
  */
 export function PaginaDeCustos() {
-  const {
-    aeronaveId,
-    competencia,
-    pediuRegistro,
-    setAeronaveId,
-    setCompetencia,
-    limpar,
-    atenderRegistro,
-  } = useRecorteDaUrl(competenciaAtual());
   const [painel, setPainel] = useState<Painel>(null);
   const [escopo, setEscopo] = useState<Escopo>('TODOS');
   const [categoria, setCategoria] = useState<Categoria>('TODAS');
   const { usuario } = useSessao();
+  const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
+  // O "+ Registrar" da casca chega aqui por ?registrar=1.
+  const { aeronaveId, competencia, setAeronaveId, setCompetencia, limpar } = useRecorteDaUrl(
+    competenciaAtual(),
+    { podeRegistrar: podeGerir, aoPedir: () => setPainel({ modo: 'novo' }) },
+  );
   const aeronaves = useAeronaves();
   const consulta = useCustos({ aeronaveId, competencia });
-
-  const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
-
-  // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  useEffect(() => {
-    if (pediuRegistro && podeGerir) {
-      setPainel({ modo: 'novo' });
-      atenderRegistro();
-    }
-  }, [pediuRegistro, podeGerir, atenderRegistro]);
 
   const todos = consulta.data?.custos ?? [];
   const doEscopo = escopo === 'TODOS' ? todos : todos.filter((custo) => custo.tipo === escopo);

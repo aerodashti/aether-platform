@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 /**
@@ -10,7 +11,14 @@ import { useSearchParams } from 'react-router-dom';
  * <p>Competência ausente é a padrão da tela; presente e vazia é "todo o histórico" — por isso a
  * padrão não vai para a URL e o vazio vai.
  */
-export function useRecorteDaUrl(competenciaPadrao: string) {
+export interface PedidoDeRegistro {
+  /** Se quem está na tela pode registrar; sem permissão, o pedido é ignorado. */
+  podeRegistrar: boolean;
+  /** Abre o formulário de novo registro da tela. */
+  aoPedir: () => void;
+}
+
+export function useRecorteDaUrl(competenciaPadrao: string, pedido?: PedidoDeRegistro) {
   const [parametros, setParametros] = useSearchParams();
 
   const aeronaveId = parametros.get('aeronave') ?? '';
@@ -18,6 +26,31 @@ export function useRecorteDaUrl(competenciaPadrao: string) {
     ? (parametros.get('competencia') ?? '')
     : competenciaPadrao;
   const pediuRegistro = parametros.get('registrar') === '1';
+  const podeRegistrar = pedido?.podeRegistrar ?? false;
+
+  // O callback da tela muda a cada render; guardá-lo numa ref tira ele das dependências do efeito.
+  // Com ele nas dependências, cada render da tela reexecutava o efeito enquanto o roteador ainda
+  // não tinha confirmado a URL sem o ?registrar — e o abrir-render-abrir virava laço infinito.
+  const aoPedir = useRef(pedido?.aoPedir);
+  useEffect(() => {
+    aoPedir.current = pedido?.aoPedir;
+  });
+
+  // O pedido vale uma vez: atendido, sai da URL para não reabrir no recarregar.
+  useEffect(() => {
+    if (!pediuRegistro || !podeRegistrar) {
+      return;
+    }
+    aoPedir.current?.();
+    setParametros(
+      (atuais) => {
+        const proximos = new URLSearchParams(atuais);
+        proximos.delete('registrar');
+        return proximos;
+      },
+      { replace: true },
+    );
+  }, [pediuRegistro, podeRegistrar, setParametros]);
 
   function alterar(mudanca: (proximos: URLSearchParams) => void) {
     setParametros(
@@ -34,7 +67,6 @@ export function useRecorteDaUrl(competenciaPadrao: string) {
   return {
     aeronaveId,
     competencia,
-    pediuRegistro,
     setAeronaveId: (valor: string) =>
       alterar((proximos) =>
         valor ? proximos.set('aeronave', valor) : proximos.delete('aeronave'),
@@ -54,7 +86,5 @@ export function useRecorteDaUrl(competenciaPadrao: string) {
         proximos.delete('aeronave');
         proximos.set('competencia', '');
       }),
-    /** O pedido de registro vale uma vez: atendido, sai da URL para não reabrir no recarregar. */
-    atenderRegistro: () => alterar((proximos) => proximos.delete('registrar')),
   };
 }

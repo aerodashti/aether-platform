@@ -125,4 +125,14 @@
     padding: var(--espaco-5);
     overflow: visible;
   }
+
+  /* Com o "+ Registrar" na barra, nome e e-mail espremeriam o título até sumir: no celular o
+     avatar basta para dizer quem está logado. */
+  .topo {
+    padding: 0 var(--espaco-5);
+  }
+
+  .nomeEEmail {
+    display: none;
+  }
 }

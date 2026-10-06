@@ -1,0 +1,77 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  max-width: 1180px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: flex-end;
+}
+
+.competencia {
+  min-width: 180px;
+}
+
+/* Os indicadores do protótipo: quatro cartões em linha, o rótulo pequeno sobre o número. */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--espaco-4);
+  margin: 0;
+}
+
+.indicador {
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.indicadorRotulo {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.indicadorValor {
+  margin: var(--espaco-2) 0 0;
+  font-size: var(--tamanho-gg);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-gg);
+  font-variant-numeric: tabular-nums;
+}
+
+.faixaDasAbas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.painel {
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.nota {
+  display: block;
+  padding: var(--espaco-4) var(--espaco-6);
+  border-top: 1px solid var(--cor-borda-suave);
+}

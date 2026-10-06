@@ -22,6 +22,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/rendimentos/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Corrige um rendimento */
+    put: operations['atualizar_1'];
+    post?: never;
+    /** Exclui um rendimento registrado por engano */
+    delete: operations['excluir_1'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/proprietarios/{id}': {
     parameters: {
       query?: never;
@@ -31,7 +49,7 @@ export interface paths {
     };
     get?: never;
     /** Atualiza o cadastro de um proprietário */
-    put: operations['atualizar_1'];
+    put: operations['atualizar_2'];
     post?: never;
     delete?: never;
     options?: never;
@@ -48,10 +66,10 @@ export interface paths {
     };
     get?: never;
     /** Corrige uma manutenção */
-    put: operations['atualizar_2'];
+    put: operations['atualizar_3'];
     post?: never;
     /** Exclui um evento */
-    delete: operations['excluir_1'];
+    delete: operations['excluir_2'];
     options?: never;
     head?: never;
     patch?: never;
@@ -119,10 +137,28 @@ export interface paths {
     };
     get?: never;
     /** Corrige um lançamento */
-    put: operations['atualizar_3'];
+    put: operations['atualizar_4'];
     post?: never;
     /** Exclui um lançamento feito por engano */
-    delete: operations['excluir_2'];
+    delete: operations['excluir_3'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/aportes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Corrige um aporte */
+    put: operations['atualizar_5'];
+    post?: never;
+    /** Exclui um aporte registrado por engano */
+    delete: operations['excluir_4'];
     options?: never;
     head?: never;
     patch?: never;
@@ -188,7 +224,7 @@ export interface paths {
     };
     get?: never;
     /** Atualiza um tripulante, situação incluída */
-    put: operations['atualizar_4'];
+    put: operations['atualizar_6'];
     post?: never;
     delete?: never;
     options?: never;
@@ -283,6 +319,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/rendimentos': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista os rendimentos do recorte, com o total somado no servidor */
+    get: operations['listar_2'];
+    put?: never;
+    /** Registra um rendimento já creditado */
+    post: operations['criar_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/proprietarios': {
     parameters: {
       query?: never;
@@ -291,10 +345,10 @@ export interface paths {
       cookie?: never;
     };
     /** Lista os proprietários em ordem de nome */
-    get: operations['listar_2'];
+    get: operations['listar_3'];
     put?: never;
     /** Cadastra um proprietário */
-    post: operations['criar_1'];
+    post: operations['criar_2'];
     delete?: never;
     options?: never;
     head?: never;
@@ -412,10 +466,10 @@ export interface paths {
       cookie?: never;
     };
     /** Lista o recorte pedido, com fixos e variáveis somados no servidor */
-    get: operations['listar_3'];
+    get: operations['listar_4'];
     put?: never;
     /** Registra um lançamento; em USD o BRL é derivado do câmbio, uma vez */
-    post: operations['criar_2'];
+    post: operations['criar_3'];
     delete?: never;
     options?: never;
     head?: never;
@@ -541,6 +595,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/aportes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lista os aportes do recorte, com o total aportado somado no servidor */
+    get: operations['listar_5'];
+    put?: never;
+    /** Registra um aporte já recebido */
+    post: operations['criar_4'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/aeronaves': {
     parameters: {
       query?: never;
@@ -549,10 +621,10 @@ export interface paths {
       cookie?: never;
     };
     /** Lista a frota em ordem de matrícula, com a situação regulatória de cada uma */
-    get: operations['listar_4'];
+    get: operations['listar_6'];
     put?: never;
     /** Cadastra uma aeronave com ficha, parâmetros e configuração financeira */
-    post: operations['criar_3'];
+    post: operations['criar_5'];
     delete?: never;
     options?: never;
     head?: never;
@@ -567,10 +639,10 @@ export interface paths {
       cookie?: never;
     };
     /** Lista a tripulação em ordem de nome, com CMA e CHT julgados */
-    get: operations['listar_5'];
+    get: operations['listar_7'];
     put?: never;
     /** Vincula um tripulante à aeronave */
-    post: operations['criar_4'];
+    post: operations['criar_6'];
     delete?: never;
     options?: never;
     head?: never;
@@ -654,7 +726,7 @@ export interface paths {
       cookie?: never;
     };
     /** Lista as participações de todos os contratos vigentes */
-    get: operations['listar_6'];
+    get: operations['listar_8'];
     put?: never;
     post?: never;
     delete?: never;
@@ -770,6 +842,35 @@ export interface components {
       corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
       vooDeManutencao?: boolean;
       observacoes?: string;
+    };
+    /** @description Um rendimento da aplicação do fundo */
+    RendimentoRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      /** Format: date */
+      data: string;
+      aplicacao?: string;
+      saldoAplicado?: number;
+      /** @description Taxa do mês, em % */
+      taxa?: number;
+      valor: number;
+    };
+    /** @description Rendimento da aplicação do fundo */
+    RendimentoResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      matricula?: string;
+      /** Format: date */
+      data?: string;
+      /** @example 2026-09 */
+      competencia?: string;
+      aplicacao?: string;
+      saldoAplicado?: number;
+      /** @description Taxa do mês, em % */
+      taxa?: number;
+      valor?: number;
     };
     /** @description Dados cadastrais de um proprietário */
     ProprietarioRequest: {
@@ -1028,6 +1129,42 @@ export interface components {
       valorOriginal?: number;
       cambio?: number;
       /** @description Valor em BRL, o que o rateio consome */
+      valor?: number;
+    };
+    /** @description Um aporte de proprietário no fundo da aeronave */
+    AporteRequest: {
+      /** Format: int64 */
+      aeronaveId: number;
+      /** Format: int64 */
+      proprietarioId: number;
+      /**
+       * Format: date
+       * @description Quando o crédito caiu na conta
+       */
+      data: string;
+      /**
+       * @description Mês a que o aporte se refere
+       * @example 2026-09
+       */
+      competencia: string;
+      valor: number;
+    };
+    /** @description Aporte de proprietário no fundo */
+    AporteResponse: {
+      /** Format: int64 */
+      id?: number;
+      /** Format: int64 */
+      aeronaveId?: number;
+      matricula?: string;
+      /** Format: int64 */
+      proprietarioId?: number;
+      nomeDoProprietario?: string;
+      /** @enum {string} */
+      corDeIdentificacao?: 'PETROLEO' | 'AZUL' | 'CELESTE' | 'VERDE' | 'AMBAR' | 'CINZA';
+      /** Format: date */
+      data?: string;
+      /** @example 2026-09 */
+      competencia?: string;
       valor?: number;
     };
     /** @description Dados de identificação da ficha técnica */
@@ -1478,6 +1615,11 @@ export interface components {
       /** @description Situação de cada componente monitorado */
       componentes?: components['schemas']['ComponenteDeSaudeResponse'][];
     };
+    /** @description Rendimentos de um recorte */
+    RendimentosResponse: {
+      rendimentos?: components['schemas']['RendimentoResponse'][];
+      total?: number;
+    };
     /** @description Participação vigente de um proprietário numa aeronave */
     VinculoVigenteResponse: {
       /**
@@ -1530,6 +1672,11 @@ export interface components {
     TotaisDosLancamentos: {
       fixos?: number;
       variaveis?: number;
+      total?: number;
+    };
+    /** @description Aportes de um recorte */
+    AportesResponse: {
+      aportes?: components['schemas']['AporteResponse'][];
       total?: number;
     };
     /** @description Aeronave sob gestão */
@@ -1650,6 +1797,52 @@ export interface operations {
     };
     requestBody: {
       content: {
+        'application/json': components['schemas']['RendimentoRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RendimentoResponse'];
+        };
+      };
+    };
+  };
+  excluir_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  atualizar_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
         'application/json': components['schemas']['ProprietarioRequest'];
       };
     };
@@ -1665,7 +1858,7 @@ export interface operations {
       };
     };
   };
-  atualizar_2: {
+  atualizar_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -1691,7 +1884,7 @@ export interface operations {
       };
     };
   };
-  excluir_1: {
+  excluir_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -1825,7 +2018,7 @@ export interface operations {
       };
     };
   };
-  atualizar_3: {
+  atualizar_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -1851,7 +2044,53 @@ export interface operations {
       };
     };
   };
-  excluir_2: {
+  excluir_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  atualizar_5: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AporteRequest'];
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AporteResponse'];
+        };
+      };
+    };
+  };
+  excluir_4: {
     parameters: {
       query?: never;
       header?: never;
@@ -1949,7 +2188,7 @@ export interface operations {
       };
     };
   };
-  atualizar_4: {
+  atualizar_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -2138,6 +2377,54 @@ export interface operations {
   };
   listar_2: {
     parameters: {
+      query?: {
+        aeronave?: number;
+        de?: string;
+        ate?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RendimentosResponse'];
+        };
+      };
+    };
+  };
+  criar_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RendimentoRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['RendimentoResponse'];
+        };
+      };
+    };
+  };
+  listar_3: {
+    parameters: {
       query?: never;
       header?: never;
       path?: never;
@@ -2156,7 +2443,7 @@ export interface operations {
       };
     };
   };
-  criar_1: {
+  criar_2: {
     parameters: {
       query?: never;
       header?: never;
@@ -2338,7 +2625,7 @@ export interface operations {
       };
     };
   };
-  listar_3: {
+  listar_4: {
     parameters: {
       query?: {
         aeronave?: number;
@@ -2361,7 +2648,7 @@ export interface operations {
       };
     };
   };
-  criar_2: {
+  criar_3: {
     parameters: {
       query?: never;
       header?: never;
@@ -2537,7 +2824,55 @@ export interface operations {
       };
     };
   };
-  listar_4: {
+  listar_5: {
+    parameters: {
+      query?: {
+        aeronave?: number;
+        de?: string;
+        ate?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AportesResponse'];
+        };
+      };
+    };
+  };
+  criar_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AporteRequest'];
+      };
+    };
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['AporteResponse'];
+        };
+      };
+    };
+  };
+  listar_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -2557,7 +2892,7 @@ export interface operations {
       };
     };
   };
-  criar_3: {
+  criar_5: {
     parameters: {
       query?: never;
       header?: never;
@@ -2581,7 +2916,7 @@ export interface operations {
       };
     };
   };
-  listar_5: {
+  listar_7: {
     parameters: {
       query?: never;
       header?: never;
@@ -2603,7 +2938,7 @@ export interface operations {
       };
     };
   };
-  criar_4: {
+  criar_6: {
     parameters: {
       query?: never;
       header?: never;
@@ -2737,7 +3072,7 @@ export interface operations {
       };
     };
   };
-  listar_6: {
+  listar_8: {
     parameters: {
       query?: never;
       header?: never;

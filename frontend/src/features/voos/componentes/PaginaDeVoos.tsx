@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
@@ -18,26 +18,21 @@ import { TabelaDeTrechos } from './TabelaDeTrechos';
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; trecho: TrechoResponse } | null;
 
 export function PaginaDeVoos() {
-  const { aeronaveId, competencia, pediuRegistro, setAeronaveId, setCompetencia, atenderRegistro } =
-    useRecorteDaUrl(competenciaAtual());
   const [painel, setPainel] = useState<Painel>(null);
   const { usuario } = useSessao();
   const aeronaves = useAeronaves();
-  const consulta = useVoos({ aeronaveId, competencia });
 
   // Lançar inclui o piloto: é ele quem volta do voo com os horários realizados na mão.
   const podeLancar =
     usuario?.papel === 'ADMINISTRADOR' ||
     usuario?.papel === 'GESTOR' ||
     usuario?.papel === 'PILOTO';
-
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  useEffect(() => {
-    if (pediuRegistro && podeLancar) {
-      setPainel({ modo: 'novo' });
-      atenderRegistro();
-    }
-  }, [pediuRegistro, podeLancar, atenderRegistro]);
+  const { aeronaveId, competencia, setAeronaveId, setCompetencia } = useRecorteDaUrl(
+    competenciaAtual(),
+    { podeRegistrar: podeLancar, aoPedir: () => setPainel({ modo: 'novo' }) },
+  );
+  const consulta = useVoos({ aeronaveId, competencia });
 
   return (
     <div className={estilos.tela}>

@@ -5,6 +5,7 @@ import { RotaDeAdministrador } from '@/compartilhado/sessao/RotaDeAdministrador'
 import { PaginaDeAeronaves } from '@/features/aeronaves/componentes/PaginaDeAeronaves';
 import { PaginaDeDetalheDaAeronave } from '@/features/aeronaves/componentes/PaginaDeDetalheDaAeronave';
 import { PaginaDeNovaAeronave } from '@/features/aeronaves/componentes/PaginaDeNovaAeronave';
+import { PaginaDeAportes } from '@/features/aportes/componentes/PaginaDeAportes';
 import { PaginaDeLogin } from '@/features/autenticacao/componentes/PaginaDeLogin';
 import { PaginaDeCalendario } from '@/features/calendario/componentes/PaginaDeCalendario';
 import { PaginaDeConfiguracoes } from '@/features/configuracoes/componentes/PaginaDeConfiguracoes';
@@ -34,6 +35,7 @@ export function Rotas() {
           <Route path="/aeronaves/:id" element={<PaginaDeDetalheDaAeronave />} />
           <Route path="/voos" element={<PaginaDeVoos />} />
           <Route path="/custos" element={<PaginaDeCustos />} />
+          <Route path="/aportes" element={<PaginaDeAportes />} />
           <Route path="/manutencao" element={<PaginaDeManutencao />} />
           <Route path="/calendario" element={<PaginaDeCalendario />} />
           <Route path="/proprietarios" element={<PaginaDeProprietarios />} />
