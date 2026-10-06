@@ -158,6 +158,10 @@ src/
   entra depois é promovido quando a segunda feature aparece — `compartilhado/proprietarios` tem a
   lista, o painel de cadastro e as mutações de criar e atualizar porque a tela de Proprietários e
   o cadastro de aeronave os usam; desativar e reativar, só de uma tela, ficam na feature.
+- O recorte das telas de registro (aeronave e competência) mora na URL, por
+  `compartilhado/recorte/useRecorteDaUrl`, e `?registrar=1` pede à tela que abra o formulário de
+  novo registro. É assim que o detalhe da aeronave chega aos lançamentos dela e que o "+ Registrar"
+  da casca abre o formulário de outra feature sem importá-la (ADR-0018).
 
 ### Fronteiras (falham o lint)
 

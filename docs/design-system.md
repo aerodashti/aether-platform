@@ -295,6 +295,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo |
+| Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
 ### Ainda não implementados
@@ -351,6 +352,26 @@ arquivo íntegro pode explicar como aba. A coluna da direita segue os cartões q
 
 A tabela de tripulação deixou de consumir a armadura de trilhas (`--armadura-*`); os tokens ficam
 enquanto Usuários, Voos e Lançamentos os usarem (ADR-0017).
+
+### Aportes segue o Projeto final, com o formulário do aporte e os indicadores por inferência
+
+O HTML do Final vem truncado antes do formulário de aporte e do script, então três partes vieram
+das strings do protótipo (`i18n-en.js`) e não do markup: o **painel de aporte** (aeronave,
+proprietário, data do crédito, competência, valor e o aviso "registrado como recebido"), os
+**quatro indicadores** (Total aportado, Aportes registrados, Rendimentos e "Entrou no fundo",
+soma dos dois) e o item **Aporte** do "+ Registrar". O resto segue o markup: recorte Mensal ·
+Período, abas com contagem, as colunas das duas grades e o formulário de rendimento embutido
+abaixo da grade.
+
+**Decisões nossas:** a competência tem **campo próprio** no aporte, separada da data do crédito —
+o aporte de setembro cai em outubro; o proprietário vem do **contrato vigente** da aeronave (o
+servidor também aceita quem já participou, para quitar o que devia); a exclusão confirma **na
+linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×").
+
+**De fora, e a feature dona:** o **saldo do fundo** — ele desconta os custos rateados, e quem
+rateia é o fechamento; a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
+**atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
+meses e os campos De/Até fazem o resto.
 
 ### A Nova aeronave tem quatro seções, não cinco
 
