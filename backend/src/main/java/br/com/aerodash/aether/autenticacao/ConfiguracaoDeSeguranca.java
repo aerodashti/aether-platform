@@ -106,6 +106,11 @@ public class ConfiguracaoDeSeguranca {
         .authenticated()
         .requestMatchers("/custos", "/custos/**")
         .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
+        // Trocas de KM: o proprietário vê o que deve e o que lhe devem; registrar é de quem gere.
+        .requestMatchers(HttpMethod.GET, "/trocas", "/trocas/**")
+        .authenticated()
+        .requestMatchers("/trocas", "/trocas/**")
+        .hasAnyRole(PapelDoUsuario.ADMINISTRADOR.name(), PapelDoUsuario.GESTOR.name())
         // O fechamento é só leitura, calculado a cada pedido: todo papel o lê.
         .requestMatchers(HttpMethod.GET, "/fechamentos/**")
         .authenticated()
