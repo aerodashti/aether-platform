@@ -194,25 +194,30 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
           </div>
         ) : (
           <div className={estilos.rolagem}>
-            <table className={juntarClasses(estilos.tabela, editando && estilos.editando)}>
-              <thead className={estilos.bloco}>
-                <tr className={estilos.linhaDeCabecalho}>
-                  <th scope="col">Proprietário</th>
-                  <th scope="col" className={estilos.direita}>
+            <table
+              role="table"
+              className={juntarClasses(estilos.tabela, editando && estilos.editando)}
+            >
+              <thead role="rowgroup" className={estilos.bloco}>
+                <tr role="row" className={estilos.linhaDeCabecalho}>
+                  <th role="columnheader" scope="col">
+                    Proprietário
+                  </th>
+                  <th role="columnheader" scope="col" className={estilos.direita}>
                     % de propriedade
                   </th>
                   {editando ? (
-                    <th scope="col" className={estilos.apenasLeitor}>
+                    <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                       Ações
                     </th>
                   ) : null}
                 </tr>
               </thead>
-              <tbody className={estilos.bloco}>
+              <tbody role="rowgroup" className={estilos.bloco}>
                 {!editando
                   ? (vigente?.participacoes ?? []).map((participacao) => (
-                      <tr key={participacao.proprietarioId} className={estilos.linha}>
-                        <td className={estilos.celula}>
+                      <tr role="row" key={participacao.proprietarioId} className={estilos.linha}>
+                        <td role="cell" className={estilos.celula}>
                           <span className={estilos.dono}>
                             <PontoDeCor
                               cor={
@@ -222,7 +227,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                             <span className={estilos.trunca}>{participacao.nome}</span>
                           </span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.direita)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
                           <span className={estilos.percentual}>
                             {percentualEmTexto(participacao.percentual)}
                           </span>
@@ -230,14 +235,14 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                       </tr>
                     ))
                   : (linhas ?? []).map((linha) => (
-                      <tr key={linha.proprietarioId} className={estilos.linha}>
-                        <td className={estilos.celula}>
+                      <tr role="row" key={linha.proprietarioId} className={estilos.linha}>
+                        <td role="cell" className={estilos.celula}>
                           <span className={estilos.dono}>
                             <PontoDeCor cor={linha.cor} />
                             <span className={estilos.trunca}>{linha.nome}</span>
                           </span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.campo)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.campo)}>
                           <span className={estilos.campoDePercentual}>
                             <CampoDeTexto
                               rotulo={`Participação de ${linha.nome} em %`}
@@ -258,7 +263,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                           </span>
                           <span className={estilos.unidade}>%</span>
                         </td>
-                        <td className={juntarClasses(estilos.celula, estilos.acoes)}>
+                        <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
                           <Botao
                             variante="fantasma"
                             tamanho="pequeno"

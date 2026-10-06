@@ -185,34 +185,43 @@ export function PaginaDeManutencao() {
                 ) : (
                   <div className={tabela.rolagem}>
                     <table
+                      role="table"
                       className={juntarClasses(
                         tabela.tabela,
                         tabela.agenda,
                         !podeGerir && tabela.semAcoes,
                       )}
                     >
-                      <thead className={tabela.bloco}>
-                        <tr className={tabela.linhaDeCabecalho}>
-                          <th scope="col">Data</th>
-                          <th scope="col">Descrição</th>
-                          <th scope="col">Responsável</th>
-                          <th scope="col" className={tabela.direita}>
+                      <thead role="rowgroup" className={tabela.bloco}>
+                        <tr role="row" className={tabela.linhaDeCabecalho}>
+                          <th role="columnheader" scope="col">
+                            Data
+                          </th>
+                          <th role="columnheader" scope="col">
+                            Descrição
+                          </th>
+                          <th role="columnheader" scope="col">
+                            Responsável
+                          </th>
+                          <th role="columnheader" scope="col" className={tabela.direita}>
                             Valor
                           </th>
-                          <th scope="col">Situação</th>
+                          <th role="columnheader" scope="col">
+                            Situação
+                          </th>
                           {podeGerir ? (
-                            <th scope="col" className={estilos.apenasLeitor}>
+                            <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                               Ações
                             </th>
                           ) : null}
                         </tr>
                       </thead>
-                      <tbody className={tabela.bloco}>
+                      <tbody role="rowgroup" className={tabela.bloco}>
                         {programadas.map((manutencao) => {
                           const atrasada = estaAtrasada(manutencao.data);
                           return (
-                            <tr key={manutencao.id} className={tabela.linha}>
-                              <td className={tabela.celula}>
+                            <tr role="row" key={manutencao.id} className={tabela.linha}>
+                              <td role="cell" className={tabela.celula}>
                                 <span className={tabela.forte}>{dataCurta(manutencao.data)}</span>
                                 {manutencao.hora ? (
                                   <span className={tabela.sublinha}>
@@ -220,22 +229,25 @@ export function PaginaDeManutencao() {
                                   </span>
                                 ) : null}
                               </td>
-                              <td className={tabela.celula}>
+                              <td role="cell" className={tabela.celula}>
                                 <span className={tabela.forte} title={manutencao.descricao}>
                                   {manutencao.descricao}
                                 </span>
                               </td>
-                              <td className={tabela.celula}>
+                              <td role="cell" className={tabela.celula}>
                                 <span className={tabela.suave}>
                                   {manutencao.responsavel ?? '—'}
                                 </span>
                               </td>
-                              <td className={juntarClasses(tabela.celula, tabela.direita)}>
+                              <td
+                                role="cell"
+                                className={juntarClasses(tabela.celula, tabela.direita)}
+                              >
                                 <span className={tabela.forte}>
                                   {moedaEmTexto(manutencao.valor)}
                                 </span>
                               </td>
-                              <td className={tabela.celula}>
+                              <td role="cell" className={tabela.celula}>
                                 <span
                                   className={juntarClasses(
                                     tabela.etiqueta,
@@ -246,7 +258,10 @@ export function PaginaDeManutencao() {
                                 </span>
                               </td>
                               {podeGerir ? (
-                                <td className={juntarClasses(tabela.celula, tabela.acoes)}>
+                                <td
+                                  role="cell"
+                                  className={juntarClasses(tabela.celula, tabela.acoes)}
+                                >
                                   <Botao
                                     variante="secundario"
                                     tamanho="pequeno"
@@ -307,41 +322,53 @@ export function PaginaDeManutencao() {
                 ) : (
                   <div className={tabela.rolagem}>
                     <table
+                      role="table"
                       className={juntarClasses(
                         tabela.tabela,
                         tabela.historico,
                         !podeGerir && tabela.semAcoes,
                       )}
                     >
-                      <thead className={tabela.bloco}>
-                        <tr className={tabela.linhaDeCabecalho}>
-                          <th scope="col">Conclusão</th>
-                          <th scope="col">Descrição</th>
-                          <th scope="col">Responsável</th>
-                          <th scope="col" className={tabela.direita}>
+                      <thead role="rowgroup" className={tabela.bloco}>
+                        <tr role="row" className={tabela.linhaDeCabecalho}>
+                          <th role="columnheader" scope="col">
+                            Conclusão
+                          </th>
+                          <th role="columnheader" scope="col">
+                            Descrição
+                          </th>
+                          <th role="columnheader" scope="col">
+                            Responsável
+                          </th>
+                          <th role="columnheader" scope="col" className={tabela.direita}>
                             Valor
                           </th>
-                          <th scope="col">Situação</th>
+                          <th role="columnheader" scope="col">
+                            Situação
+                          </th>
                         </tr>
                       </thead>
-                      <tbody className={tabela.bloco}>
+                      <tbody role="rowgroup" className={tabela.bloco}>
                         {historico.map((manutencao) => (
-                          <tr key={manutencao.id} className={tabela.linha}>
-                            <td className={tabela.celula}>
+                          <tr role="row" key={manutencao.id} className={tabela.linha}>
+                            <td role="cell" className={tabela.celula}>
                               <span className={tabela.forte}>{dataCurta(manutencao.data)}</span>
                             </td>
-                            <td className={tabela.celula}>
+                            <td role="cell" className={tabela.celula}>
                               <span className={tabela.forte} title={manutencao.descricao}>
                                 {manutencao.descricao}
                               </span>
                             </td>
-                            <td className={tabela.celula}>
+                            <td role="cell" className={tabela.celula}>
                               <span className={tabela.suave}>{manutencao.responsavel ?? '—'}</span>
                             </td>
-                            <td className={juntarClasses(tabela.celula, tabela.direita)}>
+                            <td
+                              role="cell"
+                              className={juntarClasses(tabela.celula, tabela.direita)}
+                            >
                               <span className={tabela.forte}>{moedaEmTexto(manutencao.valor)}</span>
                             </td>
-                            <td className={juntarClasses(tabela.celula, tabela.acoes)}>
+                            <td role="cell" className={juntarClasses(tabela.celula, tabela.acoes)}>
                               <span
                                 className={juntarClasses(tabela.etiqueta, tabela.etiquetaRegular)}
                               >
@@ -395,56 +422,69 @@ export function PaginaDeManutencao() {
                 ) : (
                   <div className={tabela.rolagem}>
                     <table
+                      role="table"
                       className={juntarClasses(
                         tabela.tabela,
                         tabela.parametros,
                         !podeGerir && tabela.semAcoes,
                       )}
                     >
-                      <thead className={tabela.bloco}>
-                        <tr className={tabela.linhaDeCabecalho}>
-                          <th scope="col">Item controlado</th>
-                          <th scope="col">Controle</th>
-                          <th scope="col" className={tabela.direita}>
+                      <thead role="rowgroup" className={tabela.bloco}>
+                        <tr role="row" className={tabela.linhaDeCabecalho}>
+                          <th role="columnheader" scope="col">
+                            Item controlado
+                          </th>
+                          <th role="columnheader" scope="col">
+                            Controle
+                          </th>
+                          <th role="columnheader" scope="col" className={tabela.direita}>
                             Limite
                           </th>
-                          <th scope="col" className={tabela.direita}>
+                          <th role="columnheader" scope="col" className={tabela.direita}>
                             Restante
                           </th>
-                          <th scope="col" className={tabela.direita}>
+                          <th role="columnheader" scope="col" className={tabela.direita}>
                             Janela de aviso
                           </th>
-                          <th scope="col">Situação</th>
+                          <th role="columnheader" scope="col">
+                            Situação
+                          </th>
                           {podeGerir ? (
-                            <th scope="col" className={estilos.apenasLeitor}>
+                            <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
                               Ações
                             </th>
                           ) : null}
                         </tr>
                       </thead>
-                      <tbody className={tabela.bloco}>
+                      <tbody role="rowgroup" className={tabela.bloco}>
                         {parametros.map((parametro) => {
                           const situacao = parametro.situacao ?? 'REGULAR';
                           const atual = atualEmTexto(parametro);
                           return (
-                            <tr key={parametro.id} className={tabela.linha}>
-                              <td className={tabela.celula}>
+                            <tr role="row" key={parametro.id} className={tabela.linha}>
+                              <td role="cell" className={tabela.celula}>
                                 <span className={tabela.forte} title={parametro.nome}>
                                   {parametro.nome}
                                 </span>
                               </td>
-                              <td className={tabela.celula}>
+                              <td role="cell" className={tabela.celula}>
                                 <span className={tabela.suave}>
                                   {parametro.tipo
                                     ? ROTULO_DO_TIPO_DE_PARAMETRO[parametro.tipo]
                                     : '—'}
                                 </span>
                               </td>
-                              <td className={juntarClasses(tabela.celula, tabela.direita)}>
+                              <td
+                                role="cell"
+                                className={juntarClasses(tabela.celula, tabela.direita)}
+                              >
                                 <span className={tabela.forte}>{limiteEmTexto(parametro)}</span>
                                 {atual ? <span className={tabela.sublinha}>{atual}</span> : null}
                               </td>
-                              <td className={juntarClasses(tabela.celula, tabela.direita)}>
+                              <td
+                                role="cell"
+                                className={juntarClasses(tabela.celula, tabela.direita)}
+                              >
                                 <span
                                   className={juntarClasses(
                                     tabela.forte,
@@ -455,12 +495,15 @@ export function PaginaDeManutencao() {
                                   {restanteEmPalavras(parametro.restante, parametro.tipo)}
                                 </span>
                               </td>
-                              <td className={juntarClasses(tabela.celula, tabela.direita)}>
+                              <td
+                                role="cell"
+                                className={juntarClasses(tabela.celula, tabela.direita)}
+                              >
                                 <span className={tabela.suave}>
                                   {janelaDeAvisoEmTexto(parametro)}
                                 </span>
                               </td>
-                              <td className={tabela.celula}>
+                              <td role="cell" className={tabela.celula}>
                                 <span
                                   className={juntarClasses(
                                     tabela.etiqueta,
@@ -471,7 +514,10 @@ export function PaginaDeManutencao() {
                                 </span>
                               </td>
                               {podeGerir ? (
-                                <td className={juntarClasses(tabela.celula, tabela.acoes)}>
+                                <td
+                                  role="cell"
+                                  className={juntarClasses(tabela.celula, tabela.acoes)}
+                                >
                                   <Botao
                                     variante="secundario"
                                     tamanho="pequeno"

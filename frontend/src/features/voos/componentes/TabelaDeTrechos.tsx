@@ -57,19 +57,19 @@ export function TabelaDeTrechos({
         <div role="status" className={estilos.apenasLeitor}>
           Carregando o diário…
         </div>
-        <table className={estilos.grade}>
+        <table role="table" className={estilos.grade}>
           <Cabecalho mostraAeronave={mostraAeronave} />
-          <tbody className={estilos.corpo}>
+          <tbody role="rowgroup" className={estilos.corpo}>
             {Array.from({ length: LINHAS_DO_ESQUELETO }, (_, indice) => (
-              <tr className={estilos.linha} key={indice} aria-hidden="true">
+              <tr role="row" className={estilos.linha} key={indice} aria-hidden="true">
                 {Array.from({ length: 5 }, (_, celula) => (
-                  <td className={estilos.celula} key={celula}>
+                  <td role="cell" className={estilos.celula} key={celula}>
                     <Esqueleto />
                   </td>
                 ))}
-                <td className={estilos.celula} />
-                <td className={estilos.celula} />
-                <td className={estilos.celula} />
+                <td role="cell" className={estilos.celula} />
+                <td role="cell" className={estilos.celula} />
+                <td role="cell" className={estilos.celula} />
               </tr>
             ))}
           </tbody>
@@ -93,14 +93,14 @@ export function TabelaDeTrechos({
   }
 
   return (
-    <table className={estilos.grade}>
+    <table role="table" className={estilos.grade}>
       <Cabecalho mostraAeronave={mostraAeronave} />
-      <tbody className={estilos.corpo}>
+      <tbody role="rowgroup" className={estilos.corpo}>
         {trechos.map((trecho) => {
           const id = trecho.id ?? 0;
           return (
-            <tr className={estilos.linha} key={id}>
-              <td className={estilos.celula}>
+            <tr role="row" className={estilos.linha} key={id}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.identificador}>
                   {trecho.relatorioDeVoo}
                   <span className={estilos.numeroDoTrecho}> · {trecho.numeroDoTrecho}</span>
@@ -109,22 +109,22 @@ export function TabelaDeTrechos({
                   <span className={estilos.subIdentificador}>{trecho.matricula}</span>
                 ) : null}
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.dado}>{dataCurta(trecho.data)}</span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.identificador}>{trecho.origem}</span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.identificador}>{trecho.destino}</span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.numero}>{horasEmTexto(trecho.horas)}</span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.numero}>{kmEmTexto(trecho.km)}</span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 <span className={estilos.atribuicao}>
                   {trecho.vooDeManutencao ? (
                     <span className={estilos.manutencao}>{ATRIBUICAO_DE_MANUTENCAO}</span>
@@ -138,7 +138,7 @@ export function TabelaDeTrechos({
                   )}
                 </span>
               </td>
-              <td className={estilos.celula}>
+              <td role="cell" className={estilos.celula}>
                 {podeLancar ? (
                   <span className={estilos.acoes}>
                     {confirmando === id ? (
@@ -191,25 +191,27 @@ export function TabelaDeTrechos({
           );
         })}
       </tbody>
-      <tfoot className={estilos.corpo}>
-        <tr className={estilos.totais}>
-          <td className={estilos.celula}>TOTAIS</td>
-          <td className={estilos.celula} />
-          <td className={estilos.celula} />
-          <td className={estilos.celula} />
-          <td className={estilos.celula}>
+      <tfoot role="rowgroup" className={estilos.corpo}>
+        <tr role="row" className={estilos.totais}>
+          <td role="cell" className={estilos.celula}>
+            TOTAIS
+          </td>
+          <td role="cell" className={estilos.celula} />
+          <td role="cell" className={estilos.celula} />
+          <td role="cell" className={estilos.celula} />
+          <td role="cell" className={estilos.celula}>
             <span className={estilos.numero}>{horasEmTexto(diario?.totais?.horas)}</span>
           </td>
-          <td className={estilos.celula}>
+          <td role="cell" className={estilos.celula}>
             <span className={estilos.numero}>{kmEmTexto(diario?.totais?.km)}</span>
           </td>
-          <td className={estilos.celula}>
+          <td role="cell" className={estilos.celula}>
             <span className={estilos.dado}>
               {diario?.totais?.pousos ?? 0}{' '}
               {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
             </span>
           </td>
-          <td className={estilos.celula} />
+          <td role="cell" className={estilos.celula} />
         </tr>
       </tfoot>
     </table>
@@ -218,20 +220,30 @@ export function TabelaDeTrechos({
 
 function Cabecalho({ mostraAeronave }: { mostraAeronave: boolean }) {
   return (
-    <thead className={estilos.corpo}>
-      <tr className={estilos.cabecalho}>
-        <th scope="col">{mostraAeronave ? 'Rel. voo · aeronave' : 'Rel. voo'}</th>
-        <th scope="col">Data</th>
-        <th scope="col">Origem</th>
-        <th scope="col">Destino</th>
-        <th scope="col" className={estilos.aDireita}>
+    <thead role="rowgroup" className={estilos.corpo}>
+      <tr role="row" className={estilos.cabecalho}>
+        <th role="columnheader" scope="col">
+          {mostraAeronave ? 'Rel. voo · aeronave' : 'Rel. voo'}
+        </th>
+        <th role="columnheader" scope="col">
+          Data
+        </th>
+        <th role="columnheader" scope="col">
+          Origem
+        </th>
+        <th role="columnheader" scope="col">
+          Destino
+        </th>
+        <th role="columnheader" scope="col" className={estilos.aDireita}>
           Horas
         </th>
-        <th scope="col" className={estilos.aDireita}>
+        <th role="columnheader" scope="col" className={estilos.aDireita}>
           KM
         </th>
-        <th scope="col">Atribuição</th>
-        <th scope="col" className={estilos.apenasLeitor}>
+        <th role="columnheader" scope="col">
+          Atribuição
+        </th>
+        <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
           Ações
         </th>
       </tr>

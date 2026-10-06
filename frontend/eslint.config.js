@@ -41,6 +41,29 @@ export default tseslint.config(
     },
     rules: {
       ...jsxA11y.flatConfigs.recommended.rules,
+      // As grades trocam o `display` de tabela, linha e grupo por `block`/`grid` para seguir a
+      // armadura do protótipo — e o WebKit descarta a semântica implícita de tabela quando isso
+      // acontece. O papel explícito devolve ao VoiceOver o que o CSS tirou; aqui ele não é
+      // redundante, é a correção.
+      'jsx-a11y/no-redundant-roles': [
+        'error',
+        {
+          nav: ['navigation'],
+          table: ['table'],
+          thead: ['rowgroup'],
+          tbody: ['rowgroup'],
+          tfoot: ['rowgroup'],
+          tr: ['row'],
+          th: ['columnheader', 'rowheader'],
+          td: ['cell'],
+        },
+      ],
+      // O plugin conta `<td>` como interativo (pode ser `gridcell`); numa grade de leitura ele é
+      // `cell`. Os dois primeiros são o padrão do próprio plugin.
+      'jsx-a11y/no-interactive-element-to-noninteractive-role': [
+        'error',
+        { tr: ['none', 'presentation'], canvas: ['img'], td: ['cell'] },
+      ],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
 

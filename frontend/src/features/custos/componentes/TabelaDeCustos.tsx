@@ -65,13 +65,16 @@ export function TabelaDeCustos({
           Carregando lançamentos…
         </div>
         <div className={estilos.rolagem}>
-          <table className={juntarClasses(estilos.grade, !podeGerir && estilos.semAcoes)}>
+          <table
+            role="table"
+            className={juntarClasses(estilos.grade, !podeGerir && estilos.semAcoes)}
+          >
             <Cabecalho podeGerir={podeGerir} />
-            <tbody className={estilos.corpo}>
+            <tbody role="rowgroup" className={estilos.corpo}>
               {Array.from({ length: LINHAS_DO_ESQUELETO }, (_, indice) => (
-                <tr className={estilos.linha} key={indice} aria-hidden="true">
+                <tr role="row" className={estilos.linha} key={indice} aria-hidden="true">
                   {Array.from({ length: podeGerir ? 7 : 6 }, (_, celula) => (
-                    <td className={estilos.celula} key={celula}>
+                    <td role="cell" className={estilos.celula} key={celula}>
                       <Esqueleto />
                     </td>
                   ))}
@@ -103,18 +106,21 @@ export function TabelaDeCustos({
   return (
     <>
       <div className={estilos.rolagem}>
-        <table className={juntarClasses(estilos.grade, !podeGerir && estilos.semAcoes)}>
+        <table
+          role="table"
+          className={juntarClasses(estilos.grade, !podeGerir && estilos.semAcoes)}
+        >
           <Cabecalho podeGerir={podeGerir} />
-          <tbody className={estilos.corpo}>
+          <tbody role="rowgroup" className={estilos.corpo}>
             {custos.map((custo) => {
               const id = custo.id ?? 0;
               return (
-                <tr className={estilos.linha} key={id}>
-                  <td className={estilos.celula}>
+                <tr role="row" className={estilos.linha} key={id}>
+                  <td role="cell" className={estilos.celula}>
                     <span className={estilos.identificador}>{custo.relatorioDeVoo ?? '—'}</span>
                     <span className={estilos.sublinha}>{dataCurta(custo.data)}</span>
                   </td>
-                  <td className={estilos.celula}>
+                  <td role="cell" className={estilos.celula}>
                     {custo.tipo ? (
                       <span
                         className={juntarClasses(
@@ -128,7 +134,7 @@ export function TabelaDeCustos({
                       '—'
                     )}
                   </td>
-                  <td className={estilos.celula}>
+                  <td role="cell" className={estilos.celula}>
                     <span className={estilos.descricao} title={custo.descricao}>
                       {custo.descricao}
                     </span>
@@ -136,7 +142,7 @@ export function TabelaDeCustos({
                       {custo.categoria ? CATEGORIAS[custo.categoria].rotulo : ''}
                     </span>
                   </td>
-                  <td className={estilos.celula}>
+                  <td role="cell" className={estilos.celula}>
                     <span className={estilos.atribuicao}>
                       {custo.rateado ? (
                         <span className={estilos.rateado}>{ATRIBUICAO_RATEADA}</span>
@@ -150,7 +156,7 @@ export function TabelaDeCustos({
                       )}
                     </span>
                   </td>
-                  <td className={juntarClasses(estilos.celula, estilos.direita)}>
+                  <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
                     <span className={estilos.numero}>{moedaEmTexto(custo.valor)}</span>
                     {custo.moeda === 'USD' ? (
                       <span className={estilos.sublinha}>
@@ -158,11 +164,11 @@ export function TabelaDeCustos({
                       </span>
                     ) : null}
                   </td>
-                  <td className={estilos.celula}>
+                  <td role="cell" className={estilos.celula}>
                     <span className={estilos.identificador}>{custo.notaFiscal ?? '—'}</span>
                   </td>
                   {podeGerir ? (
-                    <td className={juntarClasses(estilos.celula, estilos.acoes)}>
+                    <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
                       {confirmando === id ? (
                         <>
                           <Botao
@@ -232,18 +238,28 @@ export function TabelaDeCustos({
 
 function Cabecalho({ podeGerir }: { podeGerir: boolean }) {
   return (
-    <thead className={estilos.corpo}>
-      <tr className={estilos.cabecalho}>
-        <th scope="col">Rel-voo</th>
-        <th scope="col">Tipo</th>
-        <th scope="col">Descrição</th>
-        <th scope="col">Atribuição</th>
-        <th scope="col" className={estilos.direita}>
+    <thead role="rowgroup" className={estilos.corpo}>
+      <tr role="row" className={estilos.cabecalho}>
+        <th role="columnheader" scope="col">
+          Rel-voo
+        </th>
+        <th role="columnheader" scope="col">
+          Tipo
+        </th>
+        <th role="columnheader" scope="col">
+          Descrição
+        </th>
+        <th role="columnheader" scope="col">
+          Atribuição
+        </th>
+        <th role="columnheader" scope="col" className={estilos.direita}>
           Valor · R$
         </th>
-        <th scope="col">NF / Invoice</th>
+        <th role="columnheader" scope="col">
+          NF / Invoice
+        </th>
         {podeGerir ? (
-          <th scope="col" className={estilos.apenasLeitor}>
+          <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
             Ações
           </th>
         ) : null}
