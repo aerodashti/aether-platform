@@ -9,7 +9,9 @@ public class CpfCnpjInvalidoException extends ExcecaoDeDominio {
   private static final long serialVersionUID = 1L;
 
   public CpfCnpjInvalidoException() {
-    super("CPF ou CNPJ inválido", "O documento precisa ter 11 dígitos (CPF) ou 14 (CNPJ).");
+    super(
+        "CPF ou CNPJ inválido",
+        "Confira o documento: um CPF tem 11 dígitos, um CNPJ 14, e os dígitos verificadores precisam bater.");
   }
 
   @Override

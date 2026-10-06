@@ -59,11 +59,11 @@ class ProprietarioServiceTest {
   @Test
   @DisplayName("cria com o documento normalizado")
   void criaNormalizando() {
-    when(proprietarios.findByCpfCnpj("12345678901")).thenReturn(Optional.empty());
+    when(proprietarios.findByCpfCnpj("52998224725")).thenReturn(Optional.empty());
 
-    ProprietarioResponse response = service.criar(request("123.456.789-01"));
+    ProprietarioResponse response = service.criar(request("529.982.247-25"));
 
-    assertThat(response.cpfCnpj()).isEqualTo("12345678901");
+    assertThat(response.cpfCnpj()).isEqualTo("52998224725");
     assertThat(response.situacao()).isEqualTo(SituacaoDoProprietario.ATIVO);
     verify(proprietarios).save(any());
   }
@@ -79,10 +79,10 @@ class ProprietarioServiceTest {
   @Test
   @DisplayName("recusa documento que já pertence a outro proprietário")
   void recusaDocumentoDuplicado() {
-    Proprietario existente = comId(7L, "12345678901");
-    when(proprietarios.findByCpfCnpj("12345678901")).thenReturn(Optional.of(existente));
+    Proprietario existente = comId(7L, "52998224725");
+    when(proprietarios.findByCpfCnpj("52998224725")).thenReturn(Optional.of(existente));
 
-    assertThatThrownBy(() -> service.criar(request("123.456.789-01")))
+    assertThatThrownBy(() -> service.criar(request("529.982.247-25")))
         .isInstanceOf(CpfCnpjJaCadastradoException.class);
     verify(proprietarios, never()).save(any());
   }
@@ -90,19 +90,19 @@ class ProprietarioServiceTest {
   @Test
   @DisplayName("na atualização, o próprio documento não conta como duplicado")
   void atualizaSemColidirConsigo() {
-    Proprietario existente = comId(7L, "12345678901");
+    Proprietario existente = comId(7L, "52998224725");
     when(proprietarios.findById(7L)).thenReturn(Optional.of(existente));
-    when(proprietarios.findByCpfCnpj("12345678901")).thenReturn(Optional.of(existente));
+    when(proprietarios.findByCpfCnpj("52998224725")).thenReturn(Optional.of(existente));
 
-    ProprietarioResponse response = service.atualizar(7L, request("123.456.789-01"));
+    ProprietarioResponse response = service.atualizar(7L, request("529.982.247-25"));
 
-    assertThat(response.cpfCnpj()).isEqualTo("12345678901");
+    assertThat(response.cpfCnpj()).isEqualTo("52998224725");
   }
 
   @Test
   @DisplayName("desativar e reativar mudam a situação sem apagar nada")
   void desativaEReativa() {
-    Proprietario existente = comId(7L, "12345678901");
+    Proprietario existente = comId(7L, "52998224725");
     when(proprietarios.findById(7L)).thenReturn(Optional.of(existente));
 
     assertThat(service.desativar(7L).situacao()).isEqualTo(SituacaoDoProprietario.INATIVO);
@@ -123,7 +123,7 @@ class ProprietarioServiceTest {
   @DisplayName("lista em ordem de nome, como o repositório devolve")
   void lista() {
     when(proprietarios.findAllByOrderByNomeAsc())
-        .thenReturn(List.of(comId(1L, null), comId(2L, "12345678901")));
+        .thenReturn(List.of(comId(1L, null), comId(2L, "52998224725")));
 
     assertThat(service.listar()).hasSize(2);
     verify(contexto).registrar("proprietarios.total", 2);

@@ -56,11 +56,26 @@ class ProprietarioTest {
   class ValidacaoDoDocumento {
 
     @Test
-    @DisplayName("aceita CPF de 11 dígitos, CNPJ de 14 e a ausência")
+    @DisplayName("aceita CPF e CNPJ com dígitos verificadores certos, e a ausência")
     void aceitaFormasValidas() {
-      assertThat(Proprietario.cpfCnpjEhValido("12345678901")).isTrue();
-      assertThat(Proprietario.cpfCnpjEhValido("12345678000199")).isTrue();
+      assertThat(Proprietario.cpfCnpjEhValido("52998224725")).isTrue();
+      assertThat(Proprietario.cpfCnpjEhValido("11444777000161")).isTrue();
       assertThat(Proprietario.cpfCnpjEhValido(null)).isTrue();
+    }
+
+    @Test
+    @DisplayName("recusa dígito verificador errado: é o documento do titular no RAB")
+    void recusaDigitoVerificadorErrado() {
+      assertThat(Proprietario.cpfCnpjEhValido("52998224726")).isFalse();
+      assertThat(Proprietario.cpfCnpjEhValido("12345678901")).isFalse();
+      assertThat(Proprietario.cpfCnpjEhValido("11444777000162")).isFalse();
+    }
+
+    @Test
+    @DisplayName("recusa a sequência repetida, que passa na conta mas não existe")
+    void recusaSequenciaRepetida() {
+      assertThat(Proprietario.cpfCnpjEhValido("11111111111")).isFalse();
+      assertThat(Proprietario.cpfCnpjEhValido("00000000000000")).isFalse();
     }
 
     @Test
