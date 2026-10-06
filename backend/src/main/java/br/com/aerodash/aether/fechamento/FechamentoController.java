@@ -3,6 +3,7 @@ package br.com.aerodash.aether.fechamento;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.YearMonth;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,5 +39,11 @@ public class FechamentoController {
       @RequestParam(name = "de") YearMonth de,
       @RequestParam(name = "ate") YearMonth ate) {
     return fechamentos.periodo(aeronaveId, de, ate);
+  }
+
+  @GetMapping("/saldos")
+  @Operation(summary = "O saldo do fundo de cada aeronave e de cada proprietário, hoje")
+  public List<SaldoDaAeronaveResponse> saldos() {
+    return fechamentos.saldos();
   }
 }

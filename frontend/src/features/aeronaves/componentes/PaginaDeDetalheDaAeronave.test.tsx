@@ -112,6 +112,19 @@ const PROPRIETARIOS = [
 ];
 
 /** As respostas que um caso pode trocar: sem histórico, sem tripulação. */
+const SALDOS = [
+  {
+    aeronaveId: 1,
+    competencia: '2026-10',
+    saldoDoFundo: -1250.5,
+    custoDaCompetencia: 3000,
+    contas: [
+      { proprietarioId: 1, saldo: -900, percentualNoRateio: 62.5 },
+      { proprietarioId: 2, saldo: -350.5, percentualNoRateio: 37.5 },
+    ],
+  },
+];
+
 interface Respostas {
   contratos?: unknown;
   tripulantes?: unknown;
@@ -132,6 +145,9 @@ function montar(sessao: unknown, respostas: Respostas = {}) {
       }
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));
+      }
+      if (entrada.startsWith('/api/fechamentos/saldos')) {
+        return Promise.resolve(respostaDe(SALDOS));
       }
       return Promise.resolve(respostaDe(DETALHE));
     }),
@@ -175,12 +191,24 @@ describe('PaginaDeDetalheDaAeronave', () => {
     ).toBeInTheDocument();
   });
 
-  it('o cabeçalho não inventa saldo nem documentos: coluna vazia não existe', async () => {
+  it('o cabeçalho traz o saldo do fundo do fechamento, e não inventa documentos', async () => {
     montar(GESTORA);
 
-    await screen.findAllByText('PS-MEP');
-    expect(screen.queryByText('Saldo do fundo')).not.toBeInTheDocument();
+    const saldo = (await screen.findByText('Saldo do fundo')).parentElement as HTMLElement;
+    expect(within(saldo).getByText(/1\.250,50/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Documentos/ })).not.toBeInTheDocument();
+  });
+
+  it('o contrato mostra o % no rateio e o saldo de cada um, e os esconde ao editar', async () => {
+    montar(GESTORA);
+
+    expect(
+      await screen.findByRole('columnheader', { name: '% no rateio Out/26' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('62,5%')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Alterar participações' }));
+    expect(screen.queryByRole('columnheader', { name: /% no rateio/ })).not.toBeInTheDocument();
   });
 
   it('os atalhos levam aos lançamentos e aos voos já filtrados por esta aeronave', async () => {

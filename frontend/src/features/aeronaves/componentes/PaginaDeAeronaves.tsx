@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import {
   contarProprietariosPorAeronave,
   useVinculosVigentes,
@@ -50,6 +51,7 @@ export function PaginaDeAeronaves() {
   // número, e com ela o número aparece — nunca um "0" inventado.
   const vinculos = useVinculosVigentes();
   const proprietariosPorAeronave = contarProprietariosPorAeronave(vinculos.data);
+  const saldos = useSaldosDoFundo();
   const navegar = useNavigate();
   const { usuario } = useSessao();
   const frota = consulta.data ?? [];
@@ -110,6 +112,7 @@ export function PaginaDeAeronaves() {
               proprietarios={
                 vinculos.data ? (proprietariosPorAeronave.get(aeronave.id ?? 0) ?? 0) : undefined
               }
+              saldo={saldoDaAeronave(saldos.data, aeronave.id)}
             />
           ))}
         </ul>

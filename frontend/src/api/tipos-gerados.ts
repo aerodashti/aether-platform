@@ -735,6 +735,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fechamentos/saldos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** O saldo do fundo de cada aeronave e de cada proprietário, hoje */
+        get: operations["saldos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fechamentos/periodo": {
         parameters: {
             query?: never;
@@ -1669,6 +1686,26 @@ export interface components {
             programadas?: components["schemas"]["ManutencaoResponse"][];
             /** @description Concluídas, da mais recente para a mais antiga */
             historico?: components["schemas"]["ManutencaoResponse"][];
+        };
+        /** @description A conta de um proprietário no fundo */
+        Conta: {
+            /** Format: int64 */
+            proprietarioId?: number;
+            /** @description Positivo é crédito; negativo, dívida */
+            saldo?: number;
+            /** @description Fatia dos custos da competência; nula quando não houve custo */
+            percentualNoRateio?: number;
+        };
+        /** @description Saldo do fundo de uma aeronave e de cada proprietário nele */
+        SaldoDaAeronaveResponse: {
+            /** Format: int64 */
+            aeronaveId?: number;
+            /** @example 2026-10 */
+            competencia?: string;
+            saldoDoFundo?: number;
+            /** @description Custos da competência corrente */
+            custoDaCompetencia?: number;
+            contas?: components["schemas"]["Conta"][];
         };
         /** @description O fechamento resumido de uma competência */
         Competencia: {
@@ -3176,6 +3213,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["VinculoVigenteResponse"][];
+                };
+            };
+        };
+    };
+    saldos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SaldoDaAeronaveResponse"][];
                 };
             };
         };

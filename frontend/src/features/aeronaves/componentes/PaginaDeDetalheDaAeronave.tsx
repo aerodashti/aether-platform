@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -15,7 +16,7 @@ import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
-import { consequenciaDoVencimento, dataCurta, nomeDaAeronave } from './rotulos';
+import { consequenciaDoVencimento, dataCurta, moedaEmTexto, nomeDaAeronave } from './rotulos';
 import { SecaoDeContrato } from './SecaoDeContrato';
 import { SecaoDeTripulacao } from './SecaoDeTripulacao';
 
@@ -27,8 +28,8 @@ type PainelAberto = 'ficha' | 'financeiro' | null;
  * colunas — contrato, histórico e tripulação à esquerda; ficha técnica e configuração
  * financeira à direita.
  *
- * <p>O "Documentos (n)" e o "Saldo do fundo" do cabeçalho do protótipo não estão aqui: pertencem
- * a documentos e a aportes, que ainda não existem — coluna vazia não existe.
+ * <p>O "Documentos (n)" do cabeçalho do protótipo não está aqui: pertence a documentos, que ainda
+ * não existe — coluna vazia não existe. O saldo do fundo vem do fechamento.
  */
 export function PaginaDeDetalheDaAeronave() {
   const { id } = useParams();
@@ -36,6 +37,8 @@ export function PaginaDeDetalheDaAeronave() {
   const consulta = useDetalheDaAeronave(aeronaveId);
   const { usuario, ehAdministrador } = useSessao();
   const [painel, setPainel] = useState<PainelAberto>(null);
+  const saldos = useSaldosDoFundo();
+  const saldo = saldoDaAeronave(saldos.data, aeronaveId);
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   const detalhe = consulta.data;
@@ -112,6 +115,18 @@ export function PaginaDeDetalheDaAeronave() {
             <dt className={estilos.vencimentoRotulo}>Vencimento RETA</dt>
             <dd className={estilos.vencimentoValor}>{dataCurta(detalhe.vencimentoReta)}</dd>
           </div>
+          {saldo ? (
+            <div className={estilos.vencimento}>
+              <dt className={estilos.vencimentoRotulo}>Saldo do fundo</dt>
+              <dd
+                className={
+                  (saldo.saldoDoFundo ?? 0) < 0 ? estilos.saldoDevedor : estilos.vencimentoValor
+                }
+              >
+                {moedaEmTexto(saldo.saldoDoFundo)}
+              </dd>
+            </div>
+          ) : null}
         </dl>
       </header>
 

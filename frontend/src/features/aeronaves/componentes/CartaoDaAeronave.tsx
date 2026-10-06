@@ -1,27 +1,31 @@
+import { competenciaAbreviada, type SaldoDaAeronave } from '@/compartilhado/fundo/useSaldosDoFundo';
+import { juntarClasses } from '@/design-system/classes';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 
 import type { AeronaveResponse } from '../api/useAeronaves';
 
 import estilos from './CartaoDaAeronave.module.css';
 import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
-import { dataCurta, prazoEmPalavras, ROTULO_DO_DOCUMENTO } from './rotulos';
+import { dataCurta, moedaEmTexto, prazoEmPalavras, ROTULO_DO_DOCUMENTO } from './rotulos';
 
 interface CartaoDaAeronaveProps {
   aeronave: AeronaveResponse;
   /** Quantos proprietários no contrato vigente; `undefined` enquanto os vínculos não chegaram. */
   proprietarios: number | undefined;
+  /** O fundo hoje, do fechamento; `undefined` enquanto não chegou. */
+  saldo: SaldoDaAeronave | undefined;
 }
 
 /**
  * Uma aeronave da frota, como no protótipo: identificação, etiqueta de situação, os números à
  * direita e a seta que abre o detalhe.
  *
- * <p>Dos números do protótipo só a contagem de proprietários está aqui — saldo do fundo e custo
- * da competência pertencem a aportes e a lançamentos, e **coluna vazia não existe**. Em troca
- * entra o próximo vencimento, porque o brief proíbe estado sem consequência: "Atenção" sozinho
- * não informa, e a forma correta é dizer qual documento e quando.
+ * <p>Os números do protótipo — saldo do fundo, custo da competência e proprietários — mais o
+ * próximo vencimento, porque o brief proíbe estado sem consequência: "Atenção" sozinho não
+ * informa, e a forma correta é dizer qual documento e quando. Saldo negativo vem em vermelho: é
+ * dinheiro que os proprietários devem ao fundo.
  */
-export function CartaoDaAeronave({ aeronave, proprietarios }: CartaoDaAeronaveProps) {
+export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAeronaveProps) {
   const situacao = aeronave.situacaoRegular ?? 'REGULAR';
   const documento = aeronave.documentoDoProximoVencimento
     ? ROTULO_DO_DOCUMENTO[aeronave.documentoDoProximoVencimento]
@@ -57,6 +61,26 @@ export function CartaoDaAeronave({ aeronave, proprietarios }: CartaoDaAeronavePr
         <span className={estilos.valor}>{dataCurta(aeronave.proximoVencimento)}</span>
         {qualificador ? <span className={estilos.qualificador}>{qualificador}</span> : null}
       </span>
+
+      {saldo ? (
+        <>
+          <span className={estilos.numero}>
+            <span className={estilos.rotulo}>Saldo do fundo</span>
+            <span
+              className={juntarClasses(
+                estilos.valor,
+                (saldo.saldoDoFundo ?? 0) < 0 && estilos.devedor,
+              )}
+            >
+              {moedaEmTexto(saldo.saldoDoFundo)}
+            </span>
+          </span>
+          <span className={estilos.numero}>
+            <span className={estilos.rotulo}>Custo {competenciaAbreviada(saldo.competencia)}</span>
+            <span className={estilos.valor}>{moedaEmTexto(saldo.custoDaCompetencia)}</span>
+          </span>
+        </>
+      ) : null}
 
       {proprietarios !== undefined ? (
         <span className={estilos.numero}>

@@ -58,6 +58,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Dívida com o fundo: o mesmo número, em vermelho. */
+.saldoDevedor {
+  margin: var(--espaco-1) 0 0;
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+  color: var(--cor-critico);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Duas colunas como no protótipo: registros à esquerda, dados da aeronave à direita. */
 .grade {
   display: grid;

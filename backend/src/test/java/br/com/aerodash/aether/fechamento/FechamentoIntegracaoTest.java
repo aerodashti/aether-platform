@@ -91,6 +91,34 @@ class FechamentoIntegracaoTest {
     assertThat(periodo.at("/totais/aportes").decimalValue()).isEqualByComparingTo("140000.00");
   }
 
+  @Test
+  @DisplayName("o saldo da frota é o mesmo do fechamento do mês, e as contas somam o fundo")
+  void saldosDaFrota() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    Cookie sessao = entrar();
+
+    JsonNode saldos = ler("/fechamentos/saldos", sessao);
+    JsonNode doPsMep = null;
+    for (JsonNode saldo : saldos) {
+      if (saldo.get("aeronaveId").asLong() == psMep) {
+        doPsMep = saldo;
+      }
+    }
+    assertThat(doPsMep).isNotNull();
+    JsonNode mes =
+        ler(
+            "/fechamentos/mensal?aeronave=%d&competencia=%s"
+                .formatted(psMep, YearMonth.now(relogio)),
+            sessao);
+    assertThat(doPsMep.get("saldoDoFundo").decimalValue())
+        .isEqualByComparingTo(mes.get("saldoFinalDoFundo").decimalValue());
+    BigDecimal somaDasContas = BigDecimal.ZERO;
+    for (JsonNode conta : doPsMep.get("contas")) {
+      somaDasContas = somaDasContas.add(conta.get("saldo").decimalValue());
+    }
+    assertThat(somaDasContas).isEqualByComparingTo(doPsMep.get("saldoDoFundo").decimalValue());
+  }
+
   private JsonNode ler(String url, Cookie sessao) throws Exception {
     MvcResult resultado =
         mockMvc.perform(get(url).cookie(sessao)).andExpect(status().isOk()).andReturn();

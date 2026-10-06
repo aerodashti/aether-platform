@@ -11,6 +11,7 @@ import br.com.aerodash.aether.proprietario.Proprietario;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -33,16 +34,19 @@ public class FechamentoService {
   private final AeronaveRepository aeronaves;
   private final ProprietarioRepository proprietarios;
   private final LeitorDeMovimentos leitor;
+  private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
   public FechamentoService(
       AeronaveRepository aeronaves,
       ProprietarioRepository proprietarios,
       LeitorDeMovimentos leitor,
+      Clock relogio,
       ContextoDaRequisicao contexto) {
     this.aeronaves = aeronaves;
     this.proprietarios = proprietarios;
     this.leitor = leitor;
+    this.relogio = relogio;
     this.contexto = contexto;
   }
 
@@ -104,6 +108,40 @@ public class FechamentoService {
         ate,
         competencias,
         totais(competencias, ate));
+  }
+
+  /**
+   * O saldo de cada aeronave da frota no fim da competência corrente. Uma apuração por aeronave: a
+   * frota é de dezenas, e cada uma é um punhado de consultas.
+   */
+  @Transactional(readOnly = true)
+  public List<SaldoDaAeronaveResponse> saldos() {
+    YearMonth agora = YearMonth.now(relogio);
+    List<SaldoDaAeronaveResponse> saldos =
+        aeronaves.findAll().stream().map(aeronave -> saldoDe(aeronave, agora)).toList();
+    contexto.registrar("fechamento.aeronaves", saldos.size());
+    return saldos;
+  }
+
+  private SaldoDaAeronaveResponse saldoDe(Aeronave aeronave, YearMonth agora) {
+    List<ApuracaoDaCompetencia> apuracoes = apurarAte(aeronave, agora);
+    ApuracaoDaCompetencia mes = apuracoes.get(apuracoes.size() - 1);
+    BigDecimal custo = mes.totalDeCustos();
+    return new SaldoDaAeronaveResponse(
+        aeronave.getId(),
+        agora,
+        mes.saldoFinalDoFundo(),
+        custo,
+        mes.contas().entrySet().stream()
+            .map(
+                entrada ->
+                    new SaldoDaAeronaveResponse.Conta(
+                        entrada.getKey(),
+                        entrada.getValue().saldoFinal(),
+                        custo.signum() == 0
+                            ? null
+                            : percentualDe(entrada.getValue().totalDoMes(), custo)))
+            .toList());
   }
 
   private List<ApuracaoDaCompetencia> apurarAte(Aeronave aeronave, YearMonth ate) {

@@ -1,4 +1,6 @@
+import { contaNoFundo, type SaldoDaAeronave } from '@/compartilhado/fundo/useSaldosDoFundo';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
+import { juntarClasses } from '@/design-system/classes';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
@@ -19,21 +21,26 @@ interface CartaoDeProprietarioProps {
   /** Escrita é de administrador e gestor; para os demais o cartão é só leitura. */
   podeGerir: boolean;
   aoEditar: (proprietario: ProprietarioResponse) => void;
+  /** O saldo de cada vínculo no fundo, do fechamento; `undefined` enquanto não chegou. */
+  saldos: SaldoDaAeronave[] | undefined;
 }
+
+const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 /**
  * Um proprietário e as aeronaves em que participa, como no protótipo: identificação em cima, uma
  * linha por vínculo embaixo com a barra do percentual.
  *
- * <p>O saldo por aeronave que o protótipo mostra ao lado da barra não está aqui: pertence a
- * aportes, e **coluna vazia não existe**. E o "Excluir" do protótipo é "Desativar": excluir de
- * verdade não existe neste domínio (ver o glossário).
+ * <p>Ao lado da barra, o saldo dele no fundo daquela aeronave, do fechamento — dívida em vermelho.
+ * E o "Excluir" do protótipo é "Desativar": excluir de verdade não existe neste domínio (ver o
+ * glossário).
  */
 export function CartaoDeProprietario({
   proprietario,
   vinculos,
   podeGerir,
   aoEditar,
+  saldos,
 }: CartaoDeProprietarioProps) {
   const desativar = useDesativarProprietario();
   const reativar = useReativarProprietario();
@@ -104,6 +111,7 @@ export function CartaoDeProprietario({
         <ul className={estilos.vinculos} aria-label={`Aeronaves de ${proprietario.nome}`}>
           {vinculos.map((vinculo) => {
             const percentual = Number(vinculo.percentual ?? 0);
+            const conta = contaNoFundo(saldos, vinculo.aeronaveId, id);
             return (
               <li key={vinculo.aeronaveId} className={estilos.vinculo}>
                 <span className={estilos.matricula}>
@@ -115,6 +123,17 @@ export function CartaoDeProprietario({
                   <span className={estilos.barra} style={{ width: `${percentual}%` }} />
                 </span>
                 <span className={estilos.percentual}>{percentualEmTexto(percentual)}</span>
+                {conta ? (
+                  <span
+                    className={juntarClasses(
+                      estilos.saldo,
+                      (conta.saldo ?? 0) < 0 && estilos.devedor,
+                    )}
+                  >
+                    <span className={estilos.apenasLeitor}>Saldo no fundo: </span>
+                    {MOEDA.format(conta.saldo ?? 0)}
+                  </span>
+                ) : null}
               </li>
             );
           })}
