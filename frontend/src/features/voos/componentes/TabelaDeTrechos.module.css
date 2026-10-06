@@ -99,6 +99,7 @@
 }
 
 .dado {
+  display: block;
   overflow: hidden;
   font-size: var(--tamanho-s);
   line-height: var(--altura-s);

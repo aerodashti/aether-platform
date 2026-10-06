@@ -121,6 +121,7 @@
 .papel,
 .situacao,
 .situacaoAtencao {
+  display: block;
   overflow: hidden;
   font-size: var(--tamanho-s);
   font-weight: var(--peso-forte);
@@ -140,6 +141,7 @@
 }
 
 .acesso {
+  display: block;
   overflow: hidden;
   font-size: var(--tamanho-xs);
   line-height: var(--altura-xs);
