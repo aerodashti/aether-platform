@@ -133,10 +133,10 @@ export function LayoutDaAplicacao() {
     <div className={estilos.moldura}>
       <nav className={estilos.navegacao} aria-label="Navegação principal">
         <div className={estilos.marca}>
-          <Texto variante="titulo" como="span">
+          <Texto variante="subtitulo" como="span">
             Æther
           </Texto>
-          <Texto variante="legenda" tom="suave" como="span">
+          <Texto variante="apoio" tom="suave" como="span">
             INTELLIGENT AIR ASSET MANAGEMENT
           </Texto>
         </div>

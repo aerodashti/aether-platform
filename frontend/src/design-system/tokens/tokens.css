@@ -29,8 +29,8 @@
   --cor-linha-hover: #fafafb;
   --cor-overlay: rgba(29, 31, 32, 0.45);
   --elevacao-0: none;
-  --elevacao-1: 0 1px 2px rgba(43, 43, 45, 0.04);
-  --elevacao-2: 0 4px 12px rgba(43, 43, 45, 0.08);
+  --elevacao-1: 0 1px 2px rgba(43, 43, 45, 0.14);
+  --elevacao-2: 0 6px 18px rgba(43, 43, 45, 0.09);
   --elevacao-3: 0 16px 44px rgba(43, 43, 45, 0.12);
   --fonte-base: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --fonte-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, monospace;

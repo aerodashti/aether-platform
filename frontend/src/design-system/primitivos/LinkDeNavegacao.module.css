@@ -1,8 +1,8 @@
 .link {
   display: flex;
   align-items: center;
-  gap: var(--espaco-4);
-  min-height: var(--controle-altura-p);
+  gap: var(--espaco-3);
+  min-height: var(--controle-altura-m);
   padding: 0 var(--espaco-3);
   font-family: var(--fonte-base);
   font-size: var(--tamanho-m);
