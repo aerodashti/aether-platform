@@ -1,0 +1,18 @@
+.grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-4);
+}
+
+@media (max-width: 640px) {
+  .grade {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-4);
+  justify-content: flex-end;
+  margin-top: var(--espaco-2);
+}

@@ -1,0 +1,157 @@
+/* A régua da armadura: data, aeronave, cedeu, recebeu, horas, km, R$/hora, observação e ações. */
+.grade {
+  display: block;
+  width: 100%;
+  /* Abaixo disso as colunas se atropelam; o painel rola na horizontal, a página não. */
+  min-width: 1040px;
+  border-spacing: 0;
+}
+
+.corpo {
+  display: block;
+}
+
+.cabecalho,
+.linha {
+  display: grid;
+  /* Os dois proprietários e o R$/hora com total pedem mais que a régua padrão: nome cortado ao
+     meio é exatamente o que a coluna existe para dizer. */
+  grid-template-columns:
+    var(--armadura-data) var(--armadura-id) minmax(130px, 1fr) minmax(130px, 1fr) 72px 72px
+    120px minmax(120px, 1.2fr) 170px;
+  gap: var(--armadura-gap);
+  align-items: center;
+}
+
+.cabecalho {
+  padding: var(--espaco-4) var(--espaco-6);
+  font-size: var(--tamanho-xs);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.cabecalho th {
+  padding: 0;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.cabecalho th.aDireita {
+  text-align: right;
+}
+
+.linha {
+  min-height: var(--controle-altura-g);
+  padding: var(--espaco-2) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.linha:hover {
+  background: var(--cor-linha-hover);
+}
+
+.celula {
+  min-width: 0;
+  padding: 0;
+}
+
+.dado {
+  display: block;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.matricula {
+  display: block;
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+}
+
+.sub {
+  display: block;
+  overflow: hidden;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sub.aDireita {
+  overflow: visible;
+  text-align: right;
+}
+
+.dono {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+}
+
+.seta {
+  color: var(--cor-texto-suave);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.numero {
+  display: block;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.observacao {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

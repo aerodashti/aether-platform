@@ -21,6 +21,7 @@ import {
   IconePulso,
   IconeRecibo,
   IconeSaida,
+  IconeTroca,
 } from './Icones';
 import estilos from './LayoutDaAplicacao.module.css';
 
@@ -31,6 +32,7 @@ const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
   { padrao: /^\/aeronaves\/[^/]+$/, titulo: 'Aeronave' },
   { padrao: /^\/aeronaves$/, titulo: 'Aeronaves' },
   { padrao: /^\/voos/, titulo: 'Diário de voos' },
+  { padrao: /^\/trocas/, titulo: 'Trocas de KM' },
   { padrao: /^\/custos/, titulo: 'Lançamentos' },
   { padrao: /^\/aportes/, titulo: 'Aportes' },
   { padrao: /^\/fechamento/, titulo: 'Fechamento' },
@@ -62,8 +64,7 @@ const gere = (papel: string | undefined) => papel === 'ADMINISTRADOR' || papel =
 
 /**
  * O "Registro rápido" do protótipo. Cada item leva à tela dona do registro com `?registrar=1`,
- * que abre o formulário de lá: a casca não conhece formulário de feature nenhuma. A "Troca de KM"
- * do protótipo entra quando a tela dela existir.
+ * que abre o formulário de lá: a casca não conhece formulário de feature nenhuma.
  */
 const REGISTROS: Registro[] = [
   {
@@ -78,6 +79,12 @@ const REGISTROS: Registro[] = [
     tela: '/voos',
     // Como no diário: quem volta do voo com os horários na mão é o piloto.
     podeRegistrar: (papel) => gere(papel) || papel === 'PILOTO',
+  },
+  {
+    rotulo: 'Troca de KM',
+    apoio: 'Horas cedidas entre proprietários',
+    tela: '/trocas',
+    podeRegistrar: gere,
   },
   {
     rotulo: 'Aporte',
@@ -140,6 +147,11 @@ export function LayoutDaAplicacao() {
           <li>
             <LinkDeNavegacao para="/voos" icone={<IconeDiario />}>
               Diário de voos
+            </LinkDeNavegacao>
+          </li>
+          <li>
+            <LinkDeNavegacao para="/trocas" icone={<IconeTroca />}>
+              Trocas de KM
             </LinkDeNavegacao>
           </li>
           <li>
