@@ -192,7 +192,7 @@ acessibilidade ficam em um lugar só.
 | --- | --- | --- | --- |
 | `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
 | `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco |
-| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos |
+| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required` |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
 | `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
 | `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
@@ -444,6 +444,10 @@ linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×"
 meses e os campos De/Até fazem o resto.
 
 ### A Nova aeronave tem quatro seções, não cinco
+
+As seções seguem o cartão do protótipo — número num círculo, título de 14px, grade de quantas
+colunas de 190px couberem — e os obrigatórios levam o asterisco. Com o botão desabilitado, a barra
+diz por quê ("Preencha os campos marcados com *" ou a soma das participações).
 
 Do protótipo ficou de fora a seção de **documentos**: os arquivos se anexam depois de criar, pela
 tela de Documentos da aeronave — anexar antes de a aeronave existir pediria um armazenamento

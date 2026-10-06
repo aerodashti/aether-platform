@@ -31,6 +31,12 @@
   transition-timing-function: var(--curva-padrao);
 }
 
+/* O asterisco é só visual: o texto alternativo vazio o tira do nome acessível, e quem anuncia o
+   obrigatório é o `aria-required` do campo. */
+.obrigatorio::after {
+  content: ' *' / '';
+}
+
 .entrada::placeholder {
   color: var(--cor-texto-suave);
 }

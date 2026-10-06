@@ -69,4 +69,10 @@ describe('CampoDeTexto', () => {
 
     expect(screen.getByLabelText('E-mail')).toBeDisabled();
   });
+
+  it('obrigatório é anunciado como tal, sem o asterisco entrar no nome', () => {
+    render(<CampoDeTexto rotulo="Matrícula" valor="" aoMudar={() => {}} obrigatorio />);
+
+    expect(screen.getByRole('textbox', { name: 'Matrícula' })).toBeRequired();
+  });
 });

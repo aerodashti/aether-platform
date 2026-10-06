@@ -100,9 +100,14 @@ describe('PaginaDeNovaAeronave', () => {
 
     const botao = await screen.findByRole('button', { name: 'Cadastrar aeronave' });
     expect(botao).toBeDisabled();
+    expect(
+      screen.getByText('Preencha os campos marcados com * para cadastrar.'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Matrícula')).toBeRequired();
 
     await preencherObrigatorios();
     expect(botao).toBeEnabled();
+    expect(screen.queryByText(/Preencha os campos marcados/)).not.toBeInTheDocument();
   });
 
   it('a quantidade de motores decide quantos campos de horas existem', async () => {
