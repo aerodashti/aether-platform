@@ -23,6 +23,7 @@ final class CpfCnpj {
   private static final Pattern PONTUACAO = Pattern.compile("[.\\-/\\s\\p{Z}]");
   private static final Pattern FORMATO_DO_CPF = Pattern.compile("[0-9]{11}");
   private static final Pattern FORMATO_DO_CNPJ = Pattern.compile("[0-9A-Z]{12}[0-9]{2}");
+  private static final int TAMANHO_DO_CPF = 11;
   private static final int[] PESOS_DO_CPF = {11, 10, 9, 8, 7, 6, 5, 4, 3, 2};
   private static final int[] PESOS_DO_CNPJ = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
 
@@ -56,8 +57,8 @@ final class CpfCnpj {
     if (!formatoConhecido || normalizado.chars().distinct().count() == 1) {
       return false;
     }
-    int[] pesos = normalizado.length() == PESOS_DO_CPF.length + 1 ? PESOS_DO_CPF : PESOS_DO_CNPJ;
     int tamanho = normalizado.length();
+    int[] pesos = tamanho == TAMANHO_DO_CPF ? PESOS_DO_CPF : PESOS_DO_CNPJ;
     return verificadorConfere(normalizado, tamanho - 2, pesos)
         && verificadorConfere(normalizado, tamanho - 1, pesos);
   }
