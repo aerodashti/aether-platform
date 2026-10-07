@@ -28,7 +28,17 @@
   line-height: var(--altura-g);
 }
 
+/* O botão e, embaixo, os limites do envio — sempre à vista, não só com a lista vazia. */
+.envio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  align-items: flex-end;
+  text-align: right;
+}
+
 .alerta {
+  margin: 0;
   padding: var(--espaco-4) var(--espaco-5);
   font-size: var(--tamanho-m);
   line-height: var(--altura-m);
@@ -65,6 +75,12 @@
   grid-template-columns: minmax(240px, 1fr) 160px 120px 280px;
   gap: var(--armadura-gap);
   align-items: center;
+}
+
+/* Quem não gere não remove: a grade perde a coluna de ações. */
+.cabecalhoDaGrade.semAcoes,
+.linha.semAcoes {
+  grid-template-columns: minmax(240px, 1fr) 160px 120px;
 }
 
 .cabecalhoDaGrade {
