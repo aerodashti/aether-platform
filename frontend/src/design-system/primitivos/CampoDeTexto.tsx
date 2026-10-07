@@ -59,6 +59,20 @@ const tipoNativo: Record<TipoDeCampo, string> = {
 };
 
 /**
+ * Safari no macOS e Firefox não implementam `type="month"`: o campo vira texto livre sem dizer o
+ * formato. Nesses navegadores o mês é um texto com o formato no exemplo, e a regra `competencia()`
+ * do formulário confere.
+ */
+const SUPORTA_MES = ((): boolean => {
+  if (typeof document === 'undefined') {
+    return true;
+  }
+  const entrada = document.createElement('input');
+  entrada.setAttribute('type', 'month');
+  return entrada.type === 'month';
+})();
+
+/**
  * Um campo de data, hora ou mês digitado pela metade tem `value` vazio: a tela não tem como saber
  * que há algo escrito. O próprio campo sabe (`validity.badInput`) e diz.
  */
@@ -89,6 +103,7 @@ export function CampoDeTexto({
   ref,
 }: CampoDeTextoProps) {
   const [incompleto, setIncompleto] = useState(false);
+  const mesComoTexto = tipo === 'mes' && !SUPORTA_MES;
   const mensagem = (incompleto ? MENSAGEM_DE_INCOMPLETO[tipo] : undefined) ?? erro;
 
   function conferirCompletude(entrada: HTMLInputElement) {
@@ -113,16 +128,16 @@ export function CampoDeTexto({
             espacado && estilos.espacado,
             mensagem && estilos.invalida,
           )}
-          type={tipoNativo[tipo]}
+          type={mesComoTexto ? 'text' : tipoNativo[tipo]}
           value={valor}
           onChange={(evento) => {
             conferirCompletude(evento.currentTarget);
             aoMudar(evento.currentTarget.value);
           }}
           onBlur={(evento) => conferirCompletude(evento.currentTarget)}
-          placeholder={exemplo}
+          placeholder={exemplo ?? (mesComoTexto ? 'AAAA-MM' : undefined)}
           autoComplete={autoComplete}
-          maxLength={maxLength}
+          maxLength={maxLength ?? (mesComoTexto ? 7 : undefined)}
           inputMode={inputMode ?? (tipo === 'telefone' ? 'tel' : undefined)}
           min={minimo}
           max={maximo}

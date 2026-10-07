@@ -1,0 +1,6 @@
+/* O mesmo ritmo do corpo do PainelModal: o formulário não muda o espaçamento de quem o recebe. */
+.corpo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}

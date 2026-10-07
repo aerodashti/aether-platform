@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  competencia,
   dataEntre,
   email,
   numero,
@@ -71,5 +72,13 @@ describe('telefone', () => {
     expect(regra('(11) 3000-0000')).toBeUndefined();
     expect(regra('abc')).toBeDefined();
     expect(regra('1')).toBeDefined();
+  });
+});
+
+describe('competência', () => {
+  it('aceita AAAA-MM com mês de 01 a 12', () => {
+    expect(competencia()('2026-10')).toBeUndefined();
+    expect(competencia()('2026-13')).toBe('Use o formato AAAA-MM, como 2026-10.');
+    expect(competencia()('10/2026')).toBeDefined();
   });
 });

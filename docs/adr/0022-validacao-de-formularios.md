@@ -67,7 +67,7 @@ Os números são lidos por um só leitor, `compartilhado/formatacao/numero.ts`:
 
 ## Consequências
 
-- Formulário novo segue a receita: rascunho em estado, `validar…` pura com teste, `useValidacao`,
+- Formulário novo segue a receita: rascunho em estado, `validar…` pura com teste, `useValidacao`, `Formulario` (Enter envia),
   `erro={validacao.erroDe(...)}` em cada campo, `ResumoDoFormulario` junto dos botões e
   `validacao.enviar(salvar)` no clique.
 - O nome do campo no formulário deve ser o do JSON do request. Quando não for, `campoDoServidor`

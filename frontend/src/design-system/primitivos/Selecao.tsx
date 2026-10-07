@@ -50,6 +50,10 @@ export function Selecao({
   erro,
   ref,
 }: SelecaoProps) {
+  // Sem esta opção, o select controlado mostraria a primeira da lista enquanto a tela guarda outro
+  // valor: a pessoa vê uma coisa e salva outra.
+  const valorForaDasOpcoes = valor !== '' && !opcoes.some((opcao) => opcao.valor === valor);
+
   return (
     <MolduraDeCampo
       rotulo={rotulo}
@@ -67,6 +71,11 @@ export function Selecao({
           onChange={(evento) => aoMudar(evento.target.value)}
           disabled={desabilitado}
         >
+          {valorForaDasOpcoes ? (
+            <option value={valor} disabled>
+              Opção indisponível — escolha outra
+            </option>
+          ) : null}
           {opcoes.map((opcao) => (
             <option key={opcao.valor} value={opcao.valor}>
               {opcao.rotulo}
