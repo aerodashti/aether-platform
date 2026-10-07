@@ -16,6 +16,8 @@ import java.time.YearMonth;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -78,12 +80,7 @@ class AporteIntegracaoTest {
   @DisplayName("registrar e excluir um aporte; quem não está no contrato é recusado")
   void registrarEExcluir() throws Exception {
     Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
-    Long helena =
-        proprietarios.findAll().stream()
-            .filter(dono -> dono.getNome().equals("Helena Sarraf"))
-            .findFirst()
-            .orElseThrow()
-            .getId();
+    Long helena = proprietarioChamado("Helena Sarraf");
     Cookie sessao = entrar();
     LocalDate hoje = CalendarioDoFundo.hoje(relogio);
     String corpo =
@@ -117,52 +114,58 @@ class AporteIntegracaoTest {
                 .value(org.hamcrest.Matchers.containsString("nunca participou")));
   }
 
-  @Test
-  @DisplayName("o que o banco arredondava, recusava com 500 ou escondia volta 400 no campo")
-  void foraDosLimitesNoCampo() throws Exception {
+  @ParameterizedTest(name = "competência {0} e valor {1}: 400 em campos.{2}")
+  @CsvSource({
+    "2026-09, 0.001, valor",
+    "2026-09, 1000000000000000, valor",
+    "0000-01, 10, competencia",
+    "20266-09, 10, competencia"
+  })
+  @DisplayName("o aporte que o banco arredondava, recusava com 500 ou escondia volta 400 no campo")
+  void aporteForaDosLimites(String competencia, String valor, String campo) throws Exception {
     Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
-    Long ricardo =
-        proprietarios.findAll().stream()
-            .filter(dono -> dono.getNome().equals("Ricardo Meirelles"))
-            .findFirst()
-            .orElseThrow()
-            .getId();
-    Cookie sessao = entrar();
-    String data = CalendarioDoFundo.hoje(relogio).toString();
-    String corpo =
-        """
-        {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":%s}
-        """;
+    Long ricardo = proprietarioChamado("Ricardo Meirelles");
 
-    for (String[] caso :
-        new String[][] {
-          {"2026-09", "0.001", "valor"},
-          {"2026-09", "1000000000000000", "valor"},
-          {"0000-01", "10", "competencia"},
-          {"20266-09", "10", "competencia"}
-        }) {
-      mockMvc
-          .perform(
-              post("/aportes")
-                  .cookie(sessao)
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(corpo.formatted(psMep, ricardo, data, caso[0], caso[1])))
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("$.campos." + caso[2]).isNotEmpty());
-    }
+    mockMvc
+        .perform(
+            post("/aportes")
+                .cookie(entrar())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":%s}
+                    """
+                        .formatted(
+                            psMep, ricardo, CalendarioDoFundo.hoje(relogio), competencia, valor)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos." + campo).isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("a taxa que a coluna não comporta volta 400 no campo, e não 500")
+  void taxaForaDaColuna() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
 
     mockMvc
         .perform(
             post("/rendimentos")
-                .cookie(sessao)
+                .cookie(entrar())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
                     {"aeronaveId":%d,"data":"%s","aplicacao":"CDB","taxa":1000,"valor":1}
                     """
-                        .formatted(psMep, data)))
+                        .formatted(psMep, CalendarioDoFundo.hoje(relogio))))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.taxa").isNotEmpty());
+  }
+
+  private Long proprietarioChamado(String nome) {
+    return proprietarios.findAll().stream()
+        .filter(dono -> dono.getNome().equals(nome))
+        .findFirst()
+        .orElseThrow()
+        .getId();
   }
 
   private Cookie entrar() throws Exception {
