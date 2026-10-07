@@ -205,6 +205,8 @@ class AeronaveControllerTest {
           ficha-tecnica | {"modelo":"PC-12","base":"SBPS","pesoMaxDecolagemKg":5.67} \
             | pesoMaxDecolagemKg
           ficha-tecnica | {"modelo":"PC-12","base":"SBPS","pesoMaxPousoKg":600001} | pesoMaxPousoKg
+          ficha-tecnica | {"modelo":"PC-12","base":"SBPS","pesoMaxPousoKg":3000000000} \
+            | pesoMaxPousoKg
           contadores | {"horasDeCelula":1234.56,"ciclos":1,"kmVoados":0} | horasDeCelula
           contadores | {"horasDeCelula":0,"ciclos":12.5,"kmVoados":0} | ciclos
           contadores | {"horasDeCelula":0,"ciclos":1,"kmVoados":1E12} | kmVoados
