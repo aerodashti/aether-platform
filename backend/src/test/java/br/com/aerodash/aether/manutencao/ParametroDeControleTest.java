@@ -13,6 +13,7 @@ class ParametroDeControleTest {
 
   private static final Instant AGORA = Instant.parse("2026-09-10T12:00:00Z");
   private static final LocalDate HOJE = LocalDate.parse("2026-09-10");
+  private static final String ESPACO_NAO_SEPARAVEL = Character.toString(0x00A0);
 
   private ParametroDeControle deHoras(String limite, String aviso) {
     return new ParametroDeControle(
@@ -83,5 +84,80 @@ class ParametroDeControleTest {
     assertThat(deData.getDataLimite()).isEqualTo(LocalDate.parse("2027-01-01"));
     assertThat(deData.possuiLimiteCoerente()).isTrue();
     assertThat(deHoras("4000.0", "1").getDataLimite()).isNull();
+  }
+
+  private ParametroDeControle de(TipoDeParametro tipo, String limite, String aviso) {
+    return new ParametroDeControle(
+        1L,
+        new DadosDoParametro(
+            "Parâmetro",
+            tipo,
+            limite == null ? null : new BigDecimal(limite),
+            tipo == TipoDeParametro.DATA ? HOJE.plusYears(1) : null,
+            new BigDecimal(aviso)),
+        AGORA);
+  }
+
+  private ParametroDeControle comDataLimite(LocalDate dataLimite) {
+    return new ParametroDeControle(
+        1L,
+        new DadosDoParametro("Pesagem", TipoDeParametro.DATA, null, dataLimite, BigDecimal.TEN),
+        AGORA);
+  }
+
+  @Test
+  @DisplayName("ciclos se contam inteiros; horas aceitam décimos")
+  void limiteNaEscalaDaRegua() {
+    assertThat(de(TipoDeParametro.CICLOS, "3000.5", "200").possuiLimiteNaEscalaDaRegua()).isFalse();
+    assertThat(de(TipoDeParametro.CICLOS, "3000.0", "200").possuiLimiteNaEscalaDaRegua()).isTrue();
+    assertThat(de(TipoDeParametro.HORAS, "4000.5", "100").possuiLimiteNaEscalaDaRegua()).isTrue();
+  }
+
+  @Test
+  @DisplayName("a faixa de aviso é inteira em ciclos e em dias")
+  void avisoNaEscalaDaRegua() {
+    assertThat(de(TipoDeParametro.CICLOS, "3000", "0.5").possuiAvisoNaEscalaDaRegua()).isFalse();
+    assertThat(de(TipoDeParametro.DATA, null, "30.5").possuiAvisoNaEscalaDaRegua()).isFalse();
+    assertThat(de(TipoDeParametro.DATA, null, "30.0").possuiAvisoNaEscalaDaRegua()).isTrue();
+    assertThat(de(TipoDeParametro.HORAS, "4000", "0.5").possuiAvisoNaEscalaDaRegua()).isTrue();
+  }
+
+  @Test
+  @DisplayName("o aviso vem antes do limite; na régua de data não há o que comparar")
+  void avisoAntesDoLimite() {
+    assertThat(de(TipoDeParametro.HORAS, "100", "5000").possuiAvisoAntesDoLimite()).isFalse();
+    assertThat(de(TipoDeParametro.CICLOS, "200", "200").possuiAvisoAntesDoLimite()).isFalse();
+    assertThat(de(TipoDeParametro.HORAS, "1000", "100").possuiAvisoAntesDoLimite()).isTrue();
+    assertThat(de(TipoDeParametro.DATA, null, "5000").possuiAvisoAntesDoLimite()).isTrue();
+  }
+
+  @Test
+  @DisplayName("data limite de 2000 a dez anos à frente; vencida dentro disso é aceita")
+  void dataLimitePlausivel() {
+    assertThat(comDataLimite(LocalDate.of(1, 1, 1)).possuiDataLimitePlausivel(HOJE)).isFalse();
+    assertThat(comDataLimite(LocalDate.parse("1999-12-31")).possuiDataLimitePlausivel(HOJE))
+        .isFalse();
+    assertThat(comDataLimite(LocalDate.parse("2000-01-01")).possuiDataLimitePlausivel(HOJE))
+        .isTrue();
+    assertThat(comDataLimite(HOJE.plusYears(10)).possuiDataLimitePlausivel(HOJE)).isTrue();
+    assertThat(comDataLimite(HOJE.plusYears(10).plusDays(1)).possuiDataLimitePlausivel(HOJE))
+        .isFalse();
+  }
+
+  @Test
+  @DisplayName("o nome perde o espaço não separável das pontas")
+  void nomeAparado() {
+    ParametroDeControle parametro =
+        new ParametroDeControle(
+            1L,
+            new DadosDoParametro(
+                ESPACO_NAO_SEPARAVEL + "Pesagem" + ESPACO_NAO_SEPARAVEL,
+                TipoDeParametro.DATA,
+                null,
+                HOJE.plusYears(1),
+                BigDecimal.TEN),
+            AGORA);
+
+    assertThat(parametro.getNome()).isEqualTo("Pesagem");
   }
 }

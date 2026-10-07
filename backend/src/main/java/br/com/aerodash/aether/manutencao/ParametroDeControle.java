@@ -23,6 +23,11 @@ import java.time.temporal.ChronoUnit;
 @Table(name = "parametro_de_controle")
 public class ParametroDeControle {
 
+  /** Antes disso, a data limite é ano digitado errado. */
+  private static final LocalDate PRIMEIRA_DATA_LIMITE = LocalDate.of(2000, 1, 1);
+
+  private static final int ANOS_DE_ANTECEDENCIA = 10;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -66,7 +71,7 @@ public class ParametroDeControle {
   }
 
   private void preencher(DadosDoParametro dados, Instant momento) {
-    this.nome = dados.nome().trim();
+    this.nome = Espacos.aparar(dados.nome());
     this.tipo = dados.tipo();
     this.limite = dados.tipo() == TipoDeParametro.DATA ? null : dados.limite();
     this.dataLimite = dados.tipo() == TipoDeParametro.DATA ? dados.dataLimite() : null;
@@ -79,6 +84,43 @@ public class ParametroDeControle {
       return dataLimite != null;
     }
     return limite != null && limite.signum() > 0;
+  }
+
+  public static LocalDate primeiraDataLimite() {
+    return PRIMEIRA_DATA_LIMITE;
+  }
+
+  public static LocalDate ultimaDataLimite(LocalDate hoje) {
+    return hoje.plusYears(ANOS_DE_ANTECEDENCIA);
+  }
+
+  /**
+   * A data limite dentro da janela plausível. Já vencida é aceita — o parâmetro nasce estourado, e
+   * a tela avisa antes de salvar. A falta da data é do {@link #possuiLimiteCoerente()}.
+   */
+  public boolean possuiDataLimitePlausivel(LocalDate hoje) {
+    return dataLimite == null
+        || (!dataLimite.isBefore(PRIMEIRA_DATA_LIMITE)
+            && !dataLimite.isAfter(ultimaDataLimite(hoje)));
+  }
+
+  /** Ciclos se contam inteiros: um limite de 3.000,5 ciclos não existe no contador. */
+  public boolean possuiLimiteNaEscalaDaRegua() {
+    return tipo != TipoDeParametro.CICLOS || limite == null || ehInteiro(limite);
+  }
+
+  /** Em ciclos e em dias a faixa de aviso também é inteira; só as horas têm décimos. */
+  public boolean possuiAvisoNaEscalaDaRegua() {
+    return tipo == TipoDeParametro.HORAS || ehInteiro(aviso);
+  }
+
+  /** O aviso vem antes do limite: maior que ele, o parâmetro nasceria em atenção para sempre. */
+  public boolean possuiAvisoAntesDoLimite() {
+    return tipo == TipoDeParametro.DATA || limite == null || aviso.compareTo(limite) < 0;
+  }
+
+  private static boolean ehInteiro(BigDecimal numero) {
+    return numero.stripTrailingZeros().scale() <= 0;
   }
 
   /**
