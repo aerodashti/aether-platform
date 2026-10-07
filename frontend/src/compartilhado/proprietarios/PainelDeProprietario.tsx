@@ -1,15 +1,23 @@
 import { useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { PainelModal } from '@/design-system/primitivos/PainelModal';
 import { SeletorDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
+import { formatarCpfCnpj, mascararCpfCnpj } from './cpfCnpj';
 import estilos from './PainelDeProprietario.module.css';
 import { useAtualizarProprietario, useCriarProprietario } from './useAcoesDeProprietario';
 import type { ProprietarioResponse } from './useProprietarios';
+import {
+  ROTULOS_DO_PROPRIETARIO,
+  validarProprietario,
+  type CampoDoProprietario,
+  type RascunhoDoProprietario,
+} from './validacaoDoProprietario';
 
 interface PainelDeProprietarioProps {
   /** Sem proprietário é cadastro novo; com ele, edição dos mesmos campos. */
@@ -21,6 +29,17 @@ interface PainelDeProprietarioProps {
 
 const COR_INICIAL: CorDeIdentificacao = 'PETROLEO';
 
+function rascunhoDe(proprietario: ProprietarioResponse | undefined): RascunhoDoProprietario {
+  return {
+    nome: proprietario?.nome ?? '',
+    cpfCnpj: proprietario?.cpfCnpj ? formatarCpfCnpj(proprietario.cpfCnpj) : '',
+    email: proprietario?.email ?? '',
+    telefone: proprietario?.telefone ?? '',
+    corDeIdentificacao:
+      (proprietario?.corDeIdentificacao as CorDeIdentificacao | undefined) ?? COR_INICIAL,
+  };
+}
+
 /**
  * Cadastro e edição de proprietário, no mesmo painel: os campos são os mesmos, e a situação não
  * está aqui de propósito — desativar e reativar são ações da linha da grade.
@@ -29,123 +48,129 @@ const COR_INICIAL: CorDeIdentificacao = 'PETROLEO';
  * de aeronave, que só precisa criar um proprietário sem sair do fluxo.
  *
  * <p>Quem monta este componente escolhe o `key` (id do proprietário ou "novo"), e é a remontagem
- * que zera o estado — não há efeito sincronizando props com estado.
+ * que zera o estado — não há efeito sincronizando props com estado. Durante o envio o painel não
+ * sai de cena: cancelar ali não desfaria o cadastro, e o vínculo da Nova aeronave se perderia.
  */
 export function PainelDeProprietario({
   proprietario,
   aoFechar,
   aoSalvar,
 }: PainelDeProprietarioProps) {
-  const [nome, setNome] = useState(proprietario?.nome ?? '');
-  const [cpfCnpj, setCpfCnpj] = useState(proprietario?.cpfCnpj ?? '');
-  const [email, setEmail] = useState(proprietario?.email ?? '');
-  const [telefone, setTelefone] = useState(proprietario?.telefone ?? '');
-  const [cor, setCor] = useState<CorDeIdentificacao>(
-    (proprietario?.corDeIdentificacao as CorDeIdentificacao | undefined) ?? COR_INICIAL,
-  );
+  const [rascunho, setRascunho] = useState(() => rascunhoDe(proprietario));
   const criar = useCriarProprietario();
   const atualizar = useAtualizarProprietario();
 
   const editando = proprietario?.id != null;
   const mutacao = editando ? atualizar : criar;
+  const validacao = useValidacao({
+    erros: validarProprietario(rascunho),
+    valores: rascunho,
+    rotulos: ROTULOS_DO_PROPRIETARIO,
+    falha: mutacao.error,
+  });
+
+  function alterar<C extends CampoDoProprietario>(campo: C) {
+    return (valor: RascunhoDoProprietario[C]) =>
+      setRascunho((atual) => ({ ...atual, [campo]: valor }));
+  }
 
   function salvar() {
-    const cadastro = { nome, cpfCnpj, email, telefone, corDeIdentificacao: cor };
     const aoConcluir = (salvo: ProprietarioResponse) => {
       aoSalvar?.(salvo);
       aoFechar();
     };
     if (proprietario?.id != null) {
-      atualizar.mutate({ id: proprietario.id, cadastro }, { onSuccess: aoConcluir });
+      atualizar.mutate({ id: proprietario.id, cadastro: rascunho }, { onSuccess: aoConcluir });
     } else {
-      criar.mutate(cadastro, { onSuccess: aoConcluir });
+      criar.mutate(rascunho, { onSuccess: aoConcluir });
     }
   }
 
-  // O 400 do documento curto e o 409 do duplicado falam do mesmo campo: o erro aparece nele.
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
+  const titulo = editando ? 'Editar proprietário' : 'Novo proprietário';
 
   return (
-    <PainelModal
-      aberto
-      aoFechar={aoFechar}
-      rotulo={editando ? 'Editar proprietário' : 'Novo proprietário'}
-    >
-      <Texto variante="titulo" como="h2">
-        {editando ? 'Editar proprietário' : 'Novo proprietário'}
-      </Texto>
-      {/* A orientação é de cadastro: na edição, o proprietário já existe e já pode estar vinculado. */}
-      {editando ? null : (
-        <Texto variante="apoio" tom="suave" como="p">
-          Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar, com
-          percentuais diferentes em cada uma.
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
+      <form
+        className={estilos.formulario}
+        noValidate
+        onSubmit={(evento) => {
+          evento.preventDefault();
+          validacao.enviar(salvar);
+        }}
+      >
+        <Texto variante="titulo" como="h2">
+          {titulo}
         </Texto>
-      )}
-
-      <CampoDeTexto
-        rotulo="Nome / Nome fantasia"
-        valor={nome}
-        aoMudar={setNome}
-        exemplo="Ricardo Meirelles"
-        maxLength={120}
-        autoComplete="off"
-      />
-      <CampoDeTexto
-        rotulo="CPF / CNPJ"
-        valor={cpfCnpj}
-        aoMudar={setCpfCnpj}
-        exemplo="123.456.789-01"
-        maxLength={20}
-        inputMode="numeric"
-        autoComplete="off"
-      />
-      <CampoDeTexto
-        rotulo="E-mail"
-        valor={email}
-        aoMudar={setEmail}
-        tipo="email"
-        exemplo="ricardo@exemplo.com.br"
-        maxLength={180}
-        inputMode="email"
-        autoComplete="off"
-      />
-      <CampoDeTexto
-        rotulo="Telefone"
-        valor={telefone}
-        aoMudar={setTelefone}
-        exemplo="+55 11 98888-0000"
-        maxLength={20}
-        autoComplete="off"
-      />
-
-      <SeletorDeCor
-        rotulo="Cor de identificação"
-        apoio="Usada para identificar os trechos deste proprietário no calendário."
-        valor={cor}
-        aoEscolher={setCor}
-      />
-
-      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
-          <Texto variante="apoio" tom="critico" como="p">
-            {erro}
+        {/* A orientação é de cadastro: na edição, o proprietário já existe e já pode estar vinculado. */}
+        {editando ? null : (
+          <Texto variante="apoio" tom="suave" como="p">
+            Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar,
+            com percentuais diferentes em cada uma.
           </Texto>
-        </div>
-      ) : null}
+        )}
 
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
-          Cancelar
-        </Botao>
-        <Botao
-          aoClicar={salvar}
-          desabilitado={nome.trim().length === 0}
-          carregando={mutacao.isPending}
-        >
-          {editando ? 'Salvar alterações' : 'Cadastrar'}
-        </Botao>
-      </div>
+        <div ref={validacao.refDoFormulario} className={estilos.campos}>
+          <CampoDeTexto
+            rotulo={ROTULOS_DO_PROPRIETARIO.nome}
+            obrigatorio
+            valor={rascunho.nome}
+            aoMudar={alterar('nome')}
+            erro={validacao.erroDe('nome')}
+            exemplo="Ricardo Meirelles"
+            maxLength={120}
+            autoComplete="off"
+          />
+          <CampoDeTexto
+            rotulo={ROTULOS_DO_PROPRIETARIO.cpfCnpj}
+            valor={rascunho.cpfCnpj}
+            aoMudar={(valor) => alterar('cpfCnpj')(mascararCpfCnpj(valor))}
+            erro={validacao.erroDe('cpfCnpj')}
+            apoio="Opcional. CPF com 11 números ou CNPJ com 14 caracteres — o CNPJ emitido desde julho de 2026 pode ter letras."
+            exemplo="123.456.789-09"
+            maxLength={20}
+            inputMode="text"
+            autoComplete="off"
+          />
+          <CampoDeTexto
+            rotulo={ROTULOS_DO_PROPRIETARIO.email}
+            tipo="email"
+            valor={rascunho.email}
+            aoMudar={alterar('email')}
+            erro={validacao.erroDe('email')}
+            exemplo="ricardo@exemplo.com.br"
+            maxLength={180}
+            autoComplete="off"
+          />
+          <CampoDeTexto
+            rotulo={ROTULOS_DO_PROPRIETARIO.telefone}
+            tipo="telefone"
+            valor={rascunho.telefone}
+            aoMudar={alterar('telefone')}
+            erro={validacao.erroDe('telefone')}
+            exemplo="+55 11 98888-0000"
+            maxLength={20}
+            autoComplete="off"
+          />
+          <SeletorDeCor
+            rotulo={ROTULOS_DO_PROPRIETARIO.corDeIdentificacao}
+            apoio="Usada para identificar os trechos deste proprietário no calendário."
+            valor={rascunho.corDeIdentificacao}
+            aoEscolher={alterar('corDeIdentificacao')}
+            erro={validacao.erroDe('corDeIdentificacao')}
+          />
+        </div>
+
+        <ResumoDoFormulario resumo={validacao.resumo} />
+
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending}>
+            {editando ? 'Salvar alterações' : 'Cadastrar'}
+          </Botao>
+        </div>
+      </form>
     </PainelModal>
   );
 }

@@ -1,5 +1,6 @@
 import { contaNoFundo, type SaldoDaAeronave } from '@/compartilhado/fundo/useSaldosDoFundo';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
+import { formatarCpfCnpj } from '@/compartilhado/proprietarios/cpfCnpj';
 import { juntarClasses } from '@/design-system/classes';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -9,7 +10,7 @@ import { Texto } from '@/design-system/primitivos/Texto';
 import { useReativarProprietario, type ProprietarioResponse } from '../api/useProprietarios';
 
 import estilos from './CartaoDeProprietario.module.css';
-import { formatarCpfCnpj, percentualEmTexto } from './rotulos';
+import { percentualEmTexto } from './rotulos';
 
 interface CartaoDeProprietarioProps {
   proprietario: ProprietarioResponse;

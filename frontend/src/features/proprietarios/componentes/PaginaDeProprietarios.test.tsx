@@ -191,19 +191,22 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.queryByText('Helena Sarraf')).not.toBeInTheDocument();
   });
 
-  it('abre o painel de cadastro com a paleta de cores', async () => {
+  it('abre o painel de cadastro com a paleta, e cancelar devolve o foco a quem o abriu', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Ricardo Meirelles');
-    await userEvent.click(screen.getByRole('button', { name: '+ Novo proprietário' }));
+    const novo = screen.getByRole('button', { name: '+ Novo proprietário' });
+    await userEvent.click(novo);
 
     expect(screen.getByRole('radiogroup', { name: 'Cor de identificação' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Cadastrar' })).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: 'Cadastrar' })).not.toHaveAttribute('aria-disabled');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Novo proprietário' })).not.toBeInTheDocument();
+    expect(novo).toHaveFocus();
   });
 
   it('desativar quem está em contrato pede a redistribuição e manda tudo numa saída só', async () => {
