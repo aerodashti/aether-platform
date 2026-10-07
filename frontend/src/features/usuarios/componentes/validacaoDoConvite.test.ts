@@ -34,6 +34,12 @@ describe('validarConvite', () => {
     );
   });
 
+  it('recusa nome sem letra nem dígito, como o servidor', () => {
+    expect(errosCom({ nome: '...' }).nome).toBe(
+      'Use letras ou números, e não só espaços ou sinais.',
+    );
+  });
+
   it('diz o limite das colunas', () => {
     expect(errosCom({ nome: 'a'.repeat(121) }).nome).toBe('Use no máximo 120 caracteres.');
     expect(errosCom({ email: `${'a'.repeat(170)}@empresa.com.br` }).email).toBe(

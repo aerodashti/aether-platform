@@ -6,8 +6,8 @@ package br.com.aerodash.aether.autenticacao;
  * chega. Aqui o domínio precisa de ponto e de um sufixo com duas letras ou mais.
  *
  * <p>Uso, junto do {@code @Email}: {@code @Email(regexp = FormatoDeEmail.EXPRESSAO, message =
- * FormatoDeEmail.MENSAGEM)}. A mesma regra está nas telas de Configurações e de Usuários ({@code
- * dominioCompleto}).
+ * FormatoDeEmail.MENSAGEM)}. A mesma regra está em {@code
+ * compartilhado/cadastro/regrasDeCadastro.ts} ({@code emailCompleto()}).
  */
 public final class FormatoDeEmail {
 

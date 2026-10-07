@@ -43,6 +43,13 @@ describe('validarDadosDaEmpresa', () => {
     );
   });
 
+  it('recusa nome fantasia e razão social sem letra nem dígito, como o servidor', () => {
+    const erros = errosCom({ nomeFantasia: '---', razaoSocial: '\u200B' });
+
+    expect(erros.nomeFantasia).toBe('Use letras ou números, e não só espaços ou sinais.');
+    expect(erros.razaoSocial).toBe('Use letras ou números, e não só espaços ou sinais.');
+  });
+
   it('recusa telefone sem dígitos suficientes', () => {
     expect(errosCom({ telefone: 'abc' }).telefone).toMatch(/Use só números/);
     expect(errosCom({ telefone: '1' }).telefone).toMatch(/Use só números/);

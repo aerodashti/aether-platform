@@ -1,10 +1,5 @@
-import {
-  email,
-  obrigatorio,
-  primeiraFalha,
-  tamanhoMaximo,
-  type Regra,
-} from '@/compartilhado/formulario/regras';
+import { emailCompleto, nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
+import { obrigatorio, primeiraFalha, tamanhoMaximo } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
 import type { PapelDoUsuario } from '@/compartilhado/sessao/sessao';
 
@@ -23,25 +18,20 @@ export const ROTULOS_DO_CONVITE: Record<CampoDoConvite, string> = {
   papel: 'Papel',
 };
 
-const MENSAGEM_DE_EMAIL = 'Informe um e-mail completo, como nome@empresa.com.br.';
-
-/**
- * O `FormatoDeEmail` do servidor: o domínio precisa de ponto e de um sufixo de duas letras. O
- * `email()` comum ainda aceita "fulano@exemplo" — e o convite para ele nunca chegaria.
- */
-const dominioCompleto: Regra = (texto) =>
-  /@[^@]+\.[^@.]{2,}$/.test(texto.trim()) ? undefined : MENSAGEM_DE_EMAIL;
-
 /** Os limites de `ConvidarUsuarioRequest`, que são os das colunas de `usuario`. */
 export function validarConvite(rascunho: RascunhoDoConvite): Erros<CampoDoConvite> {
   return {
-    nome: primeiraFalha(rascunho.nome, obrigatorio('Informe o nome.'), tamanhoMaximo(120)),
+    nome: primeiraFalha(
+      rascunho.nome,
+      obrigatorio('Informe o nome.'),
+      tamanhoMaximo(120),
+      nomeLegivel(),
+    ),
     email: primeiraFalha(
       rascunho.email,
       obrigatorio('Informe o e-mail.'),
       tamanhoMaximo(180),
-      email(MENSAGEM_DE_EMAIL),
-      dominioCompleto,
+      emailCompleto(),
     ),
     papel: primeiraFalha(rascunho.papel, obrigatorio('Escolha o papel.')),
   };

@@ -1,10 +1,9 @@
+import { emailCompleto, nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
 import {
-  email,
   obrigatorio,
   primeiraFalha,
   tamanhoMaximo,
   telefone,
-  type Regra,
 } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
 
@@ -19,15 +18,6 @@ export const ROTULOS_DA_EMPRESA: Record<CampoDaEmpresa, string> = {
   telefone: 'Telefone',
 };
 
-const MENSAGEM_DE_EMAIL = 'Informe um e-mail completo, como nome@empresa.com.br.';
-
-/**
- * O `FormatoDeEmail` do servidor: o domínio precisa de ponto e de um sufixo de duas letras. O
- * `email()` comum ainda aceita "contato@empresa", que o servidor recusa.
- */
-const dominioCompleto: Regra = (texto) =>
-  /@[^@]+\.[^@.]{2,}$/.test(texto.trim()) ? undefined : MENSAGEM_DE_EMAIL;
-
 /** Os limites de `AlterarEmpresaRequest`, que são os das colunas de `empresa`. */
 export function validarDadosDaEmpresa(rascunho: RascunhoDaEmpresa): Erros<CampoDaEmpresa> {
   return {
@@ -35,18 +25,19 @@ export function validarDadosDaEmpresa(rascunho: RascunhoDaEmpresa): Erros<CampoD
       rascunho.nomeFantasia,
       obrigatorio('Informe o nome fantasia.'),
       tamanhoMaximo(120),
+      nomeLegivel(),
     ),
     razaoSocial: primeiraFalha(
       rascunho.razaoSocial,
       obrigatorio('Informe a razão social.'),
       tamanhoMaximo(180),
+      nomeLegivel(),
     ),
     email: primeiraFalha(
       rascunho.email,
       obrigatorio('Informe o e-mail.'),
       tamanhoMaximo(180),
-      email(MENSAGEM_DE_EMAIL),
-      dominioCompleto,
+      emailCompleto(),
     ),
     telefone: primeiraFalha(
       rascunho.telefone,
