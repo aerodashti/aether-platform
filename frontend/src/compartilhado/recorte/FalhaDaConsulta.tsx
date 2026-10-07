@@ -22,15 +22,18 @@ export function FalhaDaConsulta({
   aoTentarDeNovo,
   aoLimpar,
 }: FalhaDaConsultaProps) {
-  const { mensagem, repetivel } = lerFalhaDaConsulta(falha, generica);
-  const acao = repetivel
-    ? { rotulo: 'Tentar de novo', aoClicar: aoTentarDeNovo }
-    : aoLimpar && { rotulo: 'Limpar filtros', aoClicar: aoLimpar };
+  const leitura = lerFalhaDaConsulta(falha, generica);
+  const acoes = {
+    'tentar-de-novo': { rotulo: 'Tentar de novo', aoClicar: aoTentarDeNovo },
+    'limpar-filtros': aoLimpar && { rotulo: 'Limpar filtros', aoClicar: aoLimpar },
+    nenhuma: undefined,
+  };
+  const acao = acoes[leitura.acao];
 
   return (
     <>
       <Texto variante="corpo" como="p">
-        {mensagem}
+        {leitura.mensagem}
       </Texto>
       {acao ? (
         <Botao variante="secundario" tamanho="pequeno" aoClicar={acao.aoClicar}>
