@@ -80,6 +80,21 @@ class UsuarioTest {
   }
 
   @Test
+  @DisplayName("o bloqueio diz quanto falta, e zero para quem não está bloqueado")
+  void bloqueioDizQuantoFalta() {
+    Usuario usuario = ativo();
+    assertThat(usuario.bloqueioRestante(AGORA)).isZero();
+
+    for (int tentativa = 0; tentativa < LIMITE; tentativa++) {
+      usuario.registrarFalhaDeEntrada(AGORA, LIMITE, BLOQUEIO);
+    }
+
+    assertThat(usuario.bloqueioRestante(AGORA.plus(Duration.ofMinutes(5))))
+        .isEqualTo(Duration.ofMinutes(10));
+    assertThat(usuario.bloqueioRestante(AGORA.plus(BLOQUEIO))).isZero();
+  }
+
+  @Test
   @DisplayName("entrar com sucesso zera tentativas e libera o bloqueio")
   void entrarLimpaOEstadoDeFalha() {
     Usuario usuario = ativo();

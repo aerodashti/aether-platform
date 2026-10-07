@@ -3,6 +3,7 @@ package br.com.aerodash.aether.autenticacao;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,33 +12,29 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <p>É caminho diferente da recuperação, e a diferença é quem prova o quê: lá a pessoa provou ter
  * acesso ao e-mail porque esqueceu a senha; aqui ela já está dentro, e precisa provar **as duas
- * coisas** — que sabe a senha atual e que continua tendo o e-mail. É o que impede alguém que
- * encontrou a estação destravada de trocar a senha e tomar a conta.
- *
- * <p>Reaproveita a tabela de códigos da recuperação de propósito: é o mesmo segredo de seis
- * dígitos, com a mesma validade e o mesmo limite de tentativas. Pedir um código aqui invalida o
- * anterior, venha ele de onde vier.
+ * coisas** — que sabe a senha atual e que continua tendo o e-mail ({@link CodigoDaTrocaDeSenha}). É
+ * o que impede alguém que encontrou a estação destravada de trocar a senha e tomar a conta.
  */
 @Service
 public class TrocaDeSenhaService {
 
   private final UsuarioRepository usuarios;
-  private final CodigoDeRecuperacaoRepository codigos;
-  private final EnviadorDeCodigoDeRecuperacao enviador;
+  private final CodigoDaTrocaDeSenha codigo;
+  private final SessaoDeAcessoRepository sessoes;
   private final CofreDeSegredos cofre;
   private final PoliticaDeAcesso politica;
   private final ContextoDaRequisicao contexto;
 
   public TrocaDeSenhaService(
       UsuarioRepository usuarios,
-      CodigoDeRecuperacaoRepository codigos,
-      EnviadorDeCodigoDeRecuperacao enviador,
+      CodigoDaTrocaDeSenha codigo,
+      SessaoDeAcessoRepository sessoes,
       CofreDeSegredos cofre,
       PoliticaDeAcesso politica,
       ContextoDaRequisicao contexto) {
     this.usuarios = usuarios;
-    this.codigos = codigos;
-    this.enviador = enviador;
+    this.codigo = codigo;
+    this.sessoes = sessoes;
     this.cofre = cofre;
     this.politica = politica;
     this.contexto = contexto;
@@ -46,63 +43,81 @@ public class TrocaDeSenhaService {
   /** Manda o código para o e-mail cadastrado. Respeita o mesmo intervalo entre envios. */
   @Transactional
   public void solicitarToken(Long usuarioId) {
-    Instant agora = politica.agora();
-    Usuario usuario = exigirUsuario(usuarioId);
-
-    boolean aguardandoIntervalo =
-        codigos
-            .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
-            .filter(ultimo -> !ultimo.permiteNovoEnvio(agora, politica.intervaloEntreCodigos()))
-            .isPresent();
-    contexto.decisao("troca_de_senha.aguardando_intervalo", aguardandoIntervalo);
-    if (aguardandoIntervalo) {
-      return;
-    }
-
-    String codigo = cofre.novoCodigoDeRecuperacao();
-    codigos.save(
-        new CodigoDeRecuperacao(
-            usuario, cofre.codificar(codigo), agora, politica.validadeDoCodigo()));
-    enviador.enviar(usuario, codigo);
+    codigo.enviar(exigirUsuario(usuarioId), politica.agora());
   }
 
   /**
-   * {@code noRollbackFor} preserva a tentativa contada antes da recusa — sem ele o limite que torna
-   * seis dígitos seguros nunca seria atingido.
+   * Troca a senha e encerra as outras sessões do usuário: quem troca a senha por suspeitar de
+   * acesso indevido não pode deixar a sessão do invasor aberta. A sessão de quem pediu continua.
+   *
+   * <p>{@code noRollbackFor} preserva o que foi contado antes da recusa — a tentativa do código e a
+   * falha da senha atual. Sem ele os limites que tornam os dois segredos seguros nunca seriam
+   * atingidos.
    */
   @Transactional(
-      noRollbackFor = {CodigoInvalidoException.class, SenhaAtualIncorretaException.class})
-  public void trocar(Long usuarioId, String senhaAtual, String novaSenha, String codigo) {
+      noRollbackFor = {
+        CodigoInvalidoException.class,
+        SenhaAtualIncorretaException.class,
+        TrocaDeSenhaBloqueadaException.class
+      })
+  public void trocar(
+      Long usuarioId,
+      String tokenDaSessao,
+      String senhaAtual,
+      String novaSenha,
+      String codigoInformado) {
     Instant agora = politica.agora();
     Usuario usuario = exigirUsuario(usuarioId);
+    exigirSenhaAtual(usuario, senhaAtual, agora);
+    exigirSenhaNova(senhaAtual, novaSenha);
+    codigo.gastar(usuario, codigoInformado, agora);
+
+    usuario.definirSenha(cofre.codificar(novaSenha), agora);
+    encerrarOutrasSessoes(usuario, tokenDaSessao, agora);
+  }
+
+  /**
+   * A senha atual conta tentativas como a entrada, e na mesma contagem: errar aqui também tranca a
+   * conta, e a conta trancada também não troca a senha.
+   */
+  private void exigirSenhaAtual(Usuario usuario, String senhaAtual, Instant agora) {
+    boolean bloqueado = usuario.estaBloqueado(agora);
+    contexto.decisao("troca_de_senha.bloqueado", bloqueado);
+    if (bloqueado) {
+      throw new TrocaDeSenhaBloqueadaException(usuario.bloqueioRestante(agora));
+    }
 
     boolean senhaConfere =
         usuario.getSenha().filter(atual -> cofre.confere(senhaAtual, atual)).isPresent();
     contexto.decisao("troca_de_senha.senha_atual_confere", senhaConfere);
-    if (!senhaConfere) {
-      throw new SenhaAtualIncorretaException();
+    if (senhaConfere) {
+      return;
     }
 
-    CodigoDeRecuperacao vigente =
-        codigos
-            .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
-            .orElseThrow(CodigoInvalidoException::new);
-
-    boolean codigoVigente = vigente.estaVigente(agora, politica.tentativasPorCodigo());
-    contexto.decisao("troca_de_senha.codigo_vigente", codigoVigente);
-    if (!codigoVigente) {
-      throw new CodigoInvalidoException();
+    usuario.registrarFalhaDeEntrada(
+        agora, politica.tentativasAteBloquear(), politica.duracaoDoBloqueio());
+    boolean bloqueouAgora = usuario.estaBloqueado(agora);
+    contexto.decisao("troca_de_senha.bloqueou_agora", bloqueouAgora);
+    if (bloqueouAgora) {
+      throw new TrocaDeSenhaBloqueadaException(usuario.bloqueioRestante(agora));
     }
+    throw new SenhaAtualIncorretaException();
+  }
 
-    boolean codigoConfere = cofre.confere(codigo, vigente.getCodigo());
-    contexto.decisao("troca_de_senha.codigo_confere", codigoConfere);
-    if (!codigoConfere) {
-      vigente.registrarTentativa();
-      throw new CodigoInvalidoException();
+  /** A senha atual já foi conferida: comparar os textos basta, sem gastar outro BCrypt. */
+  private void exigirSenhaNova(String senhaAtual, String novaSenha) {
+    boolean repeteAAtual = novaSenha.equals(senhaAtual);
+    contexto.decisao("troca_de_senha.nova_repete_a_atual", repeteAAtual);
+    if (repeteAAtual) {
+      throw new NovaSenhaRepetidaException();
     }
+  }
 
-    vigente.marcarComoUsado(agora);
-    usuario.definirSenha(cofre.codificar(novaSenha), agora);
+  private void encerrarOutrasSessoes(Usuario usuario, String tokenDaSessao, Instant agora) {
+    List<SessaoDeAcesso> outras =
+        sessoes.buscarOutrasVigentes(usuario, cofre.resumir(tokenDaSessao), agora);
+    outras.forEach(sessao -> sessao.encerrar(agora));
+    contexto.registrar("troca_de_senha.sessoes_encerradas", outras.size());
   }
 
   private Usuario exigirUsuario(Long id) {

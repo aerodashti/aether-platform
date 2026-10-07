@@ -14,7 +14,7 @@ public class SenhaAtualIncorretaException extends ExcecaoDeDominio {
   private static final long serialVersionUID = 1L;
 
   public SenhaAtualIncorretaException() {
-    super("Senha atual incorreta", "A senha atual não confere.");
+    super("Senha atual incorreta", "A senha atual não confere.", "senhaAtual");
   }
 
   @Override
