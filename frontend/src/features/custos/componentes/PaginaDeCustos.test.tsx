@@ -154,6 +154,17 @@ describe('PaginaDeCustos', () => {
     expect(screen.getByText('Jet A-1 — 1.850 L — SBRJ')).toBeInTheDocument();
   });
 
+  it('o filtro por voo mostra só os lançamentos daquele Rel. Voo', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />);
+
+    await screen.findByText('Jet A-1 — 1.850 L — SBRJ');
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-041');
+
+    expect(screen.getByText('Jet A-1 — 1.850 L — SBRJ')).toBeInTheDocument();
+    expect(screen.queryByText('Hangaragem mensal — Congonhas')).not.toBeInTheDocument();
+  });
+
   it('chega filtrada pela URL: ?aeronave= e ?competencia= vão direto ao servidor', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeCustos />, '/custos?aeronave=1&competencia=2026-08');

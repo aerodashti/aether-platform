@@ -14,6 +14,8 @@ import estilos from './PaginaDeVoos.module.css';
 import { PainelDeTrecho } from './PainelDeTrecho';
 import { competenciaAtual } from './rotulos';
 import { TabelaDeTrechos } from './TabelaDeTrechos';
+import { diarioDoVoo, relatoriosDoRecorte, usoPorProprietario } from './usoDoRecorte';
+import { UsoPorProprietario } from './UsoPorProprietario';
 
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; trecho: TrechoResponse } | null;
 
@@ -33,6 +35,11 @@ export function PaginaDeVoos() {
     { podeRegistrar: podeLancar, aoPedir: () => setPainel({ modo: 'novo' }) },
   );
   const consulta = useVoos({ aeronaveId, competencia });
+  // O filtro por voo é local: recorta a grade do recorte que já chegou, sem ir ao servidor.
+  const [voo, setVoo] = useState('');
+  const trechosDoRecorte = consulta.data?.trechos ?? [];
+  const relatorios = relatoriosDoRecorte(trechosDoRecorte);
+  const vooEscolhido = relatorios.includes(voo) ? voo : '';
 
   return (
     <div className={estilos.tela}>
@@ -70,11 +77,27 @@ export function PaginaDeVoos() {
             apoio="Vazio mostra todo o histórico."
           />
         </div>
+        <Selecao
+          rotulo="Filtrar por voo"
+          rotuloOculto
+          valor={vooEscolhido}
+          opcoes={[
+            { valor: '', rotulo: 'Todos os voos' },
+            ...relatorios.map((relatorio) => ({ valor: relatorio, rotulo: relatorio })),
+          ]}
+          aoMudar={setVoo}
+        />
       </div>
+
+      {/* % de uso só faz sentido dentro de uma aeronave: somar horas de aeronaves diferentes não
+          diz nada sobre o rateio de nenhuma. */}
+      {aeronaveId !== '' ? (
+        <UsoPorProprietario usos={usoPorProprietario(trechosDoRecorte)} />
+      ) : null}
 
       <div className={estilos.painel}>
         <TabelaDeTrechos
-          diario={consulta.data}
+          diario={diarioDoVoo(consulta.data, vooEscolhido)}
           carregando={consulta.isPending}
           erro={consulta.isError}
           mostraAeronave={aeronaveId === ''}

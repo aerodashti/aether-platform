@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
+import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
-import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
+import { CLASSE_DA_COR, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useExcluirTrecho, type DiarioDeVoosResponse, type TrechoResponse } from '../api/useVoos';
@@ -129,12 +130,14 @@ export function TabelaDeTrechos({
                   {trecho.vooDeManutencao ? (
                     <span className={estilos.manutencao}>{ATRIBUICAO_DE_MANUTENCAO}</span>
                   ) : (
-                    <>
-                      <PontoDeCor
-                        cor={(trecho.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao}
-                      />
-                      <span className={estilos.trunca}>{trecho.nomeDoProprietario}</span>
-                    </>
+                    <span
+                      className={juntarClasses(
+                        estilos.etiquetaDoDono,
+                        CLASSE_DA_COR[(trecho.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao],
+                      )}
+                    >
+                      {trecho.nomeDoProprietario}
+                    </span>
                   )}
                 </span>
               </td>

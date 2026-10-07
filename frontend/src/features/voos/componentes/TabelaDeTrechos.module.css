@@ -139,6 +139,20 @@
   text-overflow: ellipsis;
 }
 
+/* A etiqueta tingida do protótipo: o fundo na cor de identificação de quem voou. O texto fica na
+   cor de texto — algumas cores da paleta são claras demais para serem texto. */
+.etiquetaDoDono {
+  min-width: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  overflow: hidden;
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--cor-da-amostra) 16%, transparent);
+  border-radius: var(--raio-m);
+}
+
 .trunca {
   min-width: 0;
   overflow: hidden;

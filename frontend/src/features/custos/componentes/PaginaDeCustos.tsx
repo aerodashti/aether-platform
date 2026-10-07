@@ -45,6 +45,7 @@ export function PaginaDeCustos() {
   const [painel, setPainel] = useState<Painel>(null);
   const [escopo, setEscopo] = useState<Escopo>('TODOS');
   const [categoria, setCategoria] = useState<Categoria>('TODAS');
+  const [voo, setVoo] = useState('');
   const { usuario } = useSessao();
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
@@ -55,7 +56,18 @@ export function PaginaDeCustos() {
   const aeronaves = useAeronaves();
   const consulta = useCustos({ aeronaveId, competencia });
 
-  const todos = consulta.data?.custos ?? [];
+  const doRecorte = consulta.data?.custos ?? [];
+  // O filtro por voo, como o escopo e as abas, é local: recorta o que o servidor já mandou.
+  const relatorios = [
+    ...new Set(doRecorte.map((custo) => custo.relatorioDeVoo ?? '').filter(Boolean)),
+  ]
+    .sort()
+    .reverse();
+  const vooEscolhido = relatorios.includes(voo) ? voo : '';
+  const todos =
+    vooEscolhido === ''
+      ? doRecorte
+      : doRecorte.filter((custo) => custo.relatorioDeVoo === vooEscolhido);
   const doEscopo = escopo === 'TODOS' ? todos : todos.filter((custo) => custo.tipo === escopo);
   // As abas listam só as categorias presentes no escopo, cada uma com quantos lançamentos tem.
   const categorias = (Object.keys(CATEGORIAS) as CategoriaDeCusto[])
@@ -121,6 +133,16 @@ export function PaginaDeCustos() {
             apoio="Vazio mostra todo o histórico."
           />
         </div>
+        <Selecao
+          rotulo="Filtrar por voo"
+          rotuloOculto
+          valor={vooEscolhido}
+          opcoes={[
+            { valor: '', rotulo: 'Todos os voos' },
+            ...relatorios.map((relatorio) => ({ valor: relatorio, rotulo: relatorio })),
+          ]}
+          aoMudar={setVoo}
+        />
         <GrupoDeOpcoes
           rotulo="Escopo"
           variante="trilho"
