@@ -1,4 +1,4 @@
-import type { DocumentoDaAeronave, SituacaoRegular } from '../api/useAeronaves';
+import type { DocumentoDaAeronave } from '../api/useAeronaves';
 import type { BaseDoRateio, ModeloDeAporte } from '../api/useDetalheDaAeronave';
 import type { FuncaoDoTripulante } from '../api/useTripulantes';
 
@@ -8,11 +8,7 @@ export { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
  * Enum → texto de interface. Fica no front porque é redação de tela: amarrar a API a "Saudável"
  * obrigaria a versionar endpoint para trocar uma palavra.
  */
-export const ROTULO_DA_SITUACAO: Record<SituacaoRegular, string> = {
-  REGULAR: 'Saudável',
-  ATENCAO: 'Atenção',
-  VENCIDO: 'Vencido',
-};
+export { ROTULO_DA_SITUACAO } from '@/compartilhado/aeronaves/EtiquetaDeSituacao';
 
 /** Siglas oficiais não se traduzem nem se expandem no rótulo — o glossário manda. */
 export const ROTULO_DO_DOCUMENTO: Record<DocumentoDaAeronave, string> = {

@@ -19,7 +19,7 @@ import {
   IconeEngrenagem,
   IconeMoedas,
   IconePessoas,
-  IconePulso,
+  IconeVisaoGeral,
   IconeRecibo,
   IconeSaida,
   IconeSino,
@@ -29,7 +29,8 @@ import estilos from './LayoutDaAplicacao.module.css';
 
 /** O título que o cabeçalho mostra para cada rota, como o `screenTitle` do protótipo. */
 const TITULOS: Array<{ padrao: RegExp; titulo: string }> = [
-  { padrao: /^\/$/, titulo: 'Saúde' },
+  { padrao: /^\/$/, titulo: 'Visão geral' },
+  { padrao: /^\/saude$/, titulo: 'Saúde' },
   { padrao: /^\/avisos/, titulo: 'Central de avisos' },
   { padrao: /^\/aeronaves\/nova$/, titulo: 'Nova aeronave' },
   { padrao: /^\/aeronaves\/[^/]+\/documentos$/, titulo: 'Documentos' },
@@ -143,8 +144,8 @@ export function LayoutDaAplicacao() {
         </div>
         <ul className={estilos.itens}>
           <li>
-            <LinkDeNavegacao para="/" exata icone={<IconePulso />}>
-              Saúde
+            <LinkDeNavegacao para="/" exata icone={<IconeVisaoGeral />}>
+              Visão geral
             </LinkDeNavegacao>
           </li>
           <li>

@@ -18,6 +18,7 @@ import { PaginaDeProprietarios } from '@/features/proprietarios/componentes/Pagi
 import { PaginaSaude } from '@/features/saude/componentes/PaginaSaude';
 import { PaginaDeTrocas } from '@/features/trocas/componentes/PaginaDeTrocas';
 import { PaginaDeUsuarios } from '@/features/usuarios/componentes/PaginaDeUsuarios';
+import { PaginaDeVisaoGeral } from '@/features/visaogeral/componentes/PaginaDeVisaoGeral';
 import { PaginaDeVoos } from '@/features/voos/componentes/PaginaDeVoos';
 
 import { LayoutDaAplicacao } from './LayoutDaAplicacao';
@@ -33,7 +34,9 @@ export function Rotas() {
           verdade é a cadeia de autorização do servidor. */}
       <Route element={<RotaAutenticada />}>
         <Route element={<LayoutDaAplicacao />}>
-          <Route index element={<PaginaSaude />} />
+          <Route index element={<PaginaDeVisaoGeral />} />
+          {/* A saúde da plataforma saiu do menu — é tela de quem opera o sistema — e segue no ar. */}
+          <Route path="/saude" element={<PaginaSaude />} />
           <Route path="/avisos" element={<PaginaDeAvisos />} />
           <Route path="/aeronaves" element={<PaginaDeAeronaves />} />
           <Route path="/aeronaves/nova" element={<PaginaDeNovaAeronave />} />

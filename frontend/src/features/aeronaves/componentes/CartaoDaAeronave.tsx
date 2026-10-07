@@ -1,3 +1,4 @@
+import { EtiquetaDeSituacao } from '@/compartilhado/aeronaves/EtiquetaDeSituacao';
 import { competenciaAbreviada, type SaldoDaAeronave } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { juntarClasses } from '@/design-system/classes';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
@@ -5,7 +6,6 @@ import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 import type { AeronaveResponse } from '../api/useAeronaves';
 
 import estilos from './CartaoDaAeronave.module.css';
-import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import {
   dataCurta,
   moedaEmTexto,

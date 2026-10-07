@@ -1,0 +1,116 @@
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-8);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: var(--espaco-4);
+  margin: 0;
+}
+
+.indicador {
+  padding: var(--espaco-5) var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.rotuloDoIndicador {
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+}
+
+.valorDoIndicador {
+  margin: var(--espaco-3) 0 0;
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-maximo);
+  line-height: var(--altura-ggg);
+  letter-spacing: var(--rastreio-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+.apoioDoIndicador {
+  margin: var(--espaco-2) 0 0;
+  font-size: var(--tamanho-xs);
+  line-height: var(--altura-xs);
+  color: var(--cor-texto-suave);
+}
+
+.critico {
+  color: var(--cor-critico);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.cabecalhoDaSecao {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.tituloDaSecao {
+  margin: 0;
+  font-size: var(--tamanho-g);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-g);
+}
+
+.cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: var(--espaco-5);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--espaco-5);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.recado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+  padding: var(--espaco-8);
+  text-align: center;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cartoes,
+  .graficos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

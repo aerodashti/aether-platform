@@ -1,9 +1,13 @@
 import { juntarClasses } from '@/design-system/classes';
 
-import type { SituacaoRegular } from '../api/useAeronaves';
-
 import estilos from './EtiquetaDeSituacao.module.css';
-import { ROTULO_DA_SITUACAO } from './rotulos';
+import type { SituacaoRegular } from './useAeronaves';
+
+export const ROTULO_DA_SITUACAO: Record<SituacaoRegular, string> = {
+  REGULAR: 'Saudável',
+  ATENCAO: 'Atenção',
+  VENCIDO: 'Vencido',
+};
 
 const CLASSE_DA_SITUACAO = {
   REGULAR: 'regular',
@@ -13,7 +17,7 @@ const CLASSE_DA_SITUACAO = {
 
 /**
  * A etiqueta de situação regulatória do protótipo: dot e rótulo sobre o vestígio da mesma cor.
- * Fica na feature, não no design-system, porque só a frota e o detalhe a usam.
+ * Mora em `compartilhado`: a frota, o detalhe e a Visão geral a mostram.
  */
 export function EtiquetaDeSituacao({ situacao }: { situacao: SituacaoRegular }) {
   return (

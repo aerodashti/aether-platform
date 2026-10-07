@@ -303,6 +303,7 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 | Tela de Documentos (resumo, envio de vários, grade, remoção) | **Implementada** — `features/documentos`, do Projeto final. Ver a nota abaixo |
 | Tela de Trocas de KM (filtro por proprietário, abas, grade, painel) | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo |
 | Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
+| Tela de Visão geral (indicadores, frota gerenciada, comparativo) | **Implementada** — `features/visaogeral`, do Projeto final, na rota `/` (a Saúde saiu do menu e segue em `/saude`). Ver a nota abaixo |
 | Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
 | Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
 
@@ -446,6 +447,21 @@ linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×"
 **De fora:** a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
 **atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
 meses e os campos De/Até fazem o resto.
+
+### A Visão geral é a porta de entrada
+
+Os quatro indicadores do protótipo — saldo consolidado dos fundos, custos do mês, horas voadas e
+alertas ativos —, a "Frota gerenciada" com as três aeronaves que mais pedem atenção (situação, fundo
+descoberto, menor cobertura, mais avisos) e o "Comparativo da frota" com três gráficos de barras:
+maiores custos (fixo e variável), custo por hora voada e horas voadas, as seis primeiras e a média.
+O dinheiro vem de `GET /fechamentos/frota`, que apura cada aeronave como o fechamento; a situação,
+da frota; os km, do diário; os alertas, da Central. As barras são CSS — seis linhas e uma marca de
+média não pedem biblioteca de gráficos.
+
+**Decisões nossas:** a **cobertura do fundo** (glossário) foi definida aqui — saldo sobre a média de
+custo das três competências anteriores —, porque o protótipo só mostra o número; a matrícula em
+mono, como em toda a casa; o `EtiquetaDeSituacao` subiu para `compartilhado/aeronaves`, porque a
+segunda feature passou a usá-lo.
 
 ### A Nova aeronave tem quatro seções, não cinco
 
