@@ -26,6 +26,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>A distinção entre os dois códigos é deliberada: 401 diz "entre"; 403 diz "você entrou, mas
  * isto não é seu". Responder 401 para os dois mandaria de volta ao login alguém que já está logado.
+ *
+ * <p>O 403 não nomeia o papel que faltou: a mesma resposta serve à rota só de administrador e à que
+ * o gestor também alcança, e "exclusiva de administradores" mentiria na segunda.
  */
 @Component
 public class RespostaDeAcessoNegado implements AuthenticationEntryPoint, AccessDeniedHandler {
@@ -61,7 +64,7 @@ public class RespostaDeAcessoNegado implements AuthenticationEntryPoint, AccessD
         excecao,
         HttpStatus.FORBIDDEN,
         "Acesso restrito",
-        "Esta área é exclusiva de administradores.");
+        "Seu perfil não tem permissão para esta ação.");
   }
 
   private void escrever(
