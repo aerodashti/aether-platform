@@ -21,6 +21,12 @@ interface SenhaNova extends CodigoInformado {
   novaSenha: string;
 }
 
+interface ConclusaoDoConvite {
+  /** O token que veio no link do e-mail. */
+  convite: string;
+  novaSenha: string;
+}
+
 /**
  * Abre a sessão. O token não volta no corpo: ele vem num cookie HttpOnly que o navegador guarda
  * sozinho, então não há nada para este código armazenar.
@@ -81,6 +87,16 @@ export function useRedefinirSenha() {
     mutationFn: (dados: SenhaNova) =>
       contexto.interacao('redefinir-senha', () =>
         enviar<void>('/autenticacao/recuperacao/senha', dados),
+      ),
+  });
+}
+
+/** O convidado cria a própria senha. Não abre sessão: depois disso ele entra como qualquer um. */
+export function useConcluirConvite() {
+  return useMutation({
+    mutationFn: (dados: ConclusaoDoConvite) =>
+      contexto.interacao('concluir-convite', () =>
+        enviar<void>('/autenticacao/convite/senha', dados),
       ),
   });
 }

@@ -57,7 +57,8 @@ public class ConviteService {
    * A pessoa convidada cria a própria senha e, com isso, ativa a conta.
    *
    * <p>Quem chama não tem sessão: o token do link é a credencial. Ele é gasto no mesmo instante em
-   * que a senha nasce, então o link não serve para uma segunda troca.
+   * que a senha nasce, então o link não serve para uma segunda troca. Convite de quem foi
+   * desativado recusa igual a convite expirado: o link não diz nada sobre a conta.
    */
   @Transactional
   public void concluir(String token, String novaSenha) {
@@ -72,9 +73,9 @@ public class ConviteService {
         convites.findByToken(cofre.resumir(token)).orElseThrow(ConviteInvalidoException::new);
     contexto.registrar("usuario.id", convite.getUsuario().getId());
 
-    boolean vigente = convite.estaVigente(agora);
-    contexto.decisao("convite.vigente", vigente);
-    if (!vigente) {
+    boolean podeSerConcluido = convite.podeSerConcluido(agora);
+    contexto.decisao("convite.pode_ser_concluido", podeSerConcluido);
+    if (!podeSerConcluido) {
       throw new ConviteInvalidoException();
     }
 

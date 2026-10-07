@@ -47,6 +47,25 @@ class ConviteTest {
     assertThat(convite.estaVigente(AGORA.plusSeconds(61))).isFalse();
   }
 
+  @Test
+  @DisplayName(
+      "só conclui quem ainda espera o convite: desativado com o link na mão não se reativa")
+  void soConcluiQuemAguardaOConvite() {
+    Convite convite = novo();
+    assertThat(convite.podeSerConcluido(AGORA)).isTrue();
+
+    convite.getUsuario().desativar(AGORA.plusSeconds(30));
+
+    assertThat(convite.estaVigente(AGORA.plusSeconds(60))).isTrue();
+    assertThat(convite.podeSerConcluido(AGORA.plusSeconds(60))).isFalse();
+  }
+
+  @Test
+  @DisplayName("convite expirado não conclui, mesmo de quem ainda espera por ele")
+  void expiradoNaoConclui() {
+    assertThat(novo().podeSerConcluido(AGORA.plus(VALIDADE))).isFalse();
+  }
+
   private static Convite novo() {
     Usuario usuario =
         new Usuario("Camila Nogueira", "camila@administraair.com.br", PapelDoUsuario.GESTOR, AGORA);

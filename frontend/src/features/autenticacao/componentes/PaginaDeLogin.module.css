@@ -88,7 +88,12 @@
   pointer-events: none;
 }
 
+/* O ícone diz "aviso" sem depender da cor: recusa não passa por aqui, fica no formulário. */
 .aviso {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+  max-width: min(480px, calc(100% - var(--espaco-9)));
   margin: 0;
   padding: var(--espaco-4) var(--espaco-6);
   border-radius: var(--raio-s);

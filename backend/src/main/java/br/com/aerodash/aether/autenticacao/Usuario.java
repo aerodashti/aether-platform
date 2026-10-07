@@ -100,6 +100,11 @@ public class Usuario {
     return bloqueadoAte != null && bloqueadoAte.isAfter(agora);
   }
 
+  /** Quanto falta para o bloqueio por tentativas acabar; zero para quem não está bloqueado. */
+  public Duration bloqueioRestante(Instant agora) {
+    return estaBloqueado(agora) ? Duration.between(agora, bloqueadoAte) : Duration.ZERO;
+  }
+
   /** Só entra quem está ativo, já criou senha e não está cumprindo bloqueio por tentativas. */
   public boolean podeEntrar(Instant agora) {
     return estaAtivo() && possuiSenha() && !estaBloqueado(agora);

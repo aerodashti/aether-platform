@@ -25,6 +25,7 @@ public class AutenticacaoController {
   static final String COOKIE_DE_SESSAO = "aether_sessao";
 
   private final AutenticacaoService autenticacao;
+  private final SolicitacaoDeCodigoService solicitacaoDeCodigo;
   private final RecuperacaoDeSenhaService recuperacao;
   private final ConviteService convites;
   private final TrocaDeSenhaService trocaDeSenha;
@@ -32,11 +33,13 @@ public class AutenticacaoController {
 
   public AutenticacaoController(
       AutenticacaoService autenticacao,
+      SolicitacaoDeCodigoService solicitacaoDeCodigo,
       RecuperacaoDeSenhaService recuperacao,
       ConviteService convites,
       TrocaDeSenhaService trocaDeSenha,
       PropriedadesDeAutenticacao propriedades) {
     this.autenticacao = autenticacao;
+    this.solicitacaoDeCodigo = solicitacaoDeCodigo;
     this.recuperacao = recuperacao;
     this.convites = convites;
     this.trocaDeSenha = trocaDeSenha;
@@ -77,7 +80,7 @@ public class AutenticacaoController {
   @Operation(summary = "Envia um código de seis dígitos para o e-mail informado")
   public ResponseEntity<Void> solicitarCodigo(
       @Valid @RequestBody SolicitarRecuperacaoRequest requisicao) {
-    recuperacao.solicitarCodigo(requisicao.email());
+    solicitacaoDeCodigo.solicitar(requisicao.email());
     return ResponseEntity.accepted().build();
   }
 

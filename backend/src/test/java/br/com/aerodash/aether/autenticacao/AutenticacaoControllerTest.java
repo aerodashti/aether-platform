@@ -3,7 +3,6 @@ package br.com.aerodash.aether.autenticacao;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,8 +75,19 @@ class AutenticacaoControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private AutenticacaoService autenticacao;
-  @MockitoBean private RecuperacaoDeSenhaService recuperacao;
-  @MockitoBean private ConviteService convites;
+
+  /** Dependências do controller que esta classe não exercita; têm teste próprio. */
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private SolicitacaoDeCodigoService solicitacaoDeCodigo;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private RecuperacaoDeSenhaService recuperacao;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private ConviteService convites;
 
   /**
    * Dependência do controller; a troca de senha tem teste próprio em TrocaDeSenhaControllerTest.
@@ -153,7 +163,8 @@ class AutenticacaoControllerTest {
   @Test
   @DisplayName("conta bloqueada responde 429")
   void contaBloqueadaResponde429() throws Exception {
-    when(autenticacao.entrar(anyString(), anyString())).thenThrow(new AcessoBloqueadoException());
+    when(autenticacao.entrar(anyString(), anyString()))
+        .thenThrow(new AcessoBloqueadoException(Duration.ofMinutes(15)));
 
     mockMvc
         .perform(
@@ -161,7 +172,36 @@ class AutenticacaoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"%s\",\"senha\":\"errada\"}".formatted(EMAIL)))
         .andExpect(status().isTooManyRequests())
-        .andExpect(jsonPath("$.title").value("Acesso temporariamente bloqueado"));
+        .andExpect(jsonPath("$.title").value("Acesso temporariamente bloqueado"))
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Tentativas demais em sequência. Tente de novo em 15 minutos."));
+  }
+
+  @Test
+  @DisplayName("senha longa demais no login é barrada antes de procurar o e-mail")
+  void senhaLongaNoLoginEhBarrada() throws Exception {
+    mockMvc
+        .perform(
+            post("/autenticacao/entrar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"%s\",\"senha\":\"%s\"}".formatted(EMAIL, "a".repeat(73))))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.senha").value("A senha tem no máximo 72 caracteres."));
+
+    verify(autenticacao, never()).entrar(anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("método ou formato errado responde 405 e 415, não 500")
+  void recusasDoProtocoloMantemOStatus() throws Exception {
+    mockMvc.perform(get("/autenticacao/entrar")).andExpect(status().isMethodNotAllowed());
+    mockMvc
+        .perform(
+            post("/autenticacao/recuperacao")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("email=%s".formatted(EMAIL)))
+        .andExpect(status().isUnsupportedMediaType());
   }
 
   @Test
@@ -177,62 +217,6 @@ class AutenticacaoControllerTest {
         .andExpect(jsonPath("$.campos.email").value("Informe um e-mail válido."));
 
     verify(autenticacao, org.mockito.Mockito.never()).entrar(anyString(), anyString());
-  }
-
-  @Test
-  @DisplayName("senha nova curta demais é barrada pela validação")
-  void senhaCurtaEBarrada() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"519274\",\"novaSenha\":\"curta\"}"
-                        .formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.campos.novaSenha").value("A nova senha precisa de ao menos 8 caracteres."));
-  }
-
-  @Test
-  @DisplayName("código fora do formato de seis dígitos é barrado")
-  void codigoForaDoFormatoEBarrado() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/codigo")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\",\"codigo\":\"12ab\"}".formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.codigo").value("O código tem seis dígitos."));
-  }
-
-  @Test
-  @DisplayName("pedir código responde 202 mesmo para e-mail que não existe")
-  void pedirCodigoRespondeSempre202() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"desconhecido@exemplo.com.br\"}"))
-        .andExpect(status().isAccepted());
-
-    verify(recuperacao).solicitarCodigo("desconhecido@exemplo.com.br");
-  }
-
-  @Test
-  @DisplayName("código inválido vira Problem Details 400")
-  void codigoInvalidoViraProblemDetails() throws Exception {
-    doThrow(new CodigoInvalidoException())
-        .when(recuperacao)
-        .validarCodigo(anyString(), anyString());
-
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/codigo")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\",\"codigo\":\"000000\"}".formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.title").value("Código inválido"));
   }
 
   @Test
@@ -256,38 +240,5 @@ class AutenticacaoControllerTest {
         .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));
 
     verify(autenticacao).sair("token");
-  }
-
-  @Test
-  @DisplayName("o convidado cria a própria senha pelo link, sem sessão")
-  void concluirConviteResponde204() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/convite/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"convite":"token-do-link","novaSenha":"minha-senha-nova"}
-                    """))
-        .andExpect(status().isNoContent());
-
-    verify(convites).concluir("token-do-link", "minha-senha-nova");
-  }
-
-  @Test
-  @DisplayName("senha curta demais é barrada pela validação, antes do service")
-  void senhaCurtaEhBarrada() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/convite/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"convite":"token-do-link","novaSenha":"curta"}
-                    """))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.novaSenha").exists());
-
-    verify(convites, never()).concluir(anyString(), anyString());
   }
 }
