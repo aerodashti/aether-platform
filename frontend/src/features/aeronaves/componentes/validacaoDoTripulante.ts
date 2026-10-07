@@ -45,14 +45,6 @@ const canac: Regra = (texto) =>
     ? undefined
     : 'O CANAC tem 6 dígitos, como 123456.';
 
-/** O `@Email` aceita "a@b"; o request do tripulante exige um ponto no domínio, e a tela também. */
-const DOMINIO_COM_PONTO = /@[^@]+\.[^@]+$/;
-
-const emailComDominio: Regra = (texto) =>
-  texto.trim() === '' || DOMINIO_COM_PONTO.test(texto.trim())
-    ? undefined
-    : 'Informe um e-mail válido, como nome@empresa.com.br.';
-
 function erroDaValidade(
   rascunho: RascunhoDoTripulante,
   campo: CampoDeValidade,
@@ -86,6 +78,6 @@ export function validarTripulante(
       numero({ minimo: 0, maximo: HORAS_MAXIMAS, casas: 1 }),
     ),
     telefone: telefone()(rascunho.telefone),
-    email: primeiraFalha(rascunho.email, tamanhoMaximo(180), email(), emailComDominio),
+    email: primeiraFalha(rascunho.email, tamanhoMaximo(180), email()),
   };
 }

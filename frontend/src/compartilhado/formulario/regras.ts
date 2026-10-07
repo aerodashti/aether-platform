@@ -123,9 +123,20 @@ export function dataEntre({
 const FORMATO_DE_EMAIL =
   /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*$/;
 
+/**
+ * O `FormatoDeEmail.EXPRESSAO` do servidor, que todo request com e-mail aplica junto do `@Email`:
+ * o domínio precisa de ponto e de um sufixo de duas letras ou mais — "fulano@empresa" não é
+ * endereço que receba e-mail.
+ */
+const DOMINIO_COMPLETO = /@[^@]+\.[^@.]{2,}$/;
+
 export function email(mensagem = 'Informe um e-mail válido, como nome@empresa.com.br.'): Regra {
-  return (texto) =>
-    estaVazio(texto) || FORMATO_DE_EMAIL.test(texto.trim()) ? undefined : mensagem;
+  return (texto) => {
+    const limpo = texto.trim();
+    return limpo === '' || (FORMATO_DE_EMAIL.test(limpo) && DOMINIO_COMPLETO.test(limpo))
+      ? undefined
+      : mensagem;
+  };
 }
 
 export const MINIMO_DA_SENHA_NOVA = 8;

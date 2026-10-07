@@ -204,17 +204,17 @@ describe('PaginaDeLogin', () => {
     it('o campo recusado pelo servidor recebe a mensagem dele', async () => {
       servidor({
         '/autenticacao/entrar': respostaDe(
-          { title: 'Dados inválidos', campos: { email: 'Informe um e-mail válido.' } },
+          { title: 'Dados inválidos', campos: { email: 'Este e-mail não pode entrar assim.' } },
           400,
         ),
       });
       envolver();
 
-      await userEvent.type(screen.getByLabelText('E-mail'), 'nome@exemplo');
+      await userEvent.type(screen.getByLabelText('E-mail'), 'nome@exemplo.com');
       await userEvent.type(screen.getByLabelText('Senha'), 'segredo123');
       await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
-      expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument();
+      expect(await screen.findByText('Este e-mail não pode entrar assim.')).toBeInTheDocument();
       expect(screen.getByLabelText('E-mail')).toHaveAttribute('aria-invalid', 'true');
       expect(screen.getByLabelText('E-mail')).toHaveFocus();
     });

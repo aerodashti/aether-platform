@@ -36,10 +36,10 @@ describe('validarDadosDaEmpresa', () => {
 
   it('recusa e-mail sem ponto no domínio, que o servidor também recusa', () => {
     expect(errosCom({ email: 'contato@empresa' }).email).toBe(
-      'Informe um e-mail completo, como nome@empresa.com.br.',
+      'Informe um e-mail válido, como nome@empresa.com.br.',
     );
     expect(errosCom({ email: 'nao-e-email' }).email).toBe(
-      'Informe um e-mail completo, como nome@empresa.com.br.',
+      'Informe um e-mail válido, como nome@empresa.com.br.',
     );
   });
 

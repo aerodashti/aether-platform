@@ -1,5 +1,6 @@
-import { emailCompleto, nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
+import { nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
 import {
+  email,
   obrigatorio,
   primeiraFalha,
   tamanhoMaximo,
@@ -37,7 +38,7 @@ export function validarDadosDaEmpresa(rascunho: RascunhoDaEmpresa): Erros<CampoD
       rascunho.email,
       obrigatorio('Informe o e-mail.'),
       tamanhoMaximo(180),
-      emailCompleto(),
+      email(),
     ),
     telefone: primeiraFalha(
       rascunho.telefone,

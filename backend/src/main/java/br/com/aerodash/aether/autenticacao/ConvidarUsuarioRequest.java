@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.autenticacao;
 
+import br.com.aerodash.aether.comum.validacao.FormatoDeEmail;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

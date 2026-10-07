@@ -213,7 +213,9 @@ class AutenticacaoControllerTest {
                 .content("{\"email\":\"nao-e-email\",\"senha\":\"segredo\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.title").value("Dados inválidos"))
-        .andExpect(jsonPath("$.campos.email").value("Informe um e-mail válido."));
+        .andExpect(
+            jsonPath("$.campos.email")
+                .value("Informe um e-mail válido, como nome@empresa.com.br."));
 
     verify(autenticacao, org.mockito.Mockito.never()).entrar(anyString(), anyString());
   }

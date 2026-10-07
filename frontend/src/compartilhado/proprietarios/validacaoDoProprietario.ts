@@ -30,8 +30,6 @@ export const ROTULOS_DO_PROPRIETARIO: Record<CampoDoProprietario, string> = {
   corDeIdentificacao: 'Cor de identificação',
 };
 
-const MENSAGEM_DE_EMAIL = 'Informe um e-mail válido, como nome@empresa.com.br.';
-
 function estaEmBranco(texto: string): boolean {
   return texto.trim() === '';
 }
@@ -46,13 +44,6 @@ const documentoValido: Regra = (texto) =>
     ? undefined
     : MENSAGEM_DE_DOCUMENTO_INVALIDO;
 
-/**
- * O domínio precisa de ponto, como no request ("otavio@exemplo" não é endereço que receba
- * e-mail). A regra comum `email()` aceita domínio sem ponto, como o `@Email` padrão.
- */
-const dominioComPonto: Regra = (texto) =>
-  estaEmBranco(texto) || /^.+@.+\..+$/.test(texto.trim()) ? undefined : MENSAGEM_DE_EMAIL;
-
 /** Os limites de `ProprietarioRequest.java` e das colunas de `proprietario`. */
 export function validarProprietario(rascunho: RascunhoDoProprietario): Erros<CampoDoProprietario> {
   return {
@@ -63,12 +54,7 @@ export function validarProprietario(rascunho: RascunhoDoProprietario): Erros<Cam
       tamanhoMaximo(120),
     ),
     cpfCnpj: primeiraFalha(rascunho.cpfCnpj, tamanhoMaximo(20), documentoValido),
-    email: primeiraFalha(
-      rascunho.email,
-      tamanhoMaximo(180),
-      email(MENSAGEM_DE_EMAIL),
-      dominioComPonto,
-    ),
+    email: primeiraFalha(rascunho.email, tamanhoMaximo(180), email()),
     telefone: primeiraFalha(rascunho.telefone, tamanhoMaximo(20), telefone()),
   };
 }

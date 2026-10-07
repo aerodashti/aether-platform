@@ -423,7 +423,7 @@ describe('PaginaDeUsuarios', () => {
       await usuario.click(screen.getByRole('button', { name: 'Enviar convite' }));
 
       expect(screen.getByLabelText('E-mail')).toHaveAccessibleDescription(
-        'Informe um e-mail completo, como nome@empresa.com.br.',
+        'Informe um e-mail válido, como nome@empresa.com.br.',
       );
     });
 

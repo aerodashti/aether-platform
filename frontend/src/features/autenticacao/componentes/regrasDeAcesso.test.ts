@@ -9,12 +9,14 @@ import {
 } from './regrasDeAcesso';
 
 describe('regras de acesso', () => {
-  it('o e-mail segue o @Email do backend, e não uma forma mais estreita ou mais larga', () => {
+  it('o e-mail segue o @Email e o FormatoDeEmail do backend: domínio completo', () => {
     expect(emailInformado('')).toBe('Informe o e-mail.');
     expect(emailInformado('a,b@exemplo.test')).toBe(
       'Informe um e-mail válido, como nome@empresa.com.br.',
     );
-    expect(emailInformado('ninguem@exemplo')).toBeUndefined();
+    expect(emailInformado('ninguem@exemplo')).toBe(
+      'Informe um e-mail válido, como nome@empresa.com.br.',
+    );
     expect(emailInformado('  leonardo@administraair.com.br ')).toBeUndefined();
   });
 

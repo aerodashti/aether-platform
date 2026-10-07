@@ -49,10 +49,13 @@ describe('regras de formulário', () => {
     expect(regra('2026-10-07')).toBeUndefined();
   });
 
-  it('e-mail na forma que o backend aceita', () => {
+  it('e-mail na forma que o backend aceita, com domínio completo', () => {
     const regra = email();
     expect(regra('nome@exemplo.test')).toBeUndefined();
-    expect(regra('ninguem@exemplo')).toBeUndefined();
+    expect(regra(' nome@empresa.com.br ')).toBeUndefined();
+    expect(regra('  ')).toBeUndefined();
+    expect(regra('ninguem@exemplo')).toBe('Informe um e-mail válido, como nome@empresa.com.br.');
+    expect(regra('nome@empresa.c')).toBeDefined();
     expect(regra('a,b@exemplo.test')).toBeDefined();
     expect(regra('sem-arroba')).toBeDefined();
   });

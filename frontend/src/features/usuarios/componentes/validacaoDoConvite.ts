@@ -1,5 +1,10 @@
-import { emailCompleto, nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
-import { obrigatorio, primeiraFalha, tamanhoMaximo } from '@/compartilhado/formulario/regras';
+import { nomeLegivel } from '@/compartilhado/cadastro/regrasDeCadastro';
+import {
+  email,
+  obrigatorio,
+  primeiraFalha,
+  tamanhoMaximo,
+} from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
 import type { PapelDoUsuario } from '@/compartilhado/sessao/sessao';
 
@@ -31,7 +36,7 @@ export function validarConvite(rascunho: RascunhoDoConvite): Erros<CampoDoConvit
       rascunho.email,
       obrigatorio('Informe o e-mail.'),
       tamanhoMaximo(180),
-      emailCompleto(),
+      email(),
     ),
     papel: primeiraFalha(rascunho.papel, obrigatorio('Escolha o papel.')),
   };

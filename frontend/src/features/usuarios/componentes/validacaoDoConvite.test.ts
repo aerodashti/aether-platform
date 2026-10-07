@@ -27,10 +27,10 @@ describe('validarConvite', () => {
 
   it('recusa o que não é e-mail e o domínio sem ponto, que o convite nunca alcançaria', () => {
     expect(errosCom({ email: 'nao-e-email' }).email).toBe(
-      'Informe um e-mail completo, como nome@empresa.com.br.',
+      'Informe um e-mail válido, como nome@empresa.com.br.',
     );
     expect(errosCom({ email: 'fulano@exemplo' }).email).toBe(
-      'Informe um e-mail completo, como nome@empresa.com.br.',
+      'Informe um e-mail válido, como nome@empresa.com.br.',
     );
   });
 

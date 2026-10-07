@@ -1,7 +1,7 @@
 package br.com.aerodash.aether.empresa;
 
-import br.com.aerodash.aether.autenticacao.FormatoDeEmail;
 import br.com.aerodash.aether.autenticacao.FormatoDeNome;
+import br.com.aerodash.aether.comum.validacao.FormatoDeEmail;
 import br.com.aerodash.aether.comum.validacao.FormatoDeTelefone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;

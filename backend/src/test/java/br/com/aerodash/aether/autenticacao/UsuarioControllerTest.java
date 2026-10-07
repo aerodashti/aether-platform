@@ -183,7 +183,7 @@ class UsuarioControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.campos.email")
-                .value("Informe um e-mail completo, como nome@empresa.com.br."));
+                .value("Informe um e-mail válido, como nome@empresa.com.br."));
 
     verify(usuarios, never()).convidar(any(), any(), any());
   }

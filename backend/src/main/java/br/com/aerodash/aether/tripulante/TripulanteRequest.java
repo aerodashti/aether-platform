@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.tripulante;
 
+import br.com.aerodash.aether.comum.validacao.FormatoDeEmail;
 import br.com.aerodash.aether.comum.validacao.FormatoDeTelefone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMax;
@@ -42,16 +43,7 @@ public record TripulanteRequest(
     @Size(max = 20, message = "O telefone pode ter no máximo 20 caracteres.")
         @Pattern(regexp = FormatoDeTelefone.EXPRESSAO, message = FormatoDeTelefone.MENSAGEM)
         String telefone,
-    @Email(regexp = TripulanteRequest.EMAIL_COM_DOMINIO, message = TripulanteRequest.EMAIL_INVALIDO)
+    @Email(regexp = FormatoDeEmail.EXPRESSAO, message = FormatoDeEmail.MENSAGEM)
         @Size(max = 180, message = "O e-mail pode ter no máximo 180 caracteres.")
         String email,
-    @NotNull(message = "Informe a situação.") SituacaoDoTripulante situacao) {
-
-  /**
-   * O {@code @Email} sozinho aceita "a@b": o domínio precisa de um ponto para alguém receber a
-   * mensagem. Em branco passa — é "não informado".
-   */
-  static final String EMAIL_COM_DOMINIO = "^$|^.+@[^@]+\\.[^@]+$";
-
-  static final String EMAIL_INVALIDO = "Informe um e-mail válido, como nome@empresa.com.br.";
-}
+    @NotNull(message = "Informe a situação.") SituacaoDoTripulante situacao) {}

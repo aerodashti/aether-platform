@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.proprietario;
 
+import br.com.aerodash.aether.comum.validacao.FormatoDeEmail;
 import br.com.aerodash.aether.comum.validacao.FormatoDeTelefone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -33,9 +34,7 @@ public record ProprietarioRequest(
         @CpfCnpjValido
         String cpfCnpj,
     @Schema(description = "E-mail de contato", example = "ricardo@exemplo.com.br")
-        @Email(
-            regexp = ".+@.+\\..+",
-            message = "Informe um e-mail válido, como nome@empresa.com.br.")
+        @Email(regexp = FormatoDeEmail.EXPRESSAO, message = FormatoDeEmail.MENSAGEM)
         @Size(max = 180, message = "O e-mail pode ter no máximo 180 caracteres.")
         String email,
     @Schema(description = "Telefone de contato", example = "+55 11 98888-0000")

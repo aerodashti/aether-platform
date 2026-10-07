@@ -136,8 +136,7 @@ class EmpresaControllerTest {
             """)
         .andExpect(status().isBadRequest())
         .andExpect(
-            jsonPath("$.campos.email")
-                .value("Informe um e-mail completo, como nome@empresa.com.br."))
+            jsonPath("$.campos.email").value("Informe um e-mail válido, como nome@empresa.com.br."))
         .andExpect(
             jsonPath("$.campos.telefone")
                 .value(
