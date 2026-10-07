@@ -259,32 +259,32 @@ describe('PaginaDeDetalheDaAeronave', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('a soma manda no salvar: 90% desabilita, 100% sem mudança mantém, 100% com mudança habilita', async () => {
+  it('a linha de soma diz o que falta e o que salvar faz, sem desabilitar o salvar', async () => {
     montar(GESTORA);
 
     await userEvent.click(await screen.findByRole('button', { name: 'Alterar participações' }));
     const ricardo = screen.getByLabelText('Participação de Ricardo Meirelles em %');
     const vetor = screen.getByLabelText('Participação de Vetor Participações em %');
-    const salvar = () => screen.getByRole('button', { name: 'Salvar novo contrato' });
+    const salvar = screen.getByRole('button', { name: 'Salvar novo contrato' });
 
     // Sem mexer, 60/40 é o contrato vigente: salvar não arquivaria nada.
-    expect(salvar()).toHaveAttribute('aria-disabled', 'true');
     expect(
-      screen.getByText(/Nenhuma alteração nas participações — contrato mantido\./),
+      screen.getByText('Fechado em 100%, sem alteração: o contrato atual continua valendo.'),
     ).toBeInTheDocument();
 
     await userEvent.clear(ricardo);
     await userEvent.type(ricardo, '50');
-    expect(salvar()).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText(/Ajuste os percentuais para somar 100%\./)).toBeInTheDocument();
+    expect(salvar).not.toHaveAttribute('aria-disabled');
+    expect(screen.getByText('Faltam 10% para fechar 100%.')).toBeInTheDocument();
 
     await userEvent.clear(ricardo);
     await userEvent.type(ricardo, '70');
     await userEvent.clear(vetor);
     await userEvent.type(vetor, '30');
-    expect(salvar()).not.toHaveAttribute('aria-disabled');
     expect(
-      screen.getByText(/Fechado em 100% — salvar cria um novo contrato vigente\./),
+      screen.getByText(
+        'Fechado em 100%. Salvar cria um contrato novo e arquiva o atual no histórico.',
+      ),
     ).toBeInTheDocument();
   });
 
@@ -309,7 +309,8 @@ describe('PaginaDeDetalheDaAeronave', () => {
     ).not.toBeInTheDocument();
 
     await userEvent.selectOptions(selecao, '3');
-    expect(screen.getByLabelText('Participação de Helena Sarraf em %')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Incluir no contrato' }));
+    expect(screen.getByLabelText('Participação de Helena Sarraf em %')).toHaveFocus();
     expect(
       screen.getByText('Todos os proprietários cadastrados já estão neste contrato.'),
     ).toBeInTheDocument();

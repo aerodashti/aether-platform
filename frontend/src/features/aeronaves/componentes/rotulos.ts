@@ -183,29 +183,6 @@ export function consequenciaDoVencimento(
   return dias > 0 ? `${sigla} vence ${prazo}` : `${sigla} venceu ${prazo}`;
 }
 
-export type TomDaSoma = 'positivo' | 'atencao' | 'critico';
-
-/** As mensagens de soma do protótipo, na mesma redação; o tom decide a cor e se dá para salvar. */
-export function mensagemDaSoma(
-  percentuais: number[],
-  houveMudanca: boolean,
-): { tom: TomDaSoma; texto: string } {
-  if (percentuais.some((percentual) => percentual < 0)) {
-    return { tom: 'critico', texto: 'Há participação negativa — corrija para continuar.' };
-  }
-  if (percentuais.length === 0 || percentuais.some((p) => Number.isNaN(p) || p === 0)) {
-    return { tom: 'atencao', texto: 'Todo proprietário precisa de participação maior que 0%.' };
-  }
-  const soma = percentuais.reduce((total, percentual) => total + percentual, 0);
-  if (Math.abs(soma - 100) >= 0.005) {
-    return { tom: 'atencao', texto: 'Ajuste os percentuais para somar 100%.' };
-  }
-  if (!houveMudanca) {
-    return { tom: 'atencao', texto: 'Nenhuma alteração nas participações — contrato mantido.' };
-  }
-  return { tom: 'positivo', texto: 'Fechado em 100% — salvar cria um novo contrato vigente.' };
-}
-
 const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
 
 /** Dias de hoje até uma data ISO (negativo é passado), em dias de calendário. */

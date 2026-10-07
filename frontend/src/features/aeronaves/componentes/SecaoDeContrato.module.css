@@ -38,11 +38,11 @@
 
 .editando .linhaDeCabecalho,
 .editando .linha {
-  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 1fr) 96px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(150px, 1fr) 96px;
 }
 
 .editando {
-  min-width: 440px;
+  min-width: 470px;
 }
 
 .linhaDeCabecalho {
@@ -102,18 +102,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* O erro do percentual cresce para baixo do campo; o "%" fica na altura da caixa, não no meio. */
 .campo {
   display: flex;
   gap: var(--espaco-2);
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
 }
 
 .campoDePercentual {
-  width: 88px;
+  width: 120px;
 }
 
 .unidade {
+  display: flex;
+  align-items: center;
+  min-height: var(--controle-altura-g);
   font-size: var(--tamanho-s);
   color: var(--cor-texto-suave);
 }
@@ -173,7 +177,8 @@
 }
 
 .selecao {
-  min-width: 190px;
+  flex: 1;
+  min-width: 280px;
 }
 
 .caixaCheia {
@@ -209,7 +214,8 @@
   min-width: 200px;
 }
 
-.erro {
+/* O resumo é região viva sempre montada; só ocupa espaço quando tem o que dizer. */
+.resumo > [role='alert']:not(:empty) {
   padding: var(--espaco-3) var(--espaco-6);
 }
 
