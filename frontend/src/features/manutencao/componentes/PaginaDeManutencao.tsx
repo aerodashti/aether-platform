@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
@@ -11,18 +11,18 @@ import { Selecao } from '@/design-system/primitivos/Selecao';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import {
-  useConcluirManutencao,
-  useExcluirManutencao,
-  useExcluirParametro,
   usePainelDeManutencao,
   useReabrirManutencao,
   type ManutencaoResponse,
   type ParametroResponse,
 } from '../api/useManutencao';
 
+import { ExclusaoDeManutencao, ExclusaoDeParametro } from './ConfirmacaoDeExclusao';
 import estilos from './PaginaDeManutencao.module.css';
+import { PainelDeConclusao } from './PainelDeConclusao';
 import { PainelDeManutencaoAgendada } from './PainelDeManutencaoAgendada';
 import { PainelDeParametro } from './PainelDeParametro';
+import { RetornoDaAcao, type Retorno } from './RetornoDaAcao';
 import {
   atualEmTexto,
   dataCompleta,
@@ -30,6 +30,7 @@ import {
   janelaDeAvisoEmTexto,
   limiteEmTexto,
   moedaEmTexto,
+  nomeDaManutencao,
   numeroEmTexto,
   restanteEmPalavras,
   ROTULO_DA_SITUACAO,
@@ -41,8 +42,11 @@ import tabela from './TabelaDeManutencao.module.css';
 type Painel =
   | { tipo: 'novo-parametro' }
   | { tipo: 'editar-parametro'; parametro: ParametroResponse }
+  | { tipo: 'excluir-parametro'; parametro: ParametroResponse }
   | { tipo: 'nova-manutencao' }
   | { tipo: 'editar-manutencao'; manutencao: ManutencaoResponse }
+  | { tipo: 'concluir-manutencao'; manutencao: ManutencaoResponse }
+  | { tipo: 'excluir-manutencao'; manutencao: ManutencaoResponse }
   | null;
 
 type Secao = 'agenda' | 'historico' | 'parametros';
@@ -73,11 +77,11 @@ export function PaginaDeManutencao() {
   const { usuario } = useSessao();
   const [painel, setPainel] = useState<Painel>(null);
   const [secao, setSecao] = useState<Secao>('agenda');
+  const [retorno, setRetorno] = useState<Retorno | null>(null);
+  const [pedidosDeFoco, setPedidosDeFoco] = useState(0);
+  const refDoTitulo = useRef<HTMLHeadingElement>(null);
 
-  const concluir = useConcluirManutencao();
   const reabrir = useReabrirManutencao();
-  const excluirManutencao = useExcluirManutencao();
-  const excluirParametro = useExcluirParametro();
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   const painelDaAeronave = consulta.data;
@@ -95,6 +99,42 @@ export function PaginaDeManutencao() {
   const historico = painelDaAeronave?.historico ?? [];
   const proximos = parametros.filter((parametro) => parametro.situacao === 'ATENCAO').length;
   const estourados = parametros.filter((parametro) => parametro.situacao === 'ESTOURADO').length;
+
+  // A linha da ação muda de aba ou some, levando junto o botão focado: o foco vai ao título da
+  // seção, depois que o painel que se fechou devolveu o dele.
+  useEffect(() => {
+    if (pedidosDeFoco > 0) {
+      refDoTitulo.current?.focus();
+    }
+  }, [pedidosDeFoco]);
+
+  function terminarAcao(mensagem: string) {
+    setPainel(null);
+    setRetorno({ tom: 'positivo', mensagem });
+    setPedidosDeFoco((pedidos) => pedidos + 1);
+  }
+
+  function escolherSecao(escolhida: Secao) {
+    setSecao(escolhida);
+    setRetorno(null);
+  }
+
+  function reabrirManutencao(manutencao: ManutencaoResponse) {
+    if (manutencao.id == null) {
+      return;
+    }
+    const nome = nomeDaManutencao(manutencao);
+    setRetorno(null);
+    reabrir.mutate(manutencao.id, {
+      onSuccess: () =>
+        terminarAcao(`${nome}: reaberta, de volta à agenda; a data de conclusão foi descartada.`),
+      onError: (erro) =>
+        setRetorno({
+          tom: 'critico',
+          mensagem: `Não foi possível reabrir ${nome}. ${erro.message}`,
+        }),
+    });
+  }
 
   return (
     <div className={estilos.tela}>
@@ -168,21 +208,27 @@ export function PaginaDeManutencao() {
             <Indicador rotulo="Programadas" valor={programadas.length} apoio="na agenda" />
           </ul>
 
-          <Abas<Secao>
-            rotulo="Seções da manutenção"
-            valor={secao}
-            aoEscolher={setSecao}
-            abas={[
-              { valor: 'agenda', rotulo: 'Agenda', contagem: programadas.length },
-              { valor: 'historico', rotulo: 'Histórico', contagem: historico.length },
-              { valor: 'parametros', rotulo: 'Parâmetros', contagem: parametros.length },
-            ]}
-          />
+          {/* As regiões vivas do retorno ficam junto das abas, montadas antes de qualquer ação. */}
+          <div className={estilos.abas}>
+            <Abas<Secao>
+              rotulo="Seções da manutenção"
+              valor={secao}
+              aoEscolher={escolherSecao}
+              abas={[
+                { valor: 'agenda', rotulo: 'Agenda', contagem: programadas.length },
+                { valor: 'historico', rotulo: 'Histórico', contagem: historico.length },
+                { valor: 'parametros', rotulo: 'Parâmetros', contagem: parametros.length },
+              ]}
+            />
+            <RetornoDaAcao retorno={retorno} />
+          </div>
 
           {secao === 'agenda' ? (
             <section className={estilos.secao} aria-label="Manutenções programadas">
               <div className={estilos.tituloDaSecao}>
-                <h2 className={estilos.titulo}>Manutenções programadas · {matricula}</h2>
+                <h2 className={estilos.titulo} ref={refDoTitulo} tabIndex={-1}>
+                  Manutenções programadas · {matricula}
+                </h2>
                 <Texto variante="apoio" tom="suave" como="p">
                   Ordenadas pela proximidade da data. Aparecem no calendário de voos.
                 </Texto>
@@ -230,6 +276,7 @@ export function PaginaDeManutencao() {
                       <tbody role="rowgroup" className={tabela.bloco}>
                         {programadas.map((manutencao) => {
                           const atrasada = estaAtrasada(manutencao.data);
+                          const nome = nomeDaManutencao(manutencao);
                           return (
                             <tr role="row" key={manutencao.id} className={tabela.linha}>
                               <td role="cell" className={tabela.celula}>
@@ -278,10 +325,9 @@ export function PaginaDeManutencao() {
                                   <Botao
                                     tom="positivo"
                                     tamanho="pequeno"
-                                    rotuloAcessivel="Concluir"
-                                    carregando={concluir.isPending}
+                                    rotuloAcessivel={`Concluir ${nome}`}
                                     aoClicar={() =>
-                                      manutencao.id != null && concluir.mutate(manutencao.id)
+                                      setPainel({ tipo: 'concluir-manutencao', manutencao })
                                     }
                                   >
                                     ✓ Concluir
@@ -289,6 +335,7 @@ export function PaginaDeManutencao() {
                                   <Botao
                                     variante="secundario"
                                     tamanho="pequeno"
+                                    rotuloAcessivel={`Editar ${nome}`}
                                     aoClicar={() =>
                                       setPainel({ tipo: 'editar-manutencao', manutencao })
                                     }
@@ -299,9 +346,9 @@ export function PaginaDeManutencao() {
                                     variante="secundario"
                                     tamanho="pequeno"
                                     tom="critico"
+                                    rotuloAcessivel={`Excluir ${nome}`}
                                     aoClicar={() =>
-                                      manutencao.id != null &&
-                                      excluirManutencao.mutate(manutencao.id)
+                                      setPainel({ tipo: 'excluir-manutencao', manutencao })
                                     }
                                   >
                                     Excluir
@@ -322,7 +369,9 @@ export function PaginaDeManutencao() {
           {secao === 'historico' ? (
             <section className={estilos.secao} aria-label="Histórico de manutenções">
               <div className={estilos.tituloDaSecao}>
-                <h2 className={estilos.titulo}>Histórico de manutenções · {matricula}</h2>
+                <h2 className={estilos.titulo} ref={refDoTitulo} tabIndex={-1}>
+                  Histórico de manutenções · {matricula}
+                </h2>
                 <Texto variante="apoio" tom="suave" como="p">
                   {contagemDeConcluidas(historico.length)} — registro permanente das intervenções
                   executadas nesta aeronave.
@@ -366,7 +415,15 @@ export function PaginaDeManutencao() {
                         {historico.map((manutencao) => (
                           <tr role="row" key={manutencao.id} className={tabela.linha}>
                             <td role="cell" className={tabela.celula}>
-                              <span className={tabela.forte}>{dataCompleta(manutencao.data)}</span>
+                              <span className={tabela.forte}>
+                                {dataCompleta(manutencao.concluidaEm ?? manutencao.data)}
+                              </span>
+                              {manutencao.concluidaEm &&
+                              manutencao.concluidaEm !== manutencao.data ? (
+                                <span className={tabela.sublinha}>
+                                  programada para {dataCompleta(manutencao.data)}
+                                </span>
+                              ) : null}
                             </td>
                             <td role="cell" className={tabela.celula}>
                               <span className={tabela.forte} title={manutencao.descricao}>
@@ -393,10 +450,11 @@ export function PaginaDeManutencao() {
                                   <Botao
                                     variante="secundario"
                                     tamanho="pequeno"
-                                    carregando={reabrir.isPending}
-                                    aoClicar={() =>
-                                      manutencao.id != null && reabrir.mutate(manutencao.id)
+                                    rotuloAcessivel={`Reabrir ${nomeDaManutencao(manutencao)}`}
+                                    carregando={
+                                      reabrir.isPending && reabrir.variables === manutencao.id
                                     }
+                                    aoClicar={() => reabrirManutencao(manutencao)}
                                   >
                                     Reabrir
                                   </Botao>
@@ -404,9 +462,9 @@ export function PaginaDeManutencao() {
                                     variante="secundario"
                                     tamanho="pequeno"
                                     tom="critico"
+                                    rotuloAcessivel={`Excluir ${nomeDaManutencao(manutencao)}`}
                                     aoClicar={() =>
-                                      manutencao.id != null &&
-                                      excluirManutencao.mutate(manutencao.id)
+                                      setPainel({ tipo: 'excluir-manutencao', manutencao })
                                     }
                                   >
                                     Excluir
@@ -427,7 +485,9 @@ export function PaginaDeManutencao() {
           {secao === 'parametros' ? (
             <section className={estilos.secao} aria-label="Parâmetros de controle">
               <div className={tabela.cartao}>
-                <h2 className={tabela.titulo}>Parâmetros cadastrados</h2>
+                <h2 className={tabela.titulo} ref={refDoTitulo} tabIndex={-1}>
+                  Parâmetros cadastrados
+                </h2>
                 {parametros.length === 0 ? (
                   <div className={tabela.vazio}>
                     Nenhum parâmetro cadastrado para esta aeronave — clique em "Novo parâmetro" para
@@ -535,6 +595,7 @@ export function PaginaDeManutencao() {
                                   <Botao
                                     variante="secundario"
                                     tamanho="pequeno"
+                                    rotuloAcessivel={`Editar parâmetro ${parametro.nome ?? ''}`}
                                     aoClicar={() =>
                                       setPainel({ tipo: 'editar-parametro', parametro })
                                     }
@@ -545,8 +606,9 @@ export function PaginaDeManutencao() {
                                     variante="secundario"
                                     tamanho="pequeno"
                                     tom="critico"
+                                    rotuloAcessivel={`Excluir parâmetro ${parametro.nome ?? ''}`}
                                     aoClicar={() =>
-                                      parametro.id != null && excluirParametro.mutate(parametro.id)
+                                      setPainel({ tipo: 'excluir-parametro', parametro })
                                     }
                                   >
                                     Excluir
@@ -566,27 +628,83 @@ export function PaginaDeManutencao() {
         </>
       ) : null}
 
-      {aeronaveDasAcoes !== undefined &&
-      (painel?.tipo === 'novo-parametro' || painel?.tipo === 'editar-parametro') ? (
-        <PainelDeParametro
-          key={painel.tipo === 'editar-parametro' ? painel.parametro.id : 'novo'}
+      {painel && aeronaveDasAcoes !== undefined ? (
+        <PainelDaVez
+          painel={painel}
           aeronaveId={aeronaveDasAcoes}
           contadores={contadores}
-          parametro={painel.tipo === 'editar-parametro' ? painel.parametro : undefined}
           aoFechar={() => setPainel(null)}
-        />
-      ) : null}
-      {aeronaveDasAcoes !== undefined &&
-      (painel?.tipo === 'nova-manutencao' || painel?.tipo === 'editar-manutencao') ? (
-        <PainelDeManutencaoAgendada
-          key={painel.tipo === 'editar-manutencao' ? painel.manutencao.id : 'novo'}
-          aeronaveId={aeronaveDasAcoes}
-          manutencao={painel.tipo === 'editar-manutencao' ? painel.manutencao : undefined}
-          aoFechar={() => setPainel(null)}
+          aoTerminar={terminarAcao}
         />
       ) : null}
     </div>
   );
+}
+
+/** O painel aberto sobre a página: formulário, conclusão ou confirmação de exclusão. */
+function PainelDaVez({
+  painel,
+  aeronaveId,
+  contadores,
+  aoFechar,
+  aoTerminar,
+}: {
+  painel: NonNullable<Painel>;
+  aeronaveId: number;
+  contadores: ContadoresDaAeronave;
+  aoFechar: () => void;
+  /** Depois de uma ação que tira a linha do lugar: anuncia o resultado e cuida do foco. */
+  aoTerminar: (mensagem: string) => void;
+}) {
+  switch (painel.tipo) {
+    case 'novo-parametro':
+    case 'editar-parametro':
+      return (
+        <PainelDeParametro
+          aeronaveId={aeronaveId}
+          contadores={contadores}
+          parametro={painel.tipo === 'editar-parametro' ? painel.parametro : undefined}
+          aoFechar={aoFechar}
+        />
+      );
+    case 'excluir-parametro':
+      return (
+        <ExclusaoDeParametro
+          parametro={painel.parametro}
+          aoFechar={aoFechar}
+          aoExcluir={() => aoTerminar(`Parâmetro ${painel.parametro.nome ?? ''} excluído.`)}
+        />
+      );
+    case 'nova-manutencao':
+    case 'editar-manutencao':
+      return (
+        <PainelDeManutencaoAgendada
+          aeronaveId={aeronaveId}
+          manutencao={painel.tipo === 'editar-manutencao' ? painel.manutencao : undefined}
+          aoFechar={aoFechar}
+        />
+      );
+    case 'concluir-manutencao':
+      return (
+        <PainelDeConclusao
+          manutencao={painel.manutencao}
+          aoFechar={aoFechar}
+          aoConcluir={(concluidaEm) =>
+            aoTerminar(
+              `${nomeDaManutencao(painel.manutencao)}: concluída em ${dataCompleta(concluidaEm)}, agora no histórico.`,
+            )
+          }
+        />
+      );
+    case 'excluir-manutencao':
+      return (
+        <ExclusaoDeManutencao
+          manutencao={painel.manutencao}
+          aoFechar={aoFechar}
+          aoExcluir={() => aoTerminar(`${nomeDaManutencao(painel.manutencao)}: excluída.`)}
+        />
+      );
+  }
 }
 
 /** Um indicador do topo: rótulo, número e, se houver, o que o número significa. */
