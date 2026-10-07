@@ -49,6 +49,7 @@ public class TrocaService {
   public TrocasResponse listar(Long aeronaveId, Long proprietarioId, SituacaoDaTroca situacao) {
     contexto.decisao("trocas.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("trocas.filtroPorProprietario", proprietarioId != null);
+    exigirFiltroExistente(aeronaveId, proprietarioId);
     List<TrocaDeKm> recorte =
         trocas.findAllByOrderByDataDescIdDesc().stream()
             .filter(troca -> aeronaveId == null || troca.getAeronaveId().equals(aeronaveId))
@@ -65,6 +66,20 @@ public class TrocaService {
         recorte.size() - concluidas,
         concluidas,
         proprietarioId == null ? null : saldoDe(proprietarioId, recorte));
+  }
+
+  /** Filtro por quem não existe é 404: senão a tela mostraria um saldo de 0 h para ninguém. */
+  private void exigirFiltroExistente(Long aeronaveId, Long proprietarioId) {
+    boolean aeronaveExiste = aeronaveId == null || aeronaves.existsById(aeronaveId);
+    contexto.decisao("trocas.aeronaveDoFiltroExiste", aeronaveExiste);
+    if (!aeronaveExiste) {
+      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
+    }
+    boolean proprietarioExiste = proprietarioId == null || proprietarios.existsById(proprietarioId);
+    contexto.decisao("trocas.proprietarioDoFiltroExiste", proprietarioExiste);
+    if (!proprietarioExiste) {
+      throw new RecursoNaoEncontradoException("Proprietário não encontrado.");
+    }
   }
 
   @Transactional

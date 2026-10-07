@@ -54,10 +54,20 @@ public class VooService {
   public DiarioDeVoosResponse listar(Long aeronaveId, YearMonth competencia) {
     contexto.decisao("voos.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("voos.filtroPorCompetencia", competencia != null);
+    exigirAeronaveDoFiltro(aeronaveId);
     List<Trecho> recorte = recorteDe(aeronaveId, competencia);
 
     contexto.registrar("voos.trechos", recorte.size());
     return new DiarioDeVoosResponse(paraLinhas(recorte), totaisDe(recorte));
+  }
+
+  /** Filtrar por uma aeronave que não existe é 404: o diário vazio diria "nenhum voo". */
+  private void exigirAeronaveDoFiltro(Long aeronaveId) {
+    boolean existe = aeronaveId == null || aeronaves.existsById(aeronaveId);
+    contexto.decisao("voos.aeronaveDoFiltroExiste", existe);
+    if (!existe) {
+      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
+    }
   }
 
   private List<Trecho> recorteDe(Long aeronaveId, YearMonth competencia) {

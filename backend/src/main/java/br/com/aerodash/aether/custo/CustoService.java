@@ -48,10 +48,20 @@ public class CustoService {
   public LancamentosResponse listar(Long aeronaveId, YearMonth competencia) {
     contexto.decisao("custos.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("custos.filtroPorCompetencia", competencia != null);
+    exigirAeronaveDoFiltro(aeronaveId);
     List<Custo> recorte = recorteDe(aeronaveId, competencia);
 
     contexto.registrar("custos.lancamentos", recorte.size());
     return new LancamentosResponse(paraLinhas(recorte), totaisDe(recorte));
+  }
+
+  /** Filtrar por uma aeronave que não existe é 404: a grade vazia diria "nenhum lançamento". */
+  private void exigirAeronaveDoFiltro(Long aeronaveId) {
+    boolean existe = aeronaveId == null || aeronaves.existsById(aeronaveId);
+    contexto.decisao("custos.aeronaveDoFiltroExiste", existe);
+    if (!existe) {
+      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
+    }
   }
 
   @Transactional

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.CorDeIdentificacao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -190,12 +191,23 @@ class CustoServiceTest {
     when(custos.findByAeronaveIdAndDataBetweenOrderByDataDescIdDesc(
             1L, LocalDate.parse("2026-09-01"), LocalDate.parse("2026-09-30")))
         .thenReturn(List.of(fixo, variavel));
+    when(aeronaves.existsById(1L)).thenReturn(true);
 
     LancamentosResponse lista = service.listar(1L, YearMonth.parse("2026-09"));
 
     assertThat(lista.totais().fixos()).isEqualByComparingTo("18400.00");
     assertThat(lista.totais().variaveis()).isEqualByComparingTo("5906.76");
     assertThat(lista.totais().total()).isEqualByComparingTo("24306.76");
+  }
+
+  @Test
+  @DisplayName("filtrar por uma aeronave que não existe é 404, não uma grade vazia")
+  void filtroPorAeronaveInexistente() {
+    assertThatThrownBy(() -> service.listar(99L, null))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("Aeronave não encontrada.");
+    verify(contexto).decisao("custos.aeronaveDoFiltroExiste", false);
+    verify(custos, never()).findByAeronaveIdOrderByDataDescIdDesc(any());
   }
 
   private DadosDoCusto service0(CustoRequest request) {

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.CorDeIdentificacao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -256,6 +257,7 @@ class VooServiceTest {
     when(trechos.findByAeronaveIdAndDataBetweenOrderByDataDescRelatorioDeVooDescNumeroDoTrechoDesc(
             1L, LocalDate.parse("2026-09-01"), LocalDate.parse("2026-09-30")))
         .thenReturn(List.of(primeiro, manutencao));
+    when(aeronaves.existsById(1L)).thenReturn(true);
 
     DiarioDeVoosResponse diario = service.listar(1L, YearMonth.parse("2026-09"));
 
@@ -263,6 +265,15 @@ class VooServiceTest {
     assertThat(diario.totais().horas()).isEqualByComparingTo("2.0");
     assertThat(diario.totais().km()).isEqualByComparingTo("730.0");
     assertThat(diario.trechos().get(1).vooDeManutencao()).isTrue();
+  }
+
+  @Test
+  @DisplayName("filtrar por uma aeronave que não existe é 404, não um diário vazio")
+  void filtroPorAeronaveInexistente() {
+    assertThatThrownBy(() -> service.listar(99L, YearMonth.parse("2026-09")))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("Aeronave não encontrada.");
+    verify(contexto).decisao("voos.aeronaveDoFiltroExiste", false);
   }
 
   private DadosDoTrecho dadosDe(TrechoRequest request) {
