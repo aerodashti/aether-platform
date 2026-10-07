@@ -178,7 +178,7 @@ class AeronaveTest {
               MOMENTO);
 
       aeronave.atualizarFichaTecnica(
-          new Aeronave.FichaTecnica(
+          new FichaTecnica(
               "Cessna", "Citation XLS+", "560-6321", "sbjd", "Hangar 7", "RETA-1", 9163, 8482),
           MOMENTO);
 

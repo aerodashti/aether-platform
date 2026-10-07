@@ -43,4 +43,30 @@ public record ConfiguracaoFinanceira(
   public boolean possuiDiaDeFechamentoValido() {
     return diaDeFechamento >= 1 && diaDeFechamento <= 28;
   }
+
+  /**
+   * O aporte fixo é "valor fixo por período": sem um valor maior que zero, ele não diz quanto
+   * cobrar. O proporcional ao uso não tem valor próprio.
+   */
+  public boolean possuiValorDoAporteCoerente() {
+    return modeloDeAporte != ModeloDeAporte.FIXO
+        || (valorDoAporte != null && valorDoAporte.signum() > 0);
+  }
+
+  /**
+   * A mesma configuração sem o valor que o modelo não usa: guardado no proporcional ao uso, ele
+   * apareceria no cartão como uma cobrança que não acontece.
+   */
+  public ConfiguracaoFinanceira semValorForaDoAporteFixo() {
+    if (modeloDeAporte == ModeloDeAporte.FIXO || valorDoAporte == null) {
+      return this;
+    }
+    return new ConfiguracaoFinanceira(
+        baseDoRateio,
+        modeloDeAporte,
+        periodicidadeDoAporteMeses,
+        null,
+        diaDeFechamento,
+        saldoDeAbertura);
+  }
 }

@@ -72,15 +72,16 @@ public class AeronaveService {
   public DetalheDaAeronaveResponse atualizarFichaTecnica(Long id, FichaTecnicaRequest request) {
     Aeronave aeronave = carregar(id);
     aeronave.atualizarFichaTecnica(
-        new Aeronave.FichaTecnica(
-            request.fabricante(),
-            request.modelo(),
-            request.numeroDeSerie(),
-            request.base(),
-            request.hangar(),
-            request.apoliceDoSeguro(),
-            request.pesoMaxDecolagemKg(),
-            request.pesoMaxPousoKg()),
+        validarFicha(
+            new FichaTecnica(
+                request.fabricante(),
+                request.modelo(),
+                request.numeroDeSerie(),
+                request.base(),
+                request.hangar(),
+                request.apoliceDoSeguro(),
+                request.pesoMaxDecolagemKg(),
+                request.pesoMaxPousoKg())),
         Instant.now(relogio));
     return paraDetalhe(aeronave);
   }
@@ -104,28 +105,40 @@ public class AeronaveService {
             request.vencimentoReta(),
             agora);
     aeronave.atualizarFichaTecnica(
-        new Aeronave.FichaTecnica(
-            request.fabricante(),
-            request.modelo(),
-            request.numeroDeSerie(),
-            request.base(),
-            request.hangar(),
-            request.apoliceDoSeguro(),
-            request.pesoMaxDecolagemKg(),
-            request.pesoMaxPousoKg()),
+        validarFicha(
+            new FichaTecnica(
+                request.fabricante(),
+                request.modelo(),
+                request.numeroDeSerie(),
+                request.base(),
+                request.hangar(),
+                request.apoliceDoSeguro(),
+                request.pesoMaxDecolagemKg(),
+                request.pesoMaxPousoKg())),
         agora);
     aeronave.corrigirContadores(montarContadores(request.contadores()), agora);
     aeronave.atualizarConfiguracaoFinanceira(
-        montarConfiguracao(request.configuracaoFinanceira()), agora);
+        montarConfiguracao(request.configuracaoFinanceira(), "configuracaoFinanceira."), agora);
 
     aeronave = aeronaves.save(aeronave);
     contexto.registrar("aeronave.id", aeronave.getId());
     return paraDetalhe(aeronave);
   }
 
+  /**
+   * A correção substitui os totais que os voos somaram. Se a tela leu outros totais, um voo entrou
+   * no meio: gravar por cima o apagaria dos contadores, e a recusa pede para reabrir a edição.
+   */
   @Transactional
   public DetalheDaAeronaveResponse corrigirContadores(Long id, ContadoresRequest request) {
     Aeronave aeronave = carregar(id);
+    boolean desatualizados =
+        request.lidos() != null
+            && !aeronave.getContadores().possuiOsMesmosTotaisDe(contadoresLidos(request.lidos()));
+    contexto.decisao("aeronave.contadoresDesatualizados", desatualizados);
+    if (desatualizados) {
+      throw new ContadoresDesatualizadosException();
+    }
     aeronave.corrigirContadores(montarContadores(request), Instant.now(relogio));
     return paraDetalhe(aeronave);
   }
@@ -134,8 +147,18 @@ public class AeronaveService {
   public DetalheDaAeronaveResponse atualizarConfiguracaoFinanceira(
       Long id, ConfiguracaoFinanceiraRequest request) {
     Aeronave aeronave = carregar(id);
-    aeronave.atualizarConfiguracaoFinanceira(montarConfiguracao(request), Instant.now(relogio));
+    aeronave.atualizarConfiguracaoFinanceira(montarConfiguracao(request, ""), Instant.now(relogio));
     return paraDetalhe(aeronave);
+  }
+
+  private FichaTecnica validarFicha(FichaTecnica ficha) {
+    boolean pesosCoerentes = ficha.possuiPesosCoerentes();
+    contexto.decisao("aeronave.pesosCoerentes", pesosCoerentes);
+    if (!pesosCoerentes) {
+      throw new FichaTecnicaInvalidaException(
+          "O peso máximo de pouso não pode passar do peso máximo de decolagem.", "pesoMaxPousoKg");
+    }
+    return ficha;
   }
 
   /** Monta e valida: o Bean Validation barrou campo a campo; a regra composta é da entidade. */
@@ -156,21 +179,45 @@ public class AeronaveService {
     return novos;
   }
 
-  private ConfiguracaoFinanceira montarConfiguracao(ConfiguracaoFinanceiraRequest request) {
+  /**
+   * Monta e valida a configuração. O prefixo é o caminho dela no JSON — vazio na rota própria,
+   * {@code configuracaoFinanceira.} no cadastro — para a recusa cair no campo certo da tela.
+   */
+  private ConfiguracaoFinanceira montarConfiguracao(
+      ConfiguracaoFinanceiraRequest request, String prefixo) {
     ConfiguracaoFinanceira nova =
         new ConfiguracaoFinanceira(
-            request.baseDoRateio(),
-            request.modeloDeAporte(),
-            request.periodicidadeDoAporteMeses(),
-            request.valorDoAporte(),
-            request.diaDeFechamento(),
-            request.saldoDeAbertura());
+                request.baseDoRateio(),
+                request.modeloDeAporte(),
+                request.periodicidadeDoAporteMeses(),
+                request.valorDoAporte(),
+                request.diaDeFechamento(),
+                request.saldoDeAbertura())
+            .semValorForaDoAporteFixo();
     contexto.decisao("aeronave.periodicidadeValida", nova.possuiPeriodicidadeValida());
     if (!nova.possuiPeriodicidadeValida()) {
       throw new ConfiguracaoFinanceiraInvalidaException(
-          "A periodicidade do aporte precisa ser 1, 2, 3, 4, 6 ou 12 meses.");
+          "A periodicidade do aporte precisa ser 1, 2, 3, 4, 6 ou 12 meses.",
+          prefixo + "periodicidadeDoAporteMeses");
+    }
+    contexto.decisao("aeronave.valorDoAporteCoerente", nova.possuiValorDoAporteCoerente());
+    if (!nova.possuiValorDoAporteCoerente()) {
+      throw new ConfiguracaoFinanceiraInvalidaException(
+          "Informe o valor de cada aporte: no aporte fixo, é ele que se cobra a cada período.",
+          prefixo + "valorDoAporte");
     }
     return nova;
+  }
+
+  private static ContadoresDaAeronave contadoresLidos(DetalheDaAeronaveResponse.Contadores lidos) {
+    return new ContadoresDaAeronave(
+        lidos.horasDeCelula(),
+        lidos.ciclos(),
+        lidos.kmVoados(),
+        lidos.horasMotor1(),
+        lidos.horasMotor2(),
+        lidos.horasMotor3(),
+        lidos.horasApu());
   }
 
   private Aeronave carregar(Long id) {

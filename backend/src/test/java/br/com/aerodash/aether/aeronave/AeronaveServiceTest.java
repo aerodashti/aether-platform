@@ -94,7 +94,14 @@ class AeronaveServiceTest {
         service.corrigirContadores(
             1L,
             new ContadoresRequest(
-                new BigDecimal("3412.5"), 2890, new BigDecimal("1482300"), null, null, null, null));
+                new BigDecimal("3412.5"),
+                2890,
+                new BigDecimal("1482300"),
+                null,
+                null,
+                null,
+                null,
+                null));
 
     assertThat(detalhe.contadores().horasDeCelula()).isEqualByComparingTo("3412.5");
     assertThat(aeronave.getContadores().ciclos()).isEqualTo(2890);
@@ -140,7 +147,7 @@ class AeronaveServiceTest {
         LocalDate.parse("2027-06-01"),
         LocalDate.parse("2027-08-01"),
         new ContadoresRequest(
-            new BigDecimal("1200.0"), 950, new BigDecimal("510000"), null, null, null, null),
+            new BigDecimal("1200.0"), 950, new BigDecimal("510000"), null, null, null, null, null),
         new ConfiguracaoFinanceiraRequest(
             BaseDoRateio.POR_PROPRIEDADE,
             ModeloDeAporte.FIXO,
