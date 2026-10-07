@@ -1,96 +1,154 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
-import { Texto } from '@/design-system/primitivos/Texto';
 
-import { useAlterarEmpresa, type EmpresaResponse } from '../api/useConfiguracoes';
+import {
+  useAlterarEmpresa,
+  type AlterarEmpresaRequest,
+  type EmpresaResponse,
+} from '../api/useConfiguracoes';
+import { useResultadoDoCartao } from '../hooks/useResultadoDoCartao';
 
 import { Cartao } from './Cartao';
 import estilos from './CartaoDaEmpresa.module.css';
+import { FormularioDoCartao } from './FormularioDoCartao';
+import { ResultadoDoEnvio } from './ResultadoDoEnvio';
 import { formatarCnpj } from './rotulos';
+import {
+  ROTULOS_DA_EMPRESA,
+  validarDadosDaEmpresa,
+  type CampoDaEmpresa,
+  type RascunhoDaEmpresa,
+} from './validacaoDaEmpresa';
+
+function rascunhoDe(empresa: EmpresaResponse): RascunhoDaEmpresa {
+  return {
+    nomeFantasia: empresa.nomeFantasia ?? '',
+    razaoSocial: empresa.razaoSocial ?? '',
+    email: empresa.email ?? '',
+    telefone: empresa.telefone ?? '',
+  };
+}
+
+function paraEnvio(rascunho: RascunhoDaEmpresa): Required<AlterarEmpresaRequest> {
+  return {
+    nomeFantasia: rascunho.nomeFantasia.trim(),
+    razaoSocial: rascunho.razaoSocial.trim(),
+    email: rascunho.email.trim(),
+    telefone: rascunho.telefone.trim(),
+  };
+}
+
+function mesmosDados(a: RascunhoDaEmpresa, b: RascunhoDaEmpresa): boolean {
+  return (Object.keys(a) as CampoDaEmpresa[]).every((campo) => a[campo] === b[campo]);
+}
 
 /**
  * Os dados da conta.
  *
  * <p>O CNPJ aparece bloqueado, e não ausente: quem administra precisa conferir que está na conta
  * certa. Ele é o documento do contrato — trocá-lo é trocar de empresa, não editar um campo.
+ *
+ * <p>O rascunho nasce dos dados da empresa e só volta a eles quando este cartão salva. Salvar a
+ * antecedência, no cartão vizinho, também atualiza a empresa no cache — e não pode apagar o
+ * telefone que a pessoa acabou de digitar aqui.
  */
 export function CartaoDaEmpresa({ empresa }: { empresa: EmpresaResponse }) {
-  const [nomeFantasia, setNomeFantasia] = useState(empresa.nomeFantasia ?? '');
-  const [razaoSocial, setRazaoSocial] = useState(empresa.razaoSocial ?? '');
-  const [email, setEmail] = useState(empresa.email ?? '');
-  const [telefone, setTelefone] = useState(empresa.telefone ?? '');
+  const [rascunho, setRascunho] = useState(() => rascunhoDe(empresa));
   const alterar = useAlterarEmpresa();
+  const validacao = useValidacao({
+    erros: validarDadosDaEmpresa(rascunho),
+    valores: rascunho,
+    rotulos: ROTULOS_DA_EMPRESA,
+    falha: alterar.error,
+  });
+  const { resultado, aoEditar, salvarSeMudou } = useResultadoDoCartao(alterar, 'Dados salvos.');
 
-  // Quem manda no formulário é o servidor: se a resposta trouxer outro valor — porque outra
-  // pessoa salvou, ou porque o backend normalizou algo —, os campos acompanham.
-  useEffect(() => {
-    setNomeFantasia(empresa.nomeFantasia ?? '');
-    setRazaoSocial(empresa.razaoSocial ?? '');
-    setEmail(empresa.email ?? '');
-    setTelefone(empresa.telefone ?? '');
-  }, [empresa]);
+  function mudar(campo: CampoDaEmpresa) {
+    return (valor: string) => {
+      aoEditar();
+      setRascunho((atual) => ({ ...atual, [campo]: valor }));
+    };
+  }
 
-  const erro = alterar.error instanceof ErroDeApi ? alterar.error.message : undefined;
-  const completo = [nomeFantasia, razaoSocial, email, telefone].every(
-    (campo) => campo.trim().length > 0,
-  );
+  function salvar() {
+    const dados = paraEnvio(rascunho);
+    salvarSeMudou(!mesmosDados(dados, rascunhoDe(empresa)), () =>
+      alterar.mutate(dados, { onSuccess: (salva) => setRascunho(rascunhoDe(salva)) }),
+    );
+  }
 
   return (
     <Cartao titulo="Dados da empresa">
-      <CampoDeTexto
-        rotulo="Nome fantasia"
-        valor={nomeFantasia}
-        aoMudar={setNomeFantasia}
-        maxLength={120}
-      />
-      <CampoDeTexto
-        rotulo="Razão social"
-        valor={razaoSocial}
-        aoMudar={setRazaoSocial}
-        maxLength={180}
-      />
-
-      <div>
-        <span className={estilos.rotulo}>
-          CNPJ <span className={estilos.rotuloApoio}>(somente leitura)</span>
-        </span>
-        <div className={estilos.bloqueado}>
-          <span className={estilos.documento}>{formatarCnpj(empresa.cnpj)}</span>
-          <span className={estilos.selo}>BLOQUEADO</span>
-        </div>
-      </div>
-
-      <div className={estilos.par}>
+      <FormularioDoCartao
+        aoEnviar={() => validacao.enviar(salvar)}
+        refDoFormulario={validacao.refDoFormulario}
+      >
         <CampoDeTexto
-          rotulo="E-mail"
-          valor={email}
-          aoMudar={setEmail}
-          tipo="email"
-          inputMode="email"
-          maxLength={180}
-          erro={erro}
+          rotulo="Nome fantasia"
+          obrigatorio
+          valor={rascunho.nomeFantasia}
+          aoMudar={mudar('nomeFantasia')}
+          maxLength={120}
+          autoComplete="organization"
+          erro={validacao.erroDe('nomeFantasia')}
         />
-        <CampoDeTexto rotulo="Telefone" valor={telefone} aoMudar={setTelefone} maxLength={20} />
-      </div>
+        <CampoDeTexto
+          rotulo="Razão social"
+          obrigatorio
+          valor={rascunho.razaoSocial}
+          aoMudar={mudar('razaoSocial')}
+          maxLength={180}
+          autoComplete="off"
+          erro={validacao.erroDe('razaoSocial')}
+        />
 
-      <div className={estilos.acao}>
-        <Botao
-          tamanho="grande"
-          aoClicar={() => alterar.mutate({ nomeFantasia, razaoSocial, email, telefone })}
-          desabilitado={!completo}
-          carregando={alterar.isPending}
-        >
-          Salvar alterações
-        </Botao>
-        {alterar.isSuccess ? (
-          <Texto variante="apoio" tom="positivo" como="span">
-            Dados salvos.
-          </Texto>
-        ) : null}
-      </div>
+        <div>
+          <span className={estilos.rotulo}>
+            CNPJ <span className={estilos.rotuloApoio}>(somente leitura)</span>
+          </span>
+          <div className={estilos.bloqueado}>
+            <span className={estilos.documento}>{formatarCnpj(empresa.cnpj)}</span>
+            <span className={estilos.selo}>BLOQUEADO</span>
+          </div>
+        </div>
+
+        <div className={estilos.par}>
+          <CampoDeTexto
+            rotulo="E-mail"
+            obrigatorio
+            valor={rascunho.email}
+            aoMudar={mudar('email')}
+            tipo="email"
+            exemplo="contato@empresa.com.br"
+            maxLength={180}
+            autoComplete="off"
+            erro={validacao.erroDe('email')}
+          />
+          <CampoDeTexto
+            rotulo="Telefone"
+            obrigatorio
+            valor={rascunho.telefone}
+            aoMudar={mudar('telefone')}
+            tipo="telefone"
+            exemplo="+55 11 3000-0000"
+            maxLength={20}
+            autoComplete="off"
+            erro={validacao.erroDe('telefone')}
+          />
+        </div>
+
+        <div className={estilos.acao}>
+          <Botao tamanho="grande" tipo="submit" carregando={alterar.isPending}>
+            Salvar alterações
+          </Botao>
+          <ResumoDoFormulario resumo={validacao.resumo} />
+          <ResultadoDoEnvio resultado={resultado} />
+        </div>
+      </FormularioDoCartao>
     </Cartao>
   );
 }

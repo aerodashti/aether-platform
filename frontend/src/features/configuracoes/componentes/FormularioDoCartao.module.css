@@ -1,0 +1,6 @@
+/* O mesmo ritmo do corpo do cartão: o formulário é o único filho dele e repete o espaçamento. */
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}

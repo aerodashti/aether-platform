@@ -1,16 +1,15 @@
+.formularioComResultado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
 .token {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-3);
   padding-top: var(--espaco-4);
   border-top: 1px solid var(--cor-borda-suave);
-}
-
-.rotulo {
-  font-size: var(--tamanho-s);
-  font-weight: var(--peso-medio);
-  line-height: var(--altura-s);
-  color: var(--cor-texto-suave);
 }
 
 .linha {
@@ -20,12 +19,9 @@
   align-items: center;
 }
 
-.campo {
-  width: 110px;
-}
-
 .acao {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-4);
   align-items: center;
 }
