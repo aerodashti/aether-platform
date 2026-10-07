@@ -21,6 +21,14 @@ import java.time.LocalTime;
 @Table(name = "manutencao")
 public class Manutencao {
 
+  /** Programar com mais atraso que isso não é registro tardio, é ano digitado errado. */
+  private static final int ANOS_DE_ATRASO = 1;
+
+  private static final int ANOS_DE_ANTECEDENCIA = 10;
+
+  /** Antes disso, a data de conclusão é ano digitado errado. */
+  private static final LocalDate PRIMEIRA_CONCLUSAO = LocalDate.of(2000, 1, 1);
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -47,6 +55,10 @@ public class Manutencao {
   @Column(name = "status", nullable = false, length = 12)
   private StatusDaManutencao status;
 
+  /** O dia em que a manutenção foi feita, informado ao concluir. Nulo enquanto programada. */
+  @Column(name = "concluida_em")
+  private LocalDate concluidaEm;
+
   @Column(name = "criado_em", nullable = false)
   private Instant criadoEm;
 
@@ -70,27 +82,56 @@ public class Manutencao {
   private void preencher(DadosDaManutencao dados, Instant momento) {
     this.data = dados.data();
     this.hora = dados.hora();
-    this.responsavel =
-        dados.responsavel() == null || dados.responsavel().isBlank()
-            ? null
-            : dados.responsavel().trim();
-    this.descricao = dados.descricao().trim();
+    this.responsavel = Espacos.apararOuNulo(dados.responsavel());
+    this.descricao = Espacos.aparar(dados.descricao());
     this.valor = dados.valor();
     this.atualizadoEm = momento;
+  }
+
+  /** A primeira data programável: o registro tardio do que já devia ter acontecido. */
+  public static LocalDate primeiraDataProgramavel(LocalDate hoje) {
+    return hoje.minusYears(ANOS_DE_ATRASO);
+  }
+
+  public static LocalDate ultimaDataProgramavel(LocalDate hoje) {
+    return hoje.plusYears(ANOS_DE_ANTECEDENCIA);
+  }
+
+  /** Data passada dentro da janela é aceita: a manutenção nasce atrasada, e a tela avisa. */
+  public boolean possuiDataProgramavel(LocalDate hoje) {
+    return !data.isBefore(primeiraDataProgramavel(hoje))
+        && !data.isAfter(ultimaDataProgramavel(hoje));
   }
 
   public boolean estaConcluida() {
     return status == StatusDaManutencao.CONCLUIDA;
   }
 
-  public void concluir(Instant momento) {
+  /** Só a programada se corrige: a concluída é histórico, e o caminho do engano é reabrir. */
+  public boolean podeSerCorrigida() {
+    return !estaConcluida();
+  }
+
+  /** A conclusão vem no máximo um ano antes da data programada, e nunca antes de 2000. */
+  public LocalDate primeiraDataDeConclusao() {
+    LocalDate umAnoAntes = data.minusYears(1);
+    return umAnoAntes.isBefore(PRIMEIRA_CONCLUSAO) ? PRIMEIRA_CONCLUSAO : umAnoAntes;
+  }
+
+  public boolean aceitaConclusaoEm(LocalDate dia) {
+    return !dia.isBefore(primeiraDataDeConclusao());
+  }
+
+  public void concluir(LocalDate dia, Instant momento) {
     this.status = StatusDaManutencao.CONCLUIDA;
+    this.concluidaEm = dia;
     this.atualizadoEm = momento;
   }
 
   /** O caminho de volta do engano: concluiu a errada, reabre e ela volta às programadas. */
   public void reabrir(Instant momento) {
     this.status = StatusDaManutencao.PROGRAMADA;
+    this.concluidaEm = null;
     this.atualizadoEm = momento;
   }
 
@@ -124,6 +165,10 @@ public class Manutencao {
 
   public StatusDaManutencao getStatus() {
     return status;
+  }
+
+  public LocalDate getConcluidaEm() {
+    return concluidaEm;
   }
 
   public Instant getCriadoEm() {

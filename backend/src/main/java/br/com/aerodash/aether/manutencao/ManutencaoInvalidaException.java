@@ -12,6 +12,11 @@ public class ManutencaoInvalidaException extends ExcecaoDeDominio {
     super("Manutenção inválida", detalhe);
   }
 
+  /** A recusa de um campo só, pelo nome dele no JSON: a tela marca o campo certo. */
+  public ManutencaoInvalidaException(String detalhe, String campo) {
+    super("Manutenção inválida", detalhe, campo);
+  }
+
   @Override
   public HttpStatus getStatus() {
     return HttpStatus.BAD_REQUEST;
