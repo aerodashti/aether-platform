@@ -14,6 +14,14 @@ export const ROTULO_DO_PAPEL: Record<PapelDoUsuario, string> = {
   PILOTO: 'Piloto',
 };
 
+/** O alcance de cada papel, para quem convida saber o que está concedendo (glossário, Acesso). */
+export const DESCRICAO_DO_PAPEL: Record<PapelDoUsuario, string> = {
+  ADMINISTRADOR: 'Administra usuários e os dados da empresa: convida, desativa e reativa acessos.',
+  GESTOR: 'Opera o dia a dia: registra voos, lançamentos e fechamentos.',
+  PROPRIETARIO: 'Titular de aeronave: vê o que é seu, sem registrar nem administrar.',
+  PILOTO: 'Tripulação: registra voos e consulta a própria escala.',
+};
+
 export const PAPEIS = Object.keys(ROTULO_DO_PAPEL) as PapelDoUsuario[];
 
 export const OPCOES_DE_PAPEL = [

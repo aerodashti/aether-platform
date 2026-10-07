@@ -11,6 +11,8 @@ public record TrocarSenhaRequest(
     @NotBlank(message = "Informe a senha atual.") String senhaAtual,
     @NotBlank(message = "Informe a nova senha.")
         @Size(min = 8, max = 72, message = "A senha deve ter entre 8 e 72 caracteres.")
+        @CabeNoBcrypt
+        @Schema(description = "De 8 a 72 caracteres, e até 72 bytes em UTF-8")
         String novaSenha,
     @NotBlank(message = "Informe o código enviado por e-mail.")
         @Pattern(regexp = "\\d{6}", message = "O código tem seis dígitos.")

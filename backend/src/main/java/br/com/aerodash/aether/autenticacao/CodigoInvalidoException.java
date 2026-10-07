@@ -13,11 +13,17 @@ public class CodigoInvalidoException extends ExcecaoDeDominio {
 
   private static final long serialVersionUID = 1L;
 
+  private static final String TITULO = "Código inválido";
+  private static final String DETALHE =
+      "Código incorreto ou expirado. Confira os dígitos ou peça um novo.";
+
   public CodigoInvalidoException() {
-    super(
-        "Código inválido",
-        "Código incorreto ou expirado. Confira os dígitos ou peça um novo.",
-        "codigo");
+    this("codigo");
+  }
+
+  /** Para a tela que tem o campo do código: a recusa cai nele, e não junto dos botões. */
+  public CodigoInvalidoException(String campo) {
+    super(TITULO, DETALHE, campo);
   }
 
   @Override

@@ -14,7 +14,7 @@ public class EmailJaCadastradoException extends ExcecaoDeDominio {
   private static final long serialVersionUID = 1L;
 
   public EmailJaCadastradoException() {
-    super("E-mail já cadastrado", "Já existe um usuário com este e-mail.");
+    super("E-mail já cadastrado", "Já existe um usuário com este e-mail.", "email");
   }
 
   @Override

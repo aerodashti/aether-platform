@@ -1,15 +1,11 @@
-.personalizado {
-  display: flex;
-  gap: var(--espaco-3);
-  align-items: center;
-}
-
+/* Três dígitos não pedem a largura do cartão; o apoio cabe numa linha. */
 .campo {
-  width: 88px;
+  max-width: 280px;
 }
 
 .acao {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-4);
   align-items: center;
 }

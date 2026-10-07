@@ -149,6 +149,61 @@ class UsuarioIntegracaoTest {
   }
 
   @Test
+  @DisplayName("convidar, desativar e só depois usar o link: o convite morreu com a desativação")
+  void desativarMataOConvitePendente() throws Exception {
+    Cookie sessao = entrar(ADMINISTRADOR);
+    String email = "desativado.antes.do.link@administraair.com.br";
+    Long id = convidar(sessao, "Desativado Antes", email);
+    ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
+    org.mockito.Mockito.verify(enviador)
+        .enviar(org.mockito.ArgumentMatchers.any(), token.capture());
+
+    mockMvc
+        .perform(post("/usuarios/" + id + "/desativacao").cookie(sessao))
+        .andExpect(status().isOk());
+
+    mockMvc
+        .perform(
+            post("/autenticacao/convite/senha")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"convite":"%s","novaSenha":"senha-do-convidado"}
+                    """
+                        .formatted(token.getValue())))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Convite inválido"));
+
+    assertThat(usuarios.findByEmail(email))
+        .get()
+        .satisfies(
+            usuario -> {
+              assertThat(usuario.getSituacao()).isEqualTo(SituacaoDoUsuario.INATIVO);
+              assertThat(usuario.possuiSenha()).isFalse();
+            });
+  }
+
+  @Test
+  @DisplayName("a busca ignora acentos e trata \"_\" e \"%\" como texto")
+  void buscaIgnoraAcentosEEscapaCuringas() throws Exception {
+    Cookie sessao = entrar(ADMINISTRADOR);
+    String email = "busca.sem.acento@administraair.com.br";
+    convidar(sessao, "Conceição Integração", email);
+
+    mockMvc
+        .perform(get("/usuarios").param("busca", "CONCEICAO").cookie(sessao))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.itens[0].email").value(email));
+
+    for (String curinga : new String[] {"_", "%"}) {
+      mockMvc
+          .perform(get("/usuarios").param("busca", curinga).cookie(sessao))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.total").value(0));
+    }
+  }
+
+  @Test
   @DisplayName("e-mail repetido responde 409 e o link do convite não é reemitido")
   void emailRepetidoResponde409() throws Exception {
     mockMvc
@@ -199,6 +254,21 @@ class UsuarioIntegracaoTest {
         .perform(post("/usuarios/" + id + "/reativacao").cookie(entrar(ADMINISTRADOR)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.situacao").value("ATIVO"));
+  }
+
+  private Long convidar(Cookie sessao, String nome, String email) throws Exception {
+    mockMvc
+        .perform(
+            post("/usuarios")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"%s","email":"%s","papel":"GESTOR"}
+                    """
+                        .formatted(nome, email)))
+        .andExpect(status().isCreated());
+    return usuarios.findByEmail(email).orElseThrow().getId();
   }
 
   private Cookie entrar(String email) throws Exception {

@@ -2,12 +2,7 @@ import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import {
-  useDesativarUsuario,
-  useReativarUsuario,
-  useReenviarConvite,
-  type UsuarioResponse,
-} from '../api/useUsuarios';
+import type { UsuarioResponse } from '../api/useUsuarios';
 
 import {
   iniciais,
@@ -18,12 +13,22 @@ import {
 } from './rotulos';
 import estilos from './TabelaDeUsuarios.module.css';
 
+/** O que cada linha oferece. Quem executa e anuncia o resultado é a página. */
+export interface AcoesDaLinha {
+  aoReenviar: (usuario: UsuarioResponse) => void;
+  aoDesativar: (usuario: UsuarioResponse) => void;
+  aoReativar: (usuario: UsuarioResponse) => void;
+  reenviando: (id: number) => boolean;
+  reativando: (id: number) => boolean;
+}
+
 interface TabelaDeUsuariosProps {
   itens: UsuarioResponse[];
   carregando: boolean;
   erro: boolean;
   emailDaSessao: string | undefined;
   aoTentarDeNovo: () => void;
+  acoes: AcoesDaLinha;
 }
 
 const LINHAS_DO_ESQUELETO = 4;
@@ -44,11 +49,8 @@ export function TabelaDeUsuarios({
   erro,
   emailDaSessao,
   aoTentarDeNovo,
+  acoes,
 }: TabelaDeUsuariosProps) {
-  const reenviar = useReenviarConvite();
-  const desativar = useDesativarUsuario();
-  const reativar = useReativarUsuario();
-
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
@@ -165,8 +167,9 @@ export function TabelaDeUsuarios({
                     <Botao
                       variante="fantasma"
                       tamanho="pequeno"
-                      carregando={reenviar.isPending}
-                      aoClicar={() => reenviar.mutate(id)}
+                      carregando={acoes.reenviando(id)}
+                      rotuloAcessivel={`Reenviar convite para ${usuario.nome ?? ''}`}
+                      aoClicar={() => acoes.aoReenviar(usuario)}
                     >
                       Reenviar
                     </Botao>
@@ -178,8 +181,11 @@ export function TabelaDeUsuarios({
                       variante="fantasma"
                       tamanho="pequeno"
                       tom={inativo ? 'padrao' : 'critico'}
-                      carregando={desativar.isPending || reativar.isPending}
-                      aoClicar={() => (inativo ? reativar.mutate(id) : desativar.mutate(id))}
+                      carregando={inativo && acoes.reativando(id)}
+                      rotuloAcessivel={`${inativo ? 'Reativar' : 'Desativar'} ${usuario.nome ?? ''}`}
+                      aoClicar={() =>
+                        inativo ? acoes.aoReativar(usuario) : acoes.aoDesativar(usuario)
+                      }
                     >
                       {inativo ? 'Reativar' : 'Desativar'}
                     </Botao>

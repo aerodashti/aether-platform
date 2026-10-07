@@ -53,7 +53,7 @@ export function useUsuarios(filtro: FiltroDeUsuarios) {
  * acrescenta uma linha que pode cair em outra página, e desativar muda a situação que é filtro —
  * remendar o cache item a item erraria a contagem e o recorte.
  */
-function useAcaoSobreUsuarios<T>(nome: string, acao: (entrada: T) => Promise<unknown>) {
+function useAcaoSobreUsuarios<T, R>(nome: string, acao: (entrada: T) => Promise<R>) {
   const cliente = useQueryClient();
   return useMutation({
     mutationFn: (entrada: T) => contexto.interacao(nome, () => acao(entrada)),
@@ -62,25 +62,25 @@ function useAcaoSobreUsuarios<T>(nome: string, acao: (entrada: T) => Promise<unk
 }
 
 export function useConvidarUsuario() {
-  return useAcaoSobreUsuarios<ConvidarUsuarioRequest>('convidar-usuario', (convite) =>
+  return useAcaoSobreUsuarios('convidar-usuario', (convite: ConvidarUsuarioRequest) =>
     enviar<UsuarioResponse>('/usuarios', convite),
   );
 }
 
 export function useReenviarConvite() {
-  return useAcaoSobreUsuarios<number>('reenviar-convite', (id) =>
+  return useAcaoSobreUsuarios('reenviar-convite', (id: number) =>
     enviar<void>(`/usuarios/${id}/convite`),
   );
 }
 
 export function useDesativarUsuario() {
-  return useAcaoSobreUsuarios<number>('desativar-usuario', (id) =>
+  return useAcaoSobreUsuarios('desativar-usuario', (id: number) =>
     enviar<UsuarioResponse>(`/usuarios/${id}/desativacao`),
   );
 }
 
 export function useReativarUsuario() {
-  return useAcaoSobreUsuarios<number>('reativar-usuario', (id) =>
+  return useAcaoSobreUsuarios('reativar-usuario', (id: number) =>
     enviar<UsuarioResponse>(`/usuarios/${id}/reativacao`),
   );
 }

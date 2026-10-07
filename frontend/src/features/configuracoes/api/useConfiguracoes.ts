@@ -56,9 +56,12 @@ export function useSolicitarTokenDeSenha() {
   });
 }
 
+/** Troca a senha e encerra as outras sessões; a de quem trocou continua aberta. */
 export function useTrocarSenha() {
   return useMutation({
     mutationFn: (dados: TrocarSenhaRequest) =>
       contexto.interacao('trocar-senha', () => enviar<void>('/autenticacao/senha', dados)),
   });
 }
+
+export type MutacaoDaTrocaDeSenha = ReturnType<typeof useTrocarSenha>;

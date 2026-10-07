@@ -113,13 +113,22 @@ public class AutenticacaoController {
     return ResponseEntity.accepted().build();
   }
 
+  /** O cookie diz qual sessão continua aberta: as outras do usuário são encerradas. */
   @PostMapping("/senha")
-  @Operation(summary = "Troca a própria senha: exige a senha atual e o código enviado por e-mail")
+  @Operation(
+      summary =
+          "Troca a própria senha: exige a senha atual e o código enviado por e-mail, e encerra as"
+              + " outras sessões")
   public ResponseEntity<Void> trocarSenha(
       @AuthenticationPrincipal UsuarioAutenticado solicitante,
+      @CookieValue(name = COOKIE_DE_SESSAO) String token,
       @Valid @RequestBody TrocarSenhaRequest requisicao) {
     trocaDeSenha.trocar(
-        solicitante.id(), requisicao.senhaAtual(), requisicao.novaSenha(), requisicao.codigo());
+        solicitante.id(),
+        token,
+        requisicao.senhaAtual(),
+        requisicao.novaSenha(),
+        requisicao.codigo());
     return ResponseEntity.noContent().build();
   }
 

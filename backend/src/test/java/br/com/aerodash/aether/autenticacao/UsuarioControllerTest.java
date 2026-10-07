@@ -30,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * A tela de Usuários pela borda HTTP.
@@ -171,6 +172,66 @@ class UsuarioControllerTest {
   }
 
   @Test
+  @DisplayName("e-mail sem ponto no domínio é recusado: o convite nunca chegaria")
+  void emailSemDominioCompletoEhRecusado() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+
+    convidar(
+            """
+            {"nome":"Fulano","email":"fulano@exemplo","papel":"GESTOR"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.email")
+                .value("Informe um e-mail completo, como nome@empresa.com.br."));
+
+    verify(usuarios, never()).convidar(any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("nome feito só de caractere invisível é recusado no campo nome")
+  void nomeInvisivelEhRecusado() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+
+    convidar(
+            """
+            {"nome":"\\u200b\\u00a0","email":"fulano@exemplo.com.br","papel":"GESTOR"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.nome").value("Use letras ou números, e não só espaços ou sinais."));
+  }
+
+  @Test
+  @DisplayName("nome e e-mail chegam ao serviço sem os espaços das pontas")
+  void nomeEEmailChegamSemEspacos() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+
+    convidar(
+            """
+            {"nome":"  Camila Nogueira ","email":" camila@administraair.com.br ","papel":"GESTOR"}
+            """)
+        .andExpect(status().isCreated());
+
+    verify(usuarios)
+        .convidar("Camila Nogueira", "camila@administraair.com.br", PapelDoUsuario.GESTOR);
+  }
+
+  @Test
+  @DisplayName("e-mail já cadastrado volta como 409 em campos.email")
+  void emailJaCadastradoVoltaNoCampo() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+    when(usuarios.convidar(any(), any(), any())).thenThrow(new EmailJaCadastradoException());
+
+    convidar(
+            """
+            {"nome":"Camila","email":"camila@administraair.com.br","papel":"GESTOR"}
+            """)
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.campos.email").value("Já existe um usuário com este e-mail."));
+  }
+
+  @Test
   @DisplayName("reenviar convite responde 202: o que se garante é que o convite saiu")
   void reenviarResponde202() throws Exception {
     when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
@@ -227,5 +288,13 @@ class UsuarioControllerTest {
             PapelDoUsuario.GESTOR,
             SituacaoDoUsuario.PENDENTE,
             PageRequest.of(1, 5, org.springframework.data.domain.Sort.by("nome")));
+  }
+
+  private ResultActions convidar(String corpo) throws Exception {
+    return mockMvc.perform(
+        post("/usuarios")
+            .cookie(new Cookie("aether_sessao", TOKEN))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
   }
 }
