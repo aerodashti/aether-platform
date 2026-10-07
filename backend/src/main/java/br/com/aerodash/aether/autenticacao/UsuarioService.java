@@ -3,7 +3,7 @@ package br.com.aerodash.aether.autenticacao;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Instant;
-import java.util.Locale;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +21,7 @@ public class UsuarioService {
 
   private final UsuarioRepository usuarios;
   private final ConviteService convites;
+  private final CodigoDeRecuperacaoRepository codigos;
   private final UsuarioMapper mapper;
   private final PoliticaDeAcesso politica;
   private final ContextoDaRequisicao contexto;
@@ -28,11 +29,13 @@ public class UsuarioService {
   public UsuarioService(
       UsuarioRepository usuarios,
       ConviteService convites,
+      CodigoDeRecuperacaoRepository codigos,
       UsuarioMapper mapper,
       PoliticaDeAcesso politica,
       ContextoDaRequisicao contexto) {
     this.usuarios = usuarios;
     this.convites = convites;
+    this.codigos = codigos;
     this.mapper = mapper;
     this.politica = politica;
     this.contexto = contexto;
@@ -42,7 +45,9 @@ public class UsuarioService {
   public Page<UsuarioResponse> listar(
       String busca, PapelDoUsuario papel, SituacaoDoUsuario situacao, Pageable paginacao) {
     Page<UsuarioResponse> pagina =
-        usuarios.buscar(termo(busca), papel, situacao, paginacao).map(mapper::paraLinhaDaLista);
+        usuarios
+            .buscar(TermoDeBusca.paraLike(busca), papel, situacao, paginacao)
+            .map(mapper::paraLinhaDaLista);
     contexto.registrar("usuarios.encontrados", pagina.getTotalElements());
     return pagina;
   }
@@ -77,10 +82,18 @@ public class UsuarioService {
     convites.emitir(usuario, politica.agora());
   }
 
+  /**
+   * Revoga o acesso, e com ele os segredos que ainda o devolveriam: o convite pendente e o código
+   * de recuperação pedido antes. Os dois terminam em {@code definirSenha}, que ativa a pessoa — sem
+   * isto, o link do convite reativaria quem acabou de ser desativado.
+   */
   @Transactional
   public UsuarioResponse desativar(Long id, UsuarioAutenticado solicitante) {
     Usuario usuario = exigirOutroUsuario(id, solicitante);
-    usuario.desativar(politica.agora());
+    Instant agora = politica.agora();
+    usuario.desativar(agora);
+    convites.revogar(usuario, agora);
+    revogarCodigoDeRecuperacao(usuario, agora);
     return mapper.paraLinhaDaLista(usuario);
   }
 
@@ -89,6 +102,13 @@ public class UsuarioService {
     Usuario usuario = exigirOutroUsuario(id, solicitante);
     usuario.reativar(politica.agora());
     return mapper.paraLinhaDaLista(usuario);
+  }
+
+  private void revogarCodigoDeRecuperacao(Usuario usuario, Instant agora) {
+    Optional<CodigoDeRecuperacao> pendente =
+        codigos.findFirstByUsuarioOrderByCriadoEmDesc(usuario).filter(codigo -> !codigo.foiUsado());
+    contexto.decisao("usuarios.codigo_pendente_revogado", pendente.isPresent());
+    pendente.ifPresent(codigo -> codigo.marcarComoUsado(agora));
   }
 
   private Usuario exigirOutroUsuario(Long id, UsuarioAutenticado solicitante) {
@@ -105,16 +125,5 @@ public class UsuarioService {
     return usuarios
         .findById(id)
         .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado."));
-  }
-
-  /**
-   * O termo vira um {@code like} em minúsculas com curinga dos dois lados. Busca vazia vira {@code
-   * %}, que casa com tudo — assim a consulta tem uma forma só, com e sem busca.
-   */
-  private static String termo(String busca) {
-    if (busca == null || busca.isBlank()) {
-      return "%";
-    }
-    return "%" + busca.trim().toLowerCase(Locale.ROOT) + "%";
   }
 }

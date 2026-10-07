@@ -73,6 +73,21 @@ class ConviteServiceTest {
   }
 
   @Test
+  @DisplayName("revogar mata o convite vigente sem emitir outro")
+  void revogarMataOVigenteSemEmitir() {
+    Usuario convidado = convidado();
+    Convite vigente = new Convite(convidado, "hash-do-token", AGORA, VALIDADE);
+    when(convites.findFirstByUsuarioOrderByCriadoEmDesc(convidado))
+        .thenReturn(Optional.of(vigente));
+
+    service.revogar(convidado, AGORA.plusSeconds(60));
+
+    assertThat(vigente.estaVigente(AGORA.plusSeconds(61))).isFalse();
+    verify(convites, never()).save(any());
+    verify(enviador, never()).enviar(any(), any());
+  }
+
+  @Test
   @DisplayName("concluir define a senha da própria pessoa, ativa a conta e gasta o link")
   void concluirAtivaAConta() {
     Usuario convidado = convidado();

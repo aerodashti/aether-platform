@@ -19,15 +19,15 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
    *
    * <p>Os três critérios são opcionais e combinam entre si. Papel e situação chegam nulos quando a
    * tela está em "todos"; {@code busca} chega sempre preenchida — no mínimo como {@code %} — porque
-   * um {@code like} com parâmetro nulo não é a mesma coisa que ausência de filtro.
+   * um {@code like} com parâmetro nulo não é a mesma coisa que ausência de filtro. Ela vem de
+   * {@link TermoDeBusca#paraLike}, que escapa os curingas e tira os acentos como a consulta tira.
    */
   @Query(
-      """
-      select u from Usuario u
-       where (:papel is null or u.papel = :papel)
-         and (:situacao is null or u.situacao = :situacao)
-         and (lower(u.nome) like :busca or u.email like :busca)
-      """)
+      "select u from Usuario u"
+          + " where (:papel is null or u.papel = :papel)"
+          + " and (:situacao is null or u.situacao = :situacao)"
+          + " and"
+          + TermoDeBusca.CONDICAO)
   Page<Usuario> buscar(
       @Param("busca") String busca,
       @Param("papel") PapelDoUsuario papel,

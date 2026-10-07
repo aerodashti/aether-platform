@@ -2,6 +2,7 @@ package br.com.aerodash.aether.autenticacao;
 
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Instant;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +44,27 @@ public class ConviteService {
    */
   @Transactional
   public void emitir(Usuario usuario, Instant agora) {
-    convites
-        .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
-        .filter(anterior -> anterior.estaVigente(agora))
-        .ifPresent(anterior -> anterior.invalidar(agora));
+    revogar(usuario, agora);
 
     String token = cofre.novoTokenDeSessao();
     convites.save(new Convite(usuario, cofre.resumir(token), agora, politica.validadeDoConvite()));
     enviador.enviar(usuario, token);
+  }
+
+  /**
+   * Mata o convite vigente, se houver.
+   *
+   * <p>Desativar quem ainda não concluiu o convite precisa disto: concluir define a senha, e
+   * definir a senha ativa — o link reativaria quem o administrador acabou de desativar.
+   */
+  @Transactional
+  public void revogar(Usuario usuario, Instant agora) {
+    Optional<Convite> vigente =
+        convites
+            .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
+            .filter(convite -> convite.estaVigente(agora));
+    contexto.decisao("convite.vigente_revogado", vigente.isPresent());
+    vigente.ifPresent(convite -> convite.invalidar(agora));
   }
 
   /**
