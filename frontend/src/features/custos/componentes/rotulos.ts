@@ -47,13 +47,6 @@ export function dataCurta(iso: string | undefined): string {
   return iso ? DATA.format(new Date(`${iso}T00:00:00`)) : '—';
 }
 
-export function competenciaAtual(): string {
-  // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,
-  // já estaria no mês seguinte.
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-}
-
 export const ATRIBUICAO_RATEADA = 'Rateio entre os proprietários';
 
 /** Começo que o Excel lê como fórmula: "=HYPERLINK(...)" numa descrição viraria um link. */

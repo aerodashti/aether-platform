@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
@@ -20,7 +21,7 @@ import {
 
 import estilos from './PaginaDeCustos.module.css';
 import { PainelDeCusto } from './PainelDeCusto';
-import { CATEGORIAS, competenciaAtual, csvDosLancamentos } from './rotulos';
+import { CATEGORIAS, csvDosLancamentos } from './rotulos';
 import { TabelaDeCustos } from './TabelaDeCustos';
 
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; custo: CustoResponse } | null;
@@ -50,7 +51,7 @@ export function PaginaDeCustos() {
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
   const { aeronaveId, competencia, setAeronaveId, setCompetencia, limpar } = useRecorteDaUrl(
-    competenciaAtual(),
+    competenciaLocal(),
     { podeRegistrar: podeGerir, aoPedir: () => setPainel({ modo: 'novo' }) },
   );
   const aeronaves = useAeronaves();
