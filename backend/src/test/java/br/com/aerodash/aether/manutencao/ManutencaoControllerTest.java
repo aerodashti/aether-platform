@@ -218,6 +218,35 @@ class ManutencaoControllerTest {
   }
 
   @Test
+  @DisplayName(
+      "data, hora ou régua que não convertem voltam no próprio campo, não como corpo ilegível")
+  void corpoQueNaoConverte() throws Exception {
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-02-30","descricao":"Inspeção"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.data").exists());
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-09-22","hora":"25:00","descricao":"Inspeção"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.hora").exists());
+    postar(
+            "/manutencoes/parametros",
+            """
+            {"aeronaveId":1,"nome":"Célula","tipo":"XYZ","limite":4000,"aviso":100}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.tipo").exists());
+    verify(manutencoes, never()).agendar(any());
+    verify(manutencoes, never()).criarParametro(any());
+  }
+
+  @Test
   @DisplayName("concluir exige o dia da conclusão")
   void conclusaoSemData() throws Exception {
     postar("/manutencoes/5/conclusao", "{}")
