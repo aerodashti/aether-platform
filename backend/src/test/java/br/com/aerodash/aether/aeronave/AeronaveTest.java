@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -97,6 +98,40 @@ class AeronaveTest {
 
     assertThat(aeronave.podeVoar(HOJE)).isTrue();
     assertThat(aeronave.situacaoRegular(HOJE, ATENCAO)).isEqualTo(SituacaoRegular.REGULAR);
+  }
+
+  @Test
+  @DisplayName("pendência de manutenção impeditiva derruba a situação e impede o voo")
+  void pendenciaImpeditiva() {
+    Aeronave aeronave = com(HOJE.plusYears(1), HOJE.plusYears(1));
+    List<PendenciaOperacional> pendencias =
+        List.of(PendenciaOperacional.impeditiva("Limite estourado: Pesagem regulamentar"));
+
+    assertThat(aeronave.situacaoRegular(HOJE, ATENCAO, pendencias))
+        .isEqualTo(SituacaoRegular.VENCIDO);
+    assertThat(aeronave.podeVoar(HOJE, pendencias)).isFalse();
+  }
+
+  @Test
+  @DisplayName("pendência de atenção tira do REGULAR, mas não impede o voo")
+  void pendenciaDeAtencao() {
+    Aeronave aeronave = com(HOJE.plusYears(1), HOJE.plusYears(1));
+    List<PendenciaOperacional> pendencias =
+        List.of(PendenciaOperacional.deAtencao("CHT de Juliana Prates vencido"));
+
+    assertThat(aeronave.situacaoRegular(HOJE, ATENCAO, pendencias))
+        .isEqualTo(SituacaoRegular.ATENCAO);
+    assertThat(aeronave.podeVoar(HOJE, pendencias)).isTrue();
+  }
+
+  @Test
+  @DisplayName("documento vencido continua mandando, mesmo sem pendência")
+  void documentoGovernaSemPendencia() {
+    Aeronave aeronave = com(HOJE.minusDays(1), HOJE.plusYears(1));
+
+    assertThat(aeronave.situacaoRegular(HOJE, ATENCAO, List.of()))
+        .isEqualTo(SituacaoRegular.VENCIDO);
+    assertThat(aeronave.podeVoar(HOJE, List.of())).isFalse();
   }
 
   private static Aeronave com(LocalDate cva, LocalDate reta) {

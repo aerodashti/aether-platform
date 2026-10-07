@@ -18,7 +18,13 @@ import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
-import { consequenciaDoVencimento, dataCurta, moedaEmTexto, nomeDaAeronave } from './rotulos';
+import {
+  consequenciaDoVencimento,
+  dataCurta,
+  moedaEmTexto,
+  nomeDaAeronave,
+  pendenciaQueGoverna,
+} from './rotulos';
 import { SecaoDeContrato } from './SecaoDeContrato';
 import { SecaoDeTripulacao } from './SecaoDeTripulacao';
 
@@ -99,13 +105,15 @@ export function PaginaDeDetalheDaAeronave() {
         <span className={estilos.matricula}>{detalhe.matricula}</span>
         <span className={estilos.subtitulo}>{subtitulo}</span>
         <EtiquetaDeSituacao situacao={situacao} />
-        {/* "Atenção" sozinho é estado sem consequência: a linha diz qual documento e quando. */}
+        {/* "Atenção" sozinho é estado sem consequência: a linha diz o motivo — o documento e
+            quando, ou a pendência de manutenção ou de tripulação que tirou a aeronave do regular. */}
         {situacao !== 'REGULAR' && detalhe.documentoDoProximoVencimento ? (
           <Texto variante="apoio" tom={situacao === 'VENCIDO' ? 'critico' : 'atencao'} como="span">
-            {consequenciaDoVencimento(
-              detalhe.documentoDoProximoVencimento,
-              detalhe.diasAteOProximoVencimento,
-            )}
+            {pendenciaQueGoverna(detalhe) ??
+              consequenciaDoVencimento(
+                detalhe.documentoDoProximoVencimento,
+                detalhe.diasAteOProximoVencimento,
+              )}
           </Texto>
         ) : null}
         <Botao

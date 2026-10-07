@@ -263,3 +263,26 @@ export function nomeDaAeronave(fabricante: string | undefined, modelo: string | 
   }
   return `${marca} ${nome}`;
 }
+
+interface SituacaoComPendencias {
+  situacaoRegular?: 'REGULAR' | 'ATENCAO' | 'VENCIDO';
+  diasAteOProximoVencimento?: number;
+  pendencias?: Array<{ descricao?: string; situacao?: 'REGULAR' | 'ATENCAO' | 'VENCIDO' }>;
+}
+
+/**
+ * A pendência que explica a situação, quando é ela — e não um documento — que tira a aeronave do
+ * regular. Documento vencido continua sendo o motivo dito primeiro: é o que impede o voo pela ANAC.
+ * Havendo mais de uma, a frase conta as outras.
+ */
+export function pendenciaQueGoverna(aeronave: SituacaoComPendencias): string | undefined {
+  const situacao = aeronave.situacaoRegular ?? 'REGULAR';
+  const [principal, ...demais] = aeronave.pendencias ?? [];
+  if (situacao === 'REGULAR' || !principal || (aeronave.diasAteOProximoVencimento ?? 0) < 0) {
+    return undefined;
+  }
+  if (principal.situacao !== situacao) {
+    return undefined;
+  }
+  return demais.length > 0 ? `${principal.descricao} e mais ${demais.length}` : principal.descricao;
+}

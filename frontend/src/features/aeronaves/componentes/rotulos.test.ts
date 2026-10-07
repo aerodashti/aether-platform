@@ -8,6 +8,7 @@ import {
   prazoDaValidade,
   prazoEmPalavras,
   resumoDaFrota,
+  pendenciaQueGoverna,
 } from './rotulos';
 
 describe('prazoEmPalavras', () => {
@@ -91,5 +92,32 @@ describe('nomeDaAeronave', () => {
     expect(nomeDaAeronave('Cessna', 'Cessna Citation XLS+')).toBe('Cessna Citation XLS+');
     expect(nomeDaAeronave(undefined, 'PC-24')).toBe('PC-24');
     expect(nomeDaAeronave('Pilatus', undefined)).toBe('Pilatus');
+  });
+});
+
+describe('pendenciaQueGoverna', () => {
+  it('fala da pendência quando é ela que tira a aeronave do regular', () => {
+    expect(
+      pendenciaQueGoverna({
+        situacaoRegular: 'VENCIDO',
+        diasAteOProximoVencimento: 215,
+        pendencias: [
+          { descricao: 'Limite estourado: Pesagem regulamentar', situacao: 'VENCIDO' },
+          { descricao: 'CHT de Juliana Prates vencido', situacao: 'ATENCAO' },
+        ],
+      }),
+    ).toBe('Limite estourado: Pesagem regulamentar e mais 1');
+  });
+
+  it('documento vencido é dito primeiro; sem pendência ou regular, nada', () => {
+    expect(
+      pendenciaQueGoverna({
+        situacaoRegular: 'VENCIDO',
+        diasAteOProximoVencimento: -30,
+        pendencias: [{ descricao: 'Manutenção atrasada', situacao: 'VENCIDO' }],
+      }),
+    ).toBeUndefined();
+    expect(pendenciaQueGoverna({ situacaoRegular: 'ATENCAO', pendencias: [] })).toBeUndefined();
+    expect(pendenciaQueGoverna({ situacaoRegular: 'REGULAR' })).toBeUndefined();
   });
 });

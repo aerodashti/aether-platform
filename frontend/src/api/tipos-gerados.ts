@@ -1473,6 +1473,8 @@ export interface components {
             /** Format: int64 */
             diasAteOProximoVencimento?: number;
             podeVoar?: boolean;
+            /** @description O que, além dos documentos, pesa na situação; da mais grave à mais leve */
+            pendencias?: components["schemas"]["PendenciaResponse"][];
             /** Format: date */
             vencimentoCva?: string;
             /** Format: date */
@@ -1495,6 +1497,17 @@ export interface components {
             diaDeFechamento?: number;
             /** @description Saldo do fundo no cadastro */
             saldoDeAbertura?: number;
+        };
+        /** @description O que, além dos documentos, pesa na situação da aeronave */
+        PendenciaResponse: {
+            /** @example Limite estourado: Pesagem regulamentar */
+            descricao?: string;
+            /**
+             * @description VENCIDO impede o voo; ATENCAO só avisa
+             * @example VENCIDO
+             * @enum {string}
+             */
+            situacao?: "REGULAR" | "ATENCAO" | "VENCIDO";
         };
         /** @description Correção dos totais acumulados da aeronave */
         ContadoresRequest: {
@@ -2156,6 +2169,8 @@ export interface components {
              * @example true
              */
             podeVoar?: boolean;
+            /** @description O que, além dos documentos, pesa na situação; da mais grave à mais leve */
+            pendencias?: components["schemas"]["PendenciaResponse"][];
         };
         /** @description Documentos de uma aeronave */
         DocumentosResponse: {

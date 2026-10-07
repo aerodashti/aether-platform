@@ -1,6 +1,8 @@
 package br.com.aerodash.aether.aeronave;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class AeronaveMapper {
 
   public DetalheDaAeronaveResponse paraDetalhe(
-      Aeronave aeronave, LocalDate hoje, int diasDeAtencao) {
+      Aeronave aeronave, LocalDate hoje, int diasDeAtencao, List<PendenciaOperacional> pendencias) {
     ContadoresDaAeronave c = aeronave.getContadores();
     ConfiguracaoFinanceira f = aeronave.getConfiguracaoFinanceira();
     return new DetalheDaAeronaveResponse(
@@ -28,11 +30,12 @@ public class AeronaveMapper {
         aeronave.getApoliceDoSeguro(),
         aeronave.getPesoMaxDecolagemKg(),
         aeronave.getPesoMaxPousoKg(),
-        aeronave.situacaoRegular(hoje, diasDeAtencao),
+        aeronave.situacaoRegular(hoje, diasDeAtencao, pendencias),
         aeronave.documentoDoProximoVencimento(),
         aeronave.proximoVencimento(),
         aeronave.diasAteOProximoVencimento(hoje),
-        aeronave.podeVoar(hoje),
+        aeronave.podeVoar(hoje, pendencias),
+        paraResposta(pendencias),
         aeronave.getVencimentoCva(),
         aeronave.getVencimentoReta(),
         new DetalheDaAeronaveResponse.Contadores(
@@ -52,16 +55,26 @@ public class AeronaveMapper {
             f.saldoDeAbertura()));
   }
 
-  public AeronaveResponse paraLinhaDaFrota(Aeronave aeronave, LocalDate hoje, int diasDeAtencao) {
+  public AeronaveResponse paraLinhaDaFrota(
+      Aeronave aeronave, LocalDate hoje, int diasDeAtencao, List<PendenciaOperacional> pendencias) {
     return new AeronaveResponse(
         aeronave.getId(),
         aeronave.getMatricula(),
         aeronave.getModelo(),
         aeronave.getBase(),
-        aeronave.situacaoRegular(hoje, diasDeAtencao),
+        aeronave.situacaoRegular(hoje, diasDeAtencao, pendencias),
         aeronave.documentoDoProximoVencimento(),
         aeronave.proximoVencimento(),
         aeronave.diasAteOProximoVencimento(hoje),
-        aeronave.podeVoar(hoje));
+        aeronave.podeVoar(hoje, pendencias),
+        paraResposta(pendencias));
+  }
+
+  /** Da mais grave à mais leve: a primeira é a que a tela mostra quando só cabe uma. */
+  private static List<PendenciaResponse> paraResposta(List<PendenciaOperacional> pendencias) {
+    return pendencias.stream()
+        .sorted(Comparator.comparing(PendenciaOperacional::situacao).reversed())
+        .map(pendencia -> new PendenciaResponse(pendencia.descricao(), pendencia.situacao()))
+        .toList();
   }
 }

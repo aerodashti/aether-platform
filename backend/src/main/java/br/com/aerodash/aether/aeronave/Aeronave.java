@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -151,6 +152,26 @@ public class Aeronave {
       return SituacaoRegular.VENCIDO;
     }
     return dias <= diasDeAtencao ? SituacaoRegular.ATENCAO : SituacaoRegular.REGULAR;
+  }
+
+  /**
+   * A situação somando documentos e pendências operacionais: de novo o elo mais fraco. Um CVA em
+   * dia não deixa "Saudável" uma aeronave com a pesagem regulamentar estourada.
+   */
+  public SituacaoRegular situacaoRegular(
+      LocalDate hoje, int diasDeAtencao, List<PendenciaOperacional> pendencias) {
+    SituacaoRegular pior = situacaoRegular(hoje, diasDeAtencao);
+    for (PendenciaOperacional pendencia : pendencias) {
+      if (pendencia.situacao().compareTo(pior) > 0) {
+        pior = pendencia.situacao();
+      }
+    }
+    return pior;
+  }
+
+  /** Voar exige documentos válidos e nenhuma pendência impeditiva. */
+  public boolean podeVoar(LocalDate hoje, List<PendenciaOperacional> pendencias) {
+    return podeVoar(hoje) && pendencias.stream().noneMatch(PendenciaOperacional::impedeVoo);
   }
 
   public void atualizarCadastro(String modelo, String base, Instant momento) {

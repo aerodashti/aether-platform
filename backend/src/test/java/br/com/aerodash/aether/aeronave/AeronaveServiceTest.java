@@ -10,6 +10,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +34,9 @@ class AeronaveServiceTest {
   private AeronaveService service;
   private Aeronave aeronave;
 
+  /** O que as fontes de pendência respondem para a aeronave do teste. */
+  private List<PendenciaOperacional> pendenciasDaAeronave = List.of();
+
   @BeforeEach
   void montar() {
     service =
@@ -40,6 +44,8 @@ class AeronaveServiceTest {
             aeronaves,
             new AeronaveMapper(),
             () -> 30,
+            new PendenciasDaFrota(
+                List.of((frota, hoje, dias) -> java.util.Map.of(1L, pendenciasDaAeronave))),
             Clock.fixed(AGORA, ZoneOffset.UTC),
             contexto);
     aeronave =
@@ -50,7 +56,25 @@ class AeronaveServiceTest {
             LocalDate.parse("2027-01-01"),
             LocalDate.parse("2027-02-01"),
             AGORA);
+    org.springframework.test.util.ReflectionTestUtils.setField(aeronave, "id", 1L);
     when(aeronaves.findById(1L)).thenReturn(Optional.of(aeronave));
+  }
+
+  @Test
+  @DisplayName("limite de manutenção estourado tira o detalhe do REGULAR e impede o voo")
+  void pendenciaDeManutencao() {
+    pendenciasDaAeronave =
+        List.of(
+            PendenciaOperacional.deAtencao("CHT de Juliana Prates vencido"),
+            PendenciaOperacional.impeditiva("Limite estourado: Pesagem regulamentar"));
+
+    DetalheDaAeronaveResponse detalhe = service.buscar(1L);
+
+    assertThat(detalhe.situacaoRegular()).isEqualTo(SituacaoRegular.VENCIDO);
+    assertThat(detalhe.podeVoar()).isFalse();
+    // A mais grave primeiro: é a que a tela mostra quando só cabe uma.
+    assertThat(detalhe.pendencias().get(0).descricao())
+        .isEqualTo("Limite estourado: Pesagem regulamentar");
   }
 
   @Test
