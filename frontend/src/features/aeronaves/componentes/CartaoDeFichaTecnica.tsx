@@ -10,6 +10,11 @@ function pesoEmTexto(kg: number | null | undefined): string {
   return kg == null ? '—' : `${kg.toLocaleString('pt-BR')} kg`;
 }
 
+/** Texto em branco é "não informado" — o que ficou gravado assim antes de a ficha normalizar. */
+function textoOuTravessao(texto: string | null | undefined): string {
+  return texto?.trim() || '—';
+}
+
 interface CartaoDeFichaTecnicaProps {
   detalhe: DetalheDaAeronaveResponse;
   podeGerir: boolean;
@@ -22,12 +27,12 @@ export function CartaoDeFichaTecnica({ detalhe, podeGerir, aoEditar }: CartaoDeF
   const vigencia = detalhe.vencimentoReta ? `${dataCurta(detalhe.vencimentoReta)}` : '—';
 
   const pares: Array<[string, string]> = [
-    ['Matrícula', detalhe.matricula ?? '—'],
-    ['Fabricante', detalhe.fabricante ?? '—'],
-    ['Modelo', detalhe.modelo ?? '—'],
-    ['Nº de série', detalhe.numeroDeSerie ?? '—'],
-    ['Base', detalhe.base ?? '—'],
-    ['Hangar', detalhe.hangar ?? '—'],
+    ['Matrícula', textoOuTravessao(detalhe.matricula)],
+    ['Fabricante', textoOuTravessao(detalhe.fabricante)],
+    ['Modelo', textoOuTravessao(detalhe.modelo)],
+    ['Nº de série', textoOuTravessao(detalhe.numeroDeSerie)],
+    ['Base', textoOuTravessao(detalhe.base)],
+    ['Hangar', textoOuTravessao(detalhe.hangar)],
     ['Horas de célula', horasEmTexto(contadores?.horasDeCelula)],
     ['Ciclos / pousos', inteiroEmTexto(contadores?.ciclos)],
     ['KM voados', inteiroEmTexto(contadores?.kmVoados)],
@@ -37,7 +42,7 @@ export function CartaoDeFichaTecnica({ detalhe, podeGerir, aoEditar }: CartaoDeF
     ['Horas APU', horasEmTexto(contadores?.horasApu)],
     ['Peso máx. decolagem', pesoEmTexto(detalhe.pesoMaxDecolagemKg)],
     ['Peso máx. pouso', pesoEmTexto(detalhe.pesoMaxPousoKg)],
-    ['Apólice do seguro', detalhe.apoliceDoSeguro ?? '—'],
+    ['Apólice do seguro', textoOuTravessao(detalhe.apoliceDoSeguro)],
     ['Vigência do seguro', vigencia],
   ];
 

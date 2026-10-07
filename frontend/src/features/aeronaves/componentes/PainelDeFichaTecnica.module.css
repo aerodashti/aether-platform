@@ -1,3 +1,9 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
 .duasColunas {
   display: grid;
   grid-template-columns: 1fr 1fr;
