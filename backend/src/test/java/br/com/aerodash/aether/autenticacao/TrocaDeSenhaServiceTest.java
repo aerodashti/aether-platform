@@ -93,13 +93,16 @@ class TrocaDeSenhaServiceTest {
   @DisplayName("trocar encerra as outras sessões e mantém a de quem pediu")
   void trocarEncerraAsOutrasSessoes() {
     provasConferem();
+    SessaoDeAcesso atual =
+        new SessaoDeAcesso(usuario, "hash-da-sessao", AGORA, Duration.ofHours(12));
     SessaoDeAcesso outra =
         new SessaoDeAcesso(usuario, "hash-de-outra", AGORA, Duration.ofHours(12));
-    when(sessoes.buscarOutrasVigentes(usuario, "hash-da-sessao", AGORA)).thenReturn(List.of(outra));
+    when(sessoes.findByUsuarioAndEncerradaEmIsNull(usuario)).thenReturn(List.of(atual, outra));
 
     service.trocar(ID, SESSAO, "a-atual", "a-nova-senha", "042917");
 
     assertThat(outra.estaEncerrada()).isTrue();
+    assertThat(atual.estaEncerrada()).isFalse();
   }
 
   @Test
@@ -161,7 +164,7 @@ class TrocaDeSenhaServiceTest {
     when(cofre.confere("a-atual", "hash-da-atual")).thenReturn(true);
 
     assertThatThrownBy(() -> service.trocar(ID, SESSAO, "a-atual", "a-atual", "042917"))
-        .isInstanceOf(NovaSenhaRepetidaException.class)
+        .isInstanceOf(SenhaRepetidaException.class)
         .satisfies(erro -> assertThat(campoDe(erro)).contains("novaSenha"));
 
     verify(codigos, never()).findFirstByUsuarioOrderByCriadoEmDesc(any());

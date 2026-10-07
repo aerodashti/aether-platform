@@ -166,8 +166,8 @@ class TrocaDeSenhaControllerTest {
         .andExpect(
             jsonPath("$.campos.novaSenha")
                 .value(
-                    "A senha passa do limite: letras com acento e emojis contam como mais de um"
-                        + " caractere."));
+                    "A senha passa do limite de 72 caracteres"
+                        + " (letras acentuadas e símbolos contam como dois ou mais)."));
 
     verify(trocaDeSenha, never())
         .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
@@ -206,7 +206,7 @@ class TrocaDeSenhaControllerTest {
   @DisplayName("troca bloqueada responde 429 com o tempo que falta")
   void trocaBloqueadaResponde429() throws Exception {
     when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
-    doThrow(new TrocaDeSenhaBloqueadaException(Duration.ofMinutes(15)))
+    doThrow(new TrocaDeSenhaBloqueadaException(15))
         .when(trocaDeSenha)
         .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
 

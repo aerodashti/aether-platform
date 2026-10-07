@@ -23,6 +23,8 @@ import java.util.Optional;
 @Table(name = "usuario")
 public class Usuario {
 
+  private static final long MILISSEGUNDOS_POR_MINUTO = 60_000;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -100,9 +102,17 @@ public class Usuario {
     return bloqueadoAte != null && bloqueadoAte.isAfter(agora);
   }
 
-  /** Quanto falta para o bloqueio por tentativas acabar; zero para quem não está bloqueado. */
-  public Duration bloqueioRestante(Instant agora) {
-    return estaBloqueado(agora) ? Duration.between(agora, bloqueadoAte) : Duration.ZERO;
+  /**
+   * Quantos minutos faltam para o bloqueio por tentativas acabar, arredondado para cima: "em 0
+   * minutos" diria que já pode, e ainda não pode. Zero para quem não está bloqueado.
+   */
+  public long minutosAteODesbloqueio(Instant agora) {
+    if (!estaBloqueado(agora)) {
+      return 0;
+    }
+    return Math.max(
+        1,
+        Math.ceilDiv(Duration.between(agora, bloqueadoAte).toMillis(), MILISSEGUNDOS_POR_MINUTO));
   }
 
   /** Só entra quem está ativo, já criou senha e não está cumprindo bloqueio por tentativas. */

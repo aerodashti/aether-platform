@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CodigoDaTrocaDeSenha {
 
-  /** O nome do campo no request: a recusa do código cai nele, na tela. */
-  private static final String CAMPO_DO_CODIGO = "codigo";
-
   private final CodigoDeRecuperacaoRepository codigos;
   private final EnviadorDeCodigoDeRecuperacao enviador;
   private final CofreDeSegredos cofre;
@@ -64,19 +61,19 @@ public class CodigoDaTrocaDeSenha {
     CodigoDeRecuperacao vigente =
         codigos
             .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
-            .orElseThrow(() -> new CodigoInvalidoException(CAMPO_DO_CODIGO));
+            .orElseThrow(CodigoInvalidoException::new);
 
     boolean codigoVigente = vigente.estaVigente(agora, politica.tentativasPorCodigo());
     contexto.decisao("troca_de_senha.codigo_vigente", codigoVigente);
     if (!codigoVigente) {
-      throw new CodigoInvalidoException(CAMPO_DO_CODIGO);
+      throw new CodigoInvalidoException();
     }
 
     boolean codigoConfere = cofre.confere(codigo, vigente.getCodigo());
     contexto.decisao("troca_de_senha.codigo_confere", codigoConfere);
     if (!codigoConfere) {
       vigente.registrarTentativa();
-      throw new CodigoInvalidoException(CAMPO_DO_CODIGO);
+      throw new CodigoInvalidoException();
     }
     vigente.marcarComoUsado(agora);
   }

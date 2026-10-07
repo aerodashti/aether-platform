@@ -10,9 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
  * O primeiro passo de "esqueci minha senha": pedir o código de seis dígitos. Conferir o código e
  * trocar a senha ficam em {@link RecuperacaoDeSenhaService}.
  *
- * <p>Pedir um código nunca falha do ponto de vista de quem chamou — e-mail desconhecido responde
- * igual a e-mail cadastrado, na resposta e no tempo. É o que impede a tela de recuperação de virar
- * um verificador de quais endereços existem na plataforma.
+ * <p>Pedir um código nunca falha do ponto de vista de quem chamou — e-mail desconhecido recebe a
+ * mesma resposta que e-mail cadastrado. É o que impede a tela de recuperação de virar um
+ * verificador de quais endereços existem na plataforma.
+ *
+ * <p>O tempo é igual só até o envio: o código gasta o mesmo BCrypt nos dois casos, mas o e-mail sai
+ * de forma síncrona, e só para contas ativas. Com SMTP configurado, a latência ainda distingue quem
+ * tem conta; fechar essa diferença pede o envio depois do commit, fora da requisição.
  */
 @Service
 public class SolicitacaoDeCodigoService {

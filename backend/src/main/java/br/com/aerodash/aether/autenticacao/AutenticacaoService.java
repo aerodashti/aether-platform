@@ -121,7 +121,7 @@ public class AutenticacaoService {
     boolean bloqueado = usuario.estaBloqueado(agora);
     contexto.decisao("autenticacao.bloqueado", bloqueado);
     if (bloqueado) {
-      throw new AcessoBloqueadoException(usuario.bloqueioRestante(agora));
+      throw new AcessoBloqueadoException(usuario.minutosAteODesbloqueio(agora));
     }
 
     boolean podeEntrar = usuario.podeEntrar(agora);

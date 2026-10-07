@@ -412,7 +412,7 @@ describe('PaginaDeConfiguracoes', () => {
 
     it('o código recusado é apontado no campo do código, e não na senha atual', async () => {
       const usuario = userEvent.setup();
-      const mensagem = 'Código inválido ou expirado. Peça um novo para continuar.';
+      const mensagem = 'Código incorreto ou expirado. Confira os dígitos ou peça um novo.';
       servidor({
         papel: 'GESTOR',
         trocarSenha: () =>

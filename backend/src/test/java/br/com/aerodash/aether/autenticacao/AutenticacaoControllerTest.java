@@ -163,8 +163,7 @@ class AutenticacaoControllerTest {
   @Test
   @DisplayName("conta bloqueada responde 429")
   void contaBloqueadaResponde429() throws Exception {
-    when(autenticacao.entrar(anyString(), anyString()))
-        .thenThrow(new AcessoBloqueadoException(Duration.ofMinutes(15)));
+    when(autenticacao.entrar(anyString(), anyString())).thenThrow(new AcessoBloqueadoException(15));
 
     mockMvc
         .perform(

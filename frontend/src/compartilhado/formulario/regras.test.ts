@@ -7,6 +7,7 @@ import {
   numero,
   obrigatorio,
   primeiraFalha,
+  senhaNova,
   tamanhoMaximo,
   telefone,
 } from './regras';
@@ -81,5 +82,17 @@ describe('competência', () => {
     expect(competencia()('2026-10')).toBeUndefined();
     expect(competencia()('2026-13')).toBe('Use o formato AAAA-MM, como 2026-10.');
     expect(competencia()('10/2026')).toBeDefined();
+  });
+});
+
+describe('senhaNova', () => {
+  it('conta caracteres no mínimo e bytes no máximo, como a @SenhaNova', () => {
+    const regra = senhaNova();
+    expect(regra('')).toBeUndefined();
+    expect(regra('curta')).toBe('A senha precisa de ao menos 8 caracteres.');
+    expect(regra('ç'.repeat(36))).toBeUndefined();
+    expect(regra('ç'.repeat(37))).toBe(
+      'A senha passa do limite de 72 caracteres (letras acentuadas e símbolos contam como dois ou mais).',
+    );
   });
 });

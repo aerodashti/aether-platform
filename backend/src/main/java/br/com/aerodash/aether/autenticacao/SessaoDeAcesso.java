@@ -64,6 +64,11 @@ public class SessaoDeAcesso {
     return !estaEncerrada() && !estaExpirada(agora);
   }
 
+  /** Recebe o hash do token, como ele é guardado. */
+  public boolean possuiToken(String tokenCodificado) {
+    return token.equals(tokenCodificado);
+  }
+
   public void encerrar(Instant momento) {
     if (encerradaEm == null) {
       this.encerradaEm = momento;

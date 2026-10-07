@@ -33,18 +33,18 @@ describe('validarTrocaDeSenha', () => {
     expect(errosCom({ novaSenha: '          ' }).novaSenha).toBe('Informe a nova senha.');
   });
 
-  it('nova senha fora de 8 a 72 caracteres', () => {
+  it('nova senha com menos de 8 caracteres ou mais de 72 bytes, como a @SenhaNova', () => {
     expect(errosCom({ novaSenha: 'curta', confirmacao: 'curta' }).novaSenha).toBe(
-      'A senha deve ter entre 8 e 72 caracteres.',
+      'A senha precisa de ao menos 8 caracteres.',
     );
     expect(errosCom({ novaSenha: 'a'.repeat(73) }).novaSenha).toBe(
-      'A senha deve ter entre 8 e 72 caracteres.',
+      'A senha passa do limite de 72 caracteres (letras acentuadas e símbolos contam como dois ou mais).',
     );
   });
 
   it('mede a nova senha em bytes, como o BCrypt: 40 "ç" passam em caracteres e não cabem', () => {
     expect(errosCom({ novaSenha: 'ç'.repeat(40) }).novaSenha).toBe(
-      'A senha passa do limite: letras com acento e emojis contam como mais de um caractere.',
+      'A senha passa do limite de 72 caracteres (letras acentuadas e símbolos contam como dois ou mais).',
     );
     expect(errosCom({ novaSenha: 'ç'.repeat(36) }).novaSenha).toBeUndefined();
   });

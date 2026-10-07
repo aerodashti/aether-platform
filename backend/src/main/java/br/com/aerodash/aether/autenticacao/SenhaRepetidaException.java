@@ -4,10 +4,11 @@ import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import org.springframework.http.HttpStatus;
 
 /**
- * A senha nova é a mesma de agora.
+ * A senha nova é a mesma de agora — ao redefinir pelo código ou ao trocar a própria senha.
  *
  * <p>Redefinir é o que a pessoa faz quando desconfia da senha; aceitar a mesma deixaria a conta
- * exatamente como estava, com a impressão de que algo mudou.
+ * exatamente como estava, com a impressão de que algo mudou. Na troca, gastaria o código sem mudar
+ * nada.
  */
 public class SenhaRepetidaException extends ExcecaoDeDominio {
 

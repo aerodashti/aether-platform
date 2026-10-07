@@ -18,7 +18,9 @@ import java.lang.annotation.Target;
  * acentuados ocupam 144. Um {@code @Size} conta caracteres e deixaria esse caso virar 500. Vazio
  * passa: quem cobra a falta é o {@code @NotBlank} ao lado, com a mensagem própria.
  *
- * <p>A mesma regra está na tela, em {@code features/autenticacao/componentes/regrasDeSenha.ts}.
+ * <p>Vale para toda senha escolhida: redefinir pelo código, concluir o convite e trocar a própria
+ * senha. A mesma regra está na tela, em {@code compartilhado/formulario/regras.ts} ({@code
+ * senhaNova}).
  */
 @Documented
 @Constraint(validatedBy = ValidadorDeSenhaNova.class)

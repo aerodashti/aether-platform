@@ -1,30 +1,23 @@
-import { email, obrigatorio, primeiraFalha, type Regra } from '@/compartilhado/formulario/regras';
+import {
+  email,
+  MAXIMO_DA_SENHA_NOVA_EM_BYTES,
+  MINIMO_DA_SENHA_NOVA,
+  obrigatorio,
+  primeiraFalha,
+  senhaNova as limitesDaSenhaNova,
+  type Regra,
+} from '@/compartilhado/formulario/regras';
 
 /**
  * As regras dos campos da área não logada, espelhando os requests de `/autenticacao`. Um limite
  * que muda aqui muda também no backend (`EntrarRequest`, `@SenhaNova`, `ValidarCodigoRequest`).
  */
 
-const MINIMO_DA_SENHA_NOVA = 8;
-/** O teto do BCrypt, que conta bytes: 72 letras acentuadas ocupam 144. */
-const MAXIMO_DA_SENHA_NOVA_EM_BYTES = 72;
 /** O teto do login: nenhuma senha gravada passa dele. Conta como o `@Size` do backend conta. */
 const MAXIMO_DA_SENHA_DO_LOGIN = 72;
 const TAMANHO_DO_CODIGO = 6;
 
 export const APOIO_DA_SENHA_NOVA = `Entre ${MINIMO_DA_SENHA_NOVA} e ${MAXIMO_DA_SENHA_NOVA_EM_BYTES} caracteres.`;
-
-const codificador = new TextEncoder();
-
-const limiteDaSenhaNova: Regra = (texto) => {
-  if ([...texto].length < MINIMO_DA_SENHA_NOVA) {
-    return `A senha precisa de ao menos ${MINIMO_DA_SENHA_NOVA} caracteres.`;
-  }
-  if (codificador.encode(texto).length > MAXIMO_DA_SENHA_NOVA_EM_BYTES) {
-    return `A senha passa do limite de ${MAXIMO_DA_SENHA_NOVA_EM_BYTES} caracteres (letras acentuadas e símbolos contam como dois ou mais).`;
-  }
-  return undefined;
-};
 
 const limiteDaSenhaDoLogin: Regra = (texto) =>
   texto.length > MAXIMO_DA_SENHA_DO_LOGIN
@@ -46,7 +39,7 @@ export function senhaDoLogin(texto: string): string | undefined {
 }
 
 export function senhaNova(texto: string): string | undefined {
-  return primeiraFalha(texto, obrigatorio('Informe a nova senha.'), limiteDaSenhaNova);
+  return primeiraFalha(texto, obrigatorio('Informe a nova senha.'), limitesDaSenhaNova());
 }
 
 export function codigoDeSeisDigitos(texto: string): string | undefined {

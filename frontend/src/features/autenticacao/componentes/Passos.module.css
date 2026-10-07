@@ -1,4 +1,4 @@
-/* Os quatro passos compartilham a mesma coluna: mudar de passo não pode deslocar o formulário. */
+/* Os cinco passos compartilham a mesma coluna: mudar de passo não pode deslocar o formulário. */
 .passo {
   display: flex;
   flex-direction: column;

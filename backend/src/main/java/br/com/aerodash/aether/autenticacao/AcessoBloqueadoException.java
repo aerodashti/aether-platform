@@ -1,7 +1,6 @@
 package br.com.aerodash.aether.autenticacao;
 
 import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
-import java.time.Duration;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -12,22 +11,21 @@ import org.springframework.http.HttpStatus;
  * deixaria a pessoa legítima diante de um erro que não muda por mais que ela acerte a senha. A
  * troca está registrada em {@code docs/adr/0013-sessao-opaca.md}.
  *
- * <p>A mensagem diz quanto falta, arredondado para cima: "aguarde alguns minutos" deixa a pessoa
- * tentando de novo a cada um, e cada tentativa dentro da janela é uma recusa a mais.
+ * <p>A mensagem diz quanto falta ({@link Usuario#minutosAteODesbloqueio}): "aguarde alguns minutos"
+ * deixa a pessoa tentando de novo a cada um, e cada tentativa dentro da janela é uma recusa a mais.
  */
 public class AcessoBloqueadoException extends ExcecaoDeDominio {
 
   private static final long serialVersionUID = 1L;
-  private static final long MILISSEGUNDOS_POR_MINUTO = 60_000;
 
-  public AcessoBloqueadoException(Duration restante) {
+  public AcessoBloqueadoException(long minutos) {
     super(
         "Acesso temporariamente bloqueado",
-        "Tentativas demais em sequência. Tente de novo em " + emMinutos(restante) + ".");
+        "Tentativas demais em sequência. Tente de novo em " + emTexto(minutos) + ".");
   }
 
-  private static String emMinutos(Duration restante) {
-    long minutos = Math.max(1, Math.ceilDiv(restante.toMillis(), MILISSEGUNDOS_POR_MINUTO));
+  /** "1 minuto" ou "N minutos" — o mesmo texto na entrada e na troca de senha. */
+  static String emTexto(long minutos) {
     return minutos == 1 ? "1 minuto" : minutos + " minutos";
   }
 

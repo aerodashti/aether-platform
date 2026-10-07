@@ -128,6 +128,32 @@ export function email(mensagem = 'Informe um e-mail válido, como nome@empresa.c
     estaVazio(texto) || FORMATO_DE_EMAIL.test(texto.trim()) ? undefined : mensagem;
 }
 
+export const MINIMO_DA_SENHA_NOVA = 8;
+/** O teto do BCrypt, que conta bytes: 72 letras acentuadas ocupam 144. */
+export const MAXIMO_DA_SENHA_NOVA_EM_BYTES = 72;
+
+const codificador = new TextEncoder();
+
+/**
+ * A `@SenhaNova` do backend, para toda senha escolhida — redefinir, concluir o convite e trocar a
+ * própria: ao menos 8 caracteres e no máximo 72 bytes em UTF-8. O espaço da ponta é parte da senha
+ * e conta. Vazio passa: some com `obrigatorio`.
+ */
+export function senhaNova(): Regra {
+  return (texto) => {
+    if (texto === '') {
+      return undefined;
+    }
+    if ([...texto].length < MINIMO_DA_SENHA_NOVA) {
+      return `A senha precisa de ao menos ${MINIMO_DA_SENHA_NOVA} caracteres.`;
+    }
+    if (codificador.encode(texto).length > MAXIMO_DA_SENHA_NOVA_EM_BYTES) {
+      return `A senha passa do limite de ${MAXIMO_DA_SENHA_NOVA_EM_BYTES} caracteres (letras acentuadas e símbolos contam como dois ou mais).`;
+    }
+    return undefined;
+  };
+}
+
 /** A mesma expressão de `FormatoDeTelefone` no backend: 8 a 20 caracteres, ao menos 8 dígitos. */
 const FORMATO_DE_TELEFONE = /^(?=(?:\D*\d){8})\+?[0-9 ()-]{8,20}$/;
 

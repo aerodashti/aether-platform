@@ -84,7 +84,7 @@ public class TrocaDeSenhaService {
     boolean bloqueado = usuario.estaBloqueado(agora);
     contexto.decisao("troca_de_senha.bloqueado", bloqueado);
     if (bloqueado) {
-      throw new TrocaDeSenhaBloqueadaException(usuario.bloqueioRestante(agora));
+      throw new TrocaDeSenhaBloqueadaException(usuario.minutosAteODesbloqueio(agora));
     }
 
     boolean senhaConfere =
@@ -99,7 +99,7 @@ public class TrocaDeSenhaService {
     boolean bloqueouAgora = usuario.estaBloqueado(agora);
     contexto.decisao("troca_de_senha.bloqueou_agora", bloqueouAgora);
     if (bloqueouAgora) {
-      throw new TrocaDeSenhaBloqueadaException(usuario.bloqueioRestante(agora));
+      throw new TrocaDeSenhaBloqueadaException(usuario.minutosAteODesbloqueio(agora));
     }
     throw new SenhaAtualIncorretaException();
   }
@@ -109,13 +109,16 @@ public class TrocaDeSenhaService {
     boolean repeteAAtual = novaSenha.equals(senhaAtual);
     contexto.decisao("troca_de_senha.nova_repete_a_atual", repeteAAtual);
     if (repeteAAtual) {
-      throw new NovaSenhaRepetidaException();
+      throw new SenhaRepetidaException();
     }
   }
 
   private void encerrarOutrasSessoes(Usuario usuario, String tokenDaSessao, Instant agora) {
+    String mantida = cofre.resumir(tokenDaSessao);
     List<SessaoDeAcesso> outras =
-        sessoes.buscarOutrasVigentes(usuario, cofre.resumir(tokenDaSessao), agora);
+        sessoes.findByUsuarioAndEncerradaEmIsNull(usuario).stream()
+            .filter(sessao -> !sessao.possuiToken(mantida))
+            .toList();
     outras.forEach(sessao -> sessao.encerrar(agora));
     contexto.registrar("troca_de_senha.sessoes_encerradas", outras.size());
   }
