@@ -249,6 +249,9 @@ foram unificados; onde divergiam no escuro, foram mantidos separados.
 | `--cor-estado-positivo` | `--cor-positivo` | Situação favorável |
 | `--cor-atencao-texto` | `--cor-atencao` | Âmbar **de texto** — o `--cor-atencao` do bundle é só fundo e traço, e não tem contraste para texto |
 | `--cor-negativo` | `--cor-critico` | Erro, borda de campo inválido |
+| — (do protótipo, sem token no bundle) | `--cor-positivo-solido` | Fundo do primário positivo ("✓ Concluir"): `#0f766e` nos dois temas, onde o branco tem contraste |
+| — (`#ececef` do protótipo) | `--cor-trilho` | Trilho do segmentado de Lançamentos e da barra de % de uso |
+| — (`rgba(89,128,166,0.05)` do protótipo) | `--cor-acento-trilho` | Trilho azulado das abas de Trocas e da Central de avisos |
 
 Não foram trazidos, porque nenhuma tela os consome ainda: os `-tint`, `-forte` e `-clara` dos
 estados, a superfície 4, `--cor-neutro-medio`, as réguas compostas `--cols-*`, o restante da

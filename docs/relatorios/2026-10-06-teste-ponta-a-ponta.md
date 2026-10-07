@@ -1,4 +1,4 @@
-# Teste de ponta a ponta — outubro de 2026
+# Teste de ponta a ponta — 06 e 07 de outubro de 2026
 
 Branch `fix/teste-ponta-a-ponta`, a partir de `main` em `bc1b175` (depois do PR #19). Ambiente
 local (`./scripts/ambiente.sh up`) com os seeds do projeto; nenhum dado pessoal real. Referência
@@ -13,17 +13,22 @@ cada ação com caminho feliz, dados inválidos e limites, cancelamento e reflex
 A validação de entrada foi sondada também direto na API. O design foi comparado tela a tela com o
 HTML do protótipo, com estilos computados nos pontos de dúvida, em 1440px e em 375px.
 
-**Resultado:** 13 bugs corrigidos (3 no backend, 10 no front) e 11 grupos de divergência de design
-corrigidos, em 20 commits. `./gradlew check testeIntegracao` e `npm run verificar` passam (188
-testes no front).
+**Resultado da primeira rodada (06/10):** 13 bugs corrigidos (3 no backend, 10 no front) e 11
+grupos de divergência de design corrigidos, em 20 commits.
+
+**Segunda rodada (07/10):** as cinco decisões de produto da seção 6 foram respondidas e
+implementadas (P1 a P5), as divergências de design que tinham ficado pendentes foram corrigidas e
+mais um bug apareceu no caminho (B14). `./gradlew check testeIntegracao` e `npm run verificar`
+passam (208 testes no front).
 
 **Avaliação geral:** o sistema funciona de ponta a ponta para o que se propõe hoje — cadastro da
 frota, contratos, diário, lançamentos, aportes, fechamento, trocas, manutenção, documentos e
 avisos conversam entre si e o rateio fecha. Os bugs mais graves eram de **integridade financeira**
 (custo e voo atribuíveis a quem não é dono da aeronave, que o fechamento cobraria) e de **cadastro**
-(CPF/CNPJ sem dígito verificador). O que falta para o produto ficar completo está na seção 5: a
-porta de entrada (Visão geral), o registro de execução de manutenção — sem ele um parâmetro
-estourado não se renova — e as telas analíticas.
+(CPF/CNPJ sem dígito verificador); na segunda rodada, a **situação da aeronave** passou a
+considerar manutenção e tripulação, e os **horários de voo** passaram a ser instantes. O que falta
+para o produto ficar completo está na seção 5: a porta de entrada (Visão geral), o registro de
+execução de manutenção — sem ele um parâmetro estourado não se renova — e as telas analíticas.
 
 ## 2. Matriz de cobertura
 
@@ -32,10 +37,12 @@ divergência corrigida neste teste) · **faltante** (seção 5) · **pendente** 
 
 | Tela | Funcionalidade | Status |
 | --- | --- | --- |
-| Entrada | Entrar, senha errada, voltar à tela pedida | ok |
+| Entrada | Entrar, senha errada | ok |
+| Entrada | Voltar à tela pedida com o recorte da URL | corrigido (B14) |
 | Entrada | Sair | corrigido (B12) |
 | Casca | Navegação, título por rota, "←", "+ Registrar" com `?registrar=1` | ok |
 | Casca | Sino: contagem, lista, "Abrir central" | ok |
+| Casca | Abrir um aviso pelo sino o marca como lido | implementado (P5) |
 | Casca | Sino atualizado após escrita | corrigido (B11) |
 | Casca | Visual (barra, marca, alturas) e celular | corrigido (D1, D11) |
 | Casca | Menu de perfil, recolher navegação, rodapé com a empresa | faltante |
@@ -45,6 +52,7 @@ divergência corrigida neste teste) · **faltante** (seção 5) · **pendente** 
 | Central de avisos | Indicadores e largura | corrigido (D4) |
 | Central de avisos | Notificar responsáveis | faltante |
 | Aeronaves | Lista, situação, próximo vencimento, saldo, custo, proprietários | ok |
+| Aeronaves | Situação considera manutenção e tripulação, com o motivo | implementado (P1) |
 | Aeronaves | Cartão inteiro clicável | corrigido (B3) |
 | Nova aeronave | Cadastro, conversor NM→km, motores, vínculos, soma 100%, cadastro rápido de proprietário | ok |
 | Nova aeronave | Erro duplicado, seções, obrigatórios, motivo do botão desabilitado | corrigido (B2, D7) |
@@ -61,7 +69,9 @@ divergência corrigida neste teste) · **faltante** (seção 5) · **pendente** 
 | Diário de voos | Atribuição a quem não é dono | corrigido (B8) |
 | Diário de voos | Trecho alimenta célula, ciclos e km | ok |
 | Diário de voos | Horas de motor e APU pelo diário | faltante |
-| Diário de voos | Cartões de % de uso, filtro por voo | pendente (D) |
+| Diário de voos | Contadores só com o trecho realizado | implementado (P2) |
+| Diário de voos | Horários em UTC, mostrados no fuso local; pouso antes da partida recusado | implementado (P3) |
+| Diário de voos | Cartões de % de uso, filtro por voo, atribuição tingida | corrigido (D15) |
 | Trocas de KM | Filtro e saldo de horas, abas, concluir, reabrir, editar, mesma pessoa recusada | ok |
 | Trocas de KM | Coluna da aeronave cortada | corrigido (D10) |
 | Lançamentos | Filtros, escopo, abas, grade, totais, USD com câmbio, CSV | ok |
@@ -69,13 +79,15 @@ divergência corrigida neste teste) · **faltante** (seção 5) · **pendente** 
 | Aportes | Mensal/Período, abas, indicadores, painel, data futura e não participante recusados | ok |
 | Fechamento | Mensal, período, extrato, regras, saldo acumulado | ok |
 | Fechamento | Baixar extratos, ciclo de fatura | faltante |
-| Fechamento | Chips de regra no modo Período | pendente (precisa do campo na API) |
+| Fechamento | Chips de regra e recorte no modo Período | corrigido (D13) |
 | Manutenção | Contadores, indicadores, agenda, histórico, parâmetros, CRUD | ok |
 | Manutenção | Nome do parâmetro invadindo a coluna | corrigido (B9) |
 | Manutenção | Executar parâmetro, última execução, responsável | faltante |
 | Calendário | Mês, trechos, manutenções, navegação de mês | ok |
 | Calendário | Clique no trecho sem recorte, aeronave fora da URL, "hoje" em UTC | corrigido (B6, B7) |
-| Proprietários | Busca, filtro, cartões, saldo, cadastrar, editar, desativar/reativar | ok |
+| Calendário | Legenda, dias em blocos, trechos tingidos | corrigido (D16) |
+| Proprietários | Busca, filtro, cartões, saldo, cadastrar, editar, reativar | ok |
+| Proprietários | Desativar quem está em contrato redistribui a participação | implementado (P4) |
 | Proprietários | CPF/CNPJ inválido aceito | corrigido (B10) |
 | Proprietários | Texto de cadastro na edição | corrigido (D10) |
 | Usuários | Busca, filtros, paginação, convite, reenviar, desativar/reativar | ok |
@@ -105,6 +117,7 @@ provocado no navegador (seção 6).
 | B10 | CPF `123.456.789-00` era aceito como documento do titular | Só o comprimento era validado | Dígitos verificadores (módulo 11) e recusa da sequência repetida, na entidade | `1cba33e` |
 | B11 | Mudar a antecedência (ou lançar, concluir) não atualizava o sino por até um minuto | Cache de avisos sem invalidação | Toda escrita bem-sucedida invalida os avisos, no cliente do Query | `e9678c2` |
 | B12 | "Sair" deixava a tela aberta, sem nome e sem itens de administrador, com 401 em toda consulta | `queryClient.clear()` não avisava a guarda da rota | Navega para `/entrar` antes de esvaziar o cache | `52dbd90` |
+| B14 | Depois de entrar, `/manutencao?aeronave=1` voltava como `/manutencao` | A guarda guardava só o caminho | O recorte da URL vai junto | `30cccf6` |
 | B13 | Avisos de teste de build no backend (variável sem uso, stream aberto, `LocalDate.now()` sem fuso) | Testes dos PRs anteriores | Ajuste nos testes | `6e4fdc7` |
 
 Todos com teste que falhava antes (exceto os de layout puro — B1, B3, B4, B5, B9 —, que o jsdom não
@@ -125,6 +138,11 @@ em todas as grades).
 | D8 | Todas | Campo de texto e seleção | Campo de 45px ao lado de seleção de 40px; seleção em peso 600 → 40px e peso normal | `b50580f` |
 | D9 | Lançamentos e Configurações | Textos | "Valor · R$" e totais à esquerda → "Valor" e totais à direita; "✓" no código enviado | `f3f3435` |
 | D10 | Trocas, Diário, Proprietários | Detalhes | Coluna da aeronave de 80px (modelo cortado) → 132px; "TOTAIS" e os pousos noutra coluna → "TOTAIS · N pousos"; texto de cadastro no painel de edição → só no cadastro | `9c5a671` |
+| D12 | Manutenção, Trocas, área logada, Proprietários | "Concluir", fundo, botões | "Concluir" secundário e primário azul → verde (`--cor-positivo-solido`, novo, o mesmo nos dois temas); fundo `#fafafb` → `#f2f2f3` do protótipo; botões do cartão de proprietário de 32 → 36px | `f19e4ec` |
+| D13 | Fechamento | Modo Período | Sem as regras da aeronave nem o recorte → chips de rateio e aporte e "setembro de 2025 a agosto de 2026 · PS-MEP"; a API do período passou a trazer as regras | `46b7aad` |
+| D14 | Lançamentos, Aportes, Fechamento, Trocas, Central | Controles segmentados | Rádios em cartões e abas sublinhadas → segmentado com borda (Mensal \| Período), trilho (escopo, pendentes/realizadas, filtro da central), abas em caixa (Aportes · Rendimentos) e fichas (categorias); tokens `--cor-trilho` e `--cor-acento-trilho` | `68bc3be` |
+| D15 | Diário e Lançamentos | % de uso, filtro por voo, atribuição | Ausentes → cartões de % de uso por proprietário, filtro "Todos os voos" e atribuição como etiqueta tingida | `01a64fb` |
+| D16 | Calendário | Grade do mês | Grade contínua com dias vizinhos esmaecidos e trecho como botão com ponto → legenda, dias em blocos, vizinhos em branco, trecho com régua na cor do dono e iniciais, manutenção em vestígio crítico | `1312a6d` |
 | D11 | Casca e Aeronaves, em 375px | Celular | Título reduzido a "A…"; cartão com todos os números → título em linha própria; cartão sem custo e proprietários, como no protótipo | `2101db4` |
 
 Mantidas de propósito, por estarem registradas em `docs/design-system.md` ou por regra do
@@ -194,7 +212,6 @@ Dependências: endpoint de projeção com a regra no backend; custos por interva
 | **Registro de execução de manutenção** ("Executar", última execução, responsável, recorrência que avança o limite) | Manutenção, design | Sem isso o parâmetro por hora/ciclo/data não se renova: depois de cumprir a pesagem ou o overhaul, o aviso continua "estourado" para sempre. RBAC 43/91 exigem o registro da execução | Backend (campos e endpoint), front | **Bloqueante** | M |
 | **Baixar extratos** (Excel/PDF) com seleção de linhas | Fechamento, design | O extrato é o documento que o proprietário e o contador pedem todo mês | Backend de exportação, front | Importante | M |
 | **Notificar responsáveis** por e-mail | Central de avisos, design | CVA, RETA, CMA ou CHT vencendo sem ninguém avisado é risco regulatório | Porta de envio (já existe para código de recuperação), regra de destinatário | Importante | M |
-| **Situação da aeronave considera manutenção e tripulação** | Implícito no fluxo | Hoje a frota diz "Saudável" para uma aeronave com limite de manutenção estourado e manutenção atrasada (só CVA e RETA contam). Ver pendência de produto P1 | Regra de domínio | Importante (decisão de produto) | P |
 | **Horas de motor e APU pelo diário** | Implícito no fluxo (o trecho alimenta célula, ciclos e km) | TBO de motor e inspeções por hora de motor (RBAC 43/91) dependem dessas horas; hoje só a correção manual as move, e o parâmetro de manutenção por motor fica parado | Regra no backend (quais motores operaram), talvez campo no trecho | Importante | P–M |
 | **Cobertura do fundo e fatura** no cartão financeiro | Detalhe da aeronave, design | Diz ao proprietário quando vai precisar aportar | Regra de cobertura | Importante | P |
 | **Ciclo de fatura** pelo dia de fechamento | Fechamento, Nova aeronave | `diaDeFechamento` é gravado, mas a competência é sempre o mês civil | Regra de competência | Desejável | M |
@@ -213,38 +230,29 @@ Dependências: endpoint de projeção com a regra no backend; custos por interva
 
 ## 6. Pendências
 
-### Decisões de produto (registradas, não implementadas)
+### Decisões de produto — respondidas em 07/10 e implementadas
 
-- **P1 — Situação da aeronave.** A frota mostra **Saudável** para a PS-MEP enquanto a Central tem,
-  para ela, um limite de manutenção estourado (pesagem regulamentar), uma manutenção programada
-  atrasada e o CHT de uma tripulante vencido. Hoje "poder voar" olha só CVA e RETA (glossário).
-  Pergunta: parâmetro estourado e manutenção atrasada devem tirar a aeronave de "Saudável"? A
-  regulação diz que inspeção obrigatória vencida impede o voo.
-- **P2 — Trecho com data futura.** É aceito e já soma ciclos, km e horas aos contadores. Se o
-  trecho pode ser planejado (há horários previstos), os contadores deveriam esperar o realizado?
-- **P3 — Pouso antes da partida.** É lido como virada de meia-noite: 10:45 → 10:00 vira 23,3 h,
-  sem aviso. Vale confirmar acima de, por exemplo, 12 horas?
-- **P4 — Desativar proprietário com participação vigente.** É imediato, sem confirmação, e o
-  proprietário continua no contrato (pagando o fixo), mas deixa de poder receber custo ou voo.
-  Pedir confirmação? Bloquear enquanto houver contrato vigente?
-- **P5 — Clicar num aviso do sino** abre a tela, mas não o marca como lido.
+| # | Pergunta | Resposta | O que mudou | Commit |
+| --- | --- | --- | --- | --- |
+| P1 | A situação da aeronave deve considerar manutenção e tripulação? | Sim | Limite estourado e manutenção programada atrasada deixam **Vencido** e impedem o voo; parâmetro perto do limite e CMA/CHT vencido de tripulante ativo deixam em **Atenção** (o tripulante não voa, a aeronave sim). A aeronave declara a porta `PendenciasOperacionais`, que manutenção e tripulação respondem; frota e detalhe dizem o motivo | `9e0bccc` |
+| P2 | Trecho com data futura deve somar nos contadores? | Os contadores esperam o voo realizado | Só o trecho com o par de horários realizados soma horas, ciclos e km; ao receber os realizados, a correção estorna o nada e soma o voo. O rateio continua usando o previsto enquanto o realizado não chega | `86670de` |
+| P3 | Pouso antes da partida virava 23,3 h | Horários sempre em UTC, mostrados no horário local | Partida e pouso viraram instantes (`TIMESTAMPTZ`); a tela monta o instante com a data e a hora local e marca o pouso no dia seguinte; o servidor recusa pouso que não vem depois da partida. Migração em dois passos (ADR-0021) | `86670de` |
+| P4 | Desativar proprietário com participação vigente | Rebalancear entre os demais ou para um novo — confirmado no design ("Excluir proprietário") | O painel mostra cada aeronave dele com os demais na participação atual e a opção de incluir outro proprietário, até fechar 100%; a saída (`POST /proprietarios/{id}/saida`) cria os contratos novos e desativa numa transação; o servidor recusa desativar direto quem está em contrato | `3b150a5` |
+| P5 | Abrir um aviso pelo sino deve marcá-lo como lido? | Sim | O clique no sino marca o aviso como lido e abre a tela dona | `70a4a35` |
 
-### Divergências de design não corrigidas
+### Divergências de design que continuam
 
-- **"Concluir" verde** (Manutenção e Trocas): o `--cor-positivo` do tema escuro é um verde claro
-  sobre o qual o texto branco não tem contraste. Precisa de um token de positivo sólido nos dois
-  temas — decisão de token.
-- **Chips de regra do rateio no modo Período** do Fechamento: a resposta do período não traz base do
-  rateio nem modelo de aporte; precisa do campo na API.
-- **Controles segmentados** (Mensal/Período, Pendentes/Realizadas, abas de categoria em chips),
-  **cartões de % de uso** no Diário, **filtro por voo** em Lançamentos e Diário, **etiqueta tingida**
-  da atribuição, **legenda e células em bloco** do Calendário: pedem primitivo novo ou redesenho
-  da tela; ficaram para uma rodada de design dedicada.
-- Botões de 36px (`btn-md`) do protótipo: o `Botao` tem 32, 40 e 48px.
-- Fundo da área de conteúdo: o protótipo usa `#f2f2f3`; `docs/design-system.md` fixa `#fafafb` como
-  identidade. Mantido até alguém decidir qual vale.
-- O HTML do Claude Design vem truncado em 256 KiB: a coluna direita do Detalhe da aeronave e o
-  script do protótipo (rótulos de abas, indicadores e menus) não puderam ser comparados.
+- **A coluna direita do Detalhe da aeronave e o script do protótipo não puderam ser comparados.**
+  O Claude Design entrega no máximo 256 KiB por arquivo, e o "Projeto final Aether.dc.html" é
+  maior: o HTML termina no formulário de tripulante, e os rótulos que vêm do script (abas,
+  indicadores, menus) só aparecem nas strings de tradução. Os screenshots do projeto são da época
+  da página "Teste". Resolver pede o arquivo íntegro — uma exportação do Claude Design, por
+  exemplo.
+- **Rótulo do "+ Registrar"** em `--cor-acento-texto` (`#416180`), não no `#5980a6` do protótipo:
+  o tom do protótipo dá cerca de 4,2:1 sobre branco, abaixo do AA para texto de 13px. Escolha de
+  acessibilidade, registrada aqui para o design confirmar.
+- **Navegação do Calendário por setas**, não pelos seletores de ano e mês do protótipo: o mês
+  vizinho é o caso comum e fica a um clique. Adaptação mantida.
 
 ### O que não consegui testar
 
@@ -257,4 +265,7 @@ Dependências: endpoint de projeção com a regra no backend; custos por interva
 - **Tema escuro**: visto só de passagem; a mudança de sombra é do tema claro.
 - **Perfis diferentes de administrador** (gestor, piloto, proprietário): cobertos pelos testes de
   componente; no navegador entrei só como administrador do seed.
-
+- **A saída de proprietário até o fim no navegador**: o painel foi aberto e conferido com a Helena
+  Sarraf, mas não confirmado, para não deixar contratos de teste no histórico do banco local; o
+  fluxo completo (409 ao desativar direto, saída, contrato novo, proprietário inativo) está no teste
+  de integração de participações.
