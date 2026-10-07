@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -57,9 +58,13 @@ class AutenticacaoIntegracaoTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private UsuarioRepository usuarios;
   @Autowired private CofreDeSegredos cofre;
+  @Autowired private ConviteService convites;
 
   /** Substitui o envio real para capturar o código de seis dígitos sorteado. */
   @MockitoBean private EnviadorDeCodigoDeRecuperacao enviador;
+
+  /** O mesmo, para o token do link do convite. */
+  @MockitoBean private EnviadorDeConvite enviadorDeConvite;
 
   @Test
   @DisplayName("o seed cria os três estados de usuário previstos pela tela")
@@ -243,6 +248,76 @@ class AutenticacaoIntegracaoTest {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  @DisplayName("redefinir a senha encerra a sessão que estava aberta")
+  void redefinirEncerraASessaoAberta() throws Exception {
+    String email = criarAtivo("sessao-antiga");
+    Cookie sessao = entrar(email, SENHA);
+
+    redefinir(email, pedirCodigo(email), "outra-senha-bem-longa").andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(get("/autenticacao/sessao").cookie(sessao))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @DisplayName("a nova senha igual à atual é recusada no campo, e o código continua valendo")
+  void senhaIgualAAtualEhRecusada() throws Exception {
+    String email = criarAtivo("repetida");
+    String codigo = pedirCodigo(email);
+
+    redefinir(email, codigo, SENHA)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.novaSenha").value("A nova senha precisa ser diferente da atual."));
+
+    redefinir(email, codigo, "outra-senha-bem-longa").andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("quem foi desativado depois de pedir o código não se reativa ao redefinir")
+  void desativadoNaoSeReativaPeloCodigo() throws Exception {
+    String email = criarAtivo("desativado-codigo");
+    String codigo = pedirCodigo(email);
+    desativar(email);
+
+    redefinir(email, codigo, "outra-senha-bem-longa")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.codigo").exists());
+
+    assertThat(usuarios.findByEmail(email))
+        .get()
+        .satisfies(usuario -> assertThat(usuario.estaAtivo()).isFalse());
+  }
+
+  @Test
+  @DisplayName("convite: o convidado cria a senha pelo link e entra com ela")
+  void convidadoCriaASenhaEEntra() throws Exception {
+    String email = "convidado@teste.aether.com.br";
+    String token = convidar(email);
+
+    concluirConvite(token, "senha-do-convidado").andExpect(status().isNoContent());
+
+    assertThat(entrar(email, "senha-do-convidado")).isNotNull();
+  }
+
+  @Test
+  @DisplayName("convite de quem foi desativado é recusado e a conta continua inativa")
+  void conviteDeDesativadoEhRecusado() throws Exception {
+    String email = "convidado-desativado@teste.aether.com.br";
+    String token = convidar(email);
+    desativar(email);
+
+    concluirConvite(token, "senha-do-convidado")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Convite inválido"));
+
+    assertThat(usuarios.findByEmail(email))
+        .get()
+        .satisfies(usuario -> assertThat(usuario.possuiSenha()).isFalse());
+  }
+
   /** Usuário ativo exclusivo deste teste, para que a ordem de execução não importe. */
   private String criarAtivo(String apelido) {
     String email = apelido + "@teste.aether.com.br";
@@ -265,6 +340,40 @@ class AutenticacaoIntegracaoTest {
     ArgumentCaptor<String> codigo = ArgumentCaptor.forClass(String.class);
     verify(enviador).enviar(any(Usuario.class), codigo.capture());
     return codigo.getValue();
+  }
+
+  private ResultActions redefinir(String email, String codigo, String novaSenha) throws Exception {
+    return mockMvc.perform(
+        post("/autenticacao/recuperacao/senha")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                "{\"email\":\"%s\",\"codigo\":\"%s\",\"novaSenha\":\"%s\"}"
+                    .formatted(email, codigo, novaSenha)));
+  }
+
+  /** Cria o usuário PENDENTE, emite o convite e devolve o token que iria no link. */
+  private String convidar(String email) {
+    Instant agora = Instant.now();
+    Usuario convidado =
+        usuarios.saveAndFlush(new Usuario("Convidado", email, PapelDoUsuario.GESTOR, agora));
+    convites.emitir(convidado, agora);
+
+    ArgumentCaptor<String> token = ArgumentCaptor.forClass(String.class);
+    verify(enviadorDeConvite).enviar(any(Usuario.class), token.capture());
+    return token.getValue();
+  }
+
+  private ResultActions concluirConvite(String token, String novaSenha) throws Exception {
+    return mockMvc.perform(
+        post("/autenticacao/convite/senha")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"convite\":\"%s\",\"novaSenha\":\"%s\"}".formatted(token, novaSenha)));
+  }
+
+  private void desativar(String email) {
+    Usuario usuario = usuarios.findByEmail(email).orElseThrow();
+    usuario.desativar(Instant.now());
+    usuarios.saveAndFlush(usuario);
   }
 
   private Cookie entrar(String email, String senha) throws Exception {

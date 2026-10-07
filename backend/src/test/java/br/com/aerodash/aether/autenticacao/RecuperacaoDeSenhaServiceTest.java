@@ -14,6 +14,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +39,7 @@ class RecuperacaoDeSenhaServiceTest {
 
   @Mock private UsuarioRepository usuarios;
   @Mock private CodigoDeRecuperacaoRepository codigos;
+  @Mock private SessaoDeAcessoRepository sessoes;
   @Mock private EnviadorDeCodigoDeRecuperacao enviador;
   @Mock private CofreDeSegredos cofre;
   @Mock private ContextoDaRequisicao contexto;
@@ -60,7 +62,9 @@ class RecuperacaoDeSenhaServiceTest {
                 "nao-responda@aether.com.br",
                 false),
             Clock.fixed(AGORA, ZoneOffset.UTC));
-    service = new RecuperacaoDeSenhaService(usuarios, codigos, enviador, cofre, politica, contexto);
+    service =
+        new RecuperacaoDeSenhaService(
+            usuarios, codigos, sessoes, enviador, cofre, politica, contexto);
     when(cofre.novoCodigoDeRecuperacao()).thenReturn(CODIGO);
     when(cofre.codificar(CODIGO)).thenReturn(HASH_DO_CODIGO);
   }
@@ -87,6 +91,9 @@ class RecuperacaoDeSenhaServiceTest {
 
     verify(enviador, never()).enviar(any(), anyString());
     verify(codigos, never()).save(any());
+    // Sem gastar o tempo do BCrypt que o código novo gastaria, a resposta rápida denunciaria a
+    // conta.
+    verify(cofre).gastarTempoDeConferencia();
   }
 
   @Test
@@ -112,6 +119,7 @@ class RecuperacaoDeSenhaServiceTest {
 
     verify(enviador, never()).enviar(any(), anyString());
     verify(codigos, never()).save(any());
+    verify(cofre).gastarTempoDeConferencia();
   }
 
   @Test
@@ -189,6 +197,51 @@ class RecuperacaoDeSenhaServiceTest {
 
     assertThatThrownBy(() -> service.redefinirSenha(EMAIL, CODIGO, "outra-senha-longa"))
         .isInstanceOf(CodigoInvalidoException.class);
+  }
+
+  @Test
+  @DisplayName("o código de quem foi desativado depois de pedi-lo não confere nem redefine")
+  void desativadoNaoUsaOCodigo() {
+    CodigoDeRecuperacao vigente = prepararCodigoVigente();
+    vigente.getUsuario().desativar(AGORA);
+    when(cofre.confere(CODIGO, HASH_DO_CODIGO)).thenReturn(true);
+
+    assertThatThrownBy(() -> service.validarCodigo(EMAIL, CODIGO))
+        .isInstanceOf(CodigoInvalidoException.class);
+    assertThatThrownBy(() -> service.redefinirSenha(EMAIL, CODIGO, "senha-nova-longa"))
+        .isInstanceOf(CodigoInvalidoException.class);
+
+    assertThat(vigente.getUsuario().getSituacao()).isEqualTo(SituacaoDoUsuario.INATIVO);
+    verify(cofre, never()).codificar("senha-nova-longa");
+  }
+
+  @Test
+  @DisplayName("a nova senha igual à atual é recusada no campo e o código continua valendo")
+  void senhaIgualAAtualEhRecusada() {
+    CodigoDeRecuperacao vigente = prepararCodigoVigente();
+    when(cofre.confere(CODIGO, HASH_DO_CODIGO)).thenReturn(true);
+    when(cofre.confere("senha-de-agora", "$2a$12$hash")).thenReturn(true);
+
+    assertThatThrownBy(() -> service.redefinirSenha(EMAIL, CODIGO, "senha-de-agora"))
+        .isInstanceOf(SenhaRepetidaException.class)
+        .satisfies(
+            falha -> assertThat(((SenhaRepetidaException) falha).getCampo()).contains("novaSenha"));
+
+    assertThat(vigente.foiUsado()).isFalse();
+  }
+
+  @Test
+  @DisplayName("redefinir encerra todas as sessões abertas do usuário")
+  void redefinirEncerraAsSessoes() {
+    CodigoDeRecuperacao vigente = prepararCodigoVigente();
+    Usuario usuario = vigente.getUsuario();
+    SessaoDeAcesso aberta = new SessaoDeAcesso(usuario, "resumo", AGORA, Duration.ofHours(12));
+    when(sessoes.findByUsuarioAndEncerradaEmIsNull(usuario)).thenReturn(List.of(aberta));
+    when(cofre.confere(CODIGO, HASH_DO_CODIGO)).thenReturn(true);
+
+    service.redefinirSenha(EMAIL, CODIGO, "senha-nova-longa");
+
+    assertThat(aberta.estaVigente(AGORA)).isFalse();
   }
 
   private CodigoDeRecuperacao prepararCodigoVigente() {

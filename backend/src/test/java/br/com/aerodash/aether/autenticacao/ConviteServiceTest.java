@@ -103,6 +103,22 @@ class ConviteServiceTest {
   }
 
   @Test
+  @DisplayName("convite de quem foi desativado é recusado e a conta continua inativa")
+  void conviteDeDesativadoEhRecusado() {
+    Usuario convidado = convidado();
+    Convite convite = new Convite(convidado, "hash-do-token", AGORA, VALIDADE);
+    convidado.desativar(AGORA);
+    when(convites.findByToken("hash-do-token")).thenReturn(Optional.of(convite));
+
+    assertThatThrownBy(() -> service.concluir(TOKEN, "minha-senha-nova"))
+        .isInstanceOf(ConviteInvalidoException.class);
+
+    assertThat(convidado.getSituacao()).isEqualTo(SituacaoDoUsuario.INATIVO);
+    assertThat(convite.foiUsado()).isFalse();
+    verify(cofre, never()).codificar(any());
+  }
+
+  @Test
   @DisplayName("chamada sem token é recusada antes de consultar o banco")
   void semTokenNaoConsultaOBanco() {
     assertThatThrownBy(() -> service.concluir("  ", "minha-senha-nova"))

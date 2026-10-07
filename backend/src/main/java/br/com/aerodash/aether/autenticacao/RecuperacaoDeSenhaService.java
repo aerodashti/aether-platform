@@ -2,6 +2,7 @@ package br.com.aerodash.aether.autenticacao;
 
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,14 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
  * Os três passos de "esqueci minha senha": pedir o código, conferir o código, trocar a senha.
  *
  * <p>Pedir um código nunca falha do ponto de vista de quem chamou — e-mail desconhecido responde
- * igual a e-mail cadastrado. É o que impede a tela de recuperação de virar um verificador de quais
- * endereços existem na plataforma.
+ * igual a e-mail cadastrado, na resposta e no tempo. É o que impede a tela de recuperação de virar
+ * um verificador de quais endereços existem na plataforma.
  */
 @Service
 public class RecuperacaoDeSenhaService {
 
   private final UsuarioRepository usuarios;
   private final CodigoDeRecuperacaoRepository codigos;
+  private final SessaoDeAcessoRepository sessoes;
   private final EnviadorDeCodigoDeRecuperacao enviador;
   private final CofreDeSegredos cofre;
   private final PoliticaDeAcesso politica;
@@ -26,19 +28,24 @@ public class RecuperacaoDeSenhaService {
   public RecuperacaoDeSenhaService(
       UsuarioRepository usuarios,
       CodigoDeRecuperacaoRepository codigos,
+      SessaoDeAcessoRepository sessoes,
       EnviadorDeCodigoDeRecuperacao enviador,
       CofreDeSegredos cofre,
       PoliticaDeAcesso politica,
       ContextoDaRequisicao contexto) {
     this.usuarios = usuarios;
     this.codigos = codigos;
+    this.sessoes = sessoes;
     this.enviador = enviador;
     this.cofre = cofre;
     this.politica = politica;
     this.contexto = contexto;
   }
 
-  /** Sempre retorna sem erro. O que varia é se um e-mail sai ou não. */
+  /**
+   * Sempre retorna sem erro. O que varia é se um e-mail sai ou não — e quem não recebe gasta o
+   * tempo do BCrypt que o código novo gastaria, para a latência não denunciar a conta.
+   */
   @Transactional
   public void solicitarCodigo(String email) {
     Instant agora = politica.agora();
@@ -47,6 +54,7 @@ public class RecuperacaoDeSenhaService {
     boolean podeReceber = encontrado.filter(Usuario::podeRecuperarSenha).isPresent();
     contexto.decisao("recuperacao.pode_receber", podeReceber);
     if (!podeReceber) {
+      cofre.gastarTempoDeConferencia();
       return;
     }
 
@@ -56,6 +64,7 @@ public class RecuperacaoDeSenhaService {
     boolean aguardandoIntervalo = aguardandoIntervalo(usuario, agora);
     contexto.decisao("recuperacao.aguardando_intervalo", aguardandoIntervalo);
     if (aguardandoIntervalo) {
+      cofre.gastarTempoDeConferencia();
       return;
     }
 
@@ -78,12 +87,31 @@ public class RecuperacaoDeSenhaService {
     exigirCodigoVigente(email, codigo, politica.agora());
   }
 
+  /**
+   * Troca a senha e encerra todas as sessões abertas: quem redefine a senha pode estar fugindo de
+   * um invasor, e a sessão dele não deve sobreviver à troca.
+   */
   @Transactional(noRollbackFor = CodigoInvalidoException.class)
   public void redefinirSenha(String email, String codigo, String novaSenha) {
     Instant agora = politica.agora();
     CodigoDeRecuperacao vigente = exigirCodigoVigente(email, codigo, agora);
+    Usuario usuario = vigente.getUsuario();
+    exigirSenhaDiferenteDaAtual(usuario, novaSenha);
+
     vigente.marcarComoUsado(agora);
-    vigente.getUsuario().definirSenha(cofre.codificar(novaSenha), agora);
+    usuario.definirSenha(cofre.codificar(novaSenha), agora);
+    List<SessaoDeAcesso> abertas = sessoes.findByUsuarioAndEncerradaEmIsNull(usuario);
+    contexto.registrar("recuperacao.sessoes_encerradas", abertas.size());
+    abertas.forEach(sessao -> sessao.encerrar(agora));
+  }
+
+  private void exigirSenhaDiferenteDaAtual(Usuario usuario, String novaSenha) {
+    boolean repetida =
+        usuario.getSenha().filter(atual -> cofre.confere(novaSenha, atual)).isPresent();
+    contexto.decisao("recuperacao.senha_repetida", repetida);
+    if (repetida) {
+      throw new SenhaRepetidaException();
+    }
   }
 
   private boolean aguardandoIntervalo(Usuario usuario, Instant agora) {
@@ -96,6 +124,9 @@ public class RecuperacaoDeSenhaService {
   /**
    * Cada palpite errado é contado no código vigente. Esgotadas as tentativas ele morre e a pessoa
    * precisa pedir outro — é o que torna seis dígitos suficientes.
+   *
+   * <p>O código de quem foi desativado depois de pedi-lo também morre: sem isso, redefinir a senha
+   * reativaria a conta pela porta dos fundos.
    */
   private CodigoDeRecuperacao exigirCodigoVigente(String email, String codigo, Instant agora) {
     Usuario usuario =
@@ -103,6 +134,12 @@ public class RecuperacaoDeSenhaService {
             .findByEmail(Usuario.normalizarEmail(email))
             .orElseThrow(CodigoInvalidoException::new);
     contexto.registrar("usuario.id", usuario.getId());
+
+    boolean podeRecuperar = usuario.podeRecuperarSenha();
+    contexto.decisao("recuperacao.pode_recuperar", podeRecuperar);
+    if (!podeRecuperar) {
+      throw new CodigoInvalidoException();
+    }
 
     CodigoDeRecuperacao ultimo =
         codigos
