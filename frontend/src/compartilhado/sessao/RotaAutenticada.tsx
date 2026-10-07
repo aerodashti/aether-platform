@@ -21,8 +21,10 @@ export function RotaAutenticada() {
   }
 
   if (!autenticado) {
-    // `state` guarda para onde a pessoa ia, e `replace` evita que o Voltar caia na rota barrada.
-    return <Navigate to="/entrar" replace state={{ de: localizacao.pathname }} />;
+    // `state` guarda para onde a pessoa ia — com o recorte da URL —, e `replace` evita que o Voltar caia na rota barrada.
+    return (
+      <Navigate to="/entrar" replace state={{ de: localizacao.pathname + localizacao.search }} />
+    );
   }
 
   return <Outlet />;
