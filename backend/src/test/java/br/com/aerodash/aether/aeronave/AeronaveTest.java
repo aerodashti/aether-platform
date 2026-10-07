@@ -29,6 +29,35 @@ class AeronaveTest {
   }
 
   @Test
+  @DisplayName("vencido é aceito; o ano digitado errado, não")
+  void vencimentoImplausivel() {
+    assertThat(com(HOJE.minusDays(3), HOJE.plusYears(1)).documentoComVencimentoImplausivel(HOJE))
+        .isEmpty();
+    assertThat(com(HOJE.plusMonths(13), HOJE.plusYears(5)).documentoComVencimentoImplausivel(HOJE))
+        .isEmpty();
+    assertThat(
+            com(HOJE.plusMonths(13).plusDays(1), HOJE.plusYears(1))
+                .documentoComVencimentoImplausivel(HOJE))
+        .contains(DocumentoDaAeronave.CVA);
+    assertThat(com(LocalDate.of(1999, 12, 31), HOJE).documentoComVencimentoImplausivel(HOJE))
+        .contains(DocumentoDaAeronave.CVA);
+    assertThat(
+            com(HOJE.plusMonths(6), HOJE.plusYears(5).plusDays(1))
+                .documentoComVencimentoImplausivel(HOJE))
+        .contains(DocumentoDaAeronave.RETA);
+  }
+
+  @Test
+  @DisplayName("o modelo perde os espaços das pontas")
+  void aparaOModelo() {
+    Aeronave nova =
+        new Aeronave(
+            "PS-MEP", "   Citation   ", "SBSP", HOJE.plusYears(1), HOJE.plusYears(1), AGORA);
+
+    assertThat(nova.getModelo()).isEqualTo("Citation");
+  }
+
+  @Test
   @DisplayName("a situação é o elo mais fraco: o documento que vence primeiro governa")
   void oDocumentoQueVencePrimeiroGoverna() {
     // CVA longe, RETA perto: quem manda é a RETA.
@@ -178,7 +207,7 @@ class AeronaveTest {
               MOMENTO);
 
       aeronave.atualizarFichaTecnica(
-          new Aeronave.FichaTecnica(
+          new FichaTecnica(
               "Cessna", "Citation XLS+", "560-6321", "sbjd", "Hangar 7", "RETA-1", 9163, 8482),
           MOMENTO);
 

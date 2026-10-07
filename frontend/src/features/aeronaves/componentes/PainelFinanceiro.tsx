@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
+import { lerNumero } from '@/compartilhado/formatacao/numero';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { PainelModal } from '@/design-system/primitivos/PainelModal';
@@ -15,12 +16,7 @@ import {
 } from '../api/useDetalheDaAeronave';
 
 import estilos from './PainelFinanceiro.module.css';
-import {
-  PERIODICIDADES,
-  ROTULO_DA_BASE_DO_RATEIO,
-  ROTULO_DO_MODELO_DE_APORTE,
-  lerMoeda,
-} from './rotulos';
+import { PERIODICIDADES, ROTULO_DA_BASE_DO_RATEIO, ROTULO_DO_MODELO_DE_APORTE } from './rotulos';
 
 interface PainelFinanceiroProps {
   detalhe: DetalheDaAeronaveResponse;
@@ -51,8 +47,12 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
   );
 
   const atualizar = useAtualizarConfiguracaoFinanceira(detalhe.id ?? 0);
+  const saldo = lerNumero(saldoDeAbertura);
 
   function salvar() {
+    if (saldo === null) {
+      return;
+    }
     const valor = valorDoAporte.trim().replace(',', '.');
     atualizar.mutate(
       {
@@ -61,7 +61,7 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
         periodicidadeDoAporteMeses: Number(periodicidade),
         valorDoAporte: valor === '' ? undefined : Number(valor),
         diaDeFechamento: Number(diaDeFechamento),
-        saldoDeAbertura: lerMoeda(saldoDeAbertura),
+        saldoDeAbertura: saldo,
       },
       { onSuccess: aoFechar },
     );
@@ -70,7 +70,7 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
   const erro = atualizar.error instanceof ErroDeApi ? atualizar.error.message : undefined;
   const dia = Number(diaDeFechamento);
   const diaValido = Number.isInteger(dia) && dia >= 1 && dia <= 28;
-  const saldoValido = Number.isFinite(lerMoeda(saldoDeAbertura));
+  const saldoValido = saldo !== null;
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo="Alterar configuração financeira">

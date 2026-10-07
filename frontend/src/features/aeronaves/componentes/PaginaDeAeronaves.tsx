@@ -14,6 +14,7 @@ import { useAeronaves } from '../api/useAeronaves';
 
 import { CartaoDaAeronave } from './CartaoDaAeronave';
 import estilos from './PaginaDeAeronaves.module.css';
+import { podeGerirFrota } from './permissoes';
 import { resumoDaFrota } from './rotulos';
 
 const CARTOES_DO_ESQUELETO = 3;
@@ -55,7 +56,7 @@ export function PaginaDeAeronaves() {
   const { usuario } = useSessao();
   const frota = consulta.data ?? [];
   const impedidas = frota.filter((aeronave) => aeronave.podeVoar === false).length;
-  const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
+  const podeGerir = podeGerirFrota(usuario?.papel);
 
   return (
     <div className={estilos.tela}>

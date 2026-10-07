@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
+import { lerNumero } from '@/compartilhado/formatacao/numero';
 import {
   competenciaAbreviada,
   contaNoFundo,
@@ -22,7 +23,6 @@ import { CartaoDeSecao } from './CartaoDeSecao';
 import { HistoricoDeContratos } from './HistoricoDeContratos';
 import {
   dividirIgualmente,
-  lerPercentual,
   mensagemDaSoma,
   percentualEmTexto,
   periodoDoContrato,
@@ -58,7 +58,7 @@ function mesmasParticipacoes(linhas: LinhaDeEdicao[], vigente: ContratoResponse 
       (participacao) =>
         participacao.proprietarioId === linha.proprietarioId &&
         Math.round((participacao.percentual ?? 0) * 100) ===
-          Math.round(lerPercentual(linha.percentual) * 100),
+          Math.round((lerNumero(linha.percentual) ?? Number.NaN) * 100),
     ),
   );
 }
@@ -141,21 +141,22 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
   }
 
   function salvar() {
-    if (!linhas) {
+    // Só com todos os percentuais legíveis e somando 100 — nenhum vai ao servidor como NaN.
+    if (!linhas || !podeSalvar) {
       return;
     }
     definir.mutate(
       {
         participacoes: linhas.map((linha) => ({
           proprietarioId: linha.proprietarioId,
-          percentual: lerPercentual(linha.percentual),
+          percentual: lerNumero(linha.percentual) ?? 0,
         })),
       },
       { onSuccess: sairDaEdicao },
     );
   }
 
-  const percentuais = (linhas ?? []).map((linha) => lerPercentual(linha.percentual));
+  const percentuais = (linhas ?? []).map((linha) => lerNumero(linha.percentual) ?? Number.NaN);
   const soma = percentuais.reduce(
     (total, valor) => (Number.isNaN(valor) ? total : total + valor),
     0,
