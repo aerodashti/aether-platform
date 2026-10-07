@@ -3,6 +3,7 @@ package br.com.aerodash.aether.aporte;
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.math.BigDecimal;
@@ -110,7 +111,7 @@ public class RendimentoService {
 
   /** Hoje é o de Brasília: em UTC, depois das 21h, o crédito de amanhã passaria. */
   private void exigirCreditado(Rendimento rendimento) {
-    boolean noFuturo = rendimento.estaNoFuturo(CalendarioDoFundo.hoje(relogio));
+    boolean noFuturo = rendimento.estaNoFuturo(FusoDoNegocio.hoje(relogio));
     contexto.decisao("rendimento.dataNoFuturo", noFuturo);
     if (noFuturo) {
       throw new AporteInvalidoException(

@@ -3,6 +3,7 @@ package br.com.aerodash.aether.troca;
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -11,7 +12,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 /** As trocas de KM: horas cedidas entre proprietários, a devolver. */
 @Service
 public class TrocaService {
-
-  /**
-   * O "hoje" das datas civis da troca. O relógio da aplicação é UTC, e entre 21h e meia-noite em
-   * Brasília ele já está no dia seguinte: uma troca de amanhã passaria por "não futura".
-   */
-  static final ZoneId FUSO_DO_NEGOCIO = ZoneId.of("America/Sao_Paulo");
 
   private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final String CAMPO_AERONAVE = "aeronaveId";
@@ -146,8 +140,9 @@ public class TrocaService {
     return paraLinhas(List.of(troca)).get(0);
   }
 
+  /** Uma troca de amanhã não pode passar por "não futura" depois das 21h em Brasília. */
   private LocalDate hoje() {
-    return LocalDate.now(relogio.withZone(FUSO_DO_NEGOCIO));
+    return FusoDoNegocio.hoje(relogio);
   }
 
   private void validar(TrocaDeKm troca) {

@@ -3,6 +3,7 @@ package br.com.aerodash.aether.voo;
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -10,10 +11,8 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class VooService {
-
-  /**
-   * O fuso do "hoje" das janelas de data, o mesmo do painel. O relógio do servidor está em UTC: à
-   * noite no Brasil ele já estaria no dia seguinte, e recusaria a data que a tela acabou de
-   * aceitar.
-   */
-  static final ZoneId FUSO_DA_OPERACAO = ZoneId.of("America/Sao_Paulo");
 
   private final TrechoRepository trechos;
   private final AeronaveRepository aeronaves;
@@ -97,7 +89,7 @@ public class VooService {
     Instant agora = Instant.now(relogio);
     Trecho trecho = new Trecho(aeronave.getId(), dadosDe(request), agora);
     validacao.exigirHorariosCoerentes(trecho, agora);
-    validacao.exigirDataNaJanela(trecho, hojeEm(agora));
+    validacao.exigirDataNaJanela(trecho, FusoDoNegocio.dataDe(agora));
     trecho = trechos.save(trecho);
 
     somarNosContadores(aeronave, trecho, 1, agora);
@@ -130,7 +122,7 @@ public class VooService {
     validacao.exigirHorariosCoerentes(trecho, agora);
     contexto.decisao("trecho.dataMudou", dataMudou);
     if (dataMudou) {
-      validacao.exigirDataNaJanela(trecho, hojeEm(agora));
+      validacao.exigirDataNaJanela(trecho, FusoDoNegocio.dataDe(agora));
     }
     somarNosContadores(aeronave, trecho, 1, agora);
     return paraLinhas(List.of(trecho)).get(0);
@@ -173,10 +165,6 @@ public class VooService {
     return trechos
         .findTravadoById(id)
         .orElseThrow(() -> new RecursoNaoEncontradoException("Trecho não encontrado."));
-  }
-
-  private static LocalDate hojeEm(Instant agora) {
-    return LocalDate.ofInstant(agora, FUSO_DA_OPERACAO);
   }
 
   /**

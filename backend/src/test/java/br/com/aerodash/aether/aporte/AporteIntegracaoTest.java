@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -82,7 +83,7 @@ class AporteIntegracaoTest {
     Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
     Long helena = proprietarioChamado("Helena Sarraf");
     Cookie sessao = entrar();
-    LocalDate hoje = CalendarioDoFundo.hoje(relogio);
+    LocalDate hoje = FusoDoNegocio.hoje(relogio);
     String corpo =
         """
         {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":10000.00}
@@ -136,7 +137,7 @@ class AporteIntegracaoTest {
                     {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":%s}
                     """
                         .formatted(
-                            psMep, ricardo, CalendarioDoFundo.hoje(relogio), competencia, valor)))
+                            psMep, ricardo, FusoDoNegocio.hoje(relogio), competencia, valor)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos." + campo).isNotEmpty());
   }
@@ -155,7 +156,7 @@ class AporteIntegracaoTest {
                     """
                     {"aeronaveId":%d,"data":"%s","aplicacao":"CDB","taxa":1000,"valor":1}
                     """
-                        .formatted(psMep, CalendarioDoFundo.hoje(relogio))))
+                        .formatted(psMep, FusoDoNegocio.hoje(relogio))))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.taxa").isNotEmpty());
   }

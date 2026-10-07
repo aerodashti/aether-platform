@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -134,7 +135,7 @@ class TrocaIntegracaoTest {
 
   /** O "hoje" do servidor é o de Brasília, não o do relógio UTC. */
   private LocalDate hoje() {
-    return LocalDate.now(relogio.withZone(TrocaService.FUSO_DO_NEGOCIO));
+    return FusoDoNegocio.hoje(relogio);
   }
 
   private String corpoDaTroca(LocalDate data, String relatorioDeVoo) {

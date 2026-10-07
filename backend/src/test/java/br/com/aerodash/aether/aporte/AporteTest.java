@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aporte;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -71,7 +72,7 @@ class AporteTest {
   void hojeEmBrasilia() {
     Clock relogio = Clock.fixed(Instant.parse("2026-10-06T01:00:00Z"), ZoneOffset.UTC);
 
-    assertThat(CalendarioDoFundo.hoje(relogio)).isEqualTo(LocalDate.parse("2026-10-05"));
+    assertThat(FusoDoNegocio.hoje(relogio)).isEqualTo(LocalDate.parse("2026-10-05"));
   }
 
   @Test
