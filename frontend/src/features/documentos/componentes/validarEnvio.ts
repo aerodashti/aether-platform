@@ -9,6 +9,11 @@ export const MEGABYTES_POR_ARQUIVO = 20;
 export const MEGABYTES_POR_ENVIO = 100;
 
 const MEGABYTE = 1024 * 1024;
+/**
+ * O `max-request-size` conta o corpo multipart inteiro, com cabeçalhos e separadores de cada
+ * parte; a soma dos arquivos fica 1 MB abaixo para a escolha que passa aqui passar lá.
+ */
+const BYTES_POR_ENVIO = (MEGABYTES_POR_ENVIO - 1) * MEGABYTE;
 
 function primeiroProblema(arquivos: File[]): string | undefined {
   if (arquivos.length > ARQUIVOS_POR_ENVIO) {
@@ -23,8 +28,8 @@ function primeiroProblema(arquivos: File[]): string | undefined {
     return `O arquivo "${grande.name}" passa de ${MEGABYTES_POR_ARQUIVO} MB.`;
   }
   const total = arquivos.reduce((soma, arquivo) => soma + arquivo.size, 0);
-  if (total > MEGABYTES_POR_ENVIO * MEGABYTE) {
-    return `Juntos, os arquivos passam de ${MEGABYTES_POR_ENVIO} MB: envie em partes.`;
+  if (total > BYTES_POR_ENVIO) {
+    return `Juntos, os arquivos não cabem num envio de até ${MEGABYTES_POR_ENVIO} MB: envie em partes.`;
   }
   return undefined;
 }

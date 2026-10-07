@@ -30,7 +30,20 @@ describe('validarEnvio', () => {
     );
     const seis = Array.from({ length: 6 }, (_, n) => arquivo(`${n}.pdf`, 19));
     expect(validarEnvio(seis).arquivos).toBe(
-      'Juntos, os arquivos passam de 100 MB: envie em partes.',
+      'Juntos, os arquivos não cabem num envio de até 100 MB: envie em partes.',
+    );
+  });
+
+  it('deixa 1 MB da soma para os cabeçalhos do envio', () => {
+    const quase = (megabytes: number) =>
+      validarEnvio([
+        ...Array.from({ length: 4 }, (_, n) => arquivo(`${n}.pdf`, 20)),
+        arquivo('x.pdf', megabytes),
+      ]);
+
+    expect(quase(19).arquivos).toBeUndefined();
+    expect(quase(19.5).arquivos).toBe(
+      'Juntos, os arquivos não cabem num envio de até 100 MB: envie em partes.',
     );
   });
 });
