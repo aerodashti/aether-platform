@@ -28,6 +28,7 @@ describe('regras de formulário', () => {
     expect(numero()('abc')).toBe('Use só números, com vírgula para as casas decimais.');
     expect(numero({ casas: 2 })('1,234')).toBe('Use no máximo 2 casas decimais.');
     expect(numero({ casas: 0 })('1,5')).toBe('Use um número inteiro.');
+    expect(numero({ casas: 1 })('1,25')).toBe('Use no máximo 1 casa decimal.');
     expect(numero({ maiorQue: 0 })('0')).toBe('Informe um valor maior que 0.');
     expect(numero({ minimo: 1 })('0')).toBe('O mínimo é 1.');
     expect(numero({ maximo: 999_999_999_999.99 })('1.000.000.000.000')).toBe(

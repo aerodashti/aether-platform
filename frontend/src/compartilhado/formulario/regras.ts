@@ -60,7 +60,12 @@ export function numero({ minimo, maiorQue, maximo, casas }: LimitesDeNumero = {}
         : 'Use só números, com vírgula para as casas decimais.';
     }
     if (casas !== undefined && casasDecimais(texto) > casas) {
-      return casas === 0 ? 'Use um número inteiro.' : `Use no máximo ${casas} casas decimais.`;
+      if (casas === 0) {
+        return 'Use um número inteiro.';
+      }
+      return casas === 1
+        ? 'Use no máximo 1 casa decimal.'
+        : `Use no máximo ${casas} casas decimais.`;
     }
     if (maiorQue !== undefined && valor <= maiorQue) {
       return `Informe um valor maior que ${NUMERO.format(maiorQue)}.`;
