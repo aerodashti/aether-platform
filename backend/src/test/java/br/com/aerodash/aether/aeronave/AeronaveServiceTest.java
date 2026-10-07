@@ -2,16 +2,22 @@ package br.com.aerodash.aether.aeronave;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -101,7 +108,7 @@ class AeronaveServiceTest {
   }
 
   @Test
-  @DisplayName("periodicidade fora da tabela é recusada com a lista do que vale")
+  @DisplayName("periodicidade fora da tabela é recusada no campo, com a lista do que vale")
   void recusaPeriodicidadeInvalida() {
     assertThatThrownBy(
             () ->
@@ -110,7 +117,8 @@ class AeronaveServiceTest {
                     new ConfiguracaoFinanceiraRequest(
                         BaseDoRateio.POR_USO, ModeloDeAporte.FIXO, 5, null, 1, BigDecimal.ZERO)))
         .isInstanceOf(ConfiguracaoFinanceiraInvalidaException.class)
-        .hasMessageContaining("1, 2, 3, 4, 6 ou 12");
+        .hasMessageContaining("1, 2, 3, 4, 6 ou 12")
+        .satisfies(erro -> assertThat(campoDe(erro)).hasValue("periodicidadeDoAporteMeses"));
   }
 
   @Test
@@ -126,41 +134,66 @@ class AeronaveServiceTest {
     assertThat(aeronave.getVencimentoCva()).isEqualTo(LocalDate.parse("2027-01-01"));
   }
 
+  private static final BigDecimal HORAS_DE_MOTOR = new BigDecimal("1180.0");
+
   private CriarAeronaveRequest cadastro(String matricula) {
+    return cadastro(
+        matricula,
+        LocalDate.parse("2027-06-01"),
+        7650,
+        contadores(HORAS_DE_MOTOR, HORAS_DE_MOTOR, null),
+        configuracao(ModeloDeAporte.FIXO, new BigDecimal("60000")));
+  }
+
+  private CriarAeronaveRequest cadastro(
+      String matricula,
+      LocalDate vencimentoCva,
+      Integer pesoMaxPousoKg,
+      ContadoresRequest contadores,
+      ConfiguracaoFinanceiraRequest configuracao) {
     return new CriarAeronaveRequest(
         matricula,
-        "Embraer",
+        "   ",
         "Phenom 300E",
         "50500123",
         "sbjd",
         "Hangar 2",
         "RETA-1",
         8150,
-        7650,
-        LocalDate.parse("2027-06-01"),
+        pesoMaxPousoKg,
+        vencimentoCva,
         LocalDate.parse("2027-08-01"),
-        new ContadoresRequest(
-            new BigDecimal("1200.0"), 950, new BigDecimal("510000"), null, null, null, null),
-        new ConfiguracaoFinanceiraRequest(
-            BaseDoRateio.POR_PROPRIEDADE,
-            ModeloDeAporte.FIXO,
-            1,
-            new BigDecimal("60000"),
-            5,
-            new BigDecimal("-12500.00")));
+        contadores,
+        configuracao);
+  }
+
+  private static ContadoresRequest contadores(
+      BigDecimal motor1, BigDecimal motor2, BigDecimal motor3) {
+    return new ContadoresRequest(
+        new BigDecimal("1200.0"), 950, new BigDecimal("510000"), motor1, motor2, motor3, null);
+  }
+
+  private static ConfiguracaoFinanceiraRequest configuracao(
+      ModeloDeAporte modelo, BigDecimal valorDoAporte) {
+    return new ConfiguracaoFinanceiraRequest(
+        BaseDoRateio.POR_PROPRIEDADE, modelo, 1, valorDoAporte, 5, new BigDecimal("-12500.00"));
+  }
+
+  private void semDuplicadaNaBusca() {
+    when(aeronaves.findByMatricula(any())).thenReturn(Optional.empty());
+    when(aeronaves.saveAndFlush(any())).thenAnswer(chamada -> chamada.getArgument(0));
   }
 
   @Test
-  @DisplayName("cria normalizando matrícula e base, com ficha e configuração num ato só")
+  @DisplayName("cria normalizando matrícula, base e textos, com ficha e configuração num ato só")
   void criaCompleta() {
-    when(aeronaves.findByMatricula("PR-AER")).thenReturn(java.util.Optional.empty());
-    when(aeronaves.save(org.mockito.ArgumentMatchers.any()))
-        .thenAnswer(chamada -> chamada.getArgument(0));
+    semDuplicadaNaBusca();
 
     DetalheDaAeronaveResponse criada = service.criar(cadastro("pr-aer"));
 
     assertThat(criada.matricula()).isEqualTo("PR-AER");
     assertThat(criada.base()).isEqualTo("SBJD");
+    assertThat(criada.fabricante()).isNull();
     assertThat(criada.pesoMaxDecolagemKg()).isEqualTo(8150);
     assertThat(criada.contadores().horasDeCelula()).isEqualByComparingTo("1200.0");
     assertThat(criada.configuracaoFinanceira().baseDoRateio())
@@ -168,13 +201,72 @@ class AeronaveServiceTest {
   }
 
   @Test
-  @DisplayName("matrícula repetida é 409, antes de salvar")
+  @DisplayName("matrícula repetida é 409 no campo da matrícula, antes de salvar")
   void recusaMatriculaDuplicada() {
-    when(aeronaves.findByMatricula("PS-MEP")).thenReturn(java.util.Optional.of(aeronave));
+    when(aeronaves.findByMatricula("PS-MEP")).thenReturn(Optional.of(aeronave));
 
     assertThatThrownBy(() -> service.criar(cadastro("ps-mep")))
+        .isInstanceOf(MatriculaJaCadastradaException.class)
+        .satisfies(erro -> assertThat(campoDe(erro)).hasValue("matricula"));
+    verify(aeronaves, never()).saveAndFlush(any());
+  }
+
+  @Test
+  @DisplayName("a corrida de dois cadastros bate na UNIQUE e responde como matrícula duplicada")
+  void corridaNaUniqueEhDuplicada() {
+    semDuplicadaNaBusca();
+    when(aeronaves.saveAndFlush(any())).thenThrow(violacao("aeronave_matricula_unica"));
+
+    assertThatThrownBy(() -> service.criar(cadastro("pr-aer")))
         .isInstanceOf(MatriculaJaCadastradaException.class);
-    org.mockito.Mockito.verify(aeronaves, org.mockito.Mockito.never())
-        .save(org.mockito.ArgumentMatchers.any());
+  }
+
+  @Test
+  @DisplayName("outra violação de integridade segue adiante, para o tratador global")
+  void outraViolacaoSegue() {
+    semDuplicadaNaBusca();
+    when(aeronaves.saveAndFlush(any())).thenThrow(violacao("aeronave_pesos_positivos"));
+
+    assertThatThrownBy(() -> service.criar(cadastro("pr-aer")))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
+
+  @Test
+  @DisplayName("as regras da aeronave recusam no campo do JSON, antes de salvar")
+  void recusasNoCampo() {
+    LocalDate cva = LocalDate.parse("2027-06-01");
+    ContadoresRequest umMotor = contadores(HORAS_DE_MOTOR, null, null);
+    ConfiguracaoFinanceiraRequest fixo = configuracao(ModeloDeAporte.FIXO, BigDecimal.TEN);
+
+    assertRecusaNoCampo(
+        cadastro("pr-aer", LocalDate.parse("2062-06-01"), 7650, umMotor, fixo), "vencimentoCva");
+    assertRecusaNoCampo(cadastro("pr-aer", cva, 90000, umMotor, fixo), "pesoMaxPousoKg");
+    assertRecusaNoCampo(
+        cadastro("pr-aer", cva, 7650, contadores(HORAS_DE_MOTOR, null, HORAS_DE_MOTOR), fixo),
+        "contadores.horasMotor2");
+    assertRecusaNoCampo(
+        cadastro("pr-aer", cva, 7650, contadores(null, null, null), fixo),
+        "contadores.horasMotor1");
+    assertRecusaNoCampo(
+        cadastro("pr-aer", cva, 7650, umMotor, configuracao(ModeloDeAporte.FIXO, null)),
+        "configuracaoFinanceira.valorDoAporte");
+  }
+
+  private void assertRecusaNoCampo(CriarAeronaveRequest cadastro, String campo) {
+    semDuplicadaNaBusca();
+    assertThatThrownBy(() -> service.criar(cadastro))
+        .isInstanceOf(ExcecaoDeDominio.class)
+        .satisfies(erro -> assertThat(campoDe(erro)).hasValue(campo));
+    verify(aeronaves, never()).saveAndFlush(any());
+  }
+
+  private static Optional<String> campoDe(Throwable erro) {
+    return ((ExcecaoDeDominio) erro).getCampo();
+  }
+
+  private static DataIntegrityViolationException violacao(String restricao) {
+    return new DataIntegrityViolationException(
+        "violação",
+        new ConstraintViolationException("violação", new SQLException("duplicada"), restricao));
   }
 }

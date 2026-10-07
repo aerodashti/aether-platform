@@ -3,6 +3,9 @@ package br.com.aerodash.aether.aeronave;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * Os totais acumulados da aeronave: célula, ciclos, quilômetros, motores e APU.
@@ -44,6 +47,26 @@ public record ContadoresDaAeronave(
         horasMotor2,
         horasMotor3,
         horasApu);
+  }
+
+  /**
+   * O primeiro motor sem horas numa ficha que os declara em sequência: toda aeronave tem o motor 1,
+   * e o motor 3 sem o 2 é um buraco, não um trimotor. Vazio quando a sequência está completa.
+   */
+  public OptionalInt motorSemHoras() {
+    List<BigDecimal> motores = Arrays.asList(horasMotor1, horasMotor2, horasMotor3);
+    int ultimoDeclarado = 0;
+    for (int indice = 0; indice < motores.size(); indice++) {
+      if (motores.get(indice) != null) {
+        ultimoDeclarado = indice;
+      }
+    }
+    for (int indice = 0; indice <= ultimoDeclarado; indice++) {
+      if (motores.get(indice) == null) {
+        return OptionalInt.of(indice + 1);
+      }
+    }
+    return OptionalInt.empty();
   }
 
   public boolean possuiValoresNegativos() {

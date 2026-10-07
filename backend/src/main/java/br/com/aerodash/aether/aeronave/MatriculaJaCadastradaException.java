@@ -9,7 +9,10 @@ public class MatriculaJaCadastradaException extends ExcecaoDeDominio {
   private static final long serialVersionUID = 1L;
 
   public MatriculaJaCadastradaException() {
-    super("Matrícula já cadastrada", "Já existe uma aeronave com esta matrícula na frota.");
+    super(
+        "Matrícula já cadastrada",
+        "Já existe uma aeronave com esta matrícula na frota.",
+        "matricula");
   }
 
   @Override

@@ -12,6 +12,11 @@ public class ConfiguracaoFinanceiraInvalidaException extends ExcecaoDeDominio {
     super("Configuração financeira inválida", detalhe);
   }
 
+  /** A recusa de um campo só — {@code campo} é o nome dele no JSON do request. */
+  public ConfiguracaoFinanceiraInvalidaException(String detalhe, String campo) {
+    super("Configuração financeira inválida", detalhe, campo);
+  }
+
   @Override
   public HttpStatus getStatus() {
     return HttpStatus.BAD_REQUEST;
