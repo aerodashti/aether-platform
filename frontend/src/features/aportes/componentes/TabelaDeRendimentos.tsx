@@ -24,6 +24,8 @@ interface TabelaDeRendimentosProps {
   mostraAeronave: boolean;
   podeGerir: boolean;
   aoCorrigir: (rendimento: RendimentoResponse) => void;
+  /** Para a página fechar a correção de um rendimento que acabou de sair. */
+  aoExcluir: (id: number) => void;
   aoTentarDeNovo: () => void;
 }
 
@@ -35,9 +37,10 @@ export function TabelaDeRendimentos({
   mostraAeronave,
   podeGerir,
   aoCorrigir,
+  aoExcluir,
   aoTentarDeNovo,
 }: TabelaDeRendimentosProps) {
-  const exclusao = useExclusaoNaGrade(useExcluirRendimento());
+  const exclusao = useExclusaoNaGrade(useExcluirRendimento(), aoExcluir);
   const linha = juntarClasses(estilos.rendimentos, mostraAeronave && estilos.comAeronave);
   // A falha fica no mesmo lugar em todo estado da grade: se a linha excluída era a última, ela some
   // e a grade vira o recado de vazio, mas o aviso continua.

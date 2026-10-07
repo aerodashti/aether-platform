@@ -174,12 +174,25 @@ describe('PaginaDeAportes', () => {
     );
   });
 
-  it('aberto por ?registrar=1, o painel fecha no Cancelar e não reabre sozinho', async () => {
-    prepararFetch(GESTORA);
-    envolver(<PaginaDeAportes />, '/aportes?registrar=1');
+  it('o aporte salvo fora do recorte é confirmado, com o motivo de não aparecer na grade', async () => {
+    const gravado = { ...APORTES.aportes[0], id: 6, competencia: '2000-01' };
+    prepararFetch(GESTORA, () => Promise.resolve(respostaDe(gravado, 201)));
+    envolver(<PaginaDeAportes />, '/aportes?aeronave=1&registrar=1');
 
     const painel = await screen.findByRole('dialog', { name: 'Registrar aporte' });
-    await userEvent.click(within(painel).getByRole('button', { name: 'Cancelar' }));
+    await screen.findByRole('option', { name: 'Ricardo Meirelles' });
+    await userEvent.selectOptions(
+      within(painel).getByLabelText('Proprietário'),
+      'Ricardo Meirelles',
+    );
+    await userEvent.type(within(painel).getByLabelText('Valor (R$)'), '25.000');
+    await userEvent.click(within(painel).getByRole('button', { name: 'Registrar aporte' }));
+
+    const confirmacao = await screen.findByText(/^Aporte de R\$\s25\.000,00 de Ricardo Meirelles/);
+    expect(confirmacao).toHaveTextContent(
+      'registrado na PS-MEP, competência Jan/00. Ele não aparece na grade porque está fora do recorte selecionado.',
+    );
+    expect(confirmacao.closest('[role="status"]')).not.toBeNull();
     expect(screen.queryByRole('dialog', { name: 'Registrar aporte' })).not.toBeInTheDocument();
   });
 
@@ -196,6 +209,47 @@ describe('PaginaDeAportes', () => {
     expect(
       await screen.findByText('O aporte de Ricardo Meirelles em 03/10/26 já tinha sido excluído.'),
     ).toBeInTheDocument();
+  });
+
+  it('excluir o rendimento em correção fecha a correção, que daria "não encontrado"', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeAportes />);
+    await userEvent.click(await screen.findByRole('tab', { name: /^Rendimentos/ }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Editar rendimento de 28/09/26' }));
+    expect(screen.getByRole('region', { name: 'Corrigir rendimento' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir rendimento de 28/09/26' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Sim, excluir rendimento de 28/09/26' }),
+    );
+
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Corrigir rendimento' })).not.toBeInTheDocument(),
+    );
+  });
+
+  it('o rendimento em digitação sobrevive à troca de aba, e fechar devolve o foco ao botão', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeAportes />);
+    await userEvent.click(await screen.findByRole('tab', { name: /^Rendimentos/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar rendimento' }));
+    await userEvent.type(screen.getByLabelText('Aplicação'), 'Tesouro Selic');
+
+    await userEvent.click(screen.getByRole('tab', { name: /^Aportes/ }));
+    await userEvent.click(screen.getByRole('tab', { name: /^Rendimentos/ }));
+    expect(screen.getByLabelText('Aplicação')).toHaveValue('Tesouro Selic');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.getByRole('button', { name: 'Registrar rendimento' })).toHaveFocus();
+  });
+
+  it('aberto por ?registrar=1, o painel fecha no Cancelar e não reabre sozinho', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeAportes />, '/aportes?registrar=1');
+
+    const painel = await screen.findByRole('dialog', { name: 'Registrar aporte' });
+    await userEvent.click(within(painel).getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('dialog', { name: 'Registrar aporte' })).not.toBeInTheDocument();
   });
 
   it('o proprietário só lê: sem registrar, editar ou excluir', async () => {

@@ -18,7 +18,12 @@ import {
   type FiltroDoFundo,
   type RendimentoResponse,
 } from '../api/useAportes';
+import {
+  useFormularioDeRendimento,
+  type FormularioDeRendimentoAberto,
+} from '../hooks/useFormularioDeRendimento';
 
+import { confirmacaoDoAporte, confirmacaoDoRendimento } from './confirmacoes';
 import { FormularioDeRendimento } from './FormularioDeRendimento';
 import estilos from './PaginaDeAportes.module.css';
 import { PainelDeAporte } from './PainelDeAporte';
@@ -29,8 +34,6 @@ import { TabelaDeRendimentos } from './TabelaDeRendimentos';
 type Modo = 'MENSAL' | 'PERIODO';
 type Aba = 'APORTES' | 'RENDIMENTOS';
 type PainelDoAporte = { modo: 'novo' } | { modo: 'corrigir'; aporte: AporteResponse } | null;
-type FormularioAberto =
-  { modo: 'novo' } | { modo: 'corrigir'; rendimento: RendimentoResponse } | null;
 
 /**
  * As entradas do fundo, na composição do protótipo: recorte por aeronave e por competência (um mês
@@ -45,21 +48,46 @@ export function PaginaDeAportes() {
   const [ate, setAte] = useState(competenciaLocal());
   const [aba, setAba] = useState<Aba>('APORTES');
   const [painel, setPainel] = useState<PainelDoAporte>(null);
-  const [formulario, setFormulario] = useState<FormularioAberto>(null);
+  const formulario = useFormularioDeRendimento();
+  // O que acabou de ser salvo: sem isto, o registro fora do recorte parecia não ter sido salvo.
+  const [confirmacao, setConfirmacao] = useState<string | null>(null);
   const { usuario } = useSessao();
   const aeronaves = useAeronaves();
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
+
+  function abrirPainel(pedido: NonNullable<PainelDoAporte>) {
+    setConfirmacao(null);
+    setPainel(pedido);
+  }
+
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
   const recorte = useRecorteDaUrl(competenciaLocal(), {
     podeRegistrar: podeGerir,
-    aoPedir: () => setPainel({ modo: 'novo' }),
+    aoPedir: () => abrirPainel({ modo: 'novo' }),
   });
   const { aeronaveId, competencia } = recorte;
   const filtro: FiltroDoFundo =
     modo === 'MENSAL' ? { aeronaveId, de: competencia, ate: competencia } : { aeronaveId, de, ate };
   const aportes = useAportes(filtro);
   const rendimentos = useRendimentos(filtro);
+
+  function abrirFormulario(pedido: FormularioDeRendimentoAberto) {
+    setConfirmacao(null);
+    formulario.abrir(pedido);
+  }
+
+  function aoSalvarAporte(aporte: AporteResponse) {
+    setConfirmacao(confirmacaoDoAporte(aporte, filtro, painel?.modo === 'corrigir'));
+    setPainel(null);
+  }
+
+  function aoSalvarRendimento(rendimento: RendimentoResponse) {
+    setConfirmacao(
+      confirmacaoDoRendimento(rendimento, filtro, formulario.aberto?.modo === 'corrigir'),
+    );
+    formulario.fechar();
+  }
 
   const totalAportado = aportes.data?.total;
   const totalRendido = rendimentos.data?.total;
@@ -87,7 +115,7 @@ export function PaginaDeAportes() {
           aplicação do saldo rendeu.
         </Texto>
         {podeGerir ? (
-          <Botao variante="contorno" aoClicar={() => setPainel({ modo: 'novo' })}>
+          <Botao variante="contorno" aoClicar={() => abrirPainel({ modo: 'novo' })}>
             Registrar aporte
           </Botao>
         ) : null}
@@ -165,10 +193,22 @@ export function PaginaDeAportes() {
             },
           ]}
         />
-        {aba === 'RENDIMENTOS' && podeGerir && formulario === null ? (
-          <Botao variante="contorno" aoClicar={() => setFormulario({ modo: 'novo' })}>
+        {aba === 'RENDIMENTOS' && podeGerir && formulario.aberto === null ? (
+          <Botao
+            ref={formulario.botaoDeRegistrar}
+            variante="contorno"
+            aoClicar={() => abrirFormulario({ modo: 'novo' })}
+          >
             Registrar rendimento
           </Botao>
+        ) : null}
+      </div>
+
+      <div role="status">
+        {confirmacao ? (
+          <Texto variante="apoio" tom="positivo" como="p">
+            {confirmacao}
+          </Texto>
         ) : null}
       </div>
 
@@ -180,37 +220,43 @@ export function PaginaDeAportes() {
             erro={aportes.isError}
             mostraAeronave={aeronaveId === ''}
             podeGerir={podeGerir}
-            aoCorrigir={(aporte) => setPainel({ modo: 'corrigir', aporte })}
+            aoCorrigir={(aporte) => abrirPainel({ modo: 'corrigir', aporte })}
             aoTentarDeNovo={() => void aportes.refetch()}
           />
         ) : (
-          <>
-            <TabelaDeRendimentos
-              resposta={rendimentos.data}
-              carregando={rendimentos.isPending}
-              erro={rendimentos.isError}
-              mostraAeronave={aeronaveId === ''}
-              podeGerir={podeGerir}
-              aoCorrigir={(rendimento) => setFormulario({ modo: 'corrigir', rendimento })}
-              aoTentarDeNovo={() => void rendimentos.refetch()}
-            />
-            {formulario ? (
-              <FormularioDeRendimento
-                key={formulario.modo === 'corrigir' ? formulario.rendimento.id : 'novo'}
-                rendimento={formulario.modo === 'corrigir' ? formulario.rendimento : undefined}
-                aeronaveInicial={aeronaveId || undefined}
-                aoFechar={() => setFormulario(null)}
-                aoSalvar={() => setFormulario(null)}
-              />
-            ) : null}
-            <Texto variante="apoio" tom="suave" como="p">
-              <span className={estilos.nota}>
-                Os rendimentos entram no fundo e são rateados pela participação de cada
-                proprietário.
-              </span>
-            </Texto>
-          </>
+          <TabelaDeRendimentos
+            resposta={rendimentos.data}
+            carregando={rendimentos.isPending}
+            erro={rendimentos.isError}
+            mostraAeronave={aeronaveId === ''}
+            podeGerir={podeGerir}
+            aoCorrigir={(rendimento) => abrirFormulario({ modo: 'corrigir', rendimento })}
+            aoExcluir={formulario.aoExcluir}
+            aoTentarDeNovo={() => void rendimentos.refetch()}
+          />
         )}
+        {/* Fora da aba, o formulário fica montado e escondido: o que foi digitado não se perde. */}
+        {formulario.aberto ? (
+          <div hidden={aba !== 'RENDIMENTOS'}>
+            <FormularioDeRendimento
+              key={formulario.aberto.modo === 'corrigir' ? formulario.aberto.rendimento.id : 'novo'}
+              rendimento={
+                formulario.aberto.modo === 'corrigir' ? formulario.aberto.rendimento : undefined
+              }
+              aeronaveInicial={aeronaveId || undefined}
+              aoFechar={formulario.fechar}
+              aoSalvar={aoSalvarRendimento}
+            />
+          </div>
+        ) : null}
+        {aba === 'RENDIMENTOS' ? (
+          <Texto variante="apoio" tom="suave" como="p">
+            <span className={estilos.nota}>
+              Os rendimentos entram no fundo e são rateados pela participação de cada proprietário
+              na data do crédito. Sem contrato vigente nessa data, ficam no fundo sem rateio.
+            </span>
+          </Texto>
+        ) : null}
       </div>
 
       {painel ? (
@@ -219,7 +265,7 @@ export function PaginaDeAportes() {
           aporte={painel.modo === 'corrigir' ? painel.aporte : undefined}
           aeronaveInicial={aeronaveId || undefined}
           aoFechar={() => setPainel(null)}
-          aoSalvar={() => setPainel(null)}
+          aoSalvar={aoSalvarAporte}
         />
       ) : null}
     </div>
