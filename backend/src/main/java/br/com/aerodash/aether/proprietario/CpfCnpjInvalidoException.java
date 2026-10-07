@@ -3,15 +3,13 @@ package br.com.aerodash.aether.proprietario;
 import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import org.springframework.http.HttpStatus;
 
-/** O documento, depois de tirar a pontuação, não tem 11 nem 14 dígitos. */
+/** O documento não é um CPF nem um CNPJ: comprimento, caractere ou verificador errado. */
 public class CpfCnpjInvalidoException extends ExcecaoDeDominio {
 
   private static final long serialVersionUID = 1L;
 
   public CpfCnpjInvalidoException() {
-    super(
-        "CPF ou CNPJ inválido",
-        "Confira o documento: um CPF tem 11 dígitos, um CNPJ 14, e os dígitos verificadores precisam bater.");
+    super("CPF ou CNPJ inválido", CpfCnpj.MENSAGEM_DE_INVALIDO, "cpfCnpj");
   }
 
   @Override

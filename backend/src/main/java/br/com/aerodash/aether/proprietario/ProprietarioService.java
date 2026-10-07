@@ -5,6 +5,7 @@ import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,23 +112,21 @@ public class ProprietarioService {
    * @param idAtual o próprio registro numa atualização, para não colidir consigo mesmo.
    */
   private String validarCpfCnpj(String cpfCnpj, Long idAtual) {
-    String normalizado = Proprietario.normalizarCpfCnpj(cpfCnpj);
+    String normalizado = CpfCnpj.normalizar(cpfCnpj);
 
-    boolean valido = Proprietario.cpfCnpjEhValido(normalizado);
+    boolean valido = CpfCnpj.ehValido(normalizado);
     contexto.decisao("proprietario.cpfCnpjValido", valido);
     if (!valido) {
       throw new CpfCnpjInvalidoException();
     }
 
-    boolean duplicado =
-        normalizado != null
-            && proprietarios
-                .findByCpfCnpj(normalizado)
-                .map(existente -> !existente.getId().equals(idAtual))
-                .orElse(false);
-    contexto.decisao("proprietario.cpfCnpjDuplicado", duplicado);
-    if (duplicado) {
-      throw new CpfCnpjJaCadastradoException();
+    Optional<Proprietario> titular =
+        Optional.ofNullable(normalizado)
+            .flatMap(proprietarios::findByCpfCnpj)
+            .filter(existente -> !existente.getId().equals(idAtual));
+    contexto.decisao("proprietario.cpfCnpjDuplicado", titular.isPresent());
+    if (titular.isPresent()) {
+      throw new CpfCnpjJaCadastradoException(titular.get().getNome(), titular.get().estaAtivo());
     }
     return normalizado;
   }

@@ -10,20 +10,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Pessoa física ou jurídica titular de participação em aeronaves.
  *
  * <p>Distinto de {@code Usuario}: o titular existe no domínio exista ou não acesso ao sistema — ver
- * o glossário. Hoje o proprietário é só cadastro; a participação por aeronave e o saldo do fundo
- * entram com as features donas de cada um.
+ * o glossário. A participação por aeronave e o saldo do fundo moram nas features donas de cada um
+ * ({@code participacao} e {@code fechamento}).
  */
 @Entity
 @Table(name = "proprietario")
 public class Proprietario {
 
-  private static final int[] PESOS_DO_CPF = {11, 10, 9, 8, 7, 6, 5, 4, 3, 2};
-  private static final int[] PESOS_DO_CNPJ = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+  /** Caracteres de formatação — espaço de largura zero, marca de direção —, que não se veem. */
+  private static final Pattern INVISIVEIS = Pattern.compile("\\p{Cf}");
+
+  /** Espaço comum, não separável e afins nas pontas. */
+  private static final Pattern ESPACOS_NAS_PONTAS = Pattern.compile("^[\\s\\p{Z}]+|[\\s\\p{Z}]+$");
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,8 +69,8 @@ public class Proprietario {
       String telefone,
       CorDeIdentificacao corDeIdentificacao,
       Instant momento) {
-    this.nome = nome.trim();
-    this.cpfCnpj = normalizarCpfCnpj(cpfCnpj);
+    this.nome = normalizarNome(nome);
+    this.cpfCnpj = CpfCnpj.normalizar(cpfCnpj);
     this.email = normalizarEmail(email);
     this.telefone = normalizarTelefone(telefone);
     this.corDeIdentificacao = corDeIdentificacao;
@@ -76,46 +80,12 @@ public class Proprietario {
   }
 
   /**
-   * O documento é gravado só com dígitos: "123.456.789-01" e "12345678901" são a mesma pessoa, e a
-   * unicidade do banco só funciona se a forma for uma. Vazio vira {@code null} — cadastro sem
-   * documento é permitido até o contrato de participação exigi-lo.
+   * O nome sem o que não se vê. Um espaço de largura zero colado de um PDF faria dois cadastros
+   * parecerem a mesma pessoa, e um nome feito só disso seria um nome em branco na grade.
    */
-  public static String normalizarCpfCnpj(String cpfCnpj) {
-    if (cpfCnpj == null) {
-      return null;
-    }
-    String digitos = cpfCnpj.replaceAll("\\D", "");
-    return digitos.isEmpty() ? null : digitos;
-  }
-
-  /**
-   * 11 dígitos é CPF, 14 é CNPJ, e os dois últimos são os verificadores da Receita: é o documento
-   * do titular no RAB, e um dígito trocado na digitação vira outra pessoa. A sequência repetida
-   * passa na conta, mas não é emitida.
-   */
-  public static boolean cpfCnpjEhValido(String cpfCnpjNormalizado) {
-    if (cpfCnpjNormalizado == null) {
-      return true;
-    }
-    int tamanho = cpfCnpjNormalizado.length();
-    if ((tamanho != 11 && tamanho != 14) || cpfCnpjNormalizado.chars().distinct().count() == 1) {
-      return false;
-    }
-    int[] pesos = tamanho == 11 ? PESOS_DO_CPF : PESOS_DO_CNPJ;
-    return verificadorConfere(cpfCnpjNormalizado, tamanho - 2, pesos)
-        && verificadorConfere(cpfCnpjNormalizado, tamanho - 1, pesos);
-  }
-
-  /** Módulo 11 sobre os dígitos antes da `posicao`, com os pesos alinhados à direita. */
-  private static boolean verificadorConfere(String digitos, int posicao, int[] pesos) {
-    int soma = 0;
-    int deslocamento = pesos.length - posicao;
-    for (int i = 0; i < posicao; i++) {
-      soma += (digitos.charAt(i) - '0') * pesos[deslocamento + i];
-    }
-    int resto = soma % 11;
-    int esperado = resto < 2 ? 0 : 11 - resto;
-    return (digitos.charAt(posicao) - '0') == esperado;
+  static String normalizarNome(String nome) {
+    String visivel = INVISIVEIS.matcher(nome).replaceAll("");
+    return ESPACOS_NAS_PONTAS.matcher(visivel).replaceAll("");
   }
 
   public static String normalizarEmail(String email) {
@@ -149,8 +119,8 @@ public class Proprietario {
       String telefone,
       CorDeIdentificacao corDeIdentificacao,
       Instant momento) {
-    this.nome = nome.trim();
-    this.cpfCnpj = normalizarCpfCnpj(cpfCnpj);
+    this.nome = normalizarNome(nome);
+    this.cpfCnpj = CpfCnpj.normalizar(cpfCnpj);
     this.email = normalizarEmail(email);
     this.telefone = normalizarTelefone(telefone);
     this.corDeIdentificacao = corDeIdentificacao;
@@ -158,8 +128,8 @@ public class Proprietario {
   }
 
   /**
-   * Desativar não apaga: o histórico continua apontando para a pessoa. Quando o contrato de
-   * participação existir, é ele que vai exigir o rebalanceamento antes de chegar aqui.
+   * Desativar não apaga: o histórico continua apontando para a pessoa. Quem está num contrato
+   * vigente sai antes pela redistribuição da participação ({@code SaidaDeProprietarioService}).
    */
   public void desativar(Instant momento) {
     this.situacao = SituacaoDoProprietario.INATIVO;

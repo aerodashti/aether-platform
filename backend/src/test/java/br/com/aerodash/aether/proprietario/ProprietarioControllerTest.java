@@ -1,5 +1,6 @@
 package br.com.aerodash.aether.proprietario;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -63,7 +64,7 @@ class ProprietarioControllerTest {
       new ProprietarioResponse(
           1L,
           "Ricardo Meirelles",
-          "12345678901",
+          "12345678909",
           "ricardo@exemplo.com.br",
           "+55 11 98888-0000",
           CorDeIdentificacao.PETROLEO,
@@ -85,6 +86,75 @@ class ProprietarioControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].nome").value("Ricardo Meirelles"))
         .andExpect(jsonPath("$[0].corDeIdentificacao").value("PETROLEO"));
+  }
+
+  @Test
+  @DisplayName("tudo o que está errado sai no mesmo 400, cada recusa no seu campo")
+  void recusasNoMesmo400() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+
+    mockMvc
+        .perform(
+            post("/proprietarios")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"\\u200b","cpfCnpj":"123.456.789-01","email":"otavio@exemplo",
+                     "telefone":"liga depois","corDeIdentificacao":"PETROLEO"}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.nome").value("O nome precisa ter ao menos uma letra ou um número."))
+        .andExpect(jsonPath("$.campos.cpfCnpj").value(containsString("CPF tem 11 números")))
+        .andExpect(jsonPath("$.campos.email").value(containsString("nome@empresa.com.br")))
+        .andExpect(jsonPath("$.campos.telefone").value(containsString("+55 11 98888-0000")));
+
+    verify(proprietarios, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("CNPJ alfanumérico e campos opcionais em branco passam pela validação")
+  void cnpjAlfanumericoEOpcionaisEmBranco() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    when(proprietarios.criar(any())).thenReturn(RICARDO);
+
+    mockMvc
+        .perform(
+            post("/proprietarios")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"Vetor SPE","cpfCnpj":"12.ABC.345/01DE-35","email":"",
+                     "telefone":"  ","corDeIdentificacao":"AMBAR"}
+                    """))
+        .andExpect(status().isCreated());
+
+    verify(proprietarios)
+        .criar(
+            new ProprietarioRequest(
+                "Vetor SPE", "12.ABC.345/01DE-35", null, null, CorDeIdentificacao.AMBAR));
+  }
+
+  @Test
+  @DisplayName("documento de outro titular: 409 no campo cpfCnpj, dizendo de quem é")
+  void documentoDeOutroTitular() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    when(proprietarios.criar(any()))
+        .thenThrow(new CpfCnpjJaCadastradoException("Ricardo Meirelles", true));
+
+    mockMvc
+        .perform(
+            post("/proprietarios")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"Homônimo","cpfCnpj":"529.982.247-25","corDeIdentificacao":"AZUL"}
+                    """))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.campos.cpfCnpj").value("Este documento já é de Ricardo Meirelles."));
   }
 
   @Test
@@ -125,7 +195,7 @@ class ProprietarioControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"nome":"Ricardo Meirelles","cpfCnpj":"123.456.789-01",
+                    {"nome":"Ricardo Meirelles","cpfCnpj":"123.456.789-09",
                      "email":"ricardo@exemplo.com.br","telefone":"+55 11 98888-0000",
                      "corDeIdentificacao":"PETROLEO"}
                     """))

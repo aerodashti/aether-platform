@@ -16,7 +16,7 @@ class ProprietarioTest {
   private Proprietario novo() {
     return new Proprietario(
         "  Ricardo Meirelles  ",
-        "123.456.789-01",
+        "123.456.789-09",
         "  Ricardo@Exemplo.com.br ",
         " +55 11 98888-0000 ",
         CorDeIdentificacao.PETROLEO,
@@ -33,7 +33,7 @@ class ProprietarioTest {
       Proprietario proprietario = novo();
 
       assertThat(proprietario.getNome()).isEqualTo("Ricardo Meirelles");
-      assertThat(proprietario.getCpfCnpj()).isEqualTo("12345678901");
+      assertThat(proprietario.getCpfCnpj()).isEqualTo("12345678909");
       assertThat(proprietario.getEmail()).isEqualTo("ricardo@exemplo.com.br");
       assertThat(proprietario.getTelefone()).isEqualTo("+55 11 98888-0000");
     }
@@ -52,38 +52,40 @@ class ProprietarioTest {
   }
 
   @Nested
-  @DisplayName("validação do documento")
-  class ValidacaoDoDocumento {
+  @DisplayName("nome")
+  class Nome {
 
     @Test
-    @DisplayName("aceita CPF e CNPJ com dígitos verificadores certos, e a ausência")
-    void aceitaFormasValidas() {
-      assertThat(Proprietario.cpfCnpjEhValido("52998224725")).isTrue();
-      assertThat(Proprietario.cpfCnpjEhValido("11444777000161")).isTrue();
-      assertThat(Proprietario.cpfCnpjEhValido(null)).isTrue();
+    @DisplayName("tira o que não se vê: espaço de largura zero e espaço não separável nas pontas")
+    void tiraInvisiveis() {
+      Proprietario proprietario =
+          new Proprietario(
+              " Ri​cardo Meirelles​ ", null, null, null, CorDeIdentificacao.AZUL, AGORA);
+
+      assertThat(proprietario.getNome()).isEqualTo("Ricardo Meirelles");
     }
 
     @Test
-    @DisplayName("recusa dígito verificador errado: é o documento do titular no RAB")
-    void recusaDigitoVerificadorErrado() {
-      assertThat(Proprietario.cpfCnpjEhValido("52998224726")).isFalse();
-      assertThat(Proprietario.cpfCnpjEhValido("12345678901")).isFalse();
-      assertThat(Proprietario.cpfCnpjEhValido("11444777000162")).isFalse();
-    }
+    @DisplayName("na atualização também")
+    void tiraInvisiveisAoAtualizar() {
+      Proprietario proprietario = novo();
 
-    @Test
-    @DisplayName("recusa a sequência repetida, que passa na conta mas não existe")
-    void recusaSequenciaRepetida() {
-      assertThat(Proprietario.cpfCnpjEhValido("11111111111")).isFalse();
-      assertThat(Proprietario.cpfCnpjEhValido("00000000000000")).isFalse();
-    }
+      proprietario.atualizarCadastro(
+          "​Helena Sarraf ", null, null, null, CorDeIdentificacao.VERDE, DEPOIS);
 
-    @Test
-    @DisplayName("recusa qualquer outro comprimento")
-    void recusaComprimentoErrado() {
-      assertThat(Proprietario.cpfCnpjEhValido("123")).isFalse();
-      assertThat(Proprietario.cpfCnpjEhValido("123456789012")).isFalse();
+      assertThat(proprietario.getNome()).isEqualTo("Helena Sarraf");
     }
+  }
+
+  @Test
+  @DisplayName("guarda o CNPJ alfanumérico sem pontuação e em maiúsculas")
+  void guardaCnpjAlfanumerico() {
+    Proprietario proprietario =
+        new Proprietario(
+            "Vetor SPE", "12.abc.345/01de-35", null, null, CorDeIdentificacao.AMBAR, AGORA);
+
+    assertThat(proprietario.getCpfCnpj()).isEqualTo("12ABC34501DE35");
+    assertThat(proprietario.possuiCpfCnpj()).isTrue();
   }
 
   @Nested

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Clock;
@@ -70,22 +71,45 @@ class ProprietarioServiceTest {
   }
 
   @Test
-  @DisplayName("recusa documento com comprimento inválido, antes de tocar o banco")
-  void recusaDocumentoInvalido() {
-    assertThatThrownBy(() -> service.criar(request("123")))
-        .isInstanceOf(CpfCnpjInvalidoException.class);
-    verify(proprietarios, never()).save(any());
+  @DisplayName("cria com o CNPJ alfanumérico")
+  void criaComCnpjAlfanumerico() {
+    ProprietarioResponse response = service.criar(request("12.ABC.345/01DE-35"));
+
+    assertThat(response.cpfCnpj()).isEqualTo("12ABC34501DE35");
   }
 
   @Test
-  @DisplayName("recusa documento que já pertence a outro proprietário")
+  @DisplayName("recusa documento inválido no campo cpfCnpj, antes de tocar o banco")
+  void recusaDocumentoInvalido() {
+    assertThatThrownBy(() -> service.criar(request("não tenho")))
+        .isInstanceOf(CpfCnpjInvalidoException.class)
+        .satisfies(erro -> assertThat(campoDe(erro)).contains("cpfCnpj"));
+    verify(proprietarios, never()).save(any());
+    verify(contexto).decisao("proprietario.cpfCnpjValido", false);
+  }
+
+  @Test
+  @DisplayName("recusa documento de outro proprietário dizendo de quem é")
   void recusaDocumentoDuplicado() {
     Proprietario existente = comId(7L, "52998224725");
     when(proprietarios.findByCpfCnpj("52998224725")).thenReturn(Optional.of(existente));
 
     assertThatThrownBy(() -> service.criar(request("529.982.247-25")))
-        .isInstanceOf(CpfCnpjJaCadastradoException.class);
+        .isInstanceOf(CpfCnpjJaCadastradoException.class)
+        .hasMessage("Este documento já é de Ricardo Meirelles.")
+        .satisfies(erro -> assertThat(campoDe(erro)).contains("cpfCnpj"));
     verify(proprietarios, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("se o dono do documento está inativo, sugere reativá-lo em vez de cadastrar de novo")
+  void sugereReativarOInativo() {
+    Proprietario existente = comId(7L, "52998224725");
+    existente.desativar(AGORA);
+    when(proprietarios.findByCpfCnpj("52998224725")).thenReturn(Optional.of(existente));
+
+    assertThatThrownBy(() -> service.criar(request("529.982.247-25")))
+        .hasMessageContaining("hoje inativo: reative o cadastro dele");
   }
 
   @Test
@@ -98,6 +122,16 @@ class ProprietarioServiceTest {
     ProprietarioResponse response = service.atualizar(7L, request("529.982.247-25"));
 
     assertThat(response.cpfCnpj()).isEqualTo("52998224725");
+  }
+
+  @Test
+  @DisplayName("lista em ordem de nome, como o repositório devolve")
+  void lista() {
+    when(proprietarios.findAllByOrderByNomeAsc())
+        .thenReturn(List.of(comId(1L, null), comId(2L, "52998224725")));
+
+    assertThat(service.listar()).hasSize(2);
+    verify(contexto).registrar("proprietarios.total", 2);
   }
 
   @Test
@@ -132,14 +166,8 @@ class ProprietarioServiceTest {
         .isInstanceOf(RecursoNaoEncontradoException.class);
   }
 
-  @Test
-  @DisplayName("lista em ordem de nome, como o repositório devolve")
-  void lista() {
-    when(proprietarios.findAllByOrderByNomeAsc())
-        .thenReturn(List.of(comId(1L, null), comId(2L, "52998224725")));
-
-    assertThat(service.listar()).hasSize(2);
-    verify(contexto).registrar("proprietarios.total", 2);
+  private static Optional<String> campoDe(Throwable erro) {
+    return ((ExcecaoDeDominio) erro).getCampo();
   }
 
   private Proprietario comId(Long id, String cpfCnpj) {

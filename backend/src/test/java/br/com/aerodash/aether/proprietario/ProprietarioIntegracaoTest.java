@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -100,7 +102,7 @@ class ProprietarioIntegracaoTest {
   }
 
   @Test
-  @DisplayName("documento duplicado vira Problem Details 409")
+  @DisplayName("documento duplicado vira Problem Details 409, no campo e dizendo de quem é")
   void documentoDuplicadoVira409() throws Exception {
     mockMvc
         .perform(
@@ -113,21 +115,42 @@ class ProprietarioIntegracaoTest {
                      "corDeIdentificacao":"AZUL"}
                     """))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.title").value("CPF ou CNPJ já cadastrado"));
+        .andExpect(jsonPath("$.title").value("CPF ou CNPJ já cadastrado"))
+        .andExpect(jsonPath("$.campos.cpfCnpj").value("Este documento já é de Ricardo Meirelles."));
   }
 
   @Test
-  @DisplayName("o banco recusa documento fora de 11 ou 14 dígitos")
+  @DisplayName("o CNPJ alfanumérico passa pelo CHECK da coluna, sem pontuação e em maiúsculas")
+  void cnpjAlfanumerico() throws Exception {
+    mockMvc
+        .perform(
+            post("/proprietarios")
+                .cookie(entrar())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"Holding Alfanumérica","cpfCnpj":"12.abc.345/01de-35",
+                     "corDeIdentificacao":"AMBAR"}
+                    """))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.cpfCnpj").value("12ABC34501DE35"));
+  }
+
+  @Test
+  @DisplayName("o banco recusa documento fora de 11 ou 14 caracteres")
   void bancoRecusaDocumentoInvalido() {
     // A regra é também do banco, não só do service: é o CHECK que garante a forma mesmo para quem
     // escrever por SQL.
-    Proprietario invalido =
-        new Proprietario(
-            "Documento Errado", null, null, null, CorDeIdentificacao.CINZA, Instant.now());
-    org.springframework.test.util.ReflectionTestUtils.setField(invalido, "cpfCnpj", "123");
+    for (String invalido : List.of("123", "12ABC34501DEAB", "1234567890A")) {
+      Proprietario proprietario =
+          new Proprietario(
+              "Documento Errado", null, null, null, CorDeIdentificacao.CINZA, Instant.now());
+      ReflectionTestUtils.setField(proprietario, "cpfCnpj", invalido);
 
-    assertThatThrownBy(() -> proprietarios.saveAndFlush(invalido)).isInstanceOf(Exception.class);
-    assertThat(proprietarios.findByCpfCnpj("123")).isEmpty();
+      assertThatThrownBy(() -> proprietarios.saveAndFlush(proprietario))
+          .isInstanceOf(DataIntegrityViolationException.class);
+      assertThat(proprietarios.findByCpfCnpj(invalido)).isEmpty();
+    }
   }
 
   private Cookie entrar() throws Exception {
