@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -98,175 +99,173 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <Texto variante="titulo" como="h2">
-        {titulo}
-      </Texto>
-
-      {listas.falharam ? (
-        <div className={estilos.recado} role="alert">
-          <Texto variante="apoio" tom="critico" como="p">
-            Não foi possível carregar as aeronaves ou os proprietários do painel.
-          </Texto>
-          <Botao variante="secundario" tamanho="pequeno" aoClicar={listas.recarregar}>
-            Tentar de novo
-          </Botao>
-        </div>
-      ) : null}
-
-      <div ref={validacao.refDoFormulario} className={estilos.campos}>
-        <Texto variante="legenda" tom="suave" como="h3">
-          Classificação
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {titulo}
         </Texto>
-        <Selecao
-          rotulo="Aeronave"
-          obrigatorio
-          valor={efetivo.aeronaveId}
-          desabilitado={editando}
-          opcoes={listas.opcoesDeAeronaves}
-          aoMudar={escolherAeronave}
-          erro={validacao.erroDe('aeronaveId')}
-        />
-        <GrupoDeOpcoes
-          rotulo="Tipo"
-          valor={tipo}
-          opcoes={[
-            { valor: 'FIXO', rotulo: 'Custo Fixo' },
-            { valor: 'VARIAVEL', rotulo: 'Custo Variável' },
-          ]}
-          aoEscolher={(escolhido) => escolherTipo(escolhido as TipoDeCusto)}
-          marcador
-          larguraIgual
-        />
-        <div className={estilos.grade}>
-          <Selecao
-            rotulo="Categoria"
-            obrigatorio
-            valor={efetivo.categoria}
-            opcoes={[
-              { valor: '', rotulo: 'Selecione…' },
-              ...categoriasDoTipo(tipo).map((cada) => ({
-                valor: cada,
-                rotulo: CATEGORIAS[cada].rotulo,
-              })),
-            ]}
-            aoMudar={(escolhida) => alterar('categoria')(escolhida as CategoriaDeCusto | '')}
-            erro={validacao.erroDe('categoria')}
-          />
-          <CampoDeTexto
-            rotulo="Data do custo"
-            tipo="data"
-            obrigatorio
-            valor={efetivo.data}
-            aoMudar={alterar('data')}
-            minimo={PRIMEIRA_DATA_DO_CUSTO}
-            maximo={ultimaDataDoCusto(hoje)}
-            erro={validacao.erroDe('data')}
-          />
-        </div>
 
-        <Texto variante="legenda" tom="suave" como="h3">
-          Atribuição
-        </Texto>
-        <div className={estilos.grade}>
-          <Selecao
-            rotulo="Atribuição"
-            valor={efetivo.proprietarioId}
-            opcoes={listas.opcoesDeDonos}
-            aoMudar={alterar('proprietarioId')}
-            apoio={listas.apoioDaAtribuicao}
-            erro={validacao.erroDe('proprietarioId')}
-          />
-          <CampoDeTexto
-            rotulo="Rel-voo (opcional)"
-            valor={efetivo.relatorioDeVoo}
-            aoMudar={alterar('relatorioDeVoo')}
-            exemplo="RV-2026-041"
-            apoio={apoioDoRelatorioDeVoo(tipo)}
-            erro={validacao.erroDe('relatorioDeVoo')}
-          />
-        </div>
-
-        <Texto variante="legenda" tom="suave" como="h3">
-          Valor
-        </Texto>
-        <GrupoDeOpcoes
-          rotulo="Moeda"
-          obrigatorio
-          valor={efetivo.moeda}
-          opcoes={[
-            { valor: 'BRL', rotulo: 'BRL' },
-            { valor: 'USD', rotulo: 'USD' },
-          ]}
-          aoEscolher={(escolhida) => alterar('moeda')(escolhida as MoedaDoCusto)}
-          marcador
-          larguraIgual
-          erro={validacao.erroDe('moeda')}
-        />
-        <div className={estilos.grade}>
-          <CampoDeTexto
-            rotulo={efetivo.moeda === 'BRL' ? 'Valor (R$)' : 'Valor (US$)'}
-            obrigatorio
-            valor={efetivo.valor}
-            aoMudar={alterar('valor')}
-            inputMode="decimal"
-            exemplo="15.725,00"
-            erro={validacao.erroDe('valor')}
-          />
-          {efetivo.moeda === 'USD' ? (
-            <CampoDeTexto
-              rotulo="Câmbio do dia (R$ por US$ 1)"
-              obrigatorio
-              valor={efetivo.cambio}
-              aoMudar={alterar('cambio')}
-              inputMode="decimal"
-              exemplo="4,9223"
-              apoio="Até 4 casas decimais."
-              erro={validacao.erroDe('cambio')}
-            />
-          ) : null}
-        </div>
-        {efetivo.moeda === 'USD' ? (
-          <div aria-live="polite">
-            {conversao === null ? null : (
-              <Texto variante="apoio" tom="suave" como="p">
-                = {moedaEmTexto(conversao)} — o servidor grava a conversão uma única vez, no ato.
-              </Texto>
-            )}
+        {listas.falharam ? (
+          <div className={estilos.recado} role="alert">
+            <Texto variante="apoio" tom="critico" como="p">
+              Não foi possível carregar as aeronaves ou os proprietários do painel.
+            </Texto>
+            <Botao variante="secundario" tamanho="pequeno" aoClicar={listas.recarregar}>
+              Tentar de novo
+            </Botao>
           </div>
         ) : null}
 
-        <Texto variante="legenda" tom="suave" como="h3">
-          Documento
-        </Texto>
-        <CampoDeTexto
-          rotulo="Descrição"
-          obrigatorio
-          valor={efetivo.descricao}
-          aoMudar={alterar('descricao')}
-          exemplo="Jet A-1 — 1.850 L — SBRJ"
-          erro={validacao.erroDe('descricao')}
-        />
-        <CampoDeTexto
-          rotulo="N. Fiscal / Invoice (opcional)"
-          valor={efetivo.notaFiscal}
-          aoMudar={alterar('notaFiscal')}
-          erro={validacao.erroDe('notaFiscal')}
-        />
-      </div>
+        <div className={estilos.campos}>
+          <Texto variante="legenda" tom="suave" como="h3">
+            Classificação
+          </Texto>
+          <Selecao
+            rotulo="Aeronave"
+            obrigatorio
+            valor={efetivo.aeronaveId}
+            desabilitado={editando}
+            opcoes={listas.opcoesDeAeronaves}
+            aoMudar={escolherAeronave}
+            erro={validacao.erroDe('aeronaveId')}
+          />
+          <GrupoDeOpcoes
+            rotulo="Tipo"
+            valor={tipo}
+            opcoes={[
+              { valor: 'FIXO', rotulo: 'Custo Fixo' },
+              { valor: 'VARIAVEL', rotulo: 'Custo Variável' },
+            ]}
+            aoEscolher={(escolhido) => escolherTipo(escolhido as TipoDeCusto)}
+            marcador
+            larguraIgual
+          />
+          <div className={estilos.grade}>
+            <Selecao
+              rotulo="Categoria"
+              obrigatorio
+              valor={efetivo.categoria}
+              opcoes={[
+                { valor: '', rotulo: 'Selecione…' },
+                ...categoriasDoTipo(tipo).map((cada) => ({
+                  valor: cada,
+                  rotulo: CATEGORIAS[cada].rotulo,
+                })),
+              ]}
+              aoMudar={(escolhida) => alterar('categoria')(escolhida as CategoriaDeCusto | '')}
+              erro={validacao.erroDe('categoria')}
+            />
+            <CampoDeTexto
+              rotulo="Data do custo"
+              tipo="data"
+              obrigatorio
+              valor={efetivo.data}
+              aoMudar={alterar('data')}
+              minimo={PRIMEIRA_DATA_DO_CUSTO}
+              maximo={ultimaDataDoCusto(hoje)}
+              erro={validacao.erroDe('data')}
+            />
+          </div>
 
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={mutacao.isPending}
-          descritoPor={idDoResumo}
-        >
-          {editando ? 'Salvar correção' : 'Registrar custo'}
-        </Botao>
-      </div>
+          <Texto variante="legenda" tom="suave" como="h3">
+            Atribuição
+          </Texto>
+          <div className={estilos.grade}>
+            <Selecao
+              rotulo="Atribuição"
+              valor={efetivo.proprietarioId}
+              opcoes={listas.opcoesDeDonos}
+              aoMudar={alterar('proprietarioId')}
+              apoio={listas.apoioDaAtribuicao}
+              erro={validacao.erroDe('proprietarioId')}
+            />
+            <CampoDeTexto
+              rotulo="Rel-voo (opcional)"
+              valor={efetivo.relatorioDeVoo}
+              aoMudar={alterar('relatorioDeVoo')}
+              exemplo="RV-2026-041"
+              apoio={apoioDoRelatorioDeVoo(tipo)}
+              erro={validacao.erroDe('relatorioDeVoo')}
+            />
+          </div>
+
+          <Texto variante="legenda" tom="suave" como="h3">
+            Valor
+          </Texto>
+          <GrupoDeOpcoes
+            rotulo="Moeda"
+            obrigatorio
+            valor={efetivo.moeda}
+            opcoes={[
+              { valor: 'BRL', rotulo: 'BRL' },
+              { valor: 'USD', rotulo: 'USD' },
+            ]}
+            aoEscolher={(escolhida) => alterar('moeda')(escolhida as MoedaDoCusto)}
+            marcador
+            larguraIgual
+            erro={validacao.erroDe('moeda')}
+          />
+          <div className={estilos.grade}>
+            <CampoDeTexto
+              rotulo={efetivo.moeda === 'BRL' ? 'Valor (R$)' : 'Valor (US$)'}
+              obrigatorio
+              valor={efetivo.valor}
+              aoMudar={alterar('valor')}
+              inputMode="decimal"
+              exemplo="15.725,00"
+              erro={validacao.erroDe('valor')}
+            />
+            {efetivo.moeda === 'USD' ? (
+              <CampoDeTexto
+                rotulo="Câmbio do dia (R$ por US$ 1)"
+                obrigatorio
+                valor={efetivo.cambio}
+                aoMudar={alterar('cambio')}
+                inputMode="decimal"
+                exemplo="4,9223"
+                apoio="Até 4 casas decimais."
+                erro={validacao.erroDe('cambio')}
+              />
+            ) : null}
+          </div>
+          {efetivo.moeda === 'USD' ? (
+            <div aria-live="polite">
+              {conversao === null ? null : (
+                <Texto variante="apoio" tom="suave" como="p">
+                  = {moedaEmTexto(conversao)} — o servidor grava a conversão uma única vez, no ato.
+                </Texto>
+              )}
+            </div>
+          ) : null}
+
+          <Texto variante="legenda" tom="suave" como="h3">
+            Documento
+          </Texto>
+          <CampoDeTexto
+            rotulo="Descrição"
+            obrigatorio
+            valor={efetivo.descricao}
+            aoMudar={alterar('descricao')}
+            exemplo="Jet A-1 — 1.850 L — SBRJ"
+            erro={validacao.erroDe('descricao')}
+          />
+          <CampoDeTexto
+            rotulo="N. Fiscal / Invoice (opcional)"
+            valor={efetivo.notaFiscal}
+            aoMudar={alterar('notaFiscal')}
+            erro={validacao.erroDe('notaFiscal')}
+          />
+        </div>
+
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending} descritoPor={idDoResumo}>
+            {editando ? 'Salvar correção' : 'Registrar custo'}
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

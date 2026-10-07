@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -79,93 +80,85 @@ export function PainelFinanceiro({ detalhe, aoFechar }: PainelFinanceiroProps) {
       rotulo="Alterar configuração financeira"
       podeFechar={!atualizar.isPending}
     >
-      <form
-        noValidate
-        onSubmit={(evento) => {
-          evento.preventDefault();
-          enviar();
-        }}
-      >
-        <div ref={validacao.refDoFormulario} className={estilos.formulario}>
-          <Texto variante="titulo" como="h2">
-            Configuração financeira
-          </Texto>
-          <Texto variante="apoio" tom="suave" como="p">
-            Como os custos são divididos e como o fundo é abastecido.
-          </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={enviar}>
+        <Texto variante="titulo" como="h2">
+          Configuração financeira
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Como os custos são divididos e como o fundo é abastecido.
+        </Texto>
 
-          <Selecao
-            rotulo={ROTULOS_DA_CONFIGURACAO.baseDoRateio}
-            valor={rascunho.baseDoRateio}
-            opcoes={OPCOES_DA_BASE}
-            aoMudar={alterar('baseDoRateio')}
-            erro={validacao.erroDe('baseDoRateio')}
-            obrigatorio
-            apoio="Vale para todos os meses, inclusive os já fechados: o fechamento é recalculado com a base atual."
-          />
-          <Selecao
-            rotulo={ROTULOS_DA_CONFIGURACAO.modeloDeAporte}
-            valor={rascunho.modeloDeAporte}
-            opcoes={OPCOES_DO_MODELO}
-            aoMudar={alterar('modeloDeAporte')}
-            erro={validacao.erroDe('modeloDeAporte')}
-            obrigatorio
-          />
-          <Selecao
-            rotulo={ROTULOS_DA_CONFIGURACAO.periodicidadeDoAporteMeses}
-            valor={rascunho.periodicidadeDoAporteMeses}
-            opcoes={OPCOES_DE_PERIODICIDADE}
-            aoMudar={alterar('periodicidadeDoAporteMeses')}
-            erro={validacao.erroDe('periodicidadeDoAporteMeses')}
-            obrigatorio
-          />
-          {rascunho.modeloDeAporte === 'FIXO' ? (
-            <CampoDeTexto
-              rotulo={ROTULOS_DA_CONFIGURACAO.valorDoAporte}
-              valor={rascunho.valorDoAporte}
-              aoMudar={alterar('valorDoAporte')}
-              erro={validacao.erroDe('valorDoAporte')}
-              obrigatorio
-              inputMode="decimal"
-              alinhamento="direita"
-              exemplo="85.000,00"
-              apoio="Cobrado a cada período da periodicidade acima."
-            />
-          ) : null}
+        <Selecao
+          rotulo={ROTULOS_DA_CONFIGURACAO.baseDoRateio}
+          valor={rascunho.baseDoRateio}
+          opcoes={OPCOES_DA_BASE}
+          aoMudar={alterar('baseDoRateio')}
+          erro={validacao.erroDe('baseDoRateio')}
+          obrigatorio
+          apoio="Vale para todos os meses, inclusive os já fechados: o fechamento é recalculado com a base atual."
+        />
+        <Selecao
+          rotulo={ROTULOS_DA_CONFIGURACAO.modeloDeAporte}
+          valor={rascunho.modeloDeAporte}
+          opcoes={OPCOES_DO_MODELO}
+          aoMudar={alterar('modeloDeAporte')}
+          erro={validacao.erroDe('modeloDeAporte')}
+          obrigatorio
+        />
+        <Selecao
+          rotulo={ROTULOS_DA_CONFIGURACAO.periodicidadeDoAporteMeses}
+          valor={rascunho.periodicidadeDoAporteMeses}
+          opcoes={OPCOES_DE_PERIODICIDADE}
+          aoMudar={alterar('periodicidadeDoAporteMeses')}
+          erro={validacao.erroDe('periodicidadeDoAporteMeses')}
+          obrigatorio
+        />
+        {rascunho.modeloDeAporte === 'FIXO' ? (
           <CampoDeTexto
-            rotulo={ROTULOS_DA_CONFIGURACAO.diaDeFechamento}
-            valor={rascunho.diaDeFechamento}
-            aoMudar={alterar('diaDeFechamento')}
-            erro={validacao.erroDe('diaDeFechamento')}
+            rotulo={ROTULOS_DA_CONFIGURACAO.valorDoAporte}
+            valor={rascunho.valorDoAporte}
+            aoMudar={alterar('valorDoAporte')}
+            erro={validacao.erroDe('valorDoAporte')}
             obrigatorio
-            inputMode="numeric"
-            apoio="De 1 a 28, para o dia existir em todo mês."
-          />
-          <CampoDeTexto
-            rotulo={ROTULOS_DA_CONFIGURACAO.saldoDeAbertura}
-            valor={rascunho.saldoDeAbertura}
-            aoMudar={alterar('saldoDeAbertura')}
-            erro={validacao.erroDe('saldoDeAbertura')}
-            obrigatorio
-            // Texto, e não `decimal`: o teclado decimal do iPhone não tem o sinal de menos, e o
-            // saldo é negativo quando os proprietários devem.
-            inputMode="text"
+            inputMode="decimal"
             alinhamento="direita"
-            exemplo="-12.500,00"
-            apoio="O que o fundo tinha quando a aeronave chegou ao Aether; negativo quando os proprietários devem. É o ponto de partida do fechamento: corrigi-lo muda o saldo de todos os meses."
+            exemplo="85.000,00"
+            apoio="Cobrado a cada período da periodicidade acima."
           />
+        ) : null}
+        <CampoDeTexto
+          rotulo={ROTULOS_DA_CONFIGURACAO.diaDeFechamento}
+          valor={rascunho.diaDeFechamento}
+          aoMudar={alterar('diaDeFechamento')}
+          erro={validacao.erroDe('diaDeFechamento')}
+          obrigatorio
+          inputMode="numeric"
+          apoio="De 1 a 28, para o dia existir em todo mês."
+        />
+        <CampoDeTexto
+          rotulo={ROTULOS_DA_CONFIGURACAO.saldoDeAbertura}
+          valor={rascunho.saldoDeAbertura}
+          aoMudar={alterar('saldoDeAbertura')}
+          erro={validacao.erroDe('saldoDeAbertura')}
+          obrigatorio
+          // Texto, e não `decimal`: o teclado decimal do iPhone não tem o sinal de menos, e o
+          // saldo é negativo quando os proprietários devem.
+          inputMode="text"
+          alinhamento="direita"
+          exemplo="-12.500,00"
+          apoio="O que o fundo tinha quando a aeronave chegou ao Aether; negativo quando os proprietários devem. É o ponto de partida do fechamento: corrigi-lo muda o saldo de todos os meses."
+        />
 
-          <ResumoDoFormulario resumo={validacao.resumo} />
-          <div className={estilos.acoes}>
-            <Botao variante="secundario" aoClicar={aoFechar} desabilitado={atualizar.isPending}>
-              Cancelar
-            </Botao>
-            <Botao tipo="submit" carregando={atualizar.isPending}>
-              Salvar
-            </Botao>
-          </div>
+        <ResumoDoFormulario resumo={validacao.resumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={atualizar.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={atualizar.isPending}>
+            Salvar
+          </Botao>
         </div>
-      </form>
+      </Formulario>
     </PainelModal>
   );
 }

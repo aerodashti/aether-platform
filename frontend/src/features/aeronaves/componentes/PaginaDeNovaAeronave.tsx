@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
 import { numeroParaCampo } from '@/compartilhado/formatacao/numero';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { PainelDeProprietario } from '@/compartilhado/proprietarios/PainelDeProprietario';
@@ -195,64 +196,67 @@ function FormularioDeNovaAeronave() {
   const fecharPainel = () => setPainel(undefined);
 
   return (
-    <div className={estilos.tela} ref={validacao.refDoFormulario}>
-      <Texto variante="apoio" tom="suave" como="p">
-        Os campos marcados com * são obrigatórios.
-      </Texto>
+    <div className={estilos.tela}>
+      {/* Os painéis ficam fora do Formulario: são formulários próprios, e form não se aninha. */}
+      <Formulario
+        referencia={validacao.refDoFormulario}
+        aoEnviar={() => validacao.enviar(salvar)}
+        rotulo="Nova aeronave"
+      >
+        <Texto variante="apoio" tom="suave" como="p">
+          Os campos marcados com * são obrigatórios.
+        </Texto>
 
-      {/* Depois de criada, a aeronave é a do servidor: só as participações seguem editáveis. */}
-      <fieldset className={estilos.conjunto} disabled={aeronaveCriada !== undefined}>
-        <SecaoDeIdentificacao {...secao} hoje={hoje} />
-        <SecaoDeParametros {...secao} aoAbrirConversor={() => setPainel('conversor')} />
-        <SecaoDeRateio {...secao} />
-      </fieldset>
+        {/* Depois de criada, a aeronave é a do servidor: só as participações seguem editáveis. */}
+        <fieldset className={estilos.conjunto} disabled={aeronaveCriada !== undefined}>
+          <SecaoDeIdentificacao {...secao} hoje={hoje} />
+          <SecaoDeParametros {...secao} aoAbrirConversor={() => setPainel('conversor')} />
+          <SecaoDeRateio {...secao} />
+        </fieldset>
 
-      <section className={estilos.secao} aria-label="Proprietários">
-        <Cabecalho
-          numero="4"
-          titulo="Proprietários"
-          descricao="Cada proprietário entra com um percentual de participação. Opcional — dá para definir depois, no detalhe."
-          acao={
-            <Botao
-              variante="secundario"
-              tamanho="pequeno"
-              aoClicar={() => setPainel('proprietario')}
-            >
-              + Cadastrar proprietário
-            </Botao>
-          }
-        />
-        <VinculosDoCadastro
-          vinculos={rascunho.vinculos}
-          alterar={alterarVinculos}
-          erroDe={validacao.erroDe}
-        />
-      </section>
+        <section className={estilos.secao} aria-label="Proprietários">
+          <Cabecalho
+            numero="4"
+            titulo="Proprietários"
+            descricao="Cada proprietário entra com um percentual de participação. Opcional — dá para definir depois, no detalhe."
+            acao={
+              <Botao
+                variante="secundario"
+                tamanho="pequeno"
+                aoClicar={() => setPainel('proprietario')}
+              >
+                + Cadastrar proprietário
+              </Botao>
+            }
+          />
+          <VinculosDoCadastro
+            vinculos={rascunho.vinculos}
+            alterar={alterarVinculos}
+            erroDe={validacao.erroDe}
+          />
+        </section>
 
-      {aeronaveCriada !== undefined ? (
-        <div role="status">
-          <Texto variante="apoio" tom="atencao" como="p">
-            A aeronave {aeronaveCriada.matricula} já está cadastrada; faltam as participações.
-            Corrija-as e salve de novo, ou siga para a aeronave e defina o contrato lá.
-          </Texto>
+        {aeronaveCriada !== undefined ? (
+          <div role="status">
+            <Texto variante="apoio" tom="atencao" como="p">
+              A aeronave {aeronaveCriada.matricula} já está cadastrada; faltam as participações.
+              Corrija-as e salve de novo, ou siga para a aeronave e defina o contrato lá.
+            </Texto>
+          </div>
+        ) : null}
+
+        <div className={estilos.acoes}>
+          <div className={estilos.resumo}>
+            <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+          </div>
+          <Botao variante="secundario" desabilitado={salvando} aoClicar={cancelar}>
+            {aeronaveCriada === undefined ? 'Cancelar' : 'Ir para a aeronave'}
+          </Botao>
+          <Botao tipo="submit" carregando={salvando} descritoPor={idDoResumo}>
+            {aeronaveCriada === undefined ? 'Cadastrar aeronave' : 'Salvar participações'}
+          </Botao>
         </div>
-      ) : null}
-
-      <div className={estilos.acoes}>
-        <div className={estilos.resumo}>
-          <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-        </div>
-        <Botao variante="secundario" desabilitado={salvando} aoClicar={cancelar}>
-          {aeronaveCriada === undefined ? 'Cancelar' : 'Ir para a aeronave'}
-        </Botao>
-        <Botao
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={salvando}
-          descritoPor={idDoResumo}
-        >
-          {aeronaveCriada === undefined ? 'Cadastrar aeronave' : 'Salvar participações'}
-        </Botao>
-      </div>
+      </Formulario>
 
       {painel === 'conversor' ? (
         <ConversorDeMilhas

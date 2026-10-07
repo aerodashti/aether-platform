@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -61,45 +62,48 @@ export function PainelDeConclusao({ manutencao, aoFechar, aoConcluir }: PainelDe
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={TITULO} podeFechar={!concluir.isPending}>
-      <Texto variante="titulo" como="h2">
-        {TITULO}
-      </Texto>
-      <Texto variante="corpo" como="p">
-        {manutencao.descricao}, programada para {dataCompleta(manutencao.data)}. Ela sai da agenda e
-        entra no histórico com o dia em que foi feita.
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Valor e responsável ficam como estão: para mudá-los, corrija a manutenção antes de concluir.
-      </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {TITULO}
+        </Texto>
+        <Texto variante="corpo" como="p">
+          {manutencao.descricao}, programada para {dataCompleta(manutencao.data)}. Ela sai da agenda
+          e entra no histórico com o dia em que foi feita.
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Valor e responsável ficam como estão: para mudá-los, corrija a manutenção antes de
+          concluir.
+        </Texto>
 
-      <div ref={validacao.refDoFormulario} className={estilos.campos}>
-        <CampoDeTexto
-          rotulo="Data da conclusão"
-          tipo="data"
-          obrigatorio
-          valor={concluidaEm}
-          aoMudar={setConcluidaEm}
-          minimo={minimo}
-          maximo={hoje}
-          apoio={apoioDaConclusao(minimo, hoje)}
-          erro={validacao.erroDe('concluidaEm')}
-        />
-      </div>
+        <div className={estilos.campos}>
+          <CampoDeTexto
+            rotulo="Data da conclusão"
+            tipo="data"
+            obrigatorio
+            valor={concluidaEm}
+            aoMudar={setConcluidaEm}
+            minimo={minimo}
+            maximo={hoje}
+            apoio={apoioDaConclusao(minimo, hoje)}
+            erro={validacao.erroDe('concluidaEm')}
+          />
+        </div>
 
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={concluir.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          tom="positivo"
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={concluir.isPending}
-          descritoPor={idDoResumo}
-        >
-          Concluir manutenção
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={concluir.isPending}>
+            Cancelar
+          </Botao>
+          <Botao
+            tom="positivo"
+            tipo="submit"
+            carregando={concluir.isPending}
+            descritoPor={idDoResumo}
+          >
+            Concluir manutenção
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

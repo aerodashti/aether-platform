@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
@@ -65,7 +66,10 @@ export function FormularioDeSaida({
   }
 
   return (
-    <div ref={validacao.refDoFormulario} className={estilos.formulario}>
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(() => aoConfirmar(contratos))}
+    >
       {contratos.map((contrato, indice) => (
         <ContratoDaSaida
           key={contrato.aeronaveId}
@@ -85,14 +89,10 @@ export function FormularioDeSaida({
         <Botao variante="secundario" desabilitado={enviando} aoClicar={aoCancelar}>
           Cancelar
         </Botao>
-        <Botao
-          carregando={enviando}
-          descritoPor={idDoResumo}
-          aoClicar={() => validacao.enviar(() => aoConfirmar(contratos))}
-        >
+        <Botao tipo="submit" carregando={enviando} descritoPor={idDoResumo}>
           {contratos.length > 0 ? 'Redistribuir e desativar' : 'Desativar'}
         </Botao>
       </div>
-    </div>
+    </Formulario>
   );
 }

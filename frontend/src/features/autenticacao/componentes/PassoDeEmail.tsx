@@ -1,3 +1,4 @@
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -22,13 +23,9 @@ export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
   });
 
   return (
-    <form
-      className={estilos.passo}
-      onSubmit={(evento) => {
-        evento.preventDefault();
-        validacao.enviar(acesso.pedirCodigo);
-      }}
-      noValidate
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(acesso.pedirCodigo)}
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
@@ -39,7 +36,7 @@ export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
         </Texto>
       </header>
 
-      <div className={estilos.campos} ref={validacao.refDoFormulario}>
+      <div className={estilos.campos}>
         <CampoDeTexto
           rotulo={ROTULOS.email}
           tipo="email"
@@ -69,6 +66,6 @@ export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
       >
         Voltar ao login
       </BotaoDeLink>
-    </form>
+    </Formulario>
   );
 }

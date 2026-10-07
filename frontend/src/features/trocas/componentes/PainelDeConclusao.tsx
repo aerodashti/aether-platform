@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -50,14 +51,14 @@ export function PainelDeConclusao({ troca, aoFechar, aoConcluir }: PainelDeConcl
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={TITULO} podeFechar={!concluir.isPending}>
-      <Texto variante="titulo" como="h2">
-        {TITULO}
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Troca de {descricaoDaTroca(troca)}. Registre quando as horas voltaram para quem cedeu.
-      </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {TITULO}
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Troca de {descricaoDaTroca(troca)}. Registre quando as horas voltaram para quem cedeu.
+        </Texto>
 
-      <div ref={validacao.refDoFormulario}>
         <CampoDeTexto
           rotulo="Data da devolução"
           tipo="data"
@@ -69,22 +70,22 @@ export function PainelDeConclusao({ troca, aoFechar, aoConcluir }: PainelDeConcl
           apoio={`Entre a data da troca (${dataCompleta(dataDaTroca)}) e hoje.`}
           erro={validacao.erroDe('concluidaEm')}
         />
-      </div>
 
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={concluir.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          tom="positivo"
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={concluir.isPending}
-          descritoPor={idDoResumo}
-        >
-          Concluir troca
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={concluir.isPending}>
+            Cancelar
+          </Botao>
+          <Botao
+            tom="positivo"
+            tipo="submit"
+            carregando={concluir.isPending}
+            descritoPor={idDoResumo}
+          >
+            Concluir troca
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

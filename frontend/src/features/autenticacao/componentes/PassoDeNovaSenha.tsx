@@ -1,3 +1,4 @@
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { BotaoDeLink } from '@/design-system/primitivos/BotaoDeLink';
@@ -25,13 +26,9 @@ export function PassoDeNovaSenha({ acesso }: { acesso: Acesso }) {
   const validacao = useValidacaoDaSenhaNova(acesso, acesso.falhaDaRedefinicao);
 
   return (
-    <form
-      className={estilos.passo}
-      onSubmit={(evento) => {
-        evento.preventDefault();
-        validacao.enviar(acesso.redefinirSenha);
-      }}
-      noValidate
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(acesso.redefinirSenha)}
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
@@ -40,7 +37,7 @@ export function PassoDeNovaSenha({ acesso }: { acesso: Acesso }) {
         <Texto tom="suave">Código confirmado — defina a nova senha.</Texto>
       </header>
 
-      <div className={estilos.campos} ref={validacao.refDoFormulario}>
+      <div className={estilos.campos}>
         {/* A conta da senha nova, à vista e para o gerenciador de senhas guardar no lugar certo. */}
         <CampoDeTexto
           ref={somenteLeitura}
@@ -69,6 +66,6 @@ export function PassoDeNovaSenha({ acesso }: { acesso: Acesso }) {
       >
         Voltar ao login
       </BotaoDeLink>
-    </form>
+    </Formulario>
   );
 }

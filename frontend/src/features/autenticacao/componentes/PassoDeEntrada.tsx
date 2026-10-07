@@ -1,3 +1,4 @@
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -22,13 +23,9 @@ export function PassoDeEntrada({ acesso }: { acesso: Acesso }) {
   });
 
   return (
-    <form
-      className={estilos.passo}
-      onSubmit={(evento) => {
-        evento.preventDefault();
-        validacao.enviar(acesso.entrar);
-      }}
-      noValidate
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(acesso.entrar)}
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
@@ -37,7 +34,7 @@ export function PassoDeEntrada({ acesso }: { acesso: Acesso }) {
         <Texto tom="suave">Acesse o painel de gestão da sua frota.</Texto>
       </header>
 
-      <div className={estilos.campos} ref={validacao.refDoFormulario}>
+      <div className={estilos.campos}>
         <CampoDeTexto
           rotulo={ROTULOS.email}
           tipo="email"
@@ -91,6 +88,6 @@ export function PassoDeEntrada({ acesso }: { acesso: Acesso }) {
       >
         Esqueci minha senha
       </BotaoDeLink>
-    </form>
+    </Formulario>
   );
 }

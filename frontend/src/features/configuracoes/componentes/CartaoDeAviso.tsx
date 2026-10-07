@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { lerNumero } from '@/compartilhado/formatacao/numero';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -12,7 +13,6 @@ import { useResultadoDoCartao } from '../hooks/useResultadoDoCartao';
 
 import { Cartao } from './Cartao';
 import estilos from './CartaoDeAviso.module.css';
-import { FormularioDoCartao } from './FormularioDoCartao';
 import { ResultadoDoEnvio } from './ResultadoDoEnvio';
 import { AVISOS_SUGERIDOS } from './rotulos';
 import { MAXIMO_DE_DIAS, MINIMO_DE_DIAS, ROTULOS_DO_AVISO, validarAviso } from './validacaoDoAviso';
@@ -71,10 +71,7 @@ export function CartaoDeAviso({ empresa }: { empresa: EmpresaResponse }) {
       titulo="Alertas de vencimento"
       descricao="Com quantos dias de antecedência o sistema deve avisar antes de um documento vencer. Vale para o CVA e para a apólice RETA de toda a frota."
     >
-      <FormularioDoCartao
-        aoEnviar={() => validacao.enviar(salvar)}
-        refDoFormulario={validacao.refDoFormulario}
-      >
+      <Formulario aoEnviar={() => validacao.enviar(salvar)} referencia={validacao.refDoFormulario}>
         <GrupoDeOpcoes
           rotulo="Antecedência do aviso"
           valor={sugerido}
@@ -103,7 +100,7 @@ export function CartaoDeAviso({ empresa }: { empresa: EmpresaResponse }) {
           <ResumoDoFormulario resumo={validacao.resumo} />
           <ResultadoDoEnvio resultado={resultado} />
         </div>
-      </FormularioDoCartao>
+      </Formulario>
     </Cartao>
   );
 }

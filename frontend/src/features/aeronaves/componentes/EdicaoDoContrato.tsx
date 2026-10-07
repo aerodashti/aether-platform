@@ -1,6 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { candidatosAoContrato } from '@/compartilhado/participacoes/candidatos';
@@ -138,67 +139,70 @@ export function EdicaoDoContrato({
   const erroDaSoma = validacao.erroDe('participacoes');
   const tomDaSoma = erroDaSoma ? 'critico' : situacao.fecha ? 'positivo' : 'atencao';
 
+  // O Salvar mora no cabeçalho do cartão: o Formulario envolve o cartão inteiro para ele ser o
+  // submit, e o Enter num percentual salva o contrato.
   return (
-    <CartaoDeSecao
-      titulo="Contrato de participações"
-      apoio={apoio}
-      acao={
-        <>
-          <Botao
-            variante="secundario"
-            tamanho="medio"
-            ref={botaoCancelar}
-            desabilitado={enviando}
-            aoClicar={aoCancelar}
-          >
-            Cancelar
-          </Botao>
-          <Botao
-            tamanho="medio"
-            carregando={enviando}
-            descritoPor={idDoResumo}
-            aoClicar={() => validacao.enviar(salvar)}
-          >
-            Salvar novo contrato
-          </Botao>
-        </>
-      }
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(salvar)}
+      rotulo="Contrato de participações"
     >
-      <div ref={validacao.refDoFormulario}>
-        {linhas.length > 0 ? (
-          <TabelaDaEdicao
+      <CartaoDeSecao
+        titulo="Contrato de participações"
+        apoio={apoio}
+        acao={
+          <>
+            <Botao
+              variante="secundario"
+              tamanho="medio"
+              ref={botaoCancelar}
+              desabilitado={enviando}
+              aoClicar={aoCancelar}
+            >
+              Cancelar
+            </Botao>
+            <Botao tamanho="medio" tipo="submit" carregando={enviando} descritoPor={idDoResumo}>
+              Salvar novo contrato
+            </Botao>
+          </>
+        }
+      >
+        <div>
+          {linhas.length > 0 ? (
+            <TabelaDaEdicao
+              linhas={linhas}
+              erroDaLinha={(indice) => validacao.erroDe(campoDoPercentual(indice))}
+              registrarCampo={registrarCampo}
+              aoMudarPercentual={(proprietarioId, valor) =>
+                setLinhas((atuais) => alterarPercentual(atuais, proprietarioId, valor))
+              }
+              aoRemover={remover}
+            />
+          ) : null}
+          <div role="status" className={estilos.apenasLeitor}>
+            {anuncio}
+          </div>
+          <FaixaDeInclusao
+            proprietarios={proprietarios}
+            candidatos={candidatos}
             linhas={linhas}
-            erroDaLinha={(indice) => validacao.erroDe(campoDoPercentual(indice))}
-            registrarCampo={registrarCampo}
-            aoMudarPercentual={(proprietarioId, valor) =>
-              setLinhas((atuais) => alterarPercentual(atuais, proprietarioId, valor))
-            }
-            aoRemover={remover}
+            selecao={selecaoDeInclusao}
+            aoIncluir={incluir}
           />
-        ) : null}
-        <div role="status" className={estilos.apenasLeitor}>
-          {anuncio}
+          <FaixaDaSoma
+            soma={somaDasParticipacoes(textos)}
+            frase={
+              erroDaSoma ??
+              consequenciaDoSalvar(situacao, mudaOContrato(linhas, base), base !== undefined)
+            }
+            tom={tomDaSoma}
+            aoDividir={() => setLinhas(dividirEntreTodos)}
+          />
+          <div className={estilos.resumo}>
+            <ResumoDoFormulario id={idDoResumo} resumo={validacao.resumo} />
+          </div>
         </div>
-        <FaixaDeInclusao
-          proprietarios={proprietarios}
-          candidatos={candidatos}
-          linhas={linhas}
-          selecao={selecaoDeInclusao}
-          aoIncluir={incluir}
-        />
-        <FaixaDaSoma
-          soma={somaDasParticipacoes(textos)}
-          frase={
-            erroDaSoma ??
-            consequenciaDoSalvar(situacao, mudaOContrato(linhas, base), base !== undefined)
-          }
-          tom={tomDaSoma}
-          aoDividir={() => setLinhas(dividirEntreTodos)}
-        />
-        <div className={estilos.resumo}>
-          <ResumoDoFormulario id={idDoResumo} resumo={validacao.resumo} />
-        </div>
-      </div>
-    </CartaoDeSecao>
+      </CartaoDeSecao>
+    </Formulario>
   );
 }

@@ -1,6 +1,7 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -117,8 +118,7 @@ export function PainelDeTripulante({
     }
   }
 
-  function aoEnviar(evento: FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
+  function enviar() {
     // O Enter no meio de uma data não passa pela saída do campo: a marca é relida aqui.
     const datasIncompletas = conferirDatas();
     validacao.enviar(() => {
@@ -130,8 +130,9 @@ export function PainelDeTripulante({
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <form noValidate onSubmit={aoEnviar} onBlur={conferirDatas}>
-        <div ref={validacao.refDoFormulario} className={estilos.formulario}>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={enviar}>
+        {/* A saída de qualquer campo relê as datas: o campo de data incompleto não avisa sozinho. */}
+        <div className={estilos.formulario} onBlur={conferirDatas}>
           <Texto variante="titulo" como="h2">
             {titulo}
           </Texto>
@@ -249,7 +250,7 @@ export function PainelDeTripulante({
             </Botao>
           </div>
         </div>
-      </form>
+      </Formulario>
     </PainelModal>
   );
 }

@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -37,13 +38,9 @@ export function PassoDeCodigo({ acesso }: { acesso: Acesso }) {
   }
 
   return (
-    <form
-      className={estilos.passo}
-      onSubmit={(evento) => {
-        evento.preventDefault();
-        validacao.enviar(acesso.conferirCodigo);
-      }}
-      noValidate
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(acesso.conferirCodigo)}
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
@@ -57,7 +54,7 @@ export function PassoDeCodigo({ acesso }: { acesso: Acesso }) {
         </Texto>
       </header>
 
-      <div className={estilos.campos} ref={validacao.refDoFormulario}>
+      <div className={estilos.campos}>
         <CampoDeTexto
           ref={refDoCodigo}
           rotulo={ROTULOS.codigo}
@@ -97,6 +94,6 @@ export function PassoDeCodigo({ acesso }: { acesso: Acesso }) {
           </BotaoDeLink>
         )}
       </div>
-    </form>
+    </Formulario>
   );
 }

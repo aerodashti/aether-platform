@@ -1,5 +1,4 @@
-/* O <form> fica entre o corpo do painel e os campos: repete o ritmo vertical do corpo. */
-.formulario,
+/* Os campos repetem o ritmo vertical do Formulario. */
 .campos {
   display: flex;
   flex-direction: column;

@@ -1,11 +1,4 @@
-/* Os cinco passos compartilham a mesma coluna: mudar de passo não pode deslocar o formulário. */
-.passo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-5);
-}
-
-/* Os campos têm o mesmo ritmo do passo; o grupo existe para a validação achar o primeiro inválido. */
+/* Os cinco passos são um Formulario, com o ritmo dele; os campos repetem esse ritmo em grupo. */
 .campos {
   display: flex;
   flex-direction: column;

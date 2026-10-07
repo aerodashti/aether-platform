@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -90,14 +91,7 @@ export function PainelDeProprietario({
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <form
-        className={estilos.formulario}
-        noValidate
-        onSubmit={(evento) => {
-          evento.preventDefault();
-          validacao.enviar(salvar);
-        }}
-      >
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
         <Texto variante="titulo" como="h2">
           {titulo}
         </Texto>
@@ -109,7 +103,7 @@ export function PainelDeProprietario({
           </Texto>
         )}
 
-        <div ref={validacao.refDoFormulario} className={estilos.campos}>
+        <div className={estilos.campos}>
           <CampoDeTexto
             rotulo={ROTULOS_DO_PROPRIETARIO.nome}
             obrigatorio
@@ -170,7 +164,7 @@ export function PainelDeProprietario({
             {editando ? 'Salvar alterações' : 'Cadastrar'}
           </Botao>
         </div>
-      </form>
+      </Formulario>
     </PainelModal>
   );
 }

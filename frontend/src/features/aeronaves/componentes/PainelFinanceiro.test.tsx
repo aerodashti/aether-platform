@@ -81,6 +81,14 @@ describe('PainelFinanceiro', () => {
     expect(envios).toEqual([]);
   });
 
+  it('Enter num campo salva, como o botão', async () => {
+    const { envios, aoFechar } = montar();
+    await userEvent.type(campo('Valor do aporte (R$)'), '85.000{Enter}');
+
+    await vi.waitFor(() => expect(aoFechar).toHaveBeenCalled());
+    expect(envios[0]).toMatchObject({ valorDoAporte: 85000 });
+  });
+
   it('"12.500" no saldo é doze mil e quinhentos, e o aporte vai em reais', async () => {
     const { envios, aoFechar } = montar();
     await substituir('Valor do aporte (R$)', 'R$ 85.000,00');

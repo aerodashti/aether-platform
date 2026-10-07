@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -40,7 +41,7 @@ export function ConversorDeMilhas({ aoUsar, aoFechar }: ConversorDeMilhasProps) 
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo="Conversor de milhas náuticas">
-      <div ref={validacao.refDoFormulario} className={estilos.corpo}>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(usar)}>
         <Texto variante="titulo" como="h2">
           Milhas náuticas → km
         </Texto>
@@ -67,9 +68,9 @@ export function ConversorDeMilhas({ aoUsar, aoFechar }: ConversorDeMilhasProps) 
           <Botao variante="secundario" aoClicar={aoFechar}>
             Cancelar
           </Botao>
-          <Botao aoClicar={() => validacao.enviar(usar)}>Usar valor</Botao>
+          <Botao tipo="submit">Usar valor</Botao>
         </div>
-      </div>
+      </Formulario>
     </PainelModal>
   );
 }

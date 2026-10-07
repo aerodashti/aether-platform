@@ -159,6 +159,14 @@ describe('PainelDeFichaTecnica', () => {
     expect(envios[0]?.corpo).not.toHaveProperty('apoliceDoSeguro');
   });
 
+  it('Enter num campo salva, como o botão', async () => {
+    const { envios, aoFechar } = montar(false);
+    await substituir('Hangar', 'Hangar 3{Enter}');
+
+    await vi.waitFor(() => expect(aoFechar).toHaveBeenCalled());
+    expect(envios[0]?.corpo).toMatchObject({ hangar: 'Hangar 3' });
+  });
+
   it('corrigir as horas envia o número no formato brasileiro e os totais lidos', async () => {
     const { envios, aoFechar } = montar(true);
     await substituir('Horas de célula (h)', '3.500,5');

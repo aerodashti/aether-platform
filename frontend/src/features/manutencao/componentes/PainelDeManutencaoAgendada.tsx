@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -97,79 +98,77 @@ export function PainelDeManutencaoAgendada({
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <Texto variante="titulo" como="h2">
-        {titulo}
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Manutenções programadas aparecem no calendário de voos.
-      </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {titulo}
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Manutenções programadas aparecem no calendário de voos.
+        </Texto>
 
-      <div ref={validacao.refDoFormulario} className={estilos.campos} onBlur={conferirHora}>
-        <div className={estilos.grade}>
+        <div className={estilos.campos} onBlur={conferirHora}>
+          <div className={estilos.grade}>
+            <CampoDeTexto
+              rotulo="Data"
+              tipo="data"
+              obrigatorio
+              valor={rascunho.data}
+              aoMudar={alterar('data')}
+              minimo={primeiraDataProgramavel(hoje)}
+              maximo={ultimaDataProgramavel(hoje)}
+              apoio={apoioDaData(rascunho.data, hoje)}
+              erro={validacao.erroDe('data')}
+            />
+            <CampoDeTexto
+              ref={refDaHora}
+              rotulo="Horário"
+              tipo="hora"
+              valor={rascunho.hora}
+              aoMudar={alterarHora}
+              apoio="Opcional."
+              erro={validacao.erroDe('hora')}
+            />
+          </div>
           <CampoDeTexto
-            rotulo="Data"
-            tipo="data"
-            obrigatorio
-            valor={rascunho.data}
-            aoMudar={alterar('data')}
-            minimo={primeiraDataProgramavel(hoje)}
-            maximo={ultimaDataProgramavel(hoje)}
-            apoio={apoioDaData(rascunho.data, hoje)}
-            erro={validacao.erroDe('data')}
+            rotulo="Responsável"
+            valor={rascunho.responsavel}
+            aoMudar={alterar('responsavel')}
+            exemplo="Hangar Líder — SBSP"
+            maxLength={120}
+            apoio="Opcional — a oficina ou o hangar."
+            erro={validacao.erroDe('responsavel')}
           />
           <CampoDeTexto
-            ref={refDaHora}
-            rotulo="Horário"
-            tipo="hora"
-            valor={rascunho.hora}
-            aoMudar={alterarHora}
-            apoio="Opcional."
-            erro={validacao.erroDe('hora')}
+            rotulo="Descrição"
+            obrigatorio
+            valor={rascunho.descricao}
+            aoMudar={alterar('descricao')}
+            exemplo="Inspeção de 100 h — célula"
+            maxLength={200}
+            erro={validacao.erroDe('descricao')}
+          />
+          <CampoDeTexto
+            rotulo="Valor (R$)"
+            valor={rascunho.valor}
+            aoMudar={alterar('valor')}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="48.000,00"
+            apoio="Opcional — entra no histórico e, no futuro, nos custos."
+            erro={validacao.erroDe('valor')}
           />
         </div>
-        <CampoDeTexto
-          rotulo="Responsável"
-          valor={rascunho.responsavel}
-          aoMudar={alterar('responsavel')}
-          exemplo="Hangar Líder — SBSP"
-          maxLength={120}
-          apoio="Opcional — a oficina ou o hangar."
-          erro={validacao.erroDe('responsavel')}
-        />
-        <CampoDeTexto
-          rotulo="Descrição"
-          obrigatorio
-          valor={rascunho.descricao}
-          aoMudar={alterar('descricao')}
-          exemplo="Inspeção de 100 h — célula"
-          maxLength={200}
-          erro={validacao.erroDe('descricao')}
-        />
-        <CampoDeTexto
-          rotulo="Valor (R$)"
-          valor={rascunho.valor}
-          aoMudar={alterar('valor')}
-          inputMode="decimal"
-          alinhamento="direita"
-          exemplo="48.000,00"
-          apoio="Opcional — entra no histórico e, no futuro, nos custos."
-          erro={validacao.erroDe('valor')}
-        />
-      </div>
 
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={mutacao.isPending}
-          descritoPor={idDoResumo}
-        >
-          {editando ? 'Salvar' : 'Agendar'}
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending} descritoPor={idDoResumo}>
+            {editando ? 'Salvar' : 'Agendar'}
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

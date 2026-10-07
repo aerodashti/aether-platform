@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -87,84 +88,84 @@ export function PainelDeParametro({
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <Texto variante="titulo" como="h2">
-        {titulo}
-      </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {titulo}
+        </Texto>
 
-      <div ref={validacao.refDoFormulario} className={estilos.campos}>
-        <CampoDeTexto
-          rotulo="Nome do parâmetro"
-          obrigatorio
-          valor={rascunho.nome}
-          aoMudar={alterar('nome')}
-          exemplo="Inspeção de célula — 4.000 h"
-          maxLength={120}
-          erro={validacao.erroDe('nome')}
-        />
-        <GrupoDeOpcoes
-          rotulo="Régua do parâmetro"
-          obrigatorio
-          valor={rascunho.tipo}
-          opcoes={REGUAS.map((tipo) => ({
-            valor: tipo,
-            rotulo: ROTULO_DO_TIPO_DE_PARAMETRO[tipo],
-          }))}
-          aoEscolher={(tipo) => setRascunho((atual) => trocarRegua(atual, tipo as TipoDeParametro))}
-          marcador
-          apoio="Trocar a régua apaga o limite e a faixa de aviso: a unidade muda."
-          erro={validacao.erroDe('tipo')}
-        />
-        {rascunho.tipo === 'DATA' ? (
+        <div className={estilos.campos}>
           <CampoDeTexto
-            rotulo="Data limite"
-            tipo="data"
+            rotulo="Nome do parâmetro"
             obrigatorio
-            valor={rascunho.dataLimite}
-            aoMudar={alterar('dataLimite')}
-            minimo={PRIMEIRA_DATA}
-            maximo={ultimaDataLimite(hoje)}
-            apoio={apoioDaRegua}
-            erro={validacao.erroDe('dataLimite')}
+            valor={rascunho.nome}
+            aoMudar={alterar('nome')}
+            exemplo="Inspeção de célula — 4.000 h"
+            maxLength={120}
+            erro={validacao.erroDe('nome')}
           />
-        ) : (
-          <CampoDeTexto
-            rotulo={ROTULO_DO_LIMITE[rascunho.tipo]}
+          <GrupoDeOpcoes
+            rotulo="Régua do parâmetro"
             obrigatorio
-            valor={rascunho.limite}
-            aoMudar={alterar('limite')}
+            valor={rascunho.tipo}
+            opcoes={REGUAS.map((tipo) => ({
+              valor: tipo,
+              rotulo: ROTULO_DO_TIPO_DE_PARAMETRO[tipo],
+            }))}
+            aoEscolher={(tipo) =>
+              setRascunho((atual) => trocarRegua(atual, tipo as TipoDeParametro))
+            }
+            marcador
+            apoio="Trocar a régua apaga o limite e a faixa de aviso: a unidade muda."
+            erro={validacao.erroDe('tipo')}
+          />
+          {rascunho.tipo === 'DATA' ? (
+            <CampoDeTexto
+              rotulo="Data limite"
+              tipo="data"
+              obrigatorio
+              valor={rascunho.dataLimite}
+              aoMudar={alterar('dataLimite')}
+              minimo={PRIMEIRA_DATA}
+              maximo={ultimaDataLimite(hoje)}
+              apoio={apoioDaRegua}
+              erro={validacao.erroDe('dataLimite')}
+            />
+          ) : (
+            <CampoDeTexto
+              rotulo={ROTULO_DO_LIMITE[rascunho.tipo]}
+              obrigatorio
+              valor={rascunho.limite}
+              aoMudar={alterar('limite')}
+              inputMode={teclado}
+              alinhamento="direita"
+              exemplo={rascunho.tipo === 'HORAS' ? '4.000' : '3.000'}
+              apoio={apoioDaRegua}
+              erro={validacao.erroDe('limite')}
+            />
+          )}
+          <CampoDeTexto
+            rotulo={`Faixa de aviso (${UNIDADE_DA_REGUA[rascunho.tipo]} antes do limite)`}
+            obrigatorio
+            valor={rascunho.aviso}
+            aoMudar={alterar('aviso')}
             inputMode={teclado}
             alinhamento="direita"
-            exemplo={rascunho.tipo === 'HORAS' ? '4.000' : '3.000'}
-            apoio={apoioDaRegua}
-            erro={validacao.erroDe('limite')}
+            exemplo={rascunho.tipo === 'DATA' ? '30' : '100'}
+            apoio="Dentro dessa faixa o parâmetro vira atenção."
+            erro={validacao.erroDe('aviso')}
           />
-        )}
-        <CampoDeTexto
-          rotulo={`Faixa de aviso (${UNIDADE_DA_REGUA[rascunho.tipo]} antes do limite)`}
-          obrigatorio
-          valor={rascunho.aviso}
-          aoMudar={alterar('aviso')}
-          inputMode={teclado}
-          alinhamento="direita"
-          exemplo={rascunho.tipo === 'DATA' ? '30' : '100'}
-          apoio="Dentro dessa faixa o parâmetro vira atenção."
-          erro={validacao.erroDe('aviso')}
-        />
-      </div>
+        </div>
 
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={mutacao.isPending}
-          descritoPor={idDoResumo}
-        >
-          {editando ? 'Salvar' : 'Criar parâmetro'}
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending} descritoPor={idDoResumo}>
+            {editando ? 'Salvar' : 'Criar parâmetro'}
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import {
@@ -116,139 +117,137 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
-      <Texto variante="titulo" como="h2">
-        {titulo}
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Trechos com o mesmo Rel. Voo formam o voo completo. O trecho entra no % de uso do rateio
-        pelo previsto; com os horários realizados, soma 1 pouso, as horas e os km nos contadores da
-        aeronave.
-      </Texto>
-
-      <div ref={validacao.refDoFormulario} className={estilos.formulario}>
-        <div className={estilos.grade}>
-          <Selecao
-            {...campo('aeronaveId')}
-            obrigatorio
-            desabilitado={editando}
-            apoio={
-              editando ? 'Para trocar a aeronave, exclua o trecho e lance de novo.' : undefined
-            }
-            opcoes={[
-              { valor: '', rotulo: 'Selecione…' },
-              ...(aeronaves.data ?? []).map((aeronave) => ({
-                valor: String(aeronave.id),
-                rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
-              })),
-            ]}
-            // O dono de uma aeronave não é dono da outra.
-            aoMudar={(escolhida) =>
-              setRascunho((atual) => ({ ...atual, aeronaveId: escolhida, proprietarioId: '' }))
-            }
-          />
-          <CampoDeTexto
-            {...campo('relatorioDeVoo')}
-            obrigatorio
-            exemplo="RV-2026-044"
-            maxLength={LIMITES_DO_TRECHO.relatorioDeVoo}
-          />
-          <CampoDeTexto
-            {...campo('numeroDoTrecho')}
-            obrigatorio
-            inputMode="numeric"
-            apoio="Ordem da perna dentro do Rel. Voo."
-          />
-          <CampoDeTexto
-            {...campo('data')}
-            tipo="data"
-            obrigatorio
-            minimo={janela.minimo}
-            maximo={janela.maximo}
-            apoio={apoioDaData(valores.data, realizado, hoje)}
-          />
-          <CampoDeTexto
-            {...campo('origem')}
-            obrigatorio
-            exemplo="SBSP"
-            maxLength={4}
-            apoio="Código ICAO de 4 letras."
-          />
-          <CampoDeTexto
-            {...campo('destino')}
-            obrigatorio
-            exemplo="SBRJ"
-            maxLength={4}
-            apoio={apoioDoDestino(valores.origem, valores.destino)}
-          />
-          <CampoDeTexto
-            {...campo('km')}
-            obrigatorio
-            inputMode="decimal"
-            apoio="Uma casa decimal, como 365,5."
-          />
-        </div>
-
-        <Texto variante="legenda" tom="suave" como="h3">
-          Horários previstos
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {titulo}
         </Texto>
         <Texto variante="apoio" tom="suave" como="p">
-          Horários no fuso deste dispositivo — {fusoDoDispositivo()}.
+          Trechos com o mesmo Rel. Voo formam o voo completo. O trecho entra no % de uso do rateio
+          pelo previsto; com os horários realizados, soma 1 pouso, as horas e os km nos contadores
+          da aeronave.
         </Texto>
-        <div className={estilos.grade}>
-          <CampoDeTexto {...campo('partidaPrevista')} tipo="hora" />
-          <CampoDeTexto
-            {...campo('pousoPrevisto')}
-            tipo="hora"
-            apoio={apoioDoDia('Pouso', instantes.pousoPrevisto, valores.data)}
-          />
-        </div>
 
-        <Texto variante="legenda" tom="suave" como="h3">
-          Horários realizados
-        </Texto>
-        <Texto variante="apoio" tom="suave" como="p">
-          Preencha após o voo, a partida e o pouso juntos. Só com os dois o trecho soma nos
-          contadores da aeronave, e a duração passa a valer pelo realizado.
-        </Texto>
-        <div className={estilos.grade}>
-          <CampoDeTexto
-            {...campo('partidaRealizada')}
-            tipo="hora"
-            apoio={apoioDoDia('Partida', instantes.partidaRealizada, valores.data)}
-          />
-          <CampoDeTexto
-            {...campo('pousoRealizado')}
-            tipo="hora"
-            apoio={apoioDoDia('Pouso', instantes.pousoRealizado, valores.data)}
-          />
-        </div>
-        <div aria-live="polite">
-          <Texto variante="corpo" como="p">
-            {textoDaDuracao(instantes)}
+        <div className={estilos.formulario}>
+          <div className={estilos.grade}>
+            <Selecao
+              {...campo('aeronaveId')}
+              obrigatorio
+              desabilitado={editando}
+              apoio={
+                editando ? 'Para trocar a aeronave, exclua o trecho e lance de novo.' : undefined
+              }
+              opcoes={[
+                { valor: '', rotulo: 'Selecione…' },
+                ...(aeronaves.data ?? []).map((aeronave) => ({
+                  valor: String(aeronave.id),
+                  rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
+                })),
+              ]}
+              // O dono de uma aeronave não é dono da outra.
+              aoMudar={(escolhida) =>
+                setRascunho((atual) => ({ ...atual, aeronaveId: escolhida, proprietarioId: '' }))
+              }
+            />
+            <CampoDeTexto
+              {...campo('relatorioDeVoo')}
+              obrigatorio
+              exemplo="RV-2026-044"
+              maxLength={LIMITES_DO_TRECHO.relatorioDeVoo}
+            />
+            <CampoDeTexto
+              {...campo('numeroDoTrecho')}
+              obrigatorio
+              inputMode="numeric"
+              apoio="Ordem da perna dentro do Rel. Voo."
+            />
+            <CampoDeTexto
+              {...campo('data')}
+              tipo="data"
+              obrigatorio
+              minimo={janela.minimo}
+              maximo={janela.maximo}
+              apoio={apoioDaData(valores.data, realizado, hoje)}
+            />
+            <CampoDeTexto
+              {...campo('origem')}
+              obrigatorio
+              exemplo="SBSP"
+              maxLength={4}
+              apoio="Código ICAO de 4 letras."
+            />
+            <CampoDeTexto
+              {...campo('destino')}
+              obrigatorio
+              exemplo="SBRJ"
+              maxLength={4}
+              apoio={apoioDoDestino(valores.origem, valores.destino)}
+            />
+            <CampoDeTexto
+              {...campo('km')}
+              obrigatorio
+              inputMode="decimal"
+              apoio="Uma casa decimal, como 365,5."
+            />
+          </div>
+
+          <Texto variante="legenda" tom="suave" como="h3">
+            Horários previstos
           </Texto>
+          <Texto variante="apoio" tom="suave" como="p">
+            Horários no fuso deste dispositivo — {fusoDoDispositivo()}.
+          </Texto>
+          <div className={estilos.grade}>
+            <CampoDeTexto {...campo('partidaPrevista')} tipo="hora" />
+            <CampoDeTexto
+              {...campo('pousoPrevisto')}
+              tipo="hora"
+              apoio={apoioDoDia('Pouso', instantes.pousoPrevisto, valores.data)}
+            />
+          </div>
+
+          <Texto variante="legenda" tom="suave" como="h3">
+            Horários realizados
+          </Texto>
+          <Texto variante="apoio" tom="suave" como="p">
+            Preencha após o voo, a partida e o pouso juntos. Só com os dois o trecho soma nos
+            contadores da aeronave, e a duração passa a valer pelo realizado.
+          </Texto>
+          <div className={estilos.grade}>
+            <CampoDeTexto
+              {...campo('partidaRealizada')}
+              tipo="hora"
+              apoio={apoioDoDia('Partida', instantes.partidaRealizada, valores.data)}
+            />
+            <CampoDeTexto
+              {...campo('pousoRealizado')}
+              tipo="hora"
+              apoio={apoioDoDia('Pouso', instantes.pousoRealizado, valores.data)}
+            />
+          </div>
+          <div aria-live="polite">
+            <Texto variante="corpo" como="p">
+              {textoDaDuracao(instantes)}
+            </Texto>
+          </div>
+
+          <Selecao
+            {...campo('proprietarioId')}
+            apoio={apoioDaAtribuicao(semContratoVigente)}
+            opcoes={opcoesDeAtribuicao(proprietarios.data ?? [], podeReceber, atribuido)}
+          />
+          <AreaDeTexto {...campo('observacoes')} maxLength={LIMITES_DO_TRECHO.observacoes} />
         </div>
 
-        <Selecao
-          {...campo('proprietarioId')}
-          apoio={apoioDaAtribuicao(semContratoVigente)}
-          opcoes={opcoesDeAtribuicao(proprietarios.data ?? [], podeReceber, atribuido)}
-        />
-        <AreaDeTexto {...campo('observacoes')} maxLength={LIMITES_DO_TRECHO.observacoes} />
-      </div>
-
-      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
-          Cancelar
-        </Botao>
-        <Botao
-          aoClicar={() => validacao.enviar(salvar)}
-          carregando={mutacao.isPending}
-          descritoPor={idDoResumo}
-        >
-          {editando ? 'Salvar correção' : 'Registrar trecho'}
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending} descritoPor={idDoResumo}>
+            {editando ? 'Salvar correção' : 'Registrar trecho'}
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

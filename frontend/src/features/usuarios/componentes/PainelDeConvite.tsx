@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import type { PapelDoUsuario } from '@/compartilhado/sessao/sessao';
@@ -75,66 +76,61 @@ export function PainelDeConvite({ aoFechar, aoConvidar }: PainelDeConviteProps) 
       rotulo="Convidar usuário"
       podeFechar={!convidar.isPending}
     >
-      <form
-        noValidate
-        onSubmit={(evento) => {
-          evento.preventDefault();
-          validacao.enviar(enviarConvite);
-        }}
+      <Formulario
+        referencia={validacao.refDoFormulario}
+        aoEnviar={() => validacao.enviar(enviarConvite)}
       >
-        <div ref={validacao.refDoFormulario} className={estilos.campos}>
-          <Texto variante="titulo" como="h2">
-            Convidar usuário
-          </Texto>
-          <Texto variante="apoio" tom="suave" como="p">
-            A pessoa recebe um e-mail com o link para criar a própria senha, que vale{' '}
-            {HORAS_DE_VALIDADE_DO_CONVITE} horas. Nenhuma senha é definida por você.
-          </Texto>
+        <Texto variante="titulo" como="h2">
+          Convidar usuário
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          A pessoa recebe um e-mail com o link para criar a própria senha, que vale{' '}
+          {HORAS_DE_VALIDADE_DO_CONVITE} horas. Nenhuma senha é definida por você.
+        </Texto>
 
-          <CampoDeTexto
-            rotulo="Nome"
-            obrigatorio
-            valor={rascunho.nome}
-            aoMudar={mudar('nome')}
-            exemplo="Camila Nogueira"
-            maxLength={120}
-            autoComplete="off"
-            erro={validacao.erroDe('nome')}
-          />
-          <CampoDeTexto
-            rotulo="E-mail"
-            obrigatorio
-            valor={rascunho.email}
-            aoMudar={mudar('email')}
-            tipo="email"
-            exemplo="camila@administraair.com.br"
-            maxLength={180}
-            autoComplete="off"
-            erro={validacao.erroDe('email')}
-          />
-          <Selecao
-            rotulo="Papel"
-            obrigatorio
-            valor={rascunho.papel}
-            aoMudar={(valor) =>
-              setRascunho((atual) => ({ ...atual, papel: valor as PapelDoUsuario }))
-            }
-            opcoes={OPCOES_DE_PAPEL}
-            apoio={DESCRICAO_DO_PAPEL[rascunho.papel]}
-            erro={validacao.erroDe('papel')}
-          />
+        <CampoDeTexto
+          rotulo="Nome"
+          obrigatorio
+          valor={rascunho.nome}
+          aoMudar={mudar('nome')}
+          exemplo="Camila Nogueira"
+          maxLength={120}
+          autoComplete="off"
+          erro={validacao.erroDe('nome')}
+        />
+        <CampoDeTexto
+          rotulo="E-mail"
+          obrigatorio
+          valor={rascunho.email}
+          aoMudar={mudar('email')}
+          tipo="email"
+          exemplo="camila@administraair.com.br"
+          maxLength={180}
+          autoComplete="off"
+          erro={validacao.erroDe('email')}
+        />
+        <Selecao
+          rotulo="Papel"
+          obrigatorio
+          valor={rascunho.papel}
+          aoMudar={(valor) =>
+            setRascunho((atual) => ({ ...atual, papel: valor as PapelDoUsuario }))
+          }
+          opcoes={OPCOES_DE_PAPEL}
+          apoio={DESCRICAO_DO_PAPEL[rascunho.papel]}
+          erro={validacao.erroDe('papel')}
+        />
 
-          <ResumoDoFormulario resumo={validacao.resumo} />
-          <div className={estilos.acoes}>
-            <Botao variante="secundario" aoClicar={aoFechar} desabilitado={convidar.isPending}>
-              Cancelar
-            </Botao>
-            <Botao tipo="submit" carregando={convidar.isPending}>
-              Enviar convite
-            </Botao>
-          </div>
+        <ResumoDoFormulario resumo={validacao.resumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={convidar.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={convidar.isPending}>
+            Enviar convite
+          </Botao>
         </div>
-      </form>
+      </Formulario>
     </PainelModal>
   );
 }

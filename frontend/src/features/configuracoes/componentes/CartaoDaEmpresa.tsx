@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -14,7 +15,6 @@ import { useResultadoDoCartao } from '../hooks/useResultadoDoCartao';
 
 import { Cartao } from './Cartao';
 import estilos from './CartaoDaEmpresa.module.css';
-import { FormularioDoCartao } from './FormularioDoCartao';
 import { ResultadoDoEnvio } from './ResultadoDoEnvio';
 import { formatarCnpj } from './rotulos';
 import {
@@ -83,10 +83,7 @@ export function CartaoDaEmpresa({ empresa }: { empresa: EmpresaResponse }) {
 
   return (
     <Cartao titulo="Dados da empresa">
-      <FormularioDoCartao
-        aoEnviar={() => validacao.enviar(salvar)}
-        refDoFormulario={validacao.refDoFormulario}
-      >
+      <Formulario aoEnviar={() => validacao.enviar(salvar)} referencia={validacao.refDoFormulario}>
         <CampoDeTexto
           rotulo="Nome fantasia"
           obrigatorio
@@ -148,7 +145,7 @@ export function CartaoDaEmpresa({ empresa }: { empresa: EmpresaResponse }) {
           <ResumoDoFormulario resumo={validacao.resumo} />
           <ResultadoDoEnvio resultado={resultado} />
         </div>
-      </FormularioDoCartao>
+      </Formulario>
     </Cartao>
   );
 }

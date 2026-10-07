@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -10,7 +11,6 @@ import { useSolicitarTokenDeSenha, type MutacaoDaTrocaDeSenha } from '../api/use
 import type { EsperaParaReenviar } from '../hooks/useEsperaParaReenviar';
 
 import estilos from './CartaoDeSeguranca.module.css';
-import { FormularioDoCartao } from './FormularioDoCartao';
 import { ResultadoDoEnvio, type Resultado } from './ResultadoDoEnvio';
 import {
   ROTULOS_DA_TROCA,
@@ -82,9 +82,9 @@ export function FormularioDaSenha({ trocar, aoTrocar, espera }: FormularioDaSenh
   const esperando = espera.restante > 0;
 
   return (
-    <FormularioDoCartao
+    <Formulario
       aoEnviar={() => validacao.enviar(trocarSenha)}
-      refDoFormulario={validacao.refDoFormulario}
+      referencia={validacao.refDoFormulario}
     >
       <CampoDeTexto
         rotulo="Senha atual"
@@ -154,6 +154,6 @@ export function FormularioDaSenha({ trocar, aoTrocar, espera }: FormularioDaSenh
         </Botao>
         <ResumoDoFormulario resumo={validacao.resumo} />
       </div>
-    </FormularioDoCartao>
+    </Formulario>
   );
 }

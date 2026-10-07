@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { Formulario } from '@/compartilhado/formulario/Formulario';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
@@ -123,119 +124,111 @@ export function PainelDeFichaTecnica({
 
   return (
     <PainelModal aberto aoFechar={aoFechar} rotulo="Editar ficha técnica" podeFechar={!salvando}>
-      <form
-        noValidate
-        onSubmit={(evento) => {
-          evento.preventDefault();
-          enviar();
-        }}
-      >
-        <div ref={validacao.refDoFormulario} className={estilos.formulario}>
-          <Texto variante="titulo" como="h2">
-            Editar ficha técnica
-          </Texto>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={enviar}>
+        <Texto variante="titulo" como="h2">
+          Editar ficha técnica
+        </Texto>
 
-          <Texto variante="legenda" tom="suave" como="h3">
-            Identificação
-          </Texto>
-          <div className={estilos.duasColunas}>
-            <CampoDeTexto
-              rotulo="Matrícula"
-              valor={detalhe.matricula ?? ''}
-              aoMudar={() => {}}
-              desabilitado
-            />
-            <CampoDeTexto {...campoDaFicha('fabricante')} />
-            <CampoDeTexto {...campoDaFicha('modelo')} obrigatorio />
-            <CampoDeTexto {...campoDaFicha('numeroDeSerie')} />
-            <CampoDeTexto
-              {...campoDaFicha('base')}
-              aoMudar={(valor) => setFicha((atual) => ({ ...atual, base: valor.toUpperCase() }))}
-              obrigatorio
-              exemplo="SBSP"
-            />
-            <CampoDeTexto {...campoDaFicha('hangar')} />
-            <CampoDeTexto
-              {...campoDaFicha('pesoMaxDecolagemKg')}
-              inputMode="numeric"
-              alinhamento="direita"
-              exemplo="5.670"
-            />
-            <CampoDeTexto
-              {...campoDaFicha('pesoMaxPousoKg')}
-              inputMode="numeric"
-              alinhamento="direita"
-              apoio="Até o peso máximo de decolagem."
-            />
-          </div>
-
-          <Texto variante="legenda" tom="suave" como="h3">
-            Seguro
-          </Texto>
+        <Texto variante="legenda" tom="suave" como="h3">
+          Identificação
+        </Texto>
+        <div className={estilos.duasColunas}>
           <CampoDeTexto
-            {...campoDaFicha('apoliceDoSeguro')}
-            apoio="A vigência é o vencimento da RETA, editado na tela de documentos."
+            rotulo="Matrícula"
+            valor={detalhe.matricula ?? ''}
+            aoMudar={() => {}}
+            desabilitado
           />
-
-          {ehAdministrador ? (
-            <>
-              <Texto variante="legenda" tom="suave" como="h3">
-                Horas, ciclos e motores
-              </Texto>
-              <Texto variante="apoio" tom="suave" como="p">
-                A correção substitui os totais que os voos lançados somaram. Se um voo for lançado
-                enquanto você edita, ela é recusada para não apagá-lo. Horas em decimal, como
-                1234,5. Deixe vazio o motor ou a APU que a aeronave não tem: vazio é “não tem”, zero
-                é “tem, com zero horas”.
-              </Texto>
-              <div className={estilos.duasColunas}>
-                <CampoDeTexto
-                  {...campoDosContadores('horasDeCelula')}
-                  obrigatorio
-                  inputMode="decimal"
-                  exemplo={EXEMPLO_DE_HORAS}
-                />
-                <CampoDeTexto {...campoDosContadores('ciclos')} obrigatorio inputMode="numeric" />
-                <CampoDeTexto {...campoDosContadores('kmVoados')} obrigatorio inputMode="decimal" />
-                <CampoDeTexto
-                  {...campoDosContadores('horasMotor1')}
-                  inputMode="decimal"
-                  exemplo={EXEMPLO_DE_HORAS}
-                />
-                <CampoDeTexto
-                  {...campoDosContadores('horasMotor2')}
-                  inputMode="decimal"
-                  exemplo={EXEMPLO_DE_HORAS}
-                />
-                <CampoDeTexto
-                  {...campoDosContadores('horasMotor3')}
-                  inputMode="decimal"
-                  exemplo={EXEMPLO_DE_HORAS}
-                />
-                <CampoDeTexto
-                  {...campoDosContadores('horasApu')}
-                  inputMode="decimal"
-                  exemplo={EXEMPLO_DE_HORAS}
-                />
-              </div>
-            </>
-          ) : (
-            <Texto variante="apoio" tom="suave" como="p">
-              Horas de voo e ciclos só podem ser alterados por um administrador do sistema.
-            </Texto>
-          )}
-
-          <ResumoDoFormulario resumo={resumo} />
-          <div className={estilos.acoes}>
-            <Botao variante="secundario" aoClicar={aoFechar} desabilitado={salvando}>
-              Cancelar
-            </Botao>
-            <Botao tipo="submit" carregando={salvando}>
-              Salvar
-            </Botao>
-          </div>
+          <CampoDeTexto {...campoDaFicha('fabricante')} />
+          <CampoDeTexto {...campoDaFicha('modelo')} obrigatorio />
+          <CampoDeTexto {...campoDaFicha('numeroDeSerie')} />
+          <CampoDeTexto
+            {...campoDaFicha('base')}
+            aoMudar={(valor) => setFicha((atual) => ({ ...atual, base: valor.toUpperCase() }))}
+            obrigatorio
+            exemplo="SBSP"
+          />
+          <CampoDeTexto {...campoDaFicha('hangar')} />
+          <CampoDeTexto
+            {...campoDaFicha('pesoMaxDecolagemKg')}
+            inputMode="numeric"
+            alinhamento="direita"
+            exemplo="5.670"
+          />
+          <CampoDeTexto
+            {...campoDaFicha('pesoMaxPousoKg')}
+            inputMode="numeric"
+            alinhamento="direita"
+            apoio="Até o peso máximo de decolagem."
+          />
         </div>
-      </form>
+
+        <Texto variante="legenda" tom="suave" como="h3">
+          Seguro
+        </Texto>
+        <CampoDeTexto
+          {...campoDaFicha('apoliceDoSeguro')}
+          apoio="A vigência é o vencimento da RETA, editado na tela de documentos."
+        />
+
+        {ehAdministrador ? (
+          <>
+            <Texto variante="legenda" tom="suave" como="h3">
+              Horas, ciclos e motores
+            </Texto>
+            <Texto variante="apoio" tom="suave" como="p">
+              A correção substitui os totais que os voos lançados somaram. Se um voo for lançado
+              enquanto você edita, ela é recusada para não apagá-lo. Horas em decimal, como 1234,5.
+              Deixe vazio o motor ou a APU que a aeronave não tem: vazio é “não tem”, zero é “tem,
+              com zero horas”.
+            </Texto>
+            <div className={estilos.duasColunas}>
+              <CampoDeTexto
+                {...campoDosContadores('horasDeCelula')}
+                obrigatorio
+                inputMode="decimal"
+                exemplo={EXEMPLO_DE_HORAS}
+              />
+              <CampoDeTexto {...campoDosContadores('ciclos')} obrigatorio inputMode="numeric" />
+              <CampoDeTexto {...campoDosContadores('kmVoados')} obrigatorio inputMode="decimal" />
+              <CampoDeTexto
+                {...campoDosContadores('horasMotor1')}
+                inputMode="decimal"
+                exemplo={EXEMPLO_DE_HORAS}
+              />
+              <CampoDeTexto
+                {...campoDosContadores('horasMotor2')}
+                inputMode="decimal"
+                exemplo={EXEMPLO_DE_HORAS}
+              />
+              <CampoDeTexto
+                {...campoDosContadores('horasMotor3')}
+                inputMode="decimal"
+                exemplo={EXEMPLO_DE_HORAS}
+              />
+              <CampoDeTexto
+                {...campoDosContadores('horasApu')}
+                inputMode="decimal"
+                exemplo={EXEMPLO_DE_HORAS}
+              />
+            </div>
+          </>
+        ) : (
+          <Texto variante="apoio" tom="suave" como="p">
+            Horas de voo e ciclos só podem ser alterados por um administrador do sistema.
+          </Texto>
+        )}
+
+        <ResumoDoFormulario resumo={resumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={salvando}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={salvando}>
+            Salvar
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }
