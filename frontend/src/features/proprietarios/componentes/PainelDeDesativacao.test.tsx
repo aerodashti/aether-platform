@@ -44,6 +44,8 @@ interface Cenario {
   aoSair?: () => Promise<Response>;
   aoDesativar?: () => Promise<Response>;
   proprietarios?: ProprietarioResponse[];
+  /** Vínculos já em cache quando o painel abre, antes da recarga da montagem chegar. */
+  vinculosEmCache?: unknown[];
 }
 
 function montar({
@@ -51,6 +53,7 @@ function montar({
   aoSair = () => Promise.resolve(respostaDe(undefined, 204)),
   aoDesativar = () => Promise.resolve(respostaDe(HELENA)),
   proprietarios = PROPRIETARIOS,
+  vinculosEmCache,
 }: Cenario = {}) {
   const leituras = [...vinculos];
   const buscar = vi.fn<(entrada: string, opcoes?: RequestInit) => Promise<Response>>((entrada) => {
@@ -69,6 +72,9 @@ function montar({
   vi.stubGlobal('fetch', buscar);
   const aoFechar = vi.fn();
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  if (vinculosEmCache) {
+    cliente.setQueryData(['participacoes', 'vigentes'], vinculosEmCache);
+  }
   render(
     <MemoryRouter>
       <QueryClientProvider client={cliente}>
@@ -80,7 +86,7 @@ function montar({
       </QueryClientProvider>
     </MemoryRouter>,
   );
-  return { buscar, aoFechar };
+  return { buscar, aoFechar, cliente };
 }
 
 const campo = (nome: string) => screen.getByLabelText(`Participação de ${nome} na PS-MEP em %`);
@@ -154,6 +160,10 @@ describe('PainelDeDesativacao', () => {
     expect(
       await screen.findByRole('button', { name: 'Redistribuir e desativar' }),
     ).toBeInTheDocument();
+    // O "Tentar de novo" saiu do DOM: o foco volta ao título, e não ao <body>.
+    expect(
+      screen.getByRole('group', { name: 'Desativar proprietário · Helena Sarraf' }),
+    ).toHaveFocus();
   });
 
   it('"50.5" e "49.5" fecham em 100, e a soma diz quanto passou em vez de um número negativo', async () => {
@@ -218,6 +228,25 @@ describe('PainelDeDesativacao', () => {
     );
     expect(screen.queryByLabelText(/Participação de Marina Costa/)).not.toBeInTheDocument();
     expect(screen.getByLabelText('Incluir proprietário na PS-MEP')).toHaveFocus();
+    expect(screen.getByText('Marina Costa saiu do contrato novo da PS-MEP.')).toBeInTheDocument();
+  });
+
+  it('quem acaba de entrar com o campo vazio não deixa a soma anunciar "fechado"', async () => {
+    montar({
+      proprietarios: [
+        ...PROPRIETARIOS,
+        { id: 5, nome: 'Marina Costa', corDeIdentificacao: 'AZUL', situacao: 'ATIVO' },
+      ],
+    });
+    await screen.findByRole('button', { name: 'Redistribuir e desativar' });
+    await distribuir('70', '30');
+    await userEvent.selectOptions(screen.getByLabelText('Incluir proprietário na PS-MEP'), '5');
+    await userEvent.click(screen.getByRole('button', { name: 'Incluir na PS-MEP' }));
+
+    expect(
+      screen.getByText('Soma 100% · Preencha o percentual de cada proprietário.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Fechado em 100%/)).not.toBeInTheDocument();
   });
 
   it('dono único sem ninguém para assumir: o painel diz o que fazer', async () => {
@@ -244,6 +273,10 @@ describe('PainelDeDesativacao', () => {
         /Não há outro proprietário ativo para assumir a PS-MEP\. Cancele, cadastre ou reative/,
       ),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText('Soma 0% · Ninguém pode assumir a participação na PS-MEP agora.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Inclua quem assume/)).not.toBeInTheDocument();
     await userEvent.click(confirmar());
     expect(screen.getByRole('alert')).toHaveTextContent('Revise o campo Soma da PS-MEP.');
   });
@@ -318,5 +351,57 @@ describe('PainelDeDesativacao', () => {
       within(screen.getByRole('dialog')).getByLabelText(/Ricardo Meirelles na PS-MEP/),
     ).toBeInTheDocument();
     expect(aoFechar).not.toHaveBeenCalled();
+  });
+
+  it('nasce dos contratos que a recarga da abertura trouxe, e não dos do cache', async () => {
+    const { buscar, cliente } = montar({
+      vinculosEmCache: VINCULOS_DA_HELENA.map((vinculo) => ({ ...vinculo, contratoId: 69 })),
+    });
+    await waitFor(() =>
+      expect(cliente.getQueryData(['participacoes', 'vigentes'])).toEqual(VINCULOS_DA_HELENA),
+    );
+    await distribuir('70', '30');
+    await userEvent.click(confirmar());
+
+    await waitFor(() =>
+      expect(corpoDaSaida(buscar)).toMatchObject({ contratos: [{ contratoVigenteId: 70 }] }),
+    );
+  });
+
+  it('se outra pessoa já a desativou, avisa, atualiza a lista e não oferece o formulário de novo', async () => {
+    const invalidar = vi.spyOn(QueryClient.prototype, 'invalidateQueries');
+    const { buscar } = montar({
+      aoSair: () =>
+        Promise.resolve(
+          respostaDe(
+            {
+              title: 'Proprietário já inativo',
+              detail: 'O cadastro de Helena Sarraf já está inativo: não há saída a registrar.',
+            },
+            409,
+          ),
+        ),
+    });
+    await screen.findByRole('button', { name: 'Redistribuir e desativar' });
+    await distribuir('70', '30');
+    await userEvent.click(confirmar());
+
+    expect(
+      await screen.findByText(
+        'O cadastro de Helena Sarraf já foi desativado: não há saída a registrar.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Redistribuir e desativar' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fechar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('group', { name: 'Desativar proprietário · Helena Sarraf' }),
+    ).toHaveFocus();
+    expect(invalidar).toHaveBeenCalledWith({ queryKey: ['proprietarios'] });
+    const leiturasDeVinculos = buscar.mock.calls.filter(([entrada]) =>
+      entrada.startsWith('/api/participacoes/vigentes'),
+    );
+    expect(leiturasDeVinculos).toHaveLength(1);
   });
 });

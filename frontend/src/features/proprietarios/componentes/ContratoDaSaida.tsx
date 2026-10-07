@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
 import {
@@ -60,6 +60,7 @@ export function ContratoDaSaida({
   const camposDePercentual = useRef(new Map<number, HTMLInputElement>());
   const selecaoDeInclusao = useRef<HTMLSelectElement>(null);
   const focoPendente = useRef<AlvoDoFoco | null>(null);
+  const [anuncio, setAnuncio] = useState('');
 
   // Quem entra ou sai troca o que está na tela: o foco vai ao campo novo, ou volta à escolha.
   useEffect(() => {
@@ -76,7 +77,7 @@ export function ContratoDaSaida({
 
   const { matricula } = contrato;
   const textos = contrato.participacoes.map((participacao) => participacao.percentual);
-  const situacao = situacaoDaSoma(textos, semNinguemNa(matricula));
+  const situacao = situacaoDaSoma(textos, semNinguemNa(matricula, candidatos.length > 0));
   const erroDaSoma = erroDe(campoDaSoma(indice));
 
   return (
@@ -127,6 +128,7 @@ export function ContratoDaSaida({
                 aoClicar={() => {
                   focoPendente.current = 'inclusao';
                   aoMudar(removerParticipacao(contrato, participacao.proprietarioId));
+                  setAnuncio(`${nome} saiu do contrato novo da ${matricula}.`);
                 }}
               >
                 Remover
@@ -135,6 +137,10 @@ export function ContratoDaSaida({
           </div>
         );
       })}
+
+      <div role="status" className={estilos.apenasLeitor}>
+        {anuncio}
+      </div>
 
       {candidatos.length > 0 ? (
         <IncluirProprietario

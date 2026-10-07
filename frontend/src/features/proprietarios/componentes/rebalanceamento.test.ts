@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   alterarPercentual,
+  assinaturaDosContratos,
+  candidatosDaSaida,
   contratosSemQuemSai,
   incluirParticipacao,
   pedidoDeSaida,
@@ -71,5 +73,32 @@ describe('rebalanceamento da saída', () => {
         },
       ],
     });
+  });
+
+  it('candidatos: nem quem sai, nem quem já está no contrato, nem inativo', () => {
+    const [psMep] = contratosSemQuemSai(VINCULOS, 3);
+    const proprietarios = [
+      { id: 1, nome: 'Ricardo Meirelles', situacao: 'ATIVO' as const },
+      { id: 3, nome: 'Helena Sarraf', situacao: 'ATIVO' as const },
+      { id: 4, nome: 'Otávio Lins', situacao: 'INATIVO' as const },
+      { id: 5, nome: 'Marina Costa', situacao: 'ATIVO' as const },
+    ];
+
+    expect(candidatosDaSaida(proprietarios, 3, psMep ?? VAZIO)).toEqual([
+      { id: 5, nome: 'Marina Costa' },
+    ]);
+  });
+
+  it('a assinatura muda quando um contrato de quem sai muda ou ele entra em outra aeronave', () => {
+    const antes = assinaturaDosContratos(VINCULOS, 1);
+
+    expect(antes).toBe('10:100|11:110');
+    expect(assinaturaDosContratos(VINCULOS, 3)).toBe('10:100');
+    expect(
+      assinaturaDosContratos(
+        [...VINCULOS, { proprietarioId: 1, aeronaveId: 12, contratoId: 120 }],
+        1,
+      ),
+    ).not.toBe(antes);
   });
 });

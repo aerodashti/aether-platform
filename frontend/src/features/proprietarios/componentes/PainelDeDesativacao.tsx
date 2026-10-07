@@ -1,12 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { recomecarNoConflito } from '@/compartilhado/participacoes/conflito';
 import { useVinculosVigentes } from '@/compartilhado/participacoes/useVinculosVigentes';
+import { CHAVE_DE_PROPRIETARIOS } from '@/compartilhado/proprietarios/useProprietarios';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { PainelModal } from '@/design-system/primitivos/PainelModal';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import {
+  ehProprietarioJaInativo,
   useDesativarProprietario,
   useSairDosContratos,
   type ProprietarioResponse,
@@ -14,7 +17,7 @@ import {
 
 import { FormularioDeSaida } from './FormularioDeSaida';
 import estilos from './PainelDeDesativacao.module.css';
-import { pedidoDeSaida, type ContratoSemQuemSai } from './rebalanceamento';
+import { assinaturaDosContratos, pedidoDeSaida, type ContratoSemQuemSai } from './rebalanceamento';
 
 interface PainelDeDesativacaoProps {
   proprietario: ProprietarioResponse;
@@ -23,12 +26,12 @@ interface PainelDeDesativacaoProps {
   aoFechar: () => void;
 }
 
-const CONFLITO = 409;
+type EstadoDoPainel = 'carregando' | 'falha' | 'jaInativo' | 'semParticipacao' | 'comParticipacao';
 
-type EstadoDosVinculos = 'carregando' | 'falha' | 'semParticipacao' | 'comParticipacao';
-
-function instrucao(estado: EstadoDosVinculos, nome: string): string {
+function instrucao(estado: EstadoDoPainel, nome: string): string {
   switch (estado) {
+    case 'jaInativo':
+      return `O cadastro de ${nome} já foi desativado: não há saída a registrar.`;
     case 'carregando':
       return `Conferindo as participações de ${nome}…`;
     case 'falha':
@@ -54,6 +57,7 @@ export function PainelDeDesativacao({
   proprietarios,
   aoFechar,
 }: PainelDeDesativacaoProps) {
+  const cliente = useQueryClient();
   const vinculos = useVinculosVigentes();
   const desativar = useDesativarProprietario();
   const sair = useSairDosContratos();
@@ -66,29 +70,43 @@ export function PainelDeDesativacao({
   const id = proprietario.id ?? 0;
   const nome = proprietario.nome ?? '';
   const enviando = desativar.isPending || sair.isPending;
-  const participa = (vinculos.data ?? []).some((vinculo) => vinculo.proprietarioId === id);
-  const estado: EstadoDosVinculos = vinculos.isPending
-    ? 'carregando'
-    : vinculos.isError
-      ? 'falha'
-      : participa
-        ? 'comParticipacao'
-        : 'semParticipacao';
+  const jaInativo = ehProprietarioJaInativo(sair.error);
+  // A recarga que acompanha a abertura pode trazer contratos que o cache não tinha: o formulário
+  // nasce de novo deles, em vez de seguir para uma recusa certa.
+  const assinatura = assinaturaDosContratos(vinculos.data ?? [], id);
+  const estado: EstadoDoPainel = jaInativo
+    ? 'jaInativo'
+    : vinculos.isPending
+      ? 'carregando'
+      : vinculos.isError
+        ? 'falha'
+        : assinatura !== ''
+          ? 'comParticipacao'
+          : 'semParticipacao';
+  const formularioAberto = vinculos.isSuccess && !jaInativo;
 
   // O showModal leva o foco ao primeiro campo e pula o título e a instrução. Este efeito roda
   // depois do efeito do PainelModal — o de quem está acima roda por último — e o traz de volta.
+  // Também quando o formulário entra ou sai no lugar dos botões de espera: o botão que tinha o
+  // foco some, e o foco não pode cair no <body>.
   useEffect(() => {
     apresentacao.current?.focus();
-  }, [versao]);
+  }, [versao, formularioAberto]);
 
-  function recomecarSeMudou(erro: Error) {
-    if (erro instanceof ErroDeApi && erro.status === CONFLITO) {
-      void vinculos.refetch().then(() => setVersao((atual) => atual + 1));
+  function aoRecusar(erro: Error) {
+    if (ehProprietarioJaInativo(erro)) {
+      void cliente.invalidateQueries({ queryKey: CHAVE_DE_PROPRIETARIOS });
+      return;
     }
+    recomecarNoConflito(
+      erro,
+      () => vinculos.refetch(),
+      () => setVersao((atual) => atual + 1),
+    );
   }
 
   function confirmar(contratos: ContratoSemQuemSai[]) {
-    const aoTerminar = { onSuccess: aoFechar, onError: recomecarSeMudou };
+    const aoTerminar = { onSuccess: aoFechar, onError: aoRecusar };
     if (contratos.length === 0) {
       sair.reset();
       desativar.mutate(id, aoTerminar);
@@ -118,9 +136,9 @@ export function PainelDeDesativacao({
         </div>
       </div>
 
-      {vinculos.isSuccess ? (
+      {formularioAberto ? (
         <FormularioDeSaida
-          key={`${versao}:${participa}`}
+          key={`${versao}:${assinatura}`}
           quemSai={proprietario}
           vinculos={vinculos.data}
           proprietarios={proprietarios}
@@ -132,7 +150,7 @@ export function PainelDeDesativacao({
       ) : (
         <div className={estilos.acoes}>
           <Botao variante="secundario" aoClicar={aoFechar}>
-            Cancelar
+            {jaInativo ? 'Fechar' : 'Cancelar'}
           </Botao>
           {vinculos.isError ? (
             <Botao aoClicar={() => void vinculos.refetch()}>Tentar de novo</Botao>

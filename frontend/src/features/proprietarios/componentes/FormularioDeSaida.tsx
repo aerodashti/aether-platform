@@ -9,7 +9,7 @@ import type { ProprietarioResponse } from '../api/useProprietarios';
 
 import { ContratoDaSaida } from './ContratoDaSaida';
 import estilos from './PainelDeDesativacao.module.css';
-import { contratosSemQuemSai, type ContratoSemQuemSai } from './rebalanceamento';
+import { candidatosDaSaida, contratosSemQuemSai, type ContratoSemQuemSai } from './rebalanceamento';
 import {
   campoDaSaidaNoServidor,
   rotulosDaSaida,
@@ -47,24 +47,16 @@ export function FormularioDeSaida({
   const idDoResumo = useId();
   const nomes = new Map(proprietarios.map((dono) => [dono.id ?? 0, dono.nome ?? '']));
 
+  const candidatosDe = (contrato: ContratoSemQuemSai) =>
+    candidatosDaSaida(proprietarios, id, contrato);
+
   const validacao = useValidacao<CampoDaSaida>({
-    erros: validarSaida(contratos),
+    erros: validarSaida(contratos, (contrato) => candidatosDe(contrato).length > 0),
     valores: valoresDaSaida(contratos),
     rotulos: rotulosDaSaida(contratos, nomes),
     falha,
     campoDoServidor: (nome) => campoDaSaidaNoServidor(nome, contratos),
   });
-
-  function candidatosDe(contrato: ContratoSemQuemSai) {
-    return proprietarios
-      .filter(
-        (dono) =>
-          dono.situacao === 'ATIVO' &&
-          dono.id !== id &&
-          !contrato.participacoes.some((participacao) => participacao.proprietarioId === dono.id),
-      )
-      .map((dono) => ({ id: dono.id ?? 0, nome: dono.nome ?? '' }));
-  }
 
   function mudar(indice: number, contrato: ContratoSemQuemSai) {
     setContratos((atuais) =>

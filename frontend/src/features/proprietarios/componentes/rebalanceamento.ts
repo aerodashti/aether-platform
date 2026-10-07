@@ -1,7 +1,9 @@
 import { lerNumero, numeroParaCampo } from '@/compartilhado/formatacao/numero';
+import { candidatosAoContrato } from '@/compartilhado/participacoes/candidatos';
+import type { CandidatoAoContrato } from '@/compartilhado/participacoes/IncluirProprietario';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
 
-import type { SaidaDeProprietario } from '../api/useProprietarios';
+import type { ProprietarioResponse, SaidaDeProprietario } from '../api/useProprietarios';
 
 /** A participação de alguém no contrato novo, com o percentual como o campo o mostra ("33,33"). */
 export interface ParticipacaoNova {
@@ -46,6 +48,32 @@ export function contratosSemQuemSai(
         incluida: false,
       })),
   }));
+}
+
+/** Quem pode entrar no contrato novo de uma aeronave: nem quem sai, nem quem já está nele. */
+export function candidatosDaSaida(
+  proprietarios: ProprietarioResponse[],
+  quemSai: number,
+  contrato: ContratoSemQuemSai,
+): CandidatoAoContrato[] {
+  return candidatosAoContrato(proprietarios, [
+    quemSai,
+    ...contrato.participacoes.map((participacao) => participacao.proprietarioId),
+  ]);
+}
+
+/**
+ * O que identifica os contratos de onde a saída parte. Se a recarga que acompanha a abertura do
+ * painel trouxer outros, o formulário recomeça deles em vez de seguir com os do cache.
+ */
+export function assinaturaDosContratos(
+  vinculos: VinculoVigenteResponse[],
+  quemSai: number,
+): string {
+  return vinculos
+    .filter((vinculo) => vinculo.proprietarioId === quemSai)
+    .map((vinculo) => `${vinculo.aeronaveId}:${vinculo.contratoId}`)
+    .join('|');
 }
 
 export function alterarPercentual(

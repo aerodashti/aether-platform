@@ -27,26 +27,39 @@ const NOMES = new Map([
   [2, 'Vetor Participações'],
 ]);
 
+const COM_CANDIDATOS = () => true;
+
 describe('validarSaida', () => {
   it('"50.5" + "49.5" fecha 100, como na tela do contrato — e não 1000', () => {
-    const erros = validarSaida([contrato('PS-MEP', [1, '50.5'], [2, '49.5'])]);
+    const erros = validarSaida([contrato('PS-MEP', [1, '50.5'], [2, '49.5'])], COM_CANDIDATOS);
 
     expect(Object.values(erros).filter(Boolean)).toEqual([]);
   });
 
   it('cada linha responde pelo percentual dela, e a soma só fala com todos válidos', () => {
-    const erros = validarSaida([contrato('PS-MEP', [1, '100'], [2, ''])]);
+    const erros = validarSaida([contrato('PS-MEP', [1, '100'], [2, ''])], COM_CANDIDATOS);
 
     expect(erros['contratos[0].participacoes[1].percentual']).toBe('Informe o percentual.');
     expect(erros['contratos[0].participacoes']).toBeUndefined();
   });
 
   it('a soma diz o que falta, e a aeronave sem ninguém pede quem assuma', () => {
-    const erros = validarSaida([contrato('PS-MEP', [1, '60'], [2, '20']), contrato('PR-KRT')]);
+    const erros = validarSaida(
+      [contrato('PS-MEP', [1, '60'], [2, '20']), contrato('PR-KRT')],
+      COM_CANDIDATOS,
+    );
 
     expect(erros['contratos[0].participacoes']).toBe('Faltam 20% para fechar 100%.');
     expect(erros['contratos[1].participacoes']).toBe(
       'Inclua quem assume a participação na PR-KRT.',
+    );
+  });
+
+  it('sem ninguém que possa entrar, a soma não pede para incluir', () => {
+    const erros = validarSaida([contrato('PR-KRT')], () => false);
+
+    expect(erros['contratos[0].participacoes']).toBe(
+      'Ninguém pode assumir a participação na PR-KRT agora.',
     );
   });
 });

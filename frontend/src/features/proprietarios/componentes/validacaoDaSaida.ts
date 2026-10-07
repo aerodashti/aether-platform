@@ -15,13 +15,26 @@ export function campoDoPercentual(contrato: number, participacao: number): Campo
   return `contratos[${contrato}].participacoes[${participacao}].percentual`;
 }
 
-/** O que dizer quando ninguém ficou no contrato novo de uma aeronave. */
-export function semNinguemNa(matricula: string): string {
-  return `Inclua quem assume a participação na ${matricula}.`;
+/**
+ * O que dizer quando ninguém ficou no contrato novo de uma aeronave. Sem candidato, "inclua quem
+ * assume" pediria o impossível: a frase diz só que ninguém pode assumir, e o aviso da aeronave
+ * explica o caminho.
+ */
+export function semNinguemNa(matricula: string, haCandidatos: boolean): string {
+  return haCandidatos
+    ? `Inclua quem assume a participação na ${matricula}.`
+    : `Ninguém pode assumir a participação na ${matricula} agora.`;
 }
 
-/** As regras do `ContratoNovo`: cada percentual de 0,01 a 100 e cada aeronave fechando 100. */
-export function validarSaida(contratos: ContratoSemQuemSai[]): Erros<CampoDaSaida> {
+/**
+ * As regras do `ContratoNovo`: cada percentual de 0,01 a 100 e cada aeronave fechando 100.
+ *
+ * @param haCandidatos se a aeronave tem quem possa ser incluído nela — muda a frase da lista vazia.
+ */
+export function validarSaida(
+  contratos: ContratoSemQuemSai[],
+  haCandidatos: (contrato: ContratoSemQuemSai) => boolean,
+): Erros<CampoDaSaida> {
   const erros: Erros<CampoDaSaida> = {};
   contratos.forEach((contrato, indice) => {
     contrato.participacoes.forEach((participacao, posicao) => {
@@ -29,7 +42,7 @@ export function validarSaida(contratos: ContratoSemQuemSai[]): Erros<CampoDaSaid
     });
     erros[campoDaSoma(indice)] = erroDaSoma(
       contrato.participacoes.map((participacao) => participacao.percentual),
-      semNinguemNa(contrato.matricula),
+      semNinguemNa(contrato.matricula, haCandidatos(contrato)),
     );
   });
   return erros;
