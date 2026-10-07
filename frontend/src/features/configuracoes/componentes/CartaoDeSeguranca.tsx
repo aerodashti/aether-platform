@@ -1,11 +1,15 @@
 import { useState } from 'react';
 
 import { useTrocarSenha } from '../api/useConfiguracoes';
+import { useEsperaParaReenviar } from '../hooks/useEsperaParaReenviar';
 
 import { Cartao } from './Cartao';
 import estilos from './CartaoDeSeguranca.module.css';
 import { FormularioDaSenha } from './FormularioDaSenha';
 import { ResultadoDoEnvio } from './ResultadoDoEnvio';
+
+/** O intervalo entre códigos no servidor (`intervalo-entre-codigos` no application.yml). */
+const INTERVALO_ENTRE_CODIGOS_EM_SEGUNDOS = 60;
 
 /**
  * Trocar a própria senha.
@@ -19,6 +23,7 @@ import { ResultadoDoEnvio } from './ResultadoDoEnvio';
  */
 export function CartaoDeSeguranca() {
   const trocar = useTrocarSenha();
+  const espera = useEsperaParaReenviar(INTERVALO_ENTRE_CODIGOS_EM_SEGUNDOS);
   const [trocasConcluidas, setTrocasConcluidas] = useState(0);
 
   return (
@@ -27,6 +32,7 @@ export function CartaoDeSeguranca() {
         <FormularioDaSenha
           key={trocasConcluidas}
           trocar={trocar}
+          espera={espera}
           aoTrocar={() => setTrocasConcluidas((atual) => atual + 1)}
         />
         <ResultadoDoEnvio

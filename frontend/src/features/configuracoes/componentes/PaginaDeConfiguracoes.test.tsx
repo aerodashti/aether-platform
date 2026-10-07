@@ -418,6 +418,26 @@ describe('PaginaDeConfiguracoes', () => {
       expect(reenviar).toHaveAccessibleDescription('Outro código em 60 s.');
     });
 
+    it('depois da troca, o código gasto sai da tela e o intervalo continua valendo', async () => {
+      const usuario = userEvent.setup();
+      servidor({ papel: 'GESTOR' });
+      envolver(<PaginaDeConfiguracoes />);
+
+      await usuario.click(await screen.findByRole('button', { name: 'Enviar código por e-mail' }));
+      await screen.findByText('Código enviado para o e-mail cadastrado. Ele vale 10 minutos.');
+      await preencherTroca(usuario);
+      await usuario.click(screen.getByRole('button', { name: 'Alterar senha' }));
+
+      await screen.findByText('Senha alterada. As outras sessões foram encerradas.');
+      expect(
+        screen.queryByText('Código enviado para o e-mail cadastrado. Ele vale 10 minutos.'),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Enviar código por e-mail' })).toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+    });
+
     it('a falha ao pedir o código aparece, em vez de silêncio', async () => {
       const usuario = userEvent.setup();
       servidor({

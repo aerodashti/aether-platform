@@ -7,7 +7,7 @@ import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useSolicitarTokenDeSenha, type MutacaoDaTrocaDeSenha } from '../api/useConfiguracoes';
-import { useEsperaParaReenviar } from '../hooks/useEsperaParaReenviar';
+import type { EsperaParaReenviar } from '../hooks/useEsperaParaReenviar';
 
 import estilos from './CartaoDeSeguranca.module.css';
 import { FormularioDoCartao } from './FormularioDoCartao';
@@ -19,9 +19,8 @@ import {
   type RascunhoDaTroca,
 } from './validacaoDaTrocaDeSenha';
 
-/** A política do código no servidor (`aether.autenticacao` no application.yml). */
+/** A validade do código no servidor (`validade-do-codigo` no application.yml). */
 const VALIDADE_DO_CODIGO_EM_MINUTOS = 10;
-const INTERVALO_ENTRE_CODIGOS_EM_SEGUNDOS = 60;
 
 const RASCUNHO_VAZIO: RascunhoDaTroca = {
   senhaAtual: '',
@@ -39,6 +38,8 @@ interface FormularioDaSenhaProps {
   /** A mutação mora no cartão: o "Senha alterada." sobrevive a este formulário ser refeito. */
   trocar: MutacaoDaTrocaDeSenha;
   aoTrocar: () => void;
+  /** Também mora no cartão: refazer o formulário não libera um pedido que o servidor ignoraria. */
+  espera: EsperaParaReenviar;
 }
 
 function mensagemDe(falha: unknown): string | undefined {
@@ -49,10 +50,9 @@ function mensagemDe(falha: unknown): string | undefined {
  * Os campos da troca de senha. Começa vazio e é refeito a cada troca concluída — é o que limpa
  * os campos, o código já gasto e os erros de uma vez.
  */
-export function FormularioDaSenha({ trocar, aoTrocar }: FormularioDaSenhaProps) {
+export function FormularioDaSenha({ trocar, aoTrocar, espera }: FormularioDaSenhaProps) {
   const [rascunho, setRascunho] = useState(RASCUNHO_VAZIO);
   const pedirToken = useSolicitarTokenDeSenha();
-  const espera = useEsperaParaReenviar(INTERVALO_ENTRE_CODIGOS_EM_SEGUNDOS);
   const idDaEspera = useId();
   const validacao = useValidacao({
     erros: validarTrocaDeSenha(rascunho),
