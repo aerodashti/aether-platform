@@ -1982,6 +1982,13 @@ export interface components {
             de?: string;
             /** @example 2026-09 */
             ate?: string;
+            /**
+             * @description As regras de hoje da aeronave, as mesmas dos chips do mensal
+             * @enum {string}
+             */
+            baseDoRateio?: "POR_USO" | "POR_PROPRIEDADE";
+            /** @enum {string} */
+            modeloDeAporte?: "FIXO" | "PROPORCIONAL_AO_USO";
             competencias?: components["schemas"]["Competencia"][];
             /** @description Somas do período; o saldo é o do fim do período */
             totais?: components["schemas"]["Competencia"];

@@ -106,6 +106,8 @@ public class FechamentoService {
         aeronave.getMatricula(),
         de,
         ate,
+        aeronave.getConfiguracaoFinanceira().baseDoRateio(),
+        aeronave.getConfiguracaoFinanceira().modeloDeAporte(),
         competencias,
         totais(competencias, ate));
   }

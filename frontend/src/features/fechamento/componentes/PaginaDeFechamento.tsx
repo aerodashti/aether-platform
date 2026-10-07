@@ -86,7 +86,7 @@ export function PaginaDeFechamento() {
   const competencia = recorte.competencia || competenciaAtual();
   const mensal = useFechamentoMensal(modo === 'MENSAL' ? aeronaveId : '', competencia);
   const periodo = useFechamentoDoPeriodo(modo === 'PERIODO' ? aeronaveId : '', de, ate);
-  const atual = modo === 'MENSAL' ? mensal.data : undefined;
+  const atual = modo === 'MENSAL' ? mensal.data : periodo.data;
 
   return (
     <div className={estilos.tela}>
@@ -192,6 +192,10 @@ export function PaginaDeFechamento() {
         )
       ) : periodo.data ? (
         <>
+          <Texto variante="apoio" tom="suave" como="p">
+            {competenciaPorExtenso(periodo.data.de)} a {competenciaPorExtenso(periodo.data.ate)} ·{' '}
+            {periodo.data.matricula}
+          </Texto>
           <Indicadores
             itens={[
               ['Horas voadas no período', horasEmTexto(periodo.data.totais?.horas)],

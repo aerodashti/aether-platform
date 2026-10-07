@@ -1,5 +1,7 @@
 package br.com.aerodash.aether.fechamento;
 
+import br.com.aerodash.aether.aeronave.BaseDoRateio;
+import br.com.aerodash.aether.aeronave.ModeloDeAporte;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -12,6 +14,9 @@ public record FechamentoDoPeriodoResponse(
     String matricula,
     @Schema(type = "string", example = "2026-01") YearMonth de,
     @Schema(type = "string", example = "2026-09") YearMonth ate,
+    @Schema(description = "As regras de hoje da aeronave, as mesmas dos chips do mensal")
+        BaseDoRateio baseDoRateio,
+    ModeloDeAporte modeloDeAporte,
     List<Competencia> competencias,
     @Schema(description = "Somas do período; o saldo é o do fim do período") Competencia totais) {
 

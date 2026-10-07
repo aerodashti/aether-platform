@@ -58,6 +58,8 @@ const PERIODO = {
   matricula: 'PS-MEP',
   de: '2026-08',
   ate: '2026-09',
+  baseDoRateio: 'POR_USO',
+  modeloDeAporte: 'FIXO',
   competencias: [
     { competencia: '2026-08', horas: 3, totalDeCustos: 2000, resultado: -500, saldoFinal: -800 },
     { competencia: '2026-09', horas: 4, totalDeCustos: 3000, resultado: 1020, saldoFinal: 220 },
@@ -148,6 +150,9 @@ describe('PaginaDeFechamento', () => {
 
     await screen.findByText('Ricardo Meirelles');
     await userEvent.click(screen.getByRole('radio', { name: 'Período' }));
+    // As regras da aeronave e o recorte aparecem no período também, como no mensal.
+    expect(await screen.findByText(/^Rateio:/)).toBeInTheDocument();
+    expect(screen.getByText(/· PS-MEP$/)).toBeInTheDocument();
     await userEvent.click(await screen.findByRole('button', { name: /Ago\/26/ }));
 
     expect(screen.getByRole('radio', { name: 'Mensal' })).toHaveAttribute('aria-checked', 'true');
