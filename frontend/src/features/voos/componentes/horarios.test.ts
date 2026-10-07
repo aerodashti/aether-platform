@@ -46,14 +46,10 @@ describe('horários do trecho', () => {
     expect(duracaoEmHoras(mesmaHora)).toBeUndefined();
   });
 
-  it('a partida realizada cai no dia mais perto da prevista: o atraso que cruzou a meia-noite', () => {
+  it('a partida realizada vira o dia no atraso que cruza a meia-noite', () => {
     const atrasado = instantesDoTrecho(
       '2026-09-10',
       horarios({ partidaPrevista: '23:30', partidaRealizada: '00:20', pousoRealizado: '01:10' }),
-    );
-    const adiantado = instantesDoTrecho(
-      '2026-09-10',
-      horarios({ partidaPrevista: '00:10', partidaRealizada: '23:50', pousoRealizado: '00:40' }),
     );
     const semPrevista = instantesDoTrecho(
       '2026-09-10',
@@ -62,12 +58,38 @@ describe('horários do trecho', () => {
 
     expect(atrasado.partidaRealizada).toEqual(new Date(2026, 8, 11, 0, 20));
     expect(atrasado.pousoRealizado).toEqual(new Date(2026, 8, 11, 1, 10));
-    expect(adiantado.partidaRealizada).toEqual(new Date(2026, 8, 9, 23, 50));
-    expect(adiantado.pousoRealizado).toEqual(new Date(2026, 8, 10, 0, 40));
     expect(semPrevista.partidaRealizada).toEqual(new Date(2026, 8, 10, 0, 20));
   });
 
-  it('na correção, o par intocado volta como foi gravado, mesmo lançado noutro dia local', () => {
+  it('o atraso longo fica no mesmo dia: não vira partida na véspera', () => {
+    const partidaRealizada = (prevista: string, realizada: string) =>
+      instantesDoTrecho(
+        '2026-09-10',
+        horarios({ partidaPrevista: prevista, partidaRealizada: realizada }),
+      ).partidaRealizada;
+
+    expect(partidaRealizada('10:00', '23:00')).toEqual(new Date(2026, 8, 10, 23, 0));
+    expect(partidaRealizada('06:00', '19:00')).toEqual(new Date(2026, 8, 10, 19, 0));
+  });
+
+  it('a partida recua para a véspera só até 3 h antes de uma prevista de madrugada', () => {
+    const adiantado = instantesDoTrecho(
+      '2026-09-10',
+      horarios({ partidaPrevista: '00:10', partidaRealizada: '23:50', pousoRealizado: '00:40' }),
+    );
+    const partidaRealizada = (realizada: string) =>
+      instantesDoTrecho(
+        '2026-09-10',
+        horarios({ partidaPrevista: '02:00', partidaRealizada: realizada }),
+      ).partidaRealizada;
+
+    expect(adiantado.partidaRealizada).toEqual(new Date(2026, 8, 9, 23, 50));
+    expect(adiantado.pousoRealizado).toEqual(new Date(2026, 8, 10, 0, 40));
+    expect(partidaRealizada('23:00')).toEqual(new Date(2026, 8, 9, 23, 0));
+    expect(partidaRealizada('22:59')).toEqual(new Date(2026, 8, 10, 22, 59));
+  });
+
+  it('na correção, o horário intocado volta como foi gravado, mesmo lançado noutro dia local', () => {
     const gravados = {
       data: '2026-09-11',
       instantes: {
@@ -76,14 +98,27 @@ describe('horários do trecho', () => {
       },
     };
     const intocado = horarios({ partidaRealizada: '23:30', pousoRealizado: '00:30' });
-
-    expect(instantesDoTrecho('2026-09-11', intocado, gravados).partidaRealizada).toEqual(
-      new Date(2026, 8, 10, 23, 30),
+    const soOPouso = instantesDoTrecho(
+      '2026-09-11',
+      { ...intocado, pousoRealizado: '00:45' },
+      gravados,
     );
+
+    expect(instantesDoTrecho('2026-09-11', intocado, gravados)).toMatchObject({
+      partidaRealizada: new Date(2026, 8, 10, 23, 30),
+      pousoRealizado: new Date(2026, 8, 11, 0, 30),
+    });
+    // A partida intocada fica no instante gravado e ancora o pouso alterado.
+    expect(soOPouso.partidaRealizada).toEqual(new Date(2026, 8, 10, 23, 30));
+    expect(soOPouso.pousoRealizado).toEqual(new Date(2026, 8, 11, 0, 45));
+    // A partida alterada é remontada, e o pouso intocado vai junto, depois dela.
     expect(
-      instantesDoTrecho('2026-09-11', { ...intocado, pousoRealizado: '00:45' }, gravados)
-        .partidaRealizada,
-    ).toEqual(new Date(2026, 8, 11, 23, 30));
+      instantesDoTrecho('2026-09-11', { ...intocado, partidaRealizada: '23:40' }, gravados),
+    ).toMatchObject({
+      partidaRealizada: new Date(2026, 8, 11, 23, 40),
+      pousoRealizado: new Date(2026, 8, 12, 0, 30),
+    });
+    // Com a data mudada, nada fica do gravado.
     expect(instantesDoTrecho('2026-09-12', intocado, gravados).partidaRealizada).toEqual(
       new Date(2026, 8, 12, 23, 30),
     );

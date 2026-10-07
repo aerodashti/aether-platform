@@ -19,8 +19,13 @@ export interface HorariosGravados {
 }
 
 const HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
-const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+const MILISSEGUNDOS_POR_HORA = 60 * 60 * 1000;
+const MILISSEGUNDOS_POR_DIA = 24 * MILISSEGUNDOS_POR_HORA;
 const MILISSEGUNDOS_POR_DECIMO_DE_HORA = 6 * 60 * 1000;
+/** Partida realizada mais de 12 h antes da prevista é atraso que cruzou a meia-noite. */
+const ATRASO_QUE_VIRA_O_DIA = 12 * MILISSEGUNDOS_POR_HORA;
+/** O maior adiantamento que puxa a partida para a véspera de uma prevista de madrugada. */
+const ADIANTAMENTO_DA_VESPERA = 3 * MILISSEGUNDOS_POR_HORA;
 
 /** O fuso em que o painel lê e mostra os horários (decisão de produto D17). */
 export function fusoDoDispositivo(): string {
@@ -64,21 +69,26 @@ function pousoDepoisDe(partida: Date | undefined, data: string, hora: string): D
 }
 
 /**
- * A partida realizada no dia — o do trecho, o anterior ou o seguinte — que a deixa mais perto da
- * prevista: o voo previsto para 23:30 que saiu às 00:20 saiu no dia seguinte, e não 23 h antes. No
- * empate, fica o dia do trecho.
+ * A partida realizada na data do trecho, salvo dois casos, assimétricos de propósito: atrasar é
+ * comum e longo, adiantar é raro e curto.
+ * - Mais de 12 h antes da prevista, é o dia seguinte: o voo previsto para 23:30 que saiu às 00:20
+ *   atrasou e cruzou a meia-noite — não saiu 23 h antes.
+ * - Na véspera, até 3 h antes da prevista, é o dia anterior: o previsto para 00:10 que saiu às
+ *   23:50 adiantou 20 min.
+ * Fora disso, fica na data, mesmo longe da prevista: o previsto para 10:00 que saiu às 23:00
+ * atrasou 13 h, e não adiantou 11 h.
  */
 function partidaPertoDe(prevista: Date | undefined, data: string, hora: string): Date | undefined {
   const noDia = naData(data, hora);
   if (prevista === undefined || noDia === undefined) {
     return noDia;
   }
-  const distancia = (candidata: Date) => Math.abs(candidata.getTime() - prevista.getTime());
-  return [naData(data, hora, -1), naData(data, hora, 1)].reduce<Date>(
-    (melhor, candidata) =>
-      candidata !== undefined && distancia(candidata) < distancia(melhor) ? candidata : melhor,
-    noDia,
-  );
+  if (prevista.getTime() - noDia.getTime() > ATRASO_QUE_VIRA_O_DIA) {
+    return naData(data, hora, 1);
+  }
+  const vespera = naData(data, hora, -1);
+  const adiantamento = vespera === undefined ? -1 : prevista.getTime() - vespera.getTime();
+  return adiantamento >= 0 && adiantamento <= ADIANTAMENTO_DA_VESPERA ? vespera : noDia;
 }
 
 function doGravado(instante: string | undefined): Date | undefined {
@@ -86,43 +96,37 @@ function doGravado(instante: string | undefined): Date | undefined {
 }
 
 /**
- * Os quatro instantes do trecho. Na correção, o par que a pessoa não tocou — nem a data — volta
- * como foi gravado: remontá-lo com a hora local de quem corrige deslocaria em um dia o voo lançado
- * noutro fuso.
+ * Os quatro instantes do trecho. Na correção, com a data mantida, o horário que a pessoa não tocou
+ * volta como foi gravado: remontá-lo com a hora local de quem corrige deslocaria em um dia o voo
+ * lançado noutro fuso. A partida intocada fica no instante gravado e ancora o pouso alterado; o
+ * pouso intocado só fica no gravado se a partida também ficou, senão é remontado depois dela.
  */
 export function instantesDoTrecho(
   data: string,
   horarios: Horarios,
   gravados?: HorariosGravados,
 ): Instantes {
-  const intocado = (partida: CampoDeHorario, pouso: CampoDeHorario) =>
+  const intocado = (campo: CampoDeHorario) =>
     gravados !== undefined &&
     gravados.data === data &&
-    horarios[partida] === horaLocal(gravados.instantes[partida]) &&
-    horarios[pouso] === horaLocal(gravados.instantes[pouso]);
+    horarios[campo] === horaLocal(gravados.instantes[campo]);
   const gravado = (campo: CampoDeHorario) => doGravado(gravados?.instantes[campo]);
 
-  const partidaPrevista = intocado('partidaPrevista', 'pousoPrevisto')
+  const partidaPrevista = intocado('partidaPrevista')
     ? gravado('partidaPrevista')
     : naData(data, horarios.partidaPrevista);
-  const pousoPrevisto = intocado('partidaPrevista', 'pousoPrevisto')
-    ? gravado('pousoPrevisto')
-    : pousoDepoisDe(partidaPrevista, data, horarios.pousoPrevisto);
-  if (intocado('partidaRealizada', 'pousoRealizado')) {
-    return {
-      partidaPrevista,
-      pousoPrevisto,
-      partidaRealizada: gravado('partidaRealizada'),
-      pousoRealizado: gravado('pousoRealizado'),
-    };
-  }
-  const partidaRealizada = partidaPertoDe(partidaPrevista, data, horarios.partidaRealizada);
-  return {
-    partidaPrevista,
-    pousoPrevisto,
-    partidaRealizada,
-    pousoRealizado: pousoDepoisDe(partidaRealizada, data, horarios.pousoRealizado),
-  };
+  const pousoPrevisto =
+    intocado('partidaPrevista') && intocado('pousoPrevisto')
+      ? gravado('pousoPrevisto')
+      : pousoDepoisDe(partidaPrevista, data, horarios.pousoPrevisto);
+  const partidaRealizada = intocado('partidaRealizada')
+    ? gravado('partidaRealizada')
+    : partidaPertoDe(partidaPrevista, data, horarios.partidaRealizada);
+  const pousoRealizado =
+    intocado('partidaRealizada') && intocado('pousoRealizado')
+      ? gravado('pousoRealizado')
+      : pousoDepoisDe(partidaRealizada, data, horarios.pousoRealizado);
+  return { partidaPrevista, pousoPrevisto, partidaRealizada, pousoRealizado };
 }
 
 /** Quantos dias o instante cai depois (ou antes, negativo) da data do trecho, no fuso local. */
