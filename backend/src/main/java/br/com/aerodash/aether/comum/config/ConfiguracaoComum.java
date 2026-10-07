@@ -25,10 +25,11 @@ public class ConfiguracaoComum {
 
   /**
    * A fonte de tempo é injetada para que regras que dependem de "agora" possam ser testadas sem
-   * esperar o relógio.
+   * esperar o relógio. Está no fuso do negócio: o dia de {@code LocalDate.now(relogio)} é o de
+   * Brasília, e não o de UTC, que vira o dia às 21h — veja {@link FusoDoNegocio}.
    */
   @Bean
   public Clock relogio() {
-    return Clock.systemUTC();
+    return Clock.system(FusoDoNegocio.ZONA);
   }
 }

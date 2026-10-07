@@ -8,9 +8,10 @@ import java.time.ZoneId;
 /**
  * O fuso das datas civis do negócio: o dia do voo, do crédito no fundo, da troca de horas.
  *
- * <p>O relógio da aplicação é UTC. Entre 21h e meia-noite em Brasília ele já está no dia seguinte,
- * e uma data de amanhã — ainda futura para quem a lança — passaria como de hoje. Por isso "hoje" é
- * o do horário de Brasília, o mesmo que a tela calcula no navegador.
+ * <p>Num relógio em UTC, entre 21h e meia-noite em Brasília já seria o dia seguinte, e uma data de
+ * amanhã — ainda futura para quem a lança — passaria como de hoje. Por isso o relógio da aplicação
+ * ({@code ConfiguracaoComum.relogio}) está neste fuso: todo {@code LocalDate.now(relogio)} é o dia
+ * de Brasília, o mesmo que a tela calcula no navegador. Os instantes continuam absolutos.
  */
 public final class FusoDoNegocio {
 

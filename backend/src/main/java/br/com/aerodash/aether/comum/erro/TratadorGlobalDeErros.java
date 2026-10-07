@@ -166,6 +166,11 @@ public class TratadorGlobalDeErros {
               HttpStatus.BAD_REQUEST,
               "Requisição inválida",
               "Envie os arquivos no campo \"" + parte.getRequestPartName() + "\".");
+      case MultipartException envio ->
+          montar(
+              HttpStatus.BAD_REQUEST,
+              "Envio de arquivos recusado",
+              "O envio tem arquivos demais ou chegou incompleto. Envie menos arquivos por vez.");
       default ->
           montar(HttpStatus.BAD_REQUEST, "Requisição inválida", "A requisição está incompleta.");
     };
