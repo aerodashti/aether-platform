@@ -21,6 +21,7 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class CustoServiceTest {
     ricardo = new Proprietario("Ricardo", null, null, null, CorDeIdentificacao.PETROLEO, AGORA);
     ReflectionTestUtils.setField(ricardo, "id", 7L);
 
-    when(aeronaves.findById(1L)).thenReturn(Optional.of(aeronave));
+    when(aeronaves.existsById(1L)).thenReturn(true);
     when(aeronaves.findAllById(any())).thenReturn(List.of(aeronave));
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
@@ -78,26 +79,85 @@ class CustoServiceTest {
   }
 
   private CustoRequest request(MoedaDoCusto moeda, BigDecimal cambio, Long dono) {
+    return request(moeda, new BigDecimal("1200.00"), cambio, dono, "2026-09-08");
+  }
+
+  private CustoRequest request(
+      MoedaDoCusto moeda, BigDecimal valor, BigDecimal cambio, Long dono, String data) {
     return new CustoRequest(
         1L,
         CategoriaDeCusto.ABASTECIMENTO,
-        LocalDate.parse("2026-09-08"),
+        LocalDate.parse(data),
         "Jet A-1",
         "RV-2026-041",
         dono,
         "NF 1",
         moeda,
-        new BigDecimal("1200.00"),
+        valor,
         cambio);
   }
 
+  /** A recusa nomeia o campo do JSON: é por ele que a tela marca o campo certo. */
+  private static void recusadoNoCampo(ThrowingCallable acao, String campo) {
+    assertThatThrownBy(acao)
+        .isInstanceOfSatisfying(
+            CustoInvalidoException.class, recusa -> assertThat(recusa.getCampo()).contains(campo));
+  }
+
+  private Custo salvoPara(Long dono) {
+    Custo salvo = new Custo(1L, service0(request(MoedaDoCusto.BRL, null, dono)), AGORA);
+    when(custos.findById(5L)).thenReturn(Optional.of(salvo));
+    return salvo;
+  }
+
   @Test
-  @DisplayName("USD sem câmbio e BRL com câmbio são recusados antes de salvar")
+  @DisplayName("USD sem câmbio e BRL com câmbio são recusados no campo câmbio, antes de salvar")
   void coerenciaDeCambio() {
-    assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.USD, null, null)))
-        .isInstanceOf(CustoInvalidoException.class);
-    assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.BRL, BigDecimal.ONE, null)))
-        .isInstanceOf(CustoInvalidoException.class);
+    recusadoNoCampo(() -> service.criar(request(MoedaDoCusto.USD, null, null)), "cambio");
+    recusadoNoCampo(() -> service.criar(request(MoedaDoCusto.BRL, BigDecimal.ONE, null)), "cambio");
+    verify(custos, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("aeronave ou proprietário que não existem são recusa do campo, não 404")
+  void idDoCorpoInexistente() {
+    when(aeronaves.existsById(1L)).thenReturn(false);
+    recusadoNoCampo(() -> service.criar(request(MoedaDoCusto.BRL, null, null)), "aeronaveId");
+
+    when(aeronaves.existsById(1L)).thenReturn(true);
+    when(proprietarios.findById(99L)).thenReturn(Optional.empty());
+    recusadoNoCampo(() -> service.criar(request(MoedaDoCusto.BRL, null, 99L)), "proprietarioId");
+    verify(custos, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("a data vai de 01/01/2000 até 31 dias à frente de hoje")
+  void janelaDaData() {
+    BigDecimal valor = BigDecimal.TEN;
+    recusadoNoCampo(
+        () -> service.criar(request(MoedaDoCusto.BRL, valor, null, null, "1999-12-31")), "data");
+    recusadoNoCampo(
+        () -> service.criar(request(MoedaDoCusto.BRL, valor, null, null, "2026-10-12")), "data");
+    verify(custos, never()).save(any());
+
+    CustoResponse noLimite =
+        service.criar(request(MoedaDoCusto.BRL, valor, null, null, "2026-10-11"));
+    assertThat(noLimite.data()).isEqualTo(LocalDate.parse("2026-10-11"));
+  }
+
+  @Test
+  @DisplayName("o BRL convertido que passa da coluna é recusado no valor, não estoura no banco")
+  void valorConvertidoAcimaDaColuna() {
+    recusadoNoCampo(
+        () ->
+            service.criar(
+                request(
+                    MoedaDoCusto.USD,
+                    new BigDecimal("10000000000.00"),
+                    new BigDecimal("100"),
+                    null,
+                    "2026-09-08")),
+        "valor");
     verify(custos, never()).save(any());
   }
 
@@ -119,6 +179,7 @@ class CustoServiceTest {
     assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.BRL, null, 7L)))
         .isInstanceOf(CustoInvalidoException.class)
         .hasMessageContaining("Ricardo");
+    recusadoNoCampo(() -> service.criar(request(MoedaDoCusto.BRL, null, 7L)), "proprietarioId");
   }
 
   @Test
@@ -128,8 +189,32 @@ class CustoServiceTest {
 
     assertThatThrownBy(() -> service.criar(request(MoedaDoCusto.BRL, null, 7L)))
         .isInstanceOf(CustoInvalidoException.class)
-        .hasMessageContaining("Ricardo");
+        .hasMessage(
+            "Ricardo nunca participou desta aeronave: inclua no contrato quem vai pagar ou rateie"
+                + " o custo.");
     verify(custos, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("a correção mantém a atribuição a quem ficou inativo: o histórico não muda de dono")
+  void correcaoMantemInativo() {
+    salvoPara(7L);
+    ricardo.desativar(AGORA);
+
+    CustoResponse corrigido = service.atualizar(5L, request(MoedaDoCusto.BRL, null, 7L));
+
+    assertThat(corrigido.proprietarioId()).isEqualTo(7L);
+    verify(participantes, never()).participaOuParticipou(any(), any());
+  }
+
+  @Test
+  @DisplayName("na correção, mudar a atribuição para um inativo é recusado no campo")
+  void correcaoParaInativo() {
+    salvoPara(null);
+    ricardo.desativar(AGORA);
+
+    recusadoNoCampo(
+        () -> service.atualizar(5L, request(MoedaDoCusto.BRL, null, 7L)), "proprietarioId");
   }
 
   @Test
@@ -164,8 +249,7 @@ class CustoServiceTest {
             BigDecimal.TEN,
             null);
 
-    assertThatThrownBy(() -> service.atualizar(5L, deOutra))
-        .isInstanceOf(CustoInvalidoException.class);
+    recusadoNoCampo(() -> service.atualizar(5L, deOutra), "aeronaveId");
   }
 
   @Test

@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Um lançamento de despesa. O valor mora em BRL: lançamento em moeda estrangeira grava o valor
@@ -21,6 +23,17 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "custo")
 public class Custo {
+
+  /**
+   * Antes disso, é ano digitado errado: o lançamento cairia num fechamento que ninguém consulta.
+   */
+  public static final LocalDate PRIMEIRA_DATA_ACEITA = LocalDate.of(2000, 1, 1);
+
+  /** A conta já emitida pode ser lançada antes do vencimento, até este tanto de dias à frente. */
+  public static final int DIAS_DE_ANTECEDENCIA = 31;
+
+  /** O maior valor que cabe em {@code NUMERIC(14,2)}, a coluna do valor em BRL. */
+  public static final BigDecimal VALOR_MAXIMO = new BigDecimal("999999999999.99");
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -90,10 +103,7 @@ public class Custo {
     this.categoria = dados.categoria();
     this.data = dados.data();
     this.descricao = dados.descricao().trim();
-    this.relatorioDeVoo =
-        dados.relatorioDeVoo() == null || dados.relatorioDeVoo().isBlank()
-            ? null
-            : dados.relatorioDeVoo().trim();
+    this.relatorioDeVoo = normalizarRelatorioDeVoo(dados.relatorioDeVoo());
     this.proprietarioId = dados.proprietarioId();
     this.notaFiscal =
         dados.notaFiscal() == null || dados.notaFiscal().isBlank()
@@ -115,6 +125,36 @@ public class Custo {
   /** A conversão acontece uma vez, no ato, com duas casas: é o que a nota vai mostrar. */
   public static BigDecimal converterParaBrl(BigDecimal valorOriginal, BigDecimal cambio) {
     return valorOriginal.multiply(cambio).setScale(2, RoundingMode.HALF_UP);
+  }
+
+  /**
+   * O fechamento casa o custo com os trechos do voo por igualdade: "rv-2026-041" e "RV-2026-041"
+   * seriam voos diferentes, e o custo trocaria em silêncio o rateio pelas horas do voo pelo rateio
+   * do mês.
+   */
+  private static String normalizarRelatorioDeVoo(String relatorioDeVoo) {
+    return relatorioDeVoo == null || relatorioDeVoo.isBlank()
+        ? null
+        : relatorioDeVoo.trim().toUpperCase(Locale.ROOT);
+  }
+
+  /** O último dia em que um custo lançado {@code hoje} pode cair. */
+  public static LocalDate ultimaDataAceita(LocalDate hoje) {
+    return hoje.plusDays(DIAS_DE_ANTECEDENCIA);
+  }
+
+  public boolean possuiDataAceitavel(LocalDate hoje) {
+    return !data.isBefore(PRIMEIRA_DATA_ACEITA) && !data.isAfter(ultimaDataAceita(hoje));
+  }
+
+  /** Em USD, o BRL derivado pode passar da coluna mesmo com o original e o câmbio dentro dela. */
+  public boolean possuiValorDentroDoLimite() {
+    return valor.compareTo(VALOR_MAXIMO) <= 0;
+  }
+
+  /** Se a correção mantém quem paga — a atribuição gravada não é reavaliada. */
+  public boolean estaAtribuidoA(Long proprietario) {
+    return Objects.equals(proprietarioId, proprietario);
   }
 
   public boolean ehRateado() {
