@@ -153,7 +153,8 @@ class AutenticacaoControllerTest {
   @Test
   @DisplayName("conta bloqueada responde 429")
   void contaBloqueadaResponde429() throws Exception {
-    when(autenticacao.entrar(anyString(), anyString())).thenThrow(new AcessoBloqueadoException());
+    when(autenticacao.entrar(anyString(), anyString()))
+        .thenThrow(new AcessoBloqueadoException(Duration.ofMinutes(15)));
 
     mockMvc
         .perform(
@@ -161,7 +162,36 @@ class AutenticacaoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"%s\",\"senha\":\"errada\"}".formatted(EMAIL)))
         .andExpect(status().isTooManyRequests())
-        .andExpect(jsonPath("$.title").value("Acesso temporariamente bloqueado"));
+        .andExpect(jsonPath("$.title").value("Acesso temporariamente bloqueado"))
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Tentativas demais em sequência. Tente de novo em 15 minutos."));
+  }
+
+  @Test
+  @DisplayName("senha longa demais no login é barrada antes de procurar o e-mail")
+  void senhaLongaNoLoginEhBarrada() throws Exception {
+    mockMvc
+        .perform(
+            post("/autenticacao/entrar")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"%s\",\"senha\":\"%s\"}".formatted(EMAIL, "a".repeat(73))))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.senha").value("A senha tem no máximo 72 caracteres."));
+
+    verify(autenticacao, never()).entrar(anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("método ou formato errado responde 405 e 415, não 500")
+  void recusasDoProtocoloMantemOStatus() throws Exception {
+    mockMvc.perform(get("/autenticacao/entrar")).andExpect(status().isMethodNotAllowed());
+    mockMvc
+        .perform(
+            post("/autenticacao/recuperacao")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("email=%s".formatted(EMAIL)))
+        .andExpect(status().isUnsupportedMediaType());
   }
 
   @Test
