@@ -85,6 +85,7 @@ class AporteIntegracaoTest {
             .orElseThrow()
             .getId();
     Cookie sessao = entrar();
+    LocalDate hoje = CalendarioDoFundo.hoje(relogio);
     String corpo =
         """
         {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":10000.00}
@@ -96,9 +97,7 @@ class AporteIntegracaoTest {
                 post("/aportes")
                     .cookie(sessao)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(
-                        corpo.formatted(
-                            psMep, helena, LocalDate.now(relogio), YearMonth.now(relogio))))
+                    .content(corpo.formatted(psMep, helena, hoje, YearMonth.from(hoje))))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.nomeDoProprietario").value("Helena Sarraf"))
             .andReturn();
@@ -111,11 +110,59 @@ class AporteIntegracaoTest {
             post("/aportes")
                 .cookie(sessao)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    corpo.formatted(prKrt, helena, LocalDate.now(relogio), YearMonth.now(relogio))))
+                .content(corpo.formatted(prKrt, helena, hoje, YearMonth.from(hoje))))
         .andExpect(status().isBadRequest())
         .andExpect(
-            jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("nunca participou")));
+            jsonPath("$.campos.proprietarioId")
+                .value(org.hamcrest.Matchers.containsString("nunca participou")));
+  }
+
+  @Test
+  @DisplayName("o que o banco arredondava, recusava com 500 ou escondia volta 400 no campo")
+  void foraDosLimitesNoCampo() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    Long ricardo =
+        proprietarios.findAll().stream()
+            .filter(dono -> dono.getNome().equals("Ricardo Meirelles"))
+            .findFirst()
+            .orElseThrow()
+            .getId();
+    Cookie sessao = entrar();
+    String data = CalendarioDoFundo.hoje(relogio).toString();
+    String corpo =
+        """
+        {"aeronaveId":%d,"proprietarioId":%d,"data":"%s","competencia":"%s","valor":%s}
+        """;
+
+    for (String[] caso :
+        new String[][] {
+          {"2026-09", "0.001", "valor"},
+          {"2026-09", "1000000000000000", "valor"},
+          {"0000-01", "10", "competencia"},
+          {"20266-09", "10", "competencia"}
+        }) {
+      mockMvc
+          .perform(
+              post("/aportes")
+                  .cookie(sessao)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(corpo.formatted(psMep, ricardo, data, caso[0], caso[1])))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.campos." + caso[2]).isNotEmpty());
+    }
+
+    mockMvc
+        .perform(
+            post("/rendimentos")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":%d,"data":"%s","aplicacao":"CDB","taxa":1000,"valor":1}
+                    """
+                        .formatted(psMep, data)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.taxa").isNotEmpty());
   }
 
   private Cookie entrar() throws Exception {

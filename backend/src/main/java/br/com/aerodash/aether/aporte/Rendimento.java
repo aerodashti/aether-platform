@@ -73,8 +73,13 @@ public class Rendimento {
     return YearMonth.from(data);
   }
 
+  /** Rendimento é crédito que já caiu: com data futura, é previsão. */
   public boolean estaNoFuturo(LocalDate hoje) {
     return data.isAfter(hoje);
+  }
+
+  public boolean estaAntesDaPrimeiraData() {
+    return data.isBefore(CalendarioDoFundo.PRIMEIRA_DATA);
   }
 
   public Long getId() {
