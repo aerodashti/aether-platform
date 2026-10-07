@@ -252,6 +252,18 @@ describe('PaginaDeAportes', () => {
     expect(screen.queryByRole('dialog', { name: 'Registrar aporte' })).not.toBeInTheDocument();
   });
 
+  it('cancelar o painel devolve o foco ao botão que o abriu', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeAportes />);
+    await screen.findByText('Ricardo Meirelles');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar aporte' }));
+    const painel = screen.getByRole('dialog', { name: 'Registrar aporte' });
+    await userEvent.click(within(painel).getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.getByRole('button', { name: 'Registrar aporte' })).toHaveFocus();
+  });
+
   it('o proprietário só lê: sem registrar, editar ou excluir', async () => {
     prepararFetch(PROPRIETARIO_LOGADO);
     envolver(<PaginaDeAportes />);
