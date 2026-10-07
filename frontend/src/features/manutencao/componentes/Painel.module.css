@@ -1,3 +1,10 @@
+/* A régua comum dos painéis da manutenção: agendar, parâmetro, concluir e excluir. */
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
 .grade {
   display: grid;
   grid-template-columns: 1fr 1fr;

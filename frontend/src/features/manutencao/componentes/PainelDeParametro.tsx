@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { GrupoDeOpcoes } from '@/design-system/primitivos/GrupoDeOpcoes';
@@ -14,43 +16,68 @@ import {
   type TipoDeParametro,
 } from '../api/useManutencao';
 
-import estilos from './PainelDeParametro.module.css';
+import { PRIMEIRA_DATA, ultimaDataLimite } from './datasDaManutencao';
+import estilos from './Painel.module.css';
+import {
+  corpoDoParametro,
+  rascunhoInicial,
+  trocarRegua,
+  type RascunhoDoParametro,
+} from './rascunhoDoParametro';
+import { ROTULO_DO_TIPO_DE_PARAMETRO, UNIDADE_DA_REGUA } from './rotulos';
+import { apoioDoLimite, type ContadoresDaAeronave } from './situacaoPrevista';
+import { ROTULOS_DO_PARAMETRO, validarParametro } from './validacaoDoParametro';
 
 interface PainelDeParametroProps {
   aeronaveId: number;
+  /** Os contadores de hoje: o limite é julgado contra eles, e o modal cobre os chips da página. */
+  contadores: ContadoresDaAeronave;
   parametro?: ParametroResponse;
   aoFechar: () => void;
 }
 
-function numero(texto: string): number | undefined {
-  const limpo = texto.trim().replace(',', '.');
-  return limpo === '' ? undefined : Number(limpo);
-}
+const REGUAS: TipoDeParametro[] = ['HORAS', 'CICLOS', 'DATA'];
+
+const ROTULO_DO_LIMITE: Record<Exclude<TipoDeParametro, 'DATA'>, string> = {
+  HORAS: 'Limite (h de célula)',
+  CICLOS: 'Limite (ciclos)',
+};
 
 /** Novo e edição de parâmetro de controle: a régua muda com o tipo — horas, ciclos ou data. */
-export function PainelDeParametro({ aeronaveId, parametro, aoFechar }: PainelDeParametroProps) {
+export function PainelDeParametro({
+  aeronaveId,
+  contadores,
+  parametro,
+  aoFechar,
+}: PainelDeParametroProps) {
   const editando = parametro?.id != null;
-  const [nome, setNome] = useState(parametro?.nome ?? '');
-  const [tipo, setTipo] = useState<TipoDeParametro>(parametro?.tipo ?? 'HORAS');
-  const [limite, setLimite] = useState(
-    parametro?.limite === undefined ? '' : String(parametro.limite),
-  );
-  const [dataLimite, setDataLimite] = useState(parametro?.dataLimite ?? '');
-  const [aviso, setAviso] = useState(parametro?.aviso === undefined ? '' : String(parametro.aviso));
+  const titulo = editando ? 'Editar parâmetro de controle' : 'Novo parâmetro de controle';
+  const idDoResumo = useId();
+  const hoje = hojeLocal();
+  const [rascunho, setRascunho] = useState(() => rascunhoInicial(parametro));
 
   const criar = useCriarParametro();
   const atualizar = useAtualizarParametro();
   const mutacao = editando ? atualizar : criar;
+  const validacao = useValidacao({
+    erros: validarParametro(rascunho, hoje),
+    valores: rascunho,
+    rotulos: ROTULOS_DO_PARAMETRO,
+    falha: mutacao.error,
+  });
+  const apoioDaRegua = apoioDoLimite(rascunho, contadores, hoje);
+  // Só as horas têm décimos: no iOS, o teclado `numeric` nem tem vírgula.
+  const teclado = rascunho.tipo === 'HORAS' ? 'decimal' : 'numeric';
+
+  function alterar(campo: Exclude<keyof RascunhoDoParametro, 'tipo'>) {
+    return (valor: string) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
+  }
 
   function salvar() {
-    const corpo = {
-      aeronaveId,
-      nome,
-      tipo,
-      limite: tipo === 'DATA' ? undefined : numero(limite),
-      dataLimite: tipo === 'DATA' ? dataLimite || undefined : undefined,
-      aviso: numero(aviso) ?? 0,
-    };
+    const corpo = corpoDoParametro(rascunho, aeronaveId);
+    if (corpo === undefined) {
+      return;
+    }
     if (parametro?.id != null) {
       atualizar.mutate({ id: parametro.id, parametro: corpo }, { onSuccess: aoFechar });
     } else {
@@ -58,73 +85,83 @@ export function PainelDeParametro({ aeronaveId, parametro, aoFechar }: PainelDeP
     }
   }
 
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
-  const unidade = tipo === 'HORAS' ? 'horas' : tipo === 'CICLOS' ? 'ciclos' : 'dias';
-  const podeSalvar =
-    nome.trim() !== '' &&
-    aviso.trim() !== '' &&
-    (tipo === 'DATA' ? dataLimite !== '' : limite.trim() !== '');
-
   return (
-    <PainelModal
-      aberto
-      aoFechar={aoFechar}
-      rotulo={editando ? 'Editar parâmetro de controle' : 'Novo parâmetro de controle'}
-    >
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
       <Texto variante="titulo" como="h2">
-        {editando ? 'Editar parâmetro de controle' : 'Novo parâmetro de controle'}
+        {titulo}
       </Texto>
 
-      <CampoDeTexto
-        rotulo="Nome do parâmetro"
-        valor={nome}
-        aoMudar={setNome}
-        exemplo="Inspeção de célula — 4.000 h"
-        maxLength={120}
-      />
-      <GrupoDeOpcoes
-        rotulo="Régua do parâmetro"
-        valor={tipo}
-        opcoes={[
-          { valor: 'HORAS', rotulo: 'Horas de célula' },
-          { valor: 'CICLOS', rotulo: 'Ciclos' },
-          { valor: 'DATA', rotulo: 'Data' },
-        ]}
-        aoEscolher={(escolhido) => setTipo(escolhido as TipoDeParametro)}
-        marcador
-      />
-      {tipo === 'DATA' ? (
-        <CampoDeTexto rotulo="Data limite" tipo="data" valor={dataLimite} aoMudar={setDataLimite} />
-      ) : (
+      <div ref={validacao.refDoFormulario} className={estilos.campos}>
         <CampoDeTexto
-          rotulo={tipo === 'HORAS' ? 'Horas de célula no limite' : 'Ciclos no limite'}
-          valor={limite}
-          aoMudar={setLimite}
-          inputMode="numeric"
+          rotulo="Nome do parâmetro"
+          obrigatorio
+          valor={rascunho.nome}
+          aoMudar={alterar('nome')}
+          exemplo="Inspeção de célula — 4.000 h"
+          maxLength={120}
+          erro={validacao.erroDe('nome')}
         />
-      )}
-      <CampoDeTexto
-        rotulo={`Avisar a quantos ${unidade} do limite`}
-        valor={aviso}
-        aoMudar={setAviso}
-        inputMode="numeric"
-        apoio="Dentro dessa faixa o parâmetro vira atenção."
-      />
+        <GrupoDeOpcoes
+          rotulo="Régua do parâmetro"
+          obrigatorio
+          valor={rascunho.tipo}
+          opcoes={REGUAS.map((tipo) => ({
+            valor: tipo,
+            rotulo: ROTULO_DO_TIPO_DE_PARAMETRO[tipo],
+          }))}
+          aoEscolher={(tipo) => setRascunho((atual) => trocarRegua(atual, tipo as TipoDeParametro))}
+          marcador
+          apoio="Trocar a régua apaga o limite e a faixa de aviso: a unidade muda."
+          erro={validacao.erroDe('tipo')}
+        />
+        {rascunho.tipo === 'DATA' ? (
+          <CampoDeTexto
+            rotulo="Data limite"
+            tipo="data"
+            obrigatorio
+            valor={rascunho.dataLimite}
+            aoMudar={alterar('dataLimite')}
+            minimo={PRIMEIRA_DATA}
+            maximo={ultimaDataLimite(hoje)}
+            apoio={apoioDaRegua}
+            erro={validacao.erroDe('dataLimite')}
+          />
+        ) : (
+          <CampoDeTexto
+            rotulo={ROTULO_DO_LIMITE[rascunho.tipo]}
+            obrigatorio
+            valor={rascunho.limite}
+            aoMudar={alterar('limite')}
+            inputMode={teclado}
+            alinhamento="direita"
+            exemplo={rascunho.tipo === 'HORAS' ? '4.000' : '3.000'}
+            apoio={apoioDaRegua}
+            erro={validacao.erroDe('limite')}
+          />
+        )}
+        <CampoDeTexto
+          rotulo={`Faixa de aviso (${UNIDADE_DA_REGUA[rascunho.tipo]} antes do limite)`}
+          obrigatorio
+          valor={rascunho.aviso}
+          aoMudar={alterar('aviso')}
+          inputMode={teclado}
+          alinhamento="direita"
+          exemplo={rascunho.tipo === 'DATA' ? '30' : '100'}
+          apoio="Dentro dessa faixa o parâmetro vira atenção."
+          erro={validacao.erroDe('aviso')}
+        />
+      </div>
 
-      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
-          <Texto variante="apoio" tom="critico" como="p">
-            {erro}
-          </Texto>
-        </div>
-      ) : null}
-
+      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
       <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
+        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
           Cancelar
         </Botao>
-        <Botao aoClicar={salvar} desabilitado={!podeSalvar} carregando={mutacao.isPending}>
+        <Botao
+          aoClicar={() => validacao.enviar(salvar)}
+          carregando={mutacao.isPending}
+          descritoPor={idDoResumo}
+        >
           {editando ? 'Salvar' : 'Criar parâmetro'}
         </Botao>
       </div>

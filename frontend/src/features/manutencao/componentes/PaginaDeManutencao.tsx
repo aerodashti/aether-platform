@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { juntarClasses } from '@/design-system/classes';
@@ -24,7 +25,7 @@ import { PainelDeManutencaoAgendada } from './PainelDeManutencaoAgendada';
 import { PainelDeParametro } from './PainelDeParametro';
 import {
   atualEmTexto,
-  dataCurta,
+  dataCompleta,
   horaCurta,
   janelaDeAvisoEmTexto,
   limiteEmTexto,
@@ -34,6 +35,7 @@ import {
   ROTULO_DA_SITUACAO,
   ROTULO_DO_TIPO_DE_PARAMETRO,
 } from './rotulos';
+import type { ContadoresDaAeronave } from './situacaoPrevista';
 import tabela from './TabelaDeManutencao.module.css';
 
 type Painel =
@@ -79,8 +81,15 @@ export function PaginaDeManutencao() {
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   const painelDaAeronave = consulta.data;
-  const matricula =
-    aeronaves.data?.find((aeronave) => String(aeronave.id) === aeronaveId)?.matricula ?? '';
+  const aeronave = aeronaves.data?.find((candidata) => String(candidata.id) === aeronaveId);
+  const matricula = aeronave?.matricula ?? '';
+  // Só se agenda ou monitora numa aeronave que existe e cujo painel carregou: sem isso o painel
+  // mandaria aeronaveId 0 (frota vazia) ou nulo (?aeronave=abc).
+  const aeronaveDasAcoes = painelDaAeronave && aeronave?.id != null ? aeronave.id : undefined;
+  const contadores: ContadoresDaAeronave = {
+    horasDeCelula: painelDaAeronave?.horasDeCelula,
+    ciclos: painelDaAeronave?.ciclos,
+  };
   const parametros = painelDaAeronave?.parametros ?? [];
   const programadas = painelDaAeronave?.programadas ?? [];
   const historico = painelDaAeronave?.historico ?? [];
@@ -113,7 +122,7 @@ export function PaginaDeManutencao() {
           </>
         ) : null}
         <span className={estilos.espaco} />
-        {podeGerir ? (
+        {podeGerir && aeronaveDasAcoes !== undefined ? (
           <div className={estilos.acoesDoTopo}>
             <Botao
               variante="secundario"
@@ -224,7 +233,9 @@ export function PaginaDeManutencao() {
                           return (
                             <tr role="row" key={manutencao.id} className={tabela.linha}>
                               <td role="cell" className={tabela.celula}>
-                                <span className={tabela.forte}>{dataCurta(manutencao.data)}</span>
+                                <span className={tabela.forte}>
+                                  {dataCompleta(manutencao.data)}
+                                </span>
                                 {manutencao.hora ? (
                                   <span className={tabela.sublinha}>
                                     {horaCurta(manutencao.hora)}
@@ -355,7 +366,7 @@ export function PaginaDeManutencao() {
                         {historico.map((manutencao) => (
                           <tr role="row" key={manutencao.id} className={tabela.linha}>
                             <td role="cell" className={tabela.celula}>
-                              <span className={tabela.forte}>{dataCurta(manutencao.data)}</span>
+                              <span className={tabela.forte}>{dataCompleta(manutencao.data)}</span>
                             </td>
                             <td role="cell" className={tabela.celula}>
                               <span className={tabela.forte} title={manutencao.descricao}>
@@ -555,18 +566,21 @@ export function PaginaDeManutencao() {
         </>
       ) : null}
 
-      {painel?.tipo === 'novo-parametro' || painel?.tipo === 'editar-parametro' ? (
+      {aeronaveDasAcoes !== undefined &&
+      (painel?.tipo === 'novo-parametro' || painel?.tipo === 'editar-parametro') ? (
         <PainelDeParametro
           key={painel.tipo === 'editar-parametro' ? painel.parametro.id : 'novo'}
-          aeronaveId={Number(aeronaveId)}
+          aeronaveId={aeronaveDasAcoes}
+          contadores={contadores}
           parametro={painel.tipo === 'editar-parametro' ? painel.parametro : undefined}
           aoFechar={() => setPainel(null)}
         />
       ) : null}
-      {painel?.tipo === 'nova-manutencao' || painel?.tipo === 'editar-manutencao' ? (
+      {aeronaveDasAcoes !== undefined &&
+      (painel?.tipo === 'nova-manutencao' || painel?.tipo === 'editar-manutencao') ? (
         <PainelDeManutencaoAgendada
           key={painel.tipo === 'editar-manutencao' ? painel.manutencao.id : 'novo'}
-          aeronaveId={Number(aeronaveId)}
+          aeronaveId={aeronaveDasAcoes}
           manutencao={painel.tipo === 'editar-manutencao' ? painel.manutencao : undefined}
           aoFechar={() => setPainel(null)}
         />
@@ -605,10 +619,5 @@ function contagemDeConcluidas(total: number): string {
 
 /** Programada com data anterior a hoje: a etiqueta muda para "Atrasada". */
 function estaAtrasada(iso: string | undefined): boolean {
-  if (!iso) {
-    return false;
-  }
-  const hoje = new Date();
-  const hojeIso = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-  return iso < hojeIso;
+  return iso !== undefined && iso < hojeLocal();
 }

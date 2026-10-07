@@ -30,6 +30,7 @@ const GESTORA = { nome: 'Patrícia', email: 'patricia@x.com.br', papel: 'GESTOR'
 const PILOTO = { nome: 'Caio', email: 'caio@x.com.br', papel: 'PILOTO' };
 
 const AERONAVES = [{ id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' }];
+// O formato real da API: o opcional ausente vem `null`, não omitido.
 const PAINEL = {
   horasDeCelula: 3412.5,
   ciclos: 2890,
@@ -50,8 +51,10 @@ const PAINEL = {
       aeronaveId: 1,
       nome: 'Pesagem regulamentar',
       tipo: 'DATA',
+      limite: null,
       dataLimite: '2026-08-21',
       aviso: 30,
+      atual: null,
       restante: -20,
       situacao: 'ESTOURADO',
     },
@@ -74,6 +77,8 @@ const PAINEL = {
       id: 4,
       aeronaveId: 1,
       data: '2026-07-27',
+      hora: null,
+      responsavel: null,
       descricao: 'Troca de pneus e freios',
       valor: 36400,
       status: 'CONCLUIDA',
@@ -81,7 +86,7 @@ const PAINEL = {
   ],
 };
 
-function prepararFetch(sessao: unknown) {
+function prepararFetch(sessao: unknown, aeronaves: unknown[] = AERONAVES) {
   vi.stubGlobal(
     'fetch',
     vi.fn((entrada: string) => {
@@ -89,7 +94,7 @@ function prepararFetch(sessao: unknown) {
         return Promise.resolve(respostaDe(sessao));
       }
       if (entrada.startsWith('/api/aeronaves')) {
-        return Promise.resolve(respostaDe(AERONAVES));
+        return Promise.resolve(respostaDe(aeronaves));
       }
       return Promise.resolve(respostaDe(PAINEL));
     }),
@@ -174,9 +179,20 @@ describe('PaginaDeManutencao', () => {
     await screen.findByText('Inspeção de 100 h — célula');
     await userEvent.click(screen.getByRole('button', { name: '+ Novo parâmetro' }));
 
-    expect(screen.getByLabelText('Horas de célula no limite')).toBeInTheDocument();
+    expect(screen.getByLabelText('Limite (h de célula)')).toHaveAccessibleDescription(
+      'A aeronave está com 3.412,5 h.',
+    );
     await userEvent.click(screen.getByRole('radio', { name: 'Data' }));
     expect(screen.getByLabelText('Data limite')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Horas de célula no limite')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Limite (h de célula)')).not.toBeInTheDocument();
+  });
+
+  it('sem aeronave na frota não há o que agendar nem monitorar', async () => {
+    prepararFetch(GESTORA, []);
+    envolver(<PaginaDeManutencao />);
+
+    await screen.findByRole('combobox', { name: 'Aeronave' });
+    expect(screen.queryByRole('button', { name: 'Nova manutenção' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Novo parâmetro' })).not.toBeInTheDocument();
   });
 });

@@ -1,4 +1,8 @@
-import type { SituacaoDoParametro, TipoDeParametro } from '../api/useManutencao';
+import type {
+  ManutencaoResponse,
+  SituacaoDoParametro,
+  TipoDeParametro,
+} from '../api/useManutencao';
 
 export const ROTULO_DO_TIPO_DE_PARAMETRO: Record<TipoDeParametro, string> = {
   HORAS: 'Horas de célula',
@@ -12,12 +16,20 @@ export const ROTULO_DA_SITUACAO: Record<SituacaoDoParametro, string> = {
   ESTOURADO: 'Limite estourado',
 };
 
+/** A unidade em que cada régua conta o limite, o restante e a faixa de aviso. */
+export const UNIDADE_DA_REGUA: Record<TipoDeParametro, string> = {
+  HORAS: 'h',
+  CICLOS: 'ciclos',
+  DATA: 'dias',
+};
+
 const NUMERO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+// Ano com quatro dígitos: com dois, um 0026 digitado por engano apareceria igual a 2026.
 const DATA = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
   month: '2-digit',
-  year: '2-digit',
+  year: 'numeric',
 });
 
 export function numeroEmTexto(valor: number | null | undefined): string {
@@ -28,8 +40,14 @@ export function moedaEmTexto(valor: number | null | undefined): string {
   return valor == null ? '—' : MOEDA.format(valor);
 }
 
-export function dataCurta(iso: string | undefined): string {
+/** "07/10/2026". */
+export function dataCompleta(iso: string | null | undefined): string {
   return iso ? DATA.format(new Date(`${iso}T00:00:00`)) : '—';
+}
+
+/** "Inspeção de 100 h — célula, de 22/09/2026": o que distingue uma manutenção das outras. */
+export function nomeDaManutencao(manutencao: ManutencaoResponse): string {
+  return `${manutencao.descricao ?? 'Manutenção'}, de ${dataCompleta(manutencao.data)}`;
 }
 
 /** "faltam 110 ciclos" / "estourou há 20 dias" — número com consequência, como manda o brief. */
@@ -40,7 +58,7 @@ export function restanteEmPalavras(
   if (restante === undefined || tipo === undefined) {
     return '—';
   }
-  const unidade = tipo === 'HORAS' ? 'h' : tipo === 'CICLOS' ? 'ciclos' : 'dias';
+  const unidade = UNIDADE_DA_REGUA[tipo];
   if (restante < 0) {
     return `estourou há ${NUMERO.format(Math.abs(restante))} ${unidade}`;
   }
@@ -54,24 +72,20 @@ export function limiteEmTexto(parametro: {
   dataLimite?: string | null;
 }): string {
   if (parametro.tipo === 'DATA') {
-    return dataCurta(parametro.dataLimite ?? undefined);
+    return dataCompleta(parametro.dataLimite);
   }
-  if (parametro.limite == null) {
+  if (parametro.limite == null || parametro.tipo === undefined) {
     return '—';
   }
-  return parametro.tipo === 'HORAS'
-    ? `${NUMERO.format(parametro.limite)} h`
-    : `${NUMERO.format(parametro.limite)} ciclos`;
+  return `${NUMERO.format(parametro.limite)} ${UNIDADE_DA_REGUA[parametro.tipo]}`;
 }
 
-/** "hoje: 3.412,5 h" — a referência atual, na mesma unidade. */
+/** "hoje 3.412,5 h" — a referência atual, na mesma unidade. */
 export function atualEmTexto(parametro: { tipo?: TipoDeParametro; atual?: number | null }): string {
-  if (parametro.atual == null || parametro.tipo === 'DATA') {
+  if (parametro.atual == null || parametro.tipo === undefined || parametro.tipo === 'DATA') {
     return '';
   }
-  return parametro.tipo === 'HORAS'
-    ? `hoje ${NUMERO.format(parametro.atual)} h`
-    : `hoje ${NUMERO.format(parametro.atual)} ciclos`;
+  return `hoje ${NUMERO.format(parametro.atual)} ${UNIDADE_DA_REGUA[parametro.tipo]}`;
 }
 
 /** "avisa 100 h antes" / "avisa 30 dias antes". */
@@ -82,9 +96,7 @@ export function janelaDeAvisoEmTexto(parametro: {
   if (parametro.aviso == null || parametro.tipo === undefined) {
     return '—';
   }
-  const unidade =
-    parametro.tipo === 'HORAS' ? 'h' : parametro.tipo === 'CICLOS' ? 'ciclos' : 'dias';
-  return `${NUMERO.format(parametro.aviso)} ${unidade} antes`;
+  return `${NUMERO.format(parametro.aviso)} ${UNIDADE_DA_REGUA[parametro.tipo]} antes`;
 }
 
 /** A hora sem os segundos: "14:30". */
