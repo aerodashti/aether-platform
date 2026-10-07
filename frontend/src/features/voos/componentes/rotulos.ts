@@ -1,7 +1,7 @@
 /** Formatação do diário. Enum → texto fica no front: é redação de tela. */
 
+/** Uma casa, como a coluna: o trecho lançado com 365,5 km não aparece como 366. */
 const NUMERO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
-const INTEIRO = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
 const DATA = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
   month: '2-digit',
@@ -13,19 +13,11 @@ export function horasEmTexto(valor: number | undefined): string {
 }
 
 export function kmEmTexto(valor: number | undefined): string {
-  return valor === undefined ? '—' : INTEIRO.format(valor);
+  return valor === undefined ? '—' : NUMERO.format(valor);
 }
 
 export function dataCurta(iso: string | undefined): string {
   return iso ? DATA.format(new Date(`${iso}T00:00:00`)) : '—';
-}
-
-/** A competência corrente no formato do input month: "2026-09". */
-export function competenciaAtual(): string {
-  // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,
-  // já estaria no mês seguinte.
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
 }
 
 export const ATRIBUICAO_DE_MANUTENCAO = 'Manutenção · divide entre todos';

@@ -123,12 +123,12 @@ describe('PaginaDeVoos', () => {
     ).toBeInTheDocument();
   });
 
-  it('a linha de TOTAIS vem do servidor, não de conta no navegador', async () => {
+  it('a linha de totais do realizado vem do servidor, não de conta no navegador', async () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
     await screen.findByRole('cell', { name: /RV-2026-041/ });
-    const totais = linhaDe('TOTAIS · 2 pousos');
+    const totais = linhaDe('TOTAIS REALIZADOS · 2 pousos');
     expect(within(totais).getByText('1,2 h')).toBeInTheDocument();
     expect(within(totais).getByText('423')).toBeInTheDocument();
   });
@@ -240,6 +240,6 @@ describe('PaginaDeVoos', () => {
 
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-043');
     expect(within(screen.getByRole('table')).queryByText('RV-2026-041')).not.toBeInTheDocument();
-    expect(linhaDe('TOTAIS · 1 pouso')).toBeInTheDocument();
+    expect(linhaDe('TOTAIS REALIZADOS · 1 pouso')).toBeInTheDocument();
   });
 });
