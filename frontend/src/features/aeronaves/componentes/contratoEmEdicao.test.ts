@@ -8,6 +8,7 @@ import {
   linhasDoVigente,
   mudaOContrato,
   pedidoDoContrato,
+  semCandidatos,
   vizinhaDaRemovida,
 } from './contratoEmEdicao';
 
@@ -100,5 +101,33 @@ describe('consequenciaDoSalvar', () => {
     expect(
       consequenciaDoSalvar({ fecha: false, texto: 'Faltam 10% para fechar 100%.' }, true, true),
     ).toBe('Faltam 10% para fechar 100%.');
+  });
+});
+
+describe('semCandidatos', () => {
+  const linhas = linhasDoVigente(VIGENTE);
+
+  it('sem cadastro nenhum, o caminho é cadastrar', () => {
+    expect(semCandidatos([], [])).toEqual({ motivo: 'nenhumCadastrado' });
+  });
+
+  it('com inativo fora do contrato, diz quem é para reativar', () => {
+    const cadastrados = [
+      { id: 1, nome: 'Ricardo Meirelles', situacao: 'ATIVO' as const },
+      { id: 4, nome: 'Marina Costa', situacao: 'INATIVO' as const },
+      { id: 5, nome: 'Paulo Reis', situacao: 'INATIVO' as const },
+    ];
+    expect(semCandidatos(cadastrados, linhas)).toEqual({
+      motivo: 'inativosDeFora',
+      nomes: 'Marina Costa, Paulo Reis',
+    });
+  });
+
+  it('inativo que já está no contrato não conta: todos estão nele', () => {
+    const cadastrados = [
+      { id: 1, nome: 'Ricardo Meirelles', situacao: 'ATIVO' as const },
+      { id: 3, nome: 'Helena Sarraf', situacao: 'INATIVO' as const },
+    ];
+    expect(semCandidatos(cadastrados, linhas)).toEqual({ motivo: 'todosNoContrato' });
   });
 });

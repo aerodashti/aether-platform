@@ -1,22 +1,12 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { useValidacao } from '@/compartilhado/formulario/useValidacao';
-import { IncluirProprietario } from '@/compartilhado/participacoes/IncluirProprietario';
-import {
-  situacaoDaSoma,
-  somaDasParticipacoes,
-  TAMANHO_DO_PERCENTUAL,
-} from '@/compartilhado/participacoes/percentuais';
+import { candidatosAoContrato } from '@/compartilhado/participacoes/candidatos';
+import { situacaoDaSoma, somaDasParticipacoes } from '@/compartilhado/participacoes/percentuais';
 import type { ProprietarioResponse } from '@/compartilhado/proprietarios/useProprietarios';
-import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
-import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
-import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
-import { PontoDeCor } from '@/design-system/primitivos/SeletorDeCor';
-import { Texto } from '@/design-system/primitivos/Texto';
 
 import type { ContratoResponse, DefinirContratoRequest } from '../api/useContratos';
 
@@ -33,7 +23,10 @@ import {
   vizinhaDaRemovida,
   type LinhaDoContrato,
 } from './contratoEmEdicao';
+import { FaixaDaSoma } from './FaixaDaSoma';
+import { FaixaDeInclusao } from './FaixaDeInclusao';
 import estilos from './SecaoDeContrato.module.css';
+import { TabelaDaEdicao } from './TabelaDaEdicao';
 import {
   campoDoContratoNoServidor,
   campoDoPercentual,
@@ -104,14 +97,13 @@ export function EdicaoDoContrato({
     campoDoServidor: (nome) => campoDoContratoNoServidor(nome, linhas.length),
   });
 
-  const candidatos = (proprietarios.data ?? []).filter(
-    (proprietario) =>
-      proprietario.situacao === 'ATIVO' &&
-      !linhas.some((linha) => linha.proprietarioId === proprietario.id),
+  const candidatos = candidatosAoContrato(
+    proprietarios.data ?? [],
+    linhas.map((linha) => linha.proprietarioId),
   );
 
   function incluir(proprietarioId: number) {
-    const proprietario = candidatos.find((candidato) => candidato.id === proprietarioId);
+    const proprietario = proprietarios.data?.find((dono) => dono.id === proprietarioId);
     if (proprietario) {
       focoPendente.current = proprietarioId;
       setLinhas((atuais) => incluirLinha(atuais, proprietario));
@@ -122,6 +114,14 @@ export function EdicaoDoContrato({
     focoPendente.current = vizinhaDaRemovida(linhas, linha.proprietarioId) ?? 'inclusao';
     setLinhas((atuais) => removerLinha(atuais, linha.proprietarioId));
     setAnuncio(`${linha.nome} saiu do contrato em edição.`);
+  }
+
+  function registrarCampo(proprietarioId: number, campo: HTMLInputElement | null) {
+    if (campo) {
+      camposDePercentual.current.set(proprietarioId, campo);
+    } else {
+      camposDePercentual.current.delete(proprietarioId);
+    }
   }
 
   /** Sem mudança não há o que arquivar: salvar fecha a edição sem ir ao servidor. */
@@ -166,178 +166,39 @@ export function EdicaoDoContrato({
     >
       <div ref={validacao.refDoFormulario}>
         {linhas.length > 0 ? (
-          <div className={estilos.rolagem}>
-            <table role="table" className={juntarClasses(estilos.tabela, estilos.editando)}>
-              <thead role="rowgroup" className={estilos.bloco}>
-                <tr role="row" className={estilos.linhaDeCabecalho}>
-                  <th role="columnheader" scope="col">
-                    Proprietário
-                  </th>
-                  <th role="columnheader" scope="col" className={estilos.direita}>
-                    % de propriedade
-                  </th>
-                  <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
-                    Ações
-                  </th>
-                </tr>
-              </thead>
-              <tbody role="rowgroup" className={estilos.bloco}>
-                {linhas.map((linha, indice) => (
-                  <tr role="row" key={linha.proprietarioId} className={estilos.linha}>
-                    <td role="cell" className={estilos.celula}>
-                      <span className={estilos.dono}>
-                        <PontoDeCor cor={linha.cor} />
-                        <span className={estilos.trunca}>{linha.nome}</span>
-                      </span>
-                    </td>
-                    <td role="cell" className={juntarClasses(estilos.celula, estilos.campo)}>
-                      <span className={estilos.campoDePercentual}>
-                        <CampoDeTexto
-                          rotulo={`Participação de ${linha.nome} em %`}
-                          rotuloOculto
-                          obrigatorio
-                          ref={(campo) => {
-                            if (campo) {
-                              camposDePercentual.current.set(linha.proprietarioId, campo);
-                            } else {
-                              camposDePercentual.current.delete(linha.proprietarioId);
-                            }
-                          }}
-                          valor={linha.percentual}
-                          inputMode="decimal"
-                          maxLength={TAMANHO_DO_PERCENTUAL}
-                          alinhamento="direita"
-                          erro={validacao.erroDe(campoDoPercentual(indice))}
-                          aoMudar={(valor) =>
-                            setLinhas((atuais) =>
-                              alterarPercentual(atuais, linha.proprietarioId, valor),
-                            )
-                          }
-                        />
-                      </span>
-                      <span className={estilos.unidade} aria-hidden="true">
-                        %
-                      </span>
-                    </td>
-                    <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
-                      <Botao
-                        variante="fantasma"
-                        tamanho="pequeno"
-                        tom="critico"
-                        rotuloAcessivel={`Remover ${linha.nome} do contrato`}
-                        aoClicar={() => remover(linha)}
-                      >
-                        Remover
-                      </Botao>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TabelaDaEdicao
+            linhas={linhas}
+            erroDaLinha={(indice) => validacao.erroDe(campoDoPercentual(indice))}
+            registrarCampo={registrarCampo}
+            aoMudarPercentual={(proprietarioId, valor) =>
+              setLinhas((atuais) => alterarPercentual(atuais, proprietarioId, valor))
+            }
+            aoRemover={remover}
+          />
         ) : null}
         <div role="status" className={estilos.apenasLeitor}>
           {anuncio}
         </div>
-
-        <div className={estilos.faixaDeAdicao}>
-          {proprietarios.isError ? (
-            <div className={estilos.caixaCheia} role="alert">
-              Não foi possível carregar os proprietários.{' '}
-              <Botao
-                variante="fantasma"
-                tamanho="pequeno"
-                aoClicar={() => void proprietarios.refetch()}
-              >
-                Tentar de novo
-              </Botao>
-            </div>
-          ) : proprietarios.isPending ? (
-            <div className={estilos.caixaCheia} role="status">
-              Carregando os proprietários…
-            </div>
-          ) : candidatos.length > 0 ? (
-            <div className={estilos.caixaDeAdicao}>
-              <span className={estilos.mais} aria-hidden="true">
-                +
-              </span>
-              <div className={estilos.caixaTexto}>
-                <span className={estilos.caixaTitulo}>Adicionar proprietário ao contrato</span>
-                <Texto variante="apoio" tom="suave" como="p">
-                  Escolha um proprietário ativo e inclua; o percentual dele começa vazio.
-                </Texto>
-              </div>
-              <div className={estilos.selecao}>
-                <IncluirProprietario
-                  rotulo="Adicionar proprietário ao contrato"
-                  rotuloDoBotao="Incluir no contrato"
-                  candidatos={candidatos.map((candidato) => ({
-                    id: candidato.id ?? 0,
-                    nome: candidato.nome ?? '',
-                  }))}
-                  aoIncluir={incluir}
-                  ref={selecaoDeInclusao}
-                />
-              </div>
-            </div>
-          ) : (
-            <div className={estilos.caixaCheia}>
-              <SemQuemIncluir cadastrados={proprietarios.data} linhas={linhas} />
-            </div>
-          )}
-        </div>
-
-        <div className={estilos.faixaDaSoma}>
-          <span className={estilos.somaRotulo}>Soma</span>
-          <Texto variante="corpo" tom={tomDaSoma} como="span">
-            <strong>Σ {percentualEmTexto(somaDasParticipacoes(textos))}</strong>
-          </Texto>
-          <span className={estilos.somaTexto} role="status">
-            <Texto variante="apoio" tom={tomDaSoma} como="span">
-              {erroDaSoma ??
-                consequenciaDoSalvar(situacao, mudaOContrato(linhas, base), base !== undefined)}
-            </Texto>
-          </span>
-          <Botao variante="contorno" tamanho="medio" aoClicar={() => setLinhas(dividirEntreTodos)}>
-            Dividir igualmente
-          </Botao>
-        </div>
+        <FaixaDeInclusao
+          proprietarios={proprietarios}
+          candidatos={candidatos}
+          linhas={linhas}
+          selecao={selecaoDeInclusao}
+          aoIncluir={incluir}
+        />
+        <FaixaDaSoma
+          soma={somaDasParticipacoes(textos)}
+          frase={
+            erroDaSoma ??
+            consequenciaDoSalvar(situacao, mudaOContrato(linhas, base), base !== undefined)
+          }
+          tom={tomDaSoma}
+          aoDividir={() => setLinhas(dividirEntreTodos)}
+        />
         <div className={estilos.resumo}>
           <ResumoDoFormulario id={idDoResumo} resumo={validacao.resumo} />
         </div>
       </div>
     </CartaoDeSecao>
   );
-}
-
-/**
- * Por que não há quem incluir, e o caminho para haver: cadastrar alguém, ou reativar quem está
- * inativo. "Todos já estão no contrato" seria mentira para quem tem um sócio inativo fora dele.
- */
-function SemQuemIncluir({
-  cadastrados,
-  linhas,
-}: {
-  cadastrados: ProprietarioResponse[];
-  linhas: LinhaDoContrato[];
-}) {
-  const proprietarios = <LinkDeTexto para="/proprietarios">Proprietários</LinkDeTexto>;
-  if (cadastrados.length === 0) {
-    return <>Nenhum proprietário cadastrado. Cadastre um em {proprietarios}.</>;
-  }
-  const inativosDeFora = cadastrados.filter(
-    (proprietario) =>
-      proprietario.situacao !== 'ATIVO' &&
-      !linhas.some((linha) => linha.proprietarioId === proprietario.id),
-  );
-  if (inativosDeFora.length > 0) {
-    const nomes = inativosDeFora.map((proprietario) => proprietario.nome).join(', ');
-    return (
-      <>
-        Todos os proprietários ativos já estão neste contrato. Para incluir {nomes}, reative o
-        cadastro em {proprietarios}.
-      </>
-    );
-  }
-  return <>Todos os proprietários cadastrados já estão neste contrato.</>;
 }

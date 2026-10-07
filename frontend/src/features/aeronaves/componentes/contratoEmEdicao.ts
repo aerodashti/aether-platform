@@ -123,3 +123,32 @@ export function consequenciaDoSalvar(
     ? 'Fechado em 100%. Salvar cria um contrato novo e arquiva o atual no histórico.'
     : 'Fechado em 100%. Salvar define o primeiro contrato desta aeronave.';
 }
+
+/** Por que não sobra ninguém para incluir — e, com isso, o caminho para haver. */
+export type SemCandidatos =
+  | { motivo: 'nenhumCadastrado' }
+  | { motivo: 'inativosDeFora'; nomes: string }
+  | { motivo: 'todosNoContrato' };
+
+/**
+ * "Todos já estão no contrato" seria mentira para quem tem um sócio inativo fora dele: nesse caso,
+ * a tela diz quem é e que reativar o cadastro o traz de volta.
+ */
+export function semCandidatos(
+  cadastrados: ProprietarioResponse[],
+  linhas: LinhaDoContrato[],
+): SemCandidatos {
+  if (cadastrados.length === 0) {
+    return { motivo: 'nenhumCadastrado' };
+  }
+  const inativosDeFora = cadastrados.filter(
+    (proprietario) =>
+      proprietario.situacao !== 'ATIVO' &&
+      !linhas.some((linha) => linha.proprietarioId === proprietario.id),
+  );
+  if (inativosDeFora.length > 0) {
+    const nomes = inativosDeFora.map((proprietario) => proprietario.nome).join(', ');
+    return { motivo: 'inativosDeFora', nomes };
+  }
+  return { motivo: 'todosNoContrato' };
+}

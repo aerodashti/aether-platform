@@ -176,9 +176,11 @@
   color: var(--cor-texto);
 }
 
+/* Prefere 280px, mas encolhe até caber: no celular a caixa tem uns 270px úteis, e o cartão corta
+   o que passar. Abaixo disso, o "Incluir" desce para a linha de baixo sozinho. */
 .selecao {
-  flex: 1;
-  min-width: 280px;
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
 .caixaCheia {

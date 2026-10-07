@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
 import {
   competenciaAbreviada,
   contaNoFundo,
   saldoDaAeronave,
   useSaldosDoFundo,
 } from '@/compartilhado/fundo/useSaldosDoFundo';
+import { recomecarNoConflito } from '@/compartilhado/participacoes/conflito';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -31,8 +31,6 @@ interface SecaoDeContratoProps {
   aeronaveId: number;
   podeGerir: boolean;
 }
-
-const CONFLITO = 409;
 
 /**
  * O % do custo da competência que coube ao proprietário e o saldo dele no fundo, do fechamento.
@@ -108,13 +106,12 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
   function salvar(pedido: DefinirContratoRequest) {
     definir.mutate(pedido, {
       onSuccess: sairDaEdicao,
-      onError: (erro) => {
-        if (erro instanceof ErroDeApi && erro.status === CONFLITO) {
-          void consulta
-            .refetch()
-            .then(() => setEdicao((versao) => (versao === null ? null : versao + 1)));
-        }
-      },
+      onError: (erro) =>
+        recomecarNoConflito(
+          erro,
+          () => consulta.refetch(),
+          () => setEdicao((versao) => (versao === null ? null : versao + 1)),
+        ),
     });
   }
 
