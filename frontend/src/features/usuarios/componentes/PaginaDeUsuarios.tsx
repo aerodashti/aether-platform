@@ -12,11 +12,15 @@ import {
   useUsuarios,
   type FiltroDeUsuarios,
   type SituacaoDoUsuario,
+  type UsuarioResponse,
 } from '../api/useUsuarios';
+import { useAcoesNaLinha } from '../hooks/useAcoesNaLinha';
 
+import { ConfirmacaoDeDesativacao } from './ConfirmacaoDeDesativacao';
 import estilos from './PaginaDeUsuarios.module.css';
 import { PainelDeConvite } from './PainelDeConvite';
-import { OPCOES_DE_PAPEL, OPCOES_DE_SITUACAO } from './rotulos';
+import { RetornoDaAcao, type Retorno } from './RetornoDaAcao';
+import { acessoDesativado, conviteEnviado, OPCOES_DE_PAPEL, OPCOES_DE_SITUACAO } from './rotulos';
 import { TabelaDeUsuarios } from './TabelaDeUsuarios';
 
 const FILTRO_INICIAL: FiltroDeUsuarios = { busca: '', papel: '', situacao: '', pagina: 0 };
@@ -24,6 +28,9 @@ const FILTRO_INICIAL: FiltroDeUsuarios = { busca: '', papel: '', situacao: '', p
 export function PaginaDeUsuarios() {
   const [filtro, setFiltro] = useState<FiltroDeUsuarios>(FILTRO_INICIAL);
   const [convidando, setConvidando] = useState(false);
+  const [aDesativar, setADesativar] = useState<UsuarioResponse | null>(null);
+  const [retorno, setRetorno] = useState<Retorno | null>(null);
+  const acoes = useAcoesNaLinha(setRetorno);
   const { usuario } = useSessao();
 
   // A busca acompanha a digitação sem disparar uma requisição por tecla: o React entrega o valor
@@ -51,7 +58,13 @@ export function PaginaDeUsuarios() {
             Página restrita — visível apenas para administradores.
           </Texto>
         </div>
-        <Botao tamanho="grande" aoClicar={() => setConvidando(true)}>
+        <Botao
+          tamanho="grande"
+          aoClicar={() => {
+            setRetorno(null);
+            setConvidando(true);
+          }}
+        >
           + Convidar usuário
         </Botao>
       </div>
@@ -83,6 +96,7 @@ export function PaginaDeUsuarios() {
       </div>
 
       <div className={estilos.painel}>
+        <RetornoDaAcao retorno={retorno} />
         {/* Quem está na sessão é reconhecido pelo e-mail, e não por id: `SessaoResponse` não
             carrega id, e o e-mail já é chave única normalizada dos dois lados. */}
         <TabelaDeUsuarios
@@ -91,6 +105,16 @@ export function PaginaDeUsuarios() {
           erro={consulta.isError}
           emailDaSessao={usuario?.email}
           aoTentarDeNovo={() => void consulta.refetch()}
+          acoes={{
+            aoReenviar: acoes.reenviarConvite,
+            aoReativar: acoes.reativarUsuario,
+            aoDesativar: (alvo) => {
+              setRetorno(null);
+              setADesativar(alvo);
+            },
+            reenviando: acoes.reenviando,
+            reativando: acoes.reativando,
+          }}
         />
         <div className={estilos.rodape}>
           <Texto variante="apoio" tom="suave" como="span">
@@ -122,7 +146,24 @@ export function PaginaDeUsuarios() {
         nenhuma senha é definida pelo administrador.
       </Texto>
 
-      <PainelDeConvite aberto={convidando} aoFechar={() => setConvidando(false)} />
+      {convidando ? (
+        <PainelDeConvite
+          aoFechar={() => setConvidando(false)}
+          aoConvidar={(convidado) =>
+            setRetorno({ tom: 'positivo', mensagem: conviteEnviado(convidado.email) })
+          }
+        />
+      ) : null}
+      {aDesativar ? (
+        <ConfirmacaoDeDesativacao
+          usuario={aDesativar}
+          aoFechar={() => setADesativar(null)}
+          aoDesativar={() => {
+            setRetorno({ tom: 'positivo', mensagem: acessoDesativado(aDesativar.nome) });
+            setADesativar(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

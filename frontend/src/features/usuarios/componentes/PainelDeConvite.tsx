@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import type { PapelDoUsuario } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
@@ -8,89 +9,136 @@ import { PainelModal } from '@/design-system/primitivos/PainelModal';
 import { Selecao } from '@/design-system/primitivos/Selecao';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import { useConvidarUsuario } from '../api/useUsuarios';
+import { useConvidarUsuario, type UsuarioResponse } from '../api/useUsuarios';
 
-import estilos from './PainelDeConvite.module.css';
-import { PAPEIS, ROTULO_DO_PAPEL } from './rotulos';
+import estilos from './Painel.module.css';
+import {
+  DESCRICAO_DO_PAPEL,
+  HORAS_DE_VALIDADE_DO_CONVITE,
+  PAPEIS,
+  ROTULO_DO_PAPEL,
+} from './rotulos';
+import {
+  ROTULOS_DO_CONVITE,
+  validarConvite,
+  type CampoDoConvite,
+  type RascunhoDoConvite,
+} from './validacaoDoConvite';
 
 interface PainelDeConviteProps {
-  aberto: boolean;
   aoFechar: () => void;
+  /** O painel fecha ao convidar; quem anuncia o resultado é a página, que continua na tela. */
+  aoConvidar: (convidado: UsuarioResponse) => void;
 }
 
-const PAPEL_INICIAL: PapelDoUsuario = 'GESTOR';
+const RASCUNHO_INICIAL: RascunhoDoConvite = { nome: '', email: '', papel: 'GESTOR' };
+
+const OPCOES_DE_PAPEL = PAPEIS.map((papel) => ({ valor: papel, rotulo: ROTULO_DO_PAPEL[papel] }));
 
 /**
  * O convite.
  *
  * <p>Não há campo de senha, e a ausência é a regra do produto: quem cria a senha é a própria
  * pessoa, pelo link do convite.
+ *
+ * <p>Nasce a cada abertura (a página só o monta quando aberto): rascunho, erros e a tentativa de
+ * salvar começam do zero.
  */
-export function PainelDeConvite({ aberto, aoFechar }: PainelDeConviteProps) {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [papel, setPapel] = useState<PapelDoUsuario>(PAPEL_INICIAL);
+export function PainelDeConvite({ aoFechar, aoConvidar }: PainelDeConviteProps) {
+  const [rascunho, setRascunho] = useState(RASCUNHO_INICIAL);
   const convidar = useConvidarUsuario();
+  const validacao = useValidacao({
+    erros: validarConvite(rascunho),
+    valores: rascunho,
+    rotulos: ROTULOS_DO_CONVITE,
+    falha: convidar.error,
+  });
 
-  function fechar() {
-    setNome('');
-    setEmail('');
-    setPapel(PAPEL_INICIAL);
-    convidar.reset();
-    aoFechar();
+  function mudar(campo: CampoDoConvite) {
+    return (valor: string) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
   }
 
   function enviarConvite() {
-    convidar.mutate({ nome, email, papel }, { onSuccess: fechar });
+    const convite = {
+      nome: rascunho.nome.trim(),
+      email: rascunho.email.trim(),
+      papel: rascunho.papel,
+    };
+    convidar.mutate(convite, {
+      onSuccess: (convidado) => {
+        aoConvidar(convidado);
+        aoFechar();
+      },
+    });
   }
 
-  const erro = convidar.error instanceof ErroDeApi ? convidar.error.message : undefined;
-  const podeEnviar = nome.trim().length > 0 && email.trim().length > 0;
-
   return (
-    <PainelModal aberto={aberto} aoFechar={fechar} rotulo="Convidar usuário">
-      <Texto variante="titulo" como="h2">
-        Convidar usuário
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        A pessoa recebe um e-mail com o link para criar a própria senha. Nenhuma senha é definida
-        por você.
-      </Texto>
+    <PainelModal
+      aberto
+      aoFechar={aoFechar}
+      rotulo="Convidar usuário"
+      podeFechar={!convidar.isPending}
+    >
+      <form
+        noValidate
+        onSubmit={(evento) => {
+          evento.preventDefault();
+          validacao.enviar(enviarConvite);
+        }}
+      >
+        <div ref={validacao.refDoFormulario} className={estilos.campos}>
+          <Texto variante="titulo" como="h2">
+            Convidar usuário
+          </Texto>
+          <Texto variante="apoio" tom="suave" como="p">
+            A pessoa recebe um e-mail com o link para criar a própria senha, que vale{' '}
+            {HORAS_DE_VALIDADE_DO_CONVITE} horas. Nenhuma senha é definida por você.
+          </Texto>
 
-      <CampoDeTexto
-        rotulo="Nome"
-        valor={nome}
-        aoMudar={setNome}
-        exemplo="Camila Nogueira"
-        maxLength={120}
-        autoComplete="off"
-      />
-      <CampoDeTexto
-        rotulo="E-mail"
-        valor={email}
-        aoMudar={setEmail}
-        tipo="email"
-        exemplo="camila@administraair.com.br"
-        maxLength={180}
-        inputMode="email"
-        autoComplete="off"
-        erro={erro}
-      />
-      <Selecao
-        rotulo="Papel"
-        valor={papel}
-        aoMudar={(valor) => setPapel(valor as PapelDoUsuario)}
-        opcoes={PAPEIS.map((opcao) => ({ valor: opcao, rotulo: ROTULO_DO_PAPEL[opcao] }))}
-      />
+          <CampoDeTexto
+            rotulo="Nome"
+            obrigatorio
+            valor={rascunho.nome}
+            aoMudar={mudar('nome')}
+            exemplo="Camila Nogueira"
+            maxLength={120}
+            autoComplete="off"
+            erro={validacao.erroDe('nome')}
+          />
+          <CampoDeTexto
+            rotulo="E-mail"
+            obrigatorio
+            valor={rascunho.email}
+            aoMudar={mudar('email')}
+            tipo="email"
+            exemplo="camila@administraair.com.br"
+            maxLength={180}
+            autoComplete="off"
+            erro={validacao.erroDe('email')}
+          />
+          <Selecao
+            rotulo="Papel"
+            obrigatorio
+            valor={rascunho.papel}
+            aoMudar={(valor) =>
+              setRascunho((atual) => ({ ...atual, papel: valor as PapelDoUsuario }))
+            }
+            opcoes={OPCOES_DE_PAPEL}
+            apoio={DESCRICAO_DO_PAPEL[rascunho.papel]}
+            erro={validacao.erroDe('papel')}
+          />
 
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={fechar}>
-          Cancelar
-        </Botao>
-        <Botao aoClicar={enviarConvite} desabilitado={!podeEnviar} carregando={convidar.isPending}>
-          Enviar convite
-        </Botao>
-      </div>
+          <ResumoDoFormulario resumo={validacao.resumo} />
+          <div className={estilos.acoes}>
+            <Botao variante="secundario" aoClicar={aoFechar} desabilitado={convidar.isPending}>
+              Cancelar
+            </Botao>
+            <Botao tipo="submit" carregando={convidar.isPending}>
+              Enviar convite
+            </Botao>
+          </div>
+        </div>
+      </form>
     </PainelModal>
   );
 }

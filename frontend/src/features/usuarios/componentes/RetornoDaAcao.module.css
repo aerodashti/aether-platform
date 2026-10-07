@@ -1,0 +1,5 @@
+.faixa {
+  padding: var(--espaco-3) var(--espaco-6);
+  background: var(--cor-superficie-sutil);
+  border-bottom: 1px solid var(--cor-borda);
+}
