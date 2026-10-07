@@ -2,6 +2,7 @@ package br.com.aerodash.aether.proprietario;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -150,6 +151,26 @@ class ProprietarioIntegracaoTest {
       assertThatThrownBy(() -> proprietarios.saveAndFlush(proprietario))
           .isInstanceOf(DataIntegrityViolationException.class);
       assertThat(proprietarios.findByCpfCnpj(invalido)).isEmpty();
+    }
+  }
+
+  @Test
+  @DisplayName("a UNIQUE do documento é reconhecida e não leva o documento para a mensagem")
+  void unicidadeReconhecidaSemVazarDocumento() {
+    // O caminho de dois salvamentos simultâneos: só o banco percebe a repetição.
+    Proprietario repetido =
+        new Proprietario(
+            "Segundo Ricardo", "52998224725", null, null, CorDeIdentificacao.AZUL, Instant.now());
+
+    DataIntegrityViolationException violacao =
+        catchThrowableOfType(
+            DataIntegrityViolationException.class, () -> proprietarios.saveAndFlush(repetido));
+
+    assertThat(ProprietarioService.violouDocumentoUnico(violacao)).isTrue();
+    // O Hibernate grava essa mensagem em ERROR antes de qualquer tratamento: sem o
+    // `logServerErrorDetail=false`, ela traria "Key (cpf_cnpj)=(52998224725) already exists".
+    for (Throwable causa = violacao; causa != null; causa = causa.getCause()) {
+      assertThat(causa.getMessage()).doesNotContain("52998224725");
     }
   }
 

@@ -6,12 +6,17 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Quem participa da frota: cadastro, contato e situação de cada proprietário. */
 @Service
 public class ProprietarioService {
+
+  /** O nome da UNIQUE de {@code V6__cria_proprietario.sql}. */
+  private static final String DOCUMENTO_UNICO = "proprietario_cpf_cnpj_unico";
 
   private final ProprietarioRepository proprietarios;
   private final ProprietarioMapper mapper;
@@ -56,7 +61,7 @@ public class ProprietarioService {
             request.telefone(),
             request.corDeIdentificacao(),
             Instant.now(relogio));
-    proprietario = proprietarios.save(proprietario);
+    gravarConferindoDocumento(() -> proprietarios.saveAndFlush(proprietario));
 
     contexto.registrar("proprietario.id", proprietario.getId());
     return mapper.paraResponse(proprietario);
@@ -74,6 +79,7 @@ public class ProprietarioService {
         request.telefone(),
         request.corDeIdentificacao(),
         Instant.now(relogio));
+    gravarConferindoDocumento(proprietarios::flush);
     return mapper.paraResponse(proprietario);
   }
 
@@ -129,5 +135,34 @@ public class ProprietarioService {
       throw new CpfCnpjJaCadastradoException(titular.get().getNome(), titular.get().estaAtivo());
     }
     return normalizado;
+  }
+
+  /**
+   * Leva a gravação ao banco já, para a UNIQUE do documento responder aqui dentro. Dois salvamentos
+   * simultâneos do mesmo documento passam os dois pela consulta de {@link #validarCpfCnpj}, e só o
+   * banco pega o segundo — que precisa ouvir o mesmo 409 no campo, e não um "registro duplicado"
+   * genérico.
+   */
+  private void gravarConferindoDocumento(Runnable gravacao) {
+    try {
+      gravacao.run();
+    } catch (DataIntegrityViolationException violacao) {
+      boolean documentoRepetido = violouDocumentoUnico(violacao);
+      contexto.decisao("proprietario.cpfCnpjDuplicadoNoBanco", documentoRepetido);
+      if (documentoRepetido) {
+        throw new CpfCnpjJaCadastradoException();
+      }
+      throw violacao;
+    }
+  }
+
+  /** Se a recusa do banco foi a UNIQUE do documento, e não outra restrição da tabela. */
+  static boolean violouDocumentoUnico(DataIntegrityViolationException violacao) {
+    for (Throwable causa = violacao.getCause(); causa != null; causa = causa.getCause()) {
+      if (causa instanceof ConstraintViolationException restricao) {
+        return DOCUMENTO_UNICO.equalsIgnoreCase(restricao.getConstraintName());
+      }
+    }
+    return false;
   }
 }

@@ -3,6 +3,7 @@ package br.com.aerodash.aether.proprietario;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,19 +11,23 @@ import static org.mockito.Mockito.when;
 import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,7 +51,7 @@ class ProprietarioServiceTest {
     service =
         new ProprietarioService(
             proprietarios, mapper, participacoes, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
-    when(proprietarios.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
+    when(proprietarios.saveAndFlush(any())).thenAnswer(chamada -> chamada.getArgument(0));
   }
 
   private ProprietarioRequest request(String cpfCnpj) {
@@ -67,7 +72,7 @@ class ProprietarioServiceTest {
 
     assertThat(response.cpfCnpj()).isEqualTo("52998224725");
     assertThat(response.situacao()).isEqualTo(SituacaoDoProprietario.ATIVO);
-    verify(proprietarios).save(any());
+    verify(proprietarios).saveAndFlush(any());
   }
 
   @Test
@@ -84,7 +89,7 @@ class ProprietarioServiceTest {
     assertThatThrownBy(() -> service.criar(request("não tenho")))
         .isInstanceOf(CpfCnpjInvalidoException.class)
         .satisfies(erro -> assertThat(campoDe(erro)).contains("cpfCnpj"));
-    verify(proprietarios, never()).save(any());
+    verify(proprietarios, never()).saveAndFlush(any());
     verify(contexto).decisao("proprietario.cpfCnpjValido", false);
   }
 
@@ -98,7 +103,7 @@ class ProprietarioServiceTest {
         .isInstanceOf(CpfCnpjJaCadastradoException.class)
         .hasMessage("Este documento já é de Ricardo Meirelles.")
         .satisfies(erro -> assertThat(campoDe(erro)).contains("cpfCnpj"));
-    verify(proprietarios, never()).save(any());
+    verify(proprietarios, never()).saveAndFlush(any());
   }
 
   @Test
@@ -122,6 +127,50 @@ class ProprietarioServiceTest {
     ProprietarioResponse response = service.atualizar(7L, request("529.982.247-25"));
 
     assertThat(response.cpfCnpj()).isEqualTo("52998224725");
+    verify(proprietarios).flush();
+  }
+
+  @Nested
+  @DisplayName("quando só o banco percebe a repetição (dois salvamentos ao mesmo tempo)")
+  class Corrida {
+
+    @Test
+    @DisplayName("no cadastro, a UNIQUE do documento vira o 409 do campo")
+    void cadastroViraConflito() {
+      when(proprietarios.saveAndFlush(any())).thenThrow(violacao("proprietario_cpf_cnpj_unico"));
+
+      assertThatThrownBy(() -> service.criar(request("529.982.247-25")))
+          .isInstanceOf(CpfCnpjJaCadastradoException.class)
+          .satisfies(erro -> assertThat(campoDe(erro)).contains("cpfCnpj"));
+      verify(contexto).decisao("proprietario.cpfCnpjDuplicadoNoBanco", true);
+    }
+
+    @Test
+    @DisplayName("na atualização também")
+    void atualizacaoViraConflito() {
+      when(proprietarios.findById(7L)).thenReturn(Optional.of(comId(7L, null)));
+      doThrow(violacao("proprietario_cpf_cnpj_unico")).when(proprietarios).flush();
+
+      assertThatThrownBy(() -> service.atualizar(7L, request("529.982.247-25")))
+          .isInstanceOf(CpfCnpjJaCadastradoException.class);
+    }
+
+    @Test
+    @DisplayName("outra restrição segue como veio, para o tratador global")
+    void outraRestricaoSegue() {
+      DataIntegrityViolationException outra = violacao("proprietario_situacao_valida");
+      when(proprietarios.saveAndFlush(any())).thenThrow(outra);
+
+      assertThatThrownBy(() -> service.criar(request(null))).isSameAs(outra);
+      verify(contexto).decisao("proprietario.cpfCnpjDuplicadoNoBanco", false);
+    }
+
+    private DataIntegrityViolationException violacao(String restricao) {
+      SQLException sql = new SQLException("duplicate key value", "23505");
+      return new DataIntegrityViolationException(
+          "could not execute statement",
+          new ConstraintViolationException("could not execute statement", sql, restricao));
+    }
   }
 
   @Test
