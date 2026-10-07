@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.proprietario;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -76,16 +77,21 @@ class ProprietarioControllerTest {
   @MockitoBean private AutenticacaoService autenticacao;
 
   @Test
-  @DisplayName("qualquer papel lê a lista: nome e cor aparecem em grades da operação inteira")
+  @DisplayName(
+      "qualquer papel lê a lista, e o recorte dos dados pessoais segue o papel de quem pede")
   void qualquerPapelLe() throws Exception {
     when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
-    when(proprietarios.listar()).thenReturn(List.of(RICARDO));
+    when(proprietarios.listar(PapelDoUsuario.PILOTO))
+        .thenReturn(List.of(RICARDO.semDadosPessoais()));
 
     mockMvc
         .perform(get("/proprietarios").cookie(new Cookie("aether_sessao", TOKEN)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].nome").value("Ricardo Meirelles"))
-        .andExpect(jsonPath("$[0].corDeIdentificacao").value("PETROLEO"));
+        .andExpect(jsonPath("$[0].corDeIdentificacao").value("PETROLEO"))
+        .andExpect(jsonPath("$[0].cpfCnpj").value(nullValue()))
+        .andExpect(jsonPath("$[0].email").value(nullValue()))
+        .andExpect(jsonPath("$[0].telefone").value(nullValue()));
   }
 
   @Test

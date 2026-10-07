@@ -1,11 +1,14 @@
 package br.com.aerodash.aether.proprietario;
 
+import br.com.aerodash.aether.autenticacao.PapelDoUsuario;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 /** Quem participa da frota: cadastro, contato e situação de cada proprietário. */
 @Service
 public class ProprietarioService {
+
+  /** Documento, e-mail e telefone são de quem gere a conta — os mesmos que podem editá-los. */
+  private static final Set<PapelDoUsuario> PAPEIS_QUE_VEEM_DADOS_PESSOAIS =
+      EnumSet.of(PapelDoUsuario.ADMINISTRADOR, PapelDoUsuario.GESTOR);
 
   /** O nome da UNIQUE de {@code V6__cria_proprietario.sql}. */
   private static final String DOCUMENTO_UNICO = "proprietario_cpf_cnpj_unico";
@@ -37,10 +44,19 @@ public class ProprietarioService {
     this.contexto = contexto;
   }
 
+  /**
+   * Todos, para qualquer sessão: nome e cor aparecem nas grades da operação inteira. Documento e
+   * contato só saem para quem gere a conta; os demais papéis os recebem nulos.
+   */
   @Transactional(readOnly = true)
-  public List<ProprietarioResponse> listar() {
+  public List<ProprietarioResponse> listar(PapelDoUsuario papelDoSolicitante) {
+    boolean veDadosPessoais = PAPEIS_QUE_VEEM_DADOS_PESSOAIS.contains(papelDoSolicitante);
+    contexto.decisao("proprietarios.veDadosPessoais", veDadosPessoais);
     List<ProprietarioResponse> lista =
-        proprietarios.findAllByOrderByNomeAsc().stream().map(mapper::paraResponse).toList();
+        proprietarios.findAllByOrderByNomeAsc().stream()
+            .map(mapper::paraResponse)
+            .map(completo -> veDadosPessoais ? completo : completo.semDadosPessoais())
+            .toList();
 
     contexto.registrar("proprietarios.total", lista.size());
     contexto.registrar(

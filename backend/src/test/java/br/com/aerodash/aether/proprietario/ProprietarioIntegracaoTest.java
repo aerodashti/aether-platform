@@ -3,6 +3,8 @@ package br.com.aerodash.aether.proprietario;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -22,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -46,10 +49,13 @@ class ProprietarioIntegracaoTest {
   static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
   private static final String SENHA = "aether-dev-2026";
+  private static final String ADMINISTRADOR = "leonardo@administraair.com.br";
+  private static final String PILOTO = "diego.furtado@administraair.com.br";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ProprietarioRepository proprietarios;
   @Autowired private ObjectMapper json;
+  @Autowired private JdbcTemplate jdbc;
 
   @Test
   @DisplayName("a lista sai ordenada por nome e traz o seed com o inativo")
@@ -174,7 +180,30 @@ class ProprietarioIntegracaoTest {
     }
   }
 
+  @Test
+  @DisplayName("quem não gere a conta lê a lista sem documento nem contato")
+  void pilotoLeSemDadosPessoais() throws Exception {
+    // O piloto do seed está inativo; aqui ele volta, só neste banco descartável.
+    jdbc.update("UPDATE usuario SET situacao = 'ATIVO' WHERE email = ?", PILOTO);
+
+    mockMvc
+        .perform(get("/proprietarios").cookie(entrar(PILOTO)))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$[?(@.nome=='Ricardo Meirelles')].corDeIdentificacao").value("PETROLEO"))
+        .andExpect(jsonPath("$[*].cpfCnpj", everyItem(nullValue())))
+        .andExpect(jsonPath("$[*].email", everyItem(nullValue())))
+        .andExpect(jsonPath("$[*].telefone", everyItem(nullValue())));
+    mockMvc
+        .perform(get("/proprietarios").cookie(entrar()))
+        .andExpect(jsonPath("$[?(@.nome=='Ricardo Meirelles')].cpfCnpj").value("52998224725"));
+  }
+
   private Cookie entrar() throws Exception {
+    return entrar(ADMINISTRADOR);
+  }
+
+  private Cookie entrar(String email) throws Exception {
     MvcResult resultado =
         mockMvc
             .perform(
@@ -182,9 +211,9 @@ class ProprietarioIntegracaoTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"email":"leonardo@administraair.com.br","senha":"%s"}
+                        {"email":"%s","senha":"%s"}
                         """
-                            .formatted(SENHA)))
+                            .formatted(email, SENHA)))
             .andExpect(status().isOk())
             .andReturn();
     return resultado.getResponse().getCookie("aether_sessao");

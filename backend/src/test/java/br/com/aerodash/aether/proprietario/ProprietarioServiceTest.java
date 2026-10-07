@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.aerodash.aether.autenticacao.PapelDoUsuario;
 import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
@@ -173,14 +175,47 @@ class ProprietarioServiceTest {
     }
   }
 
-  @Test
-  @DisplayName("lista em ordem de nome, como o repositório devolve")
-  void lista() {
-    when(proprietarios.findAllByOrderByNomeAsc())
-        .thenReturn(List.of(comId(1L, null), comId(2L, "52998224725")));
+  @Nested
+  @DisplayName("lista")
+  class Lista {
 
-    assertThat(service.listar()).hasSize(2);
-    verify(contexto).registrar("proprietarios.total", 2);
+    @BeforeEach
+    void comDoisProprietarios() {
+      when(proprietarios.findAllByOrderByNomeAsc())
+          .thenReturn(List.of(comId(1L, null), comId(2L, "52998224725")));
+    }
+
+    @Test
+    @DisplayName("em ordem de nome, como o repositório devolve")
+    void emOrdemDeNome() {
+      assertThat(service.listar(PapelDoUsuario.GESTOR)).hasSize(2);
+      verify(contexto).registrar("proprietarios.total", 2);
+    }
+
+    @Test
+    @DisplayName("documento e contato saem para quem gere a conta")
+    void completaParaQuemGere() {
+      ProprietarioResponse segundo = service.listar(PapelDoUsuario.ADMINISTRADOR).get(1);
+
+      assertThat(segundo.cpfCnpj()).isEqualTo("52998224725");
+      assertThat(segundo.email()).isEqualTo("ricardo@exemplo.com.br");
+      verify(contexto).decisao("proprietarios.veDadosPessoais", true);
+    }
+
+    @Test
+    @DisplayName("piloto e proprietário recebem nome, cor e situação, sem documento nem contato")
+    void semDadosPessoaisParaOsDemais() {
+      for (PapelDoUsuario papel : List.of(PapelDoUsuario.PILOTO, PapelDoUsuario.PROPRIETARIO)) {
+        ProprietarioResponse segundo = service.listar(papel).get(1);
+
+        assertThat(segundo.nome()).isEqualTo("Ricardo Meirelles");
+        assertThat(segundo.corDeIdentificacao()).isEqualTo(CorDeIdentificacao.PETROLEO);
+        assertThat(segundo.cpfCnpj()).isNull();
+        assertThat(segundo.email()).isNull();
+        assertThat(segundo.telefone()).isNull();
+      }
+      verify(contexto, times(2)).decisao("proprietarios.veDadosPessoais", false);
+    }
   }
 
   @Test
