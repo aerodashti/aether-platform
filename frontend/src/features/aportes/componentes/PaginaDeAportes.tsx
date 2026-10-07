@@ -108,6 +108,7 @@ export function PaginaDeAportes() {
         />
         <GrupoDeOpcoes
           rotulo="Recorte de competência"
+          rotuloOculto
           variante="segmentado"
           valor={modo}
           opcoes={[

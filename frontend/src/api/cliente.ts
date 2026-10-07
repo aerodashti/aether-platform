@@ -47,10 +47,54 @@ async function lerProblema(
     const mensagem =
       doCampo.length > 0
         ? doCampo.join(' ')
-        : (problema.detail ?? problema.title ?? resposta.statusText);
+        : (problema.detail ?? problema.title ?? mensagemDoStatus(resposta.status));
     return { mensagem, campos };
   } catch {
-    return { mensagem: resposta.statusText, campos: {} };
+    return { mensagem: mensagemDoStatus(resposta.status), campos: {} };
+  }
+}
+
+/**
+ * Quando a resposta de erro não é Problem Details — um 502 do proxy, uma página do gateway —, o
+ * `statusText` seria a única pista, em inglês no HTTP/1.1 e vazio no HTTP/2.
+ */
+function mensagemDoStatus(status: number): string {
+  if (status === 401) {
+    return 'Sua sessão terminou. Entre de novo para continuar.';
+  }
+  if (status === 403) {
+    return 'Seu perfil não tem acesso a esta ação.';
+  }
+  if (status === 404) {
+    return 'Não encontramos o que você procurava.';
+  }
+  if (status === 413) {
+    return 'O envio é grande demais.';
+  }
+  if (status >= 500) {
+    return 'O servidor não conseguiu responder agora. Tente de novo em instantes.';
+  }
+  return 'Não foi possível concluir a operação.';
+}
+
+/** O `status` de um {@link ErroDeApi} que nem chegou ao servidor. */
+export const SEM_CONEXAO = 0;
+
+/**
+ * O `fetch` rejeita com `TypeError` quando não há rede ou o servidor está fora: sem esta tradução,
+ * nenhuma tela mostra nada — todas esperam um {@link ErroDeApi}.
+ */
+async function requisitar(caminho: string, opcoes: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${BASE}${caminho}`, opcoes);
+  } catch {
+    contexto.registrar('http.caminho', caminho);
+    contexto.erro('Falha de rede na requisição à API');
+    throw new ErroDeApi(
+      'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.',
+      SEM_CONEXAO,
+      null,
+    );
   }
 }
 
@@ -61,7 +105,7 @@ async function lerProblema(
  * runtime, por decisão registrada em `docs/adr/0005-tipos-do-openapi.md`.
  */
 export async function buscar<T>(caminho: string): Promise<T> {
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     // O traceparent faz o span do backend nascer dentro do trace desta interação.
     headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
     // O cookie de sessão é HttpOnly: quem o anexa é o navegador, não este código.
@@ -79,7 +123,7 @@ export async function enviar<T>(
   corpo?: unknown,
   metodo: 'POST' | 'PUT' | 'DELETE' = 'POST',
 ): Promise<T> {
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     method: metodo,
     headers: {
       Accept: 'application/json',
@@ -105,7 +149,7 @@ export async function enviarArquivos<T>(
   for (const arquivo of arquivos) {
     formulario.append(campo, arquivo);
   }
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     method: 'POST',
     headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
     credentials: 'same-origin',

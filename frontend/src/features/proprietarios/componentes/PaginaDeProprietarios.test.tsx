@@ -200,7 +200,10 @@ describe('PaginaDeProprietarios', () => {
 
     expect(screen.getByRole('radiogroup', { name: 'Cor de identificação' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Cadastrar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cadastrar' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   it('desativar quem está em contrato pede a redistribuição e manda tudo numa saída só', async () => {
@@ -213,7 +216,7 @@ describe('PaginaDeProprietarios', () => {
     );
     const painel = screen.getByRole('dialog', { name: 'Desativar Ricardo Meirelles' });
     const confirmar = within(painel).getByRole('button', { name: 'Redistribuir e desativar' });
-    expect(confirmar).toBeDisabled();
+    expect(confirmar).toHaveAttribute('aria-disabled', 'true');
 
     // Ricardo era o único nas duas: a fatia inteira vai para quem entra no lugar.
     for (const matricula of ['PS-AER', 'PR-HEL']) {

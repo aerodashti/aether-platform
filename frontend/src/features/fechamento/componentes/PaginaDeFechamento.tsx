@@ -103,6 +103,7 @@ export function PaginaDeFechamento() {
         />
         <GrupoDeOpcoes
           rotulo="Recorte do fechamento"
+          rotuloOculto
           variante="segmentado"
           valor={modo}
           opcoes={[

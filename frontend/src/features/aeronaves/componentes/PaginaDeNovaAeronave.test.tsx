@@ -99,14 +99,14 @@ describe('PaginaDeNovaAeronave', () => {
     montar();
 
     const botao = await screen.findByRole('button', { name: 'Cadastrar aeronave' });
-    expect(botao).toBeDisabled();
+    expect(botao).toHaveAttribute('aria-disabled', 'true');
     expect(
       screen.getByText('Preencha os campos marcados com * para cadastrar.'),
     ).toBeInTheDocument();
     expect(screen.getByLabelText('Matrícula')).toBeRequired();
 
     await preencherObrigatorios();
-    expect(botao).toBeEnabled();
+    expect(botao).not.toHaveAttribute('aria-disabled');
     expect(screen.queryByText(/Preencha os campos marcados/)).not.toBeInTheDocument();
   });
 
@@ -150,11 +150,11 @@ describe('PaginaDeNovaAeronave', () => {
     await userEvent.type(screen.getByLabelText('Participação de Ricardo Meirelles em %'), '60');
 
     const botao = screen.getByRole('button', { name: 'Cadastrar aeronave' });
-    expect(botao).toBeDisabled();
+    expect(botao).toHaveAttribute('aria-disabled', 'true');
 
     await userEvent.selectOptions(screen.getByLabelText('Adicionar vínculo'), '2');
     await userEvent.type(screen.getByLabelText('Participação de Vetor Participações em %'), '40');
-    expect(botao).toBeEnabled();
+    expect(botao).not.toHaveAttribute('aria-disabled');
   });
 
   it('cadastra um proprietário sem sair do fluxo e já o vincula', async () => {

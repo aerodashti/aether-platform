@@ -157,7 +157,10 @@ describe('PaginaDeTrocas', () => {
     expect(
       within(recebeu).queryByRole('option', { name: 'Ricardo Meirelles' }),
     ).not.toBeInTheDocument();
-    expect(within(painel).getByRole('button', { name: 'Registrar troca' })).toBeDisabled();
+    expect(within(painel).getByRole('button', { name: 'Registrar troca' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   it('o proprietário só lê: sem registrar, concluir ou editar', async () => {

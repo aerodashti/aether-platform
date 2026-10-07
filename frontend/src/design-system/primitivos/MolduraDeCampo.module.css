@@ -1,0 +1,52 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-width: 0;
+}
+
+.rotulo {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+/* O asterisco é só visual: o texto alternativo vazio o tira do nome acessível, e quem anuncia o
+   obrigatório é o `aria-required` do controle. */
+.obrigatorio::after {
+  content: ' *' / '';
+}
+
+.apoio {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+/* O ícone de alerta acompanha a cor: o erro não pode depender só do vermelho (WCAG 1.4.1). */
+.erro {
+  font-family: var(--fonte-base);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-critico);
+}
+
+.erro::before {
+  content: '⚠ ' / '';
+}
+
+/* Sai da tela, permanece na árvore de acessibilidade. */
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

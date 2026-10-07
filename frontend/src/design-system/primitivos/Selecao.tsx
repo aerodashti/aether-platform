@@ -1,7 +1,8 @@
-import { useId, type Ref } from 'react';
+import { type Ref } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 
+import { MolduraDeCampo } from './MolduraDeCampo';
 import estilos from './Selecao.module.css';
 
 export interface OpcaoDeSelecao {
@@ -21,6 +22,11 @@ interface SelecaoProps {
    */
   rotuloOculto?: boolean;
   desabilitado?: boolean;
+  /** Asterisco e `aria-required`, como no `CampoDeTexto`. */
+  obrigatorio?: boolean;
+  apoio?: string;
+  /** Mensagem de erro: pinta a borda e chega ao leitor de tela pelo `aria-describedby`. */
+  erro?: string;
   /** Para quem precisa levar o foco à seleção — o primeiro controle de uma edição que abriu. */
   ref?: Ref<HTMLSelectElement>;
 }
@@ -39,32 +45,35 @@ export function Selecao({
   aoMudar,
   rotuloOculto = false,
   desabilitado = false,
+  obrigatorio = false,
+  apoio,
+  erro,
   ref,
 }: SelecaoProps) {
-  const id = useId();
-
   return (
-    <div className={estilos.campo}>
-      <label
-        className={juntarClasses(estilos.rotulo, rotuloOculto && estilos.apenasLeitor)}
-        htmlFor={id}
-      >
-        {rotulo}
-      </label>
-      <select
-        ref={ref}
-        id={id}
-        className={estilos.entrada}
-        value={valor}
-        onChange={(evento) => aoMudar(evento.target.value)}
-        disabled={desabilitado}
-      >
-        {opcoes.map((opcao) => (
-          <option key={opcao.valor} value={opcao.valor}>
-            {opcao.rotulo}
-          </option>
-        ))}
-      </select>
-    </div>
+    <MolduraDeCampo
+      rotulo={rotulo}
+      rotuloOculto={rotuloOculto}
+      obrigatorio={obrigatorio}
+      apoio={apoio}
+      erro={erro}
+    >
+      {(atributos) => (
+        <select
+          {...atributos}
+          ref={ref}
+          className={juntarClasses(estilos.entrada, erro && estilos.invalida)}
+          value={valor}
+          onChange={(evento) => aoMudar(evento.target.value)}
+          disabled={desabilitado}
+        >
+          {opcoes.map((opcao) => (
+            <option key={opcao.valor} value={opcao.valor}>
+              {opcao.rotulo}
+            </option>
+          ))}
+        </select>
+      )}
+    </MolduraDeCampo>
   );
 }

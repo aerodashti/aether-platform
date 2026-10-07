@@ -45,4 +45,22 @@ describe('Selecao', () => {
     expect(screen.getByLabelText('Papel')).toBeDisabled();
     expect(aoMudar).not.toHaveBeenCalled();
   });
+
+  it('anuncia obrigatório e liga o erro à seleção', () => {
+    render(
+      <Selecao
+        rotulo="Categoria"
+        valor=""
+        opcoes={[{ valor: '', rotulo: 'Selecione…' }]}
+        aoMudar={() => {}}
+        obrigatorio
+        erro="Escolha a categoria."
+      />,
+    );
+
+    const selecao = screen.getByRole('combobox', { name: 'Categoria' });
+    expect(selecao).toBeRequired();
+    expect(selecao).toHaveAttribute('aria-invalid', 'true');
+    expect(selecao).toHaveAccessibleDescription('Escolha a categoria.');
+  });
 });

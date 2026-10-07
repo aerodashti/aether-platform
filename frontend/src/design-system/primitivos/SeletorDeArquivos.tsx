@@ -12,6 +12,8 @@ interface SeletorDeArquivosProps {
   aceita?: string;
   /** Inerte e anunciado como ocupado, durante o envio. */
   carregando?: boolean;
+  /** `id` do texto com os tipos e o tamanho aceitos, para o leitor de tela ouvir antes de escolher. */
+  descritoPor?: string;
 }
 
 /**
@@ -27,6 +29,7 @@ export function SeletorDeArquivos({
   multiplo = false,
   aceita,
   carregando = false,
+  descritoPor,
 }: SeletorDeArquivosProps) {
   const id = useId();
   const entrada = useRef<HTMLInputElement>(null);
@@ -42,11 +45,9 @@ export function SeletorDeArquivos({
   }
 
   return (
-    <label
-      htmlFor={id}
-      className={juntarClasses(estilos.botao, carregando && estilos.carregando)}
-      aria-busy={carregando}
-    >
+    <label htmlFor={id} className={juntarClasses(estilos.botao, carregando && estilos.carregando)}>
+      {/* Inerte sem `disabled` durante o envio: desabilitar o campo focado manda o foco para o
+          `<body>`, e quem usa teclado perde o lugar no meio do envio. */}
       <input
         ref={entrada}
         id={id}
@@ -54,7 +55,14 @@ export function SeletorDeArquivos({
         className={estilos.entrada}
         multiple={multiplo}
         accept={aceita}
-        disabled={carregando}
+        aria-disabled={carregando || undefined}
+        aria-busy={carregando || undefined}
+        aria-describedby={descritoPor}
+        onClick={(evento) => {
+          if (carregando) {
+            evento.preventDefault();
+          }
+        }}
         onChange={aoMudar}
       />
       {rotulo}

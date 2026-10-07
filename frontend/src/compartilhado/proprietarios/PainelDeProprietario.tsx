@@ -118,17 +118,12 @@ export function PainelDeProprietario({
         autoComplete="off"
       />
 
-      <div>
-        <Texto variante="corpo" como="p">
-          Cor de identificação
-        </Texto>
-        <Texto variante="apoio" tom="suave" como="p">
-          Usada para identificar os trechos deste proprietário no calendário.
-        </Texto>
-        <div className={estilos.cores}>
-          <SeletorDeCor rotulo="Cor de identificação" valor={cor} aoEscolher={setCor} />
-        </div>
-      </div>
+      <SeletorDeCor
+        rotulo="Cor de identificação"
+        apoio="Usada para identificar os trechos deste proprietário no calendário."
+        valor={cor}
+        aoEscolher={setCor}
+      />
 
       {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
       {erro ? (

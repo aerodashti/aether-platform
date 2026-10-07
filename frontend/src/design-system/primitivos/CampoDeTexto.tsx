@@ -1,10 +1,11 @@
-import { useId, type Ref } from 'react';
+import { useState, type Ref } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 
 import estilos from './CampoDeTexto.module.css';
+import { MolduraDeCampo } from './MolduraDeCampo';
 
-export type TipoDeCampo = 'texto' | 'email' | 'senha' | 'data' | 'hora' | 'mes';
+export type TipoDeCampo = 'texto' | 'email' | 'senha' | 'data' | 'hora' | 'mes' | 'telefone';
 export type AlinhamentoDeCampo = 'esquerda' | 'centro' | 'direita';
 
 interface CampoDeTextoProps {
@@ -19,8 +20,14 @@ interface CampoDeTextoProps {
   apoio?: string;
   autoComplete?: string;
   maxLength?: number;
-  /** `decimal` abre o teclado com separador no celular — é o do percentual com duas casas. */
-  inputMode?: 'text' | 'email' | 'numeric' | 'decimal';
+  /**
+   * `decimal` abre o teclado com vírgula no celular — é o de todo valor com casas (R$, câmbio,
+   * horas). `numeric` é só para inteiros: no iOS ele não tem vírgula.
+   */
+  inputMode?: 'text' | 'email' | 'numeric' | 'decimal' | 'tel';
+  /** Limites dos tipos nativos de data, hora e mês, no formato do próprio tipo (`2026-10-07`). */
+  minimo?: string;
+  maximo?: string;
   alinhamento?: AlinhamentoDeCampo;
   /** Espaçamento largo entre caracteres, para o código de seis dígitos. */
   espacado?: boolean;
@@ -48,6 +55,17 @@ const tipoNativo: Record<TipoDeCampo, string> = {
   data: 'date',
   hora: 'time',
   mes: 'month',
+  telefone: 'tel',
+};
+
+/**
+ * Um campo de data, hora ou mês digitado pela metade tem `value` vazio: a tela não tem como saber
+ * que há algo escrito. O próprio campo sabe (`validity.badInput`) e diz.
+ */
+const MENSAGEM_DE_INCOMPLETO: Partial<Record<TipoDeCampo, string>> = {
+  data: 'Data incompleta ou inexistente.',
+  hora: 'Hora incompleta.',
+  mes: 'Mês incompleto.',
 };
 
 export function CampoDeTexto({
@@ -61,6 +79,8 @@ export function CampoDeTexto({
   autoComplete,
   maxLength,
   inputMode,
+  minimo,
+  maximo,
   alinhamento = 'esquerda',
   espacado = false,
   rotuloOculto = false,
@@ -68,56 +88,47 @@ export function CampoDeTexto({
   obrigatorio = false,
   ref,
 }: CampoDeTextoProps) {
-  const id = useId();
-  const idDoErro = `${id}-erro`;
-  const idDoApoio = `${id}-apoio`;
+  const [incompleto, setIncompleto] = useState(false);
+  const mensagem = (incompleto ? MENSAGEM_DE_INCOMPLETO[tipo] : undefined) ?? erro;
 
-  // Um campo pode ter apoio e erro ao mesmo tempo; o leitor de tela deve ouvir os dois.
-  const descritores = [erro ? idDoErro : null, apoio ? idDoApoio : null].filter(Boolean).join(' ');
+  function conferirCompletude(entrada: HTMLInputElement) {
+    setIncompleto(entrada.validity.badInput);
+  }
 
   return (
-    <div className={estilos.campo}>
-      <label
-        className={juntarClasses(
-          estilos.rotulo,
-          rotuloOculto && estilos.apenasLeitor,
-          obrigatorio && estilos.obrigatorio,
-        )}
-        htmlFor={id}
-      >
-        {rotulo}
-      </label>
-      <input
-        ref={ref}
-        id={id}
-        className={juntarClasses(
-          estilos.entrada,
-          estilos[alinhamento],
-          espacado && estilos.espacado,
-          erro && estilos.invalida,
-        )}
-        type={tipoNativo[tipo]}
-        value={valor}
-        onChange={(evento) => aoMudar(evento.target.value)}
-        placeholder={exemplo}
-        autoComplete={autoComplete}
-        maxLength={maxLength}
-        inputMode={inputMode}
-        disabled={desabilitado}
-        aria-required={obrigatorio || undefined}
-        aria-invalid={erro ? true : undefined}
-        aria-describedby={descritores || undefined}
-      />
-      {apoio ? (
-        <span className={estilos.apoio} id={idDoApoio}>
-          {apoio}
-        </span>
-      ) : null}
-      {erro ? (
-        <span className={estilos.erro} id={idDoErro}>
-          {erro}
-        </span>
-      ) : null}
-    </div>
+    <MolduraDeCampo
+      rotulo={rotulo}
+      rotuloOculto={rotuloOculto}
+      obrigatorio={obrigatorio}
+      apoio={apoio}
+      erro={mensagem}
+    >
+      {(atributos) => (
+        <input
+          {...atributos}
+          ref={ref}
+          className={juntarClasses(
+            estilos.entrada,
+            estilos[alinhamento],
+            espacado && estilos.espacado,
+            mensagem && estilos.invalida,
+          )}
+          type={tipoNativo[tipo]}
+          value={valor}
+          onChange={(evento) => {
+            conferirCompletude(evento.currentTarget);
+            aoMudar(evento.currentTarget.value);
+          }}
+          onBlur={(evento) => conferirCompletude(evento.currentTarget)}
+          placeholder={exemplo}
+          autoComplete={autoComplete}
+          maxLength={maxLength}
+          inputMode={inputMode ?? (tipo === 'telefone' ? 'tel' : undefined)}
+          min={minimo}
+          max={maximo}
+          disabled={desabilitado}
+        />
+      )}
+    </MolduraDeCampo>
   );
 }

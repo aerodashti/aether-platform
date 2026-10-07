@@ -30,6 +30,7 @@ export function CartaoDeAparencia() {
     <Cartao titulo="Aparência" descricao="Tema da interface neste navegador.">
       <GrupoDeOpcoes
         rotulo="Tema da interface"
+        rotuloOculto
         valor={preferencia}
         opcoes={OPCOES}
         aoEscolher={(valor) => escolher(valor as PreferenciaDeTema)}

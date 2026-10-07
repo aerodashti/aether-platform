@@ -48,6 +48,10 @@
   border-color: var(--cor-acento);
 }
 
+.invalido .opcao {
+  border-color: var(--cor-critico);
+}
+
 /* Círculo permitido: indicador de escolha, na mesma família de avatar, dot e spinner. */
 .marcador {
   flex: none;

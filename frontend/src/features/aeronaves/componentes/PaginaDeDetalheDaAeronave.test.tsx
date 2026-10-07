@@ -268,21 +268,21 @@ describe('PaginaDeDetalheDaAeronave', () => {
     const salvar = () => screen.getByRole('button', { name: 'Salvar novo contrato' });
 
     // Sem mexer, 60/40 é o contrato vigente: salvar não arquivaria nada.
-    expect(salvar()).toBeDisabled();
+    expect(salvar()).toHaveAttribute('aria-disabled', 'true');
     expect(
       screen.getByText(/Nenhuma alteração nas participações — contrato mantido\./),
     ).toBeInTheDocument();
 
     await userEvent.clear(ricardo);
     await userEvent.type(ricardo, '50');
-    expect(salvar()).toBeDisabled();
+    expect(salvar()).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText(/Ajuste os percentuais para somar 100%\./)).toBeInTheDocument();
 
     await userEvent.clear(ricardo);
     await userEvent.type(ricardo, '70');
     await userEvent.clear(vetor);
     await userEvent.type(vetor, '30');
-    expect(salvar()).toBeEnabled();
+    expect(salvar()).not.toHaveAttribute('aria-disabled');
     expect(
       screen.getByText(/Fechado em 100% — salvar cria um novo contrato vigente\./),
     ).toBeInTheDocument();

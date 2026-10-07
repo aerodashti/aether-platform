@@ -138,10 +138,10 @@ describe('PaginaDeConfiguracoes', () => {
 
     const salvar = await screen.findByRole('button', { name: 'Salvar antecedência' });
     // Vigente é 30: nada a salvar.
-    expect(salvar).toBeDisabled();
+    expect(salvar).toHaveAttribute('aria-disabled', 'true');
 
     await usuario.click(screen.getByRole('radio', { name: '90 dias' }));
-    expect(salvar).toBeEnabled();
+    expect(salvar).not.toHaveAttribute('aria-disabled');
 
     await usuario.click(salvar);
     expect(fetch).toHaveBeenCalledWith(
@@ -160,7 +160,10 @@ describe('PaginaDeConfiguracoes', () => {
     await usuario.type(campo, '999');
 
     expect(screen.getByText('Informe de 1 a 365 dias.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Salvar antecedência' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Salvar antecedência' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   it('a troca de senha exige senha atual, confirmação e código de seis dígitos', async () => {
@@ -169,20 +172,20 @@ describe('PaginaDeConfiguracoes', () => {
     envolver(<PaginaDeConfiguracoes />);
 
     const alterar = await screen.findByRole('button', { name: 'Alterar senha' });
-    expect(alterar).toBeDisabled();
+    expect(alterar).toHaveAttribute('aria-disabled', 'true');
 
     await usuario.type(screen.getByLabelText('Senha atual'), 'a-senha-atual');
     await usuario.type(screen.getByLabelText('Nova senha'), 'a-nova-senha');
     await usuario.type(screen.getByLabelText('Confirmar nova senha'), 'outra-coisa');
 
     expect(screen.getByText('As duas senhas não conferem.')).toBeInTheDocument();
-    expect(alterar).toBeDisabled();
+    expect(alterar).toHaveAttribute('aria-disabled', 'true');
 
     await usuario.clear(screen.getByLabelText('Confirmar nova senha'));
     await usuario.type(screen.getByLabelText('Confirmar nova senha'), 'a-nova-senha');
     await usuario.type(screen.getByLabelText('Código de confirmação'), '042917');
 
-    expect(alterar).toBeEnabled();
+    expect(alterar).not.toHaveAttribute('aria-disabled');
     await usuario.click(alterar);
 
     expect(fetch).toHaveBeenCalledWith(

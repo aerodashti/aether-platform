@@ -49,7 +49,7 @@
   outline-offset: 2px;
 }
 
-.botao:disabled {
+.botao[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -60,7 +60,7 @@
   color: var(--cor-acento-contraste);
 }
 
-.primario:hover:not(:disabled) {
+.primario:hover:not([aria-disabled='true']) {
   background: var(--cor-acento-solido-hover);
   border-color: var(--cor-acento-solido-hover);
 }
@@ -68,13 +68,13 @@
 /* Primário positivo: fecha uma pendência. Não há tom de verde mais escuro em token, então o hover
    levanta o botão em vez de escurecê-lo. */
 .positivo,
-.positivo:hover:not(:disabled) {
+.positivo:hover:not([aria-disabled='true']) {
   background: var(--cor-positivo-solido);
   border-color: var(--cor-positivo-solido);
   color: var(--cor-acento-contraste);
 }
 
-.positivo:hover:not(:disabled) {
+.positivo:hover:not([aria-disabled='true']) {
   box-shadow: var(--elevacao-2);
 }
 
@@ -86,7 +86,7 @@
   color: var(--cor-acento-texto);
 }
 
-.secundario:hover:not(:disabled) {
+.secundario:hover:not([aria-disabled='true']) {
   background: var(--cor-fundo);
   border-color: var(--cor-borda-forte);
 }
@@ -126,7 +126,7 @@
   transition-timing-function: var(--curva-padrao);
 }
 
-.contorno:hover:not(:disabled),
+.contorno:hover:not([aria-disabled='true']),
 .contorno:focus-visible {
   background: var(--cor-acento);
   color: var(--cor-acento-contraste);
@@ -134,30 +134,30 @@
   transform: translateY(-2px);
 }
 
-.contorno:active:not(:disabled) {
+.contorno:active:not([aria-disabled='true']) {
   background: var(--cor-acento);
   color: var(--cor-acento-contraste);
 }
 
-.contorno:hover:not(:disabled) .rotulo,
+.contorno:hover:not([aria-disabled='true']) .rotulo,
 .contorno:focus-visible .rotulo,
-.contorno:active:not(:disabled) .rotulo {
+.contorno:active:not([aria-disabled='true']) .rotulo {
   opacity: 0;
   transform: translateX(var(--espaco-10));
 }
 
-.contorno:hover:not(:disabled) .desliza,
+.contorno:hover:not([aria-disabled='true']) .desliza,
 .contorno:focus-visible .desliza,
-.contorno:active:not(:disabled) .desliza {
+.contorno:active:not([aria-disabled='true']) .desliza {
   opacity: 1;
   transform: translateX(0);
 }
 
 /* Sem movimento, a troca de rótulo continua acontecendo — só deixa de deslizar. */
 @media (prefers-reduced-motion: reduce) {
-  .contorno:hover:not(:disabled),
+  .contorno:hover:not([aria-disabled='true']),
   .contorno:focus-visible,
-  .contorno:active:not(:disabled) {
+  .contorno:active:not([aria-disabled='true']) {
     transform: none;
   }
 
@@ -175,7 +175,7 @@
   color: var(--cor-acento-texto);
 }
 
-.fantasma:hover:not(:disabled) {
+.fantasma:hover:not([aria-disabled='true']) {
   background: var(--cor-hover);
   color: var(--cor-texto);
 }
@@ -183,7 +183,7 @@
 /* Perigo por COR, nunca por ocultação: esconder um controle focável com opacity é falha de foco
    visível. No Projeto final o "Excluir" já nasce vermelho ao lado do "Editar". */
 .critico,
-.critico:hover:not(:disabled),
+.critico:hover:not([aria-disabled='true']),
 .critico:focus-visible {
   color: var(--cor-critico);
 }

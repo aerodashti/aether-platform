@@ -163,7 +163,10 @@ describe('PaginaDeAportes', () => {
     await screen.findByRole('option', { name: 'Ricardo Meirelles' });
     expect(within(dono).queryByRole('option', { name: 'Helena Sarraf' })).not.toBeInTheDocument();
     const painel = screen.getByRole('dialog', { name: 'Registrar aporte' });
-    expect(within(painel).getByRole('button', { name: 'Registrar aporte' })).toBeDisabled();
+    expect(within(painel).getByRole('button', { name: 'Registrar aporte' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
   });
 
   it('aberto por ?registrar=1, o painel fecha no Cancelar e não reabre sozinho', async () => {

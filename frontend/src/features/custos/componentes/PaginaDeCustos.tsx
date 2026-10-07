@@ -145,6 +145,7 @@ export function PaginaDeCustos() {
         />
         <GrupoDeOpcoes
           rotulo="Escopo"
+          rotuloOculto
           variante="trilho"
           valor={escopo}
           opcoes={ESCOPOS}
