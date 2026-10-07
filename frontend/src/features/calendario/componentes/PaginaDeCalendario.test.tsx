@@ -111,7 +111,7 @@ describe('PaginaDeCalendario', () => {
     const [ano, mes] = competenciaAtual().split('-');
     expect(ano && mes).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: /Abrir o diário no trecho RV-2026-041/ }),
+      screen.getByRole('link', { name: /Abrir o diário no trecho RV-2026-041/ }),
     ).toBeInTheDocument();
   });
 
@@ -122,7 +122,7 @@ describe('PaginaDeCalendario', () => {
     await screen.findByRole('option', { name: 'PR-KRT — Phenom 300E' });
     expect(screen.getByRole('combobox', { name: 'Aeronave' })).toHaveValue('2');
     await userEvent.click(
-      await screen.findByRole('button', { name: /Abrir o diário no trecho RV-2026-041/ }),
+      await screen.findByRole('link', { name: /Abrir o diário no trecho RV-2026-041/ }),
     );
 
     expect(
