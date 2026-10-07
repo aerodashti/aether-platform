@@ -5,6 +5,12 @@ spring:
     url: ${AETHER_BANCO_URL:jdbc:postgresql://localhost:5432/aether}
     username: ${AETHER_BANCO_USUARIO:aether}
     password: ${AETHER_BANCO_SENHA:aether}
+    hikari:
+      data-source-properties:
+        # Sem isto, a mensagem de erro do PostgreSQL traz os valores da linha recusada
+        # ("Key (cpf_cnpj)=(…) already exists"), e o Hibernate a grava em ERROR antes de qualquer
+        # tratamento — um documento em claro no log, contra campos-sensiveis.yml.
+        logServerErrorDetail: false
   jpa:
     # O esquema é responsabilidade do Flyway; o Hibernate só confere se bate.
     hibernate:

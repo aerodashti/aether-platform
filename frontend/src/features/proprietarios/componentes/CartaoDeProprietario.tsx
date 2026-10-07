@@ -1,5 +1,8 @@
+import { useId } from 'react';
+
 import { contaNoFundo, type SaldoDaAeronave } from '@/compartilhado/fundo/useSaldosDoFundo';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
+import { formatarCpfCnpj } from '@/compartilhado/proprietarios/cpfCnpj';
 import { juntarClasses } from '@/design-system/classes';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -9,12 +12,16 @@ import { Texto } from '@/design-system/primitivos/Texto';
 import { useReativarProprietario, type ProprietarioResponse } from '../api/useProprietarios';
 
 import estilos from './CartaoDeProprietario.module.css';
-import { formatarCpfCnpj, percentualEmTexto } from './rotulos';
+import { percentualEmTexto } from './rotulos';
 
 interface CartaoDeProprietarioProps {
   proprietario: ProprietarioResponse;
-  vinculos: VinculoVigenteResponse[];
-  /** Escrita é de administrador e gestor; para os demais o cartão é só leitura. */
+  /**
+   * `undefined` enquanto as participações não chegaram (ou falharam): o cartão não afirma "sem
+   * vínculo" sem saber, e o Desativar espera — sem elas, o painel mandaria a desativação direta.
+   */
+  vinculos: VinculoVigenteResponse[] | undefined;
+  /** Escrita é de administrador e gestor; para os demais o cartão é só leitura, sem contato. */
   podeGerir: boolean;
   aoEditar: (proprietario: ProprietarioResponse) => void;
   /** Desativar abre o painel: com participação vigente, há fatia a redistribuir antes. */
@@ -24,6 +31,10 @@ interface CartaoDeProprietarioProps {
 }
 
 const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+function mensagemDe(erro: unknown): string {
+  return erro instanceof Error ? erro.message : 'Tente de novo em instantes.';
+}
 
 /**
  * Um proprietário e as aeronaves em que participa, como no protótipo: identificação em cima, uma
@@ -42,9 +53,11 @@ export function CartaoDeProprietario({
   saldos,
 }: CartaoDeProprietarioProps) {
   const reativar = useReativarProprietario();
+  const idDasParticipacoes = useId();
 
   const id = proprietario.id ?? 0;
   const inativo = proprietario.situacao === 'INATIVO';
+  const semParticipacoes = vinculos === undefined;
   const identificacao = [
     proprietario.cpfCnpj ? formatarCpfCnpj(proprietario.cpfCnpj) : null,
     proprietario.email,
@@ -61,7 +74,8 @@ export function CartaoDeProprietario({
           <Texto variante="corpo" como="span">
             <span className={estilos.nome}>{proprietario.nome}</span>
           </Texto>
-          <span className={estilos.contato}>{identificacao || '—'}</span>
+          {/* Documento e contato só chegam a quem gere a conta; para os demais não há o que mostrar. */}
+          {podeGerir ? <span className={estilos.contato}>{identificacao || '—'}</span> : null}
         </div>
         {inativo ? <span className={estilos.etiqueta}>Inativo</span> : null}
         {podeGerir ? (
@@ -88,6 +102,8 @@ export function CartaoDeProprietario({
                   variante="secundario"
                   tamanho="medio"
                   tom="critico"
+                  desabilitado={semParticipacoes}
+                  descritoPor={semParticipacoes ? idDasParticipacoes : undefined}
                   aoClicar={() => aoDesativar(proprietario)}
                 >
                   Desativar
@@ -98,7 +114,19 @@ export function CartaoDeProprietario({
         ) : null}
       </div>
 
-      {vinculos.length === 0 ? (
+      {reativar.isError ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            Não foi possível reativar. {mensagemDe(reativar.error)}
+          </Texto>
+        </div>
+      ) : null}
+
+      {semParticipacoes ? (
+        <div id={idDasParticipacoes} className={estilos.semVinculo}>
+          Participações ainda não carregadas.
+        </div>
+      ) : vinculos.length === 0 ? (
         <div className={estilos.semVinculo}>
           {inativo
             ? 'Fora de qualquer contrato vigente.'

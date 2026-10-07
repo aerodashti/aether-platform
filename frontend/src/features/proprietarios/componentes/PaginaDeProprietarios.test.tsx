@@ -88,10 +88,15 @@ function cartaoDe(nome: string) {
   return screen.getByText(nome).closest('ul[aria-label="Proprietários"] > li') as HTMLElement;
 }
 
-function prepararFetch(sessao: unknown) {
+/** `respostas` troca a resposta de um caminho (pelo começo do endereço) para o teste. */
+function prepararFetch(sessao: unknown, respostas: Record<string, Response> = {}) {
   vi.stubGlobal(
     'fetch',
     vi.fn((entrada: string) => {
+      const trocada = Object.entries(respostas).find(([caminho]) => entrada.startsWith(caminho));
+      if (trocada) {
+        return Promise.resolve(trocada[1]);
+      }
       if (entrada.startsWith('/api/autenticacao/sessao')) {
         return Promise.resolve(respostaDe(sessao));
       }
@@ -181,6 +186,8 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.queryByRole('button', { name: '+ Novo proprietário' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desativar' })).not.toBeInTheDocument();
+    // Documento e contato não chegam a quem não gere a conta: nem o travessão do "sem contato".
+    expect(within(cartaoDe('Helena Sarraf')).queryByText('—')).not.toBeInTheDocument();
   });
 
   it('o filtro de situação recorta a lista sem nova requisição', async () => {
@@ -205,18 +212,74 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.queryByText('Helena Sarraf')).not.toBeInTheDocument();
   });
 
-  it('abre o painel de cadastro com a paleta de cores', async () => {
+  it('a busca acha o documento copiado do cartão e o nome sem acento', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Ricardo Meirelles');
-    await userEvent.click(screen.getByRole('button', { name: '+ Novo proprietário' }));
+    await userEvent.type(screen.getByLabelText('Buscar proprietário'), '529.982.247-25');
+    await vi.waitFor(() => expect(screen.queryByText('Otávio Lins')).not.toBeInTheDocument());
+    expect(screen.getByText('Ricardo Meirelles')).toBeInTheDocument();
+
+    await userEvent.clear(screen.getByLabelText('Buscar proprietário'));
+    await userEvent.type(screen.getByLabelText('Buscar proprietário'), 'otavio');
+    expect(await screen.findByText('Otávio Lins')).toBeInTheDocument();
+    await vi.waitFor(() => expect(screen.queryByText('Ricardo Meirelles')).not.toBeInTheDocument());
+  });
+
+  it('abre o painel de cadastro com a paleta, e cancelar devolve o foco a quem o abriu', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Ricardo Meirelles');
+    const novo = screen.getByRole('button', { name: '+ Novo proprietário' });
+    await userEvent.click(novo);
 
     expect(screen.getByRole('radiogroup', { name: 'Cor de identificação' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Cadastrar' })).toHaveAttribute(
-      'aria-disabled',
-      'true',
+    expect(screen.getByRole('button', { name: 'Cadastrar' })).not.toHaveAttribute('aria-disabled');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Novo proprietário' })).not.toBeInTheDocument();
+    expect(novo).toHaveFocus();
+  });
+
+  it('sem as participações, o cartão não afirma "sem vínculo" e o Desativar espera', async () => {
+    prepararFetch(GESTORA, {
+      '/api/participacoes/vigentes': respostaDe({ title: 'Erro interno' }, 500),
+    });
+    envolver(<PaginaDeProprietarios />);
+
+    expect(
+      await screen.findByText('Não foi possível carregar as participações.'),
+    ).toBeInTheDocument();
+    const cartao = cartaoDe('Helena Sarraf');
+    expect(within(cartao).queryByText(/Sem vínculo com aeronave/)).not.toBeInTheDocument();
+    const desativar = within(cartao).getByRole('button', { name: 'Desativar' });
+    expect(desativar).toHaveAttribute('aria-disabled', 'true');
+    expect(desativar).toHaveAccessibleDescription('Participações ainda não carregadas.');
+
+    await userEvent.click(desativar);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('reativar que falha diz por quê, no cartão', async () => {
+    prepararFetch(GESTORA, {
+      '/api/proprietarios/4/reativacao': respostaDe(
+        { title: 'Acesso negado', detail: 'Seu perfil não tem permissão para esta ação.' },
+        403,
+      ),
+    });
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Otávio Lins');
+    await userEvent.click(
+      within(cartaoDe('Otávio Lins')).getByRole('button', { name: 'Reativar' }),
+    );
+
+    expect(await within(cartaoDe('Otávio Lins')).findByRole('alert')).toHaveTextContent(
+      'Não foi possível reativar. Seu perfil não tem permissão para esta ação.',
     );
   });
 
