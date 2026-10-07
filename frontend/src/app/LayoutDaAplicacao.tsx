@@ -1,6 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { useAvisos } from '@/compartilhado/avisos/useAvisos';
+import { useAvisos, useMarcarLeitura } from '@/compartilhado/avisos/useAvisos';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Avatar } from '@/design-system/primitivos/Avatar';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -112,6 +112,7 @@ export function LayoutDaAplicacao() {
   const navegar = useNavigate();
 
   const avisos = useAvisos();
+  const marcarLeitura = useMarcarLeitura();
   const naoLidos = (avisos.data?.avisos ?? []).filter((aviso) => !aviso.lido);
 
   const acima = telaDeCima(localizacao.pathname);
@@ -242,7 +243,11 @@ export function LayoutDaAplicacao() {
             itens={naoLidos.slice(0, 5).map((aviso) => ({
               rotulo: aviso.titulo ?? '',
               apoio: [aviso.matricula, aviso.detalhe].filter(Boolean).join(' · '),
-              aoEscolher: () => void navegar(aviso.destino ?? '/avisos'),
+              // Abrir pelo sino é ler: o aviso sai da contagem sem precisar da Central.
+              aoEscolher: () => {
+                marcarLeitura.mutate({ chaves: [aviso.chave ?? ''], lido: true });
+                void navegar(aviso.destino ?? '/avisos');
+              },
             }))}
             rodape={{
               rotulo: 'Abrir central de avisos',

@@ -99,6 +99,14 @@ describe('LayoutDaAplicacao', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Notificações: 1 não lidos' }));
     await userEvent.click(screen.getByRole('button', { name: /^Seguro RETA vencido/ }));
     expect(screen.getByTestId('endereco')).toHaveTextContent('/aeronaves/3');
+    // Abrir o aviso pelo sino é lê-lo: ele sai da contagem.
+    const leitura = vi
+      .mocked(fetch)
+      .mock.calls.find(([entrada]) => String(entrada) === '/api/avisos/leitura');
+    expect(JSON.parse(String(leitura?.[1]?.body))).toEqual({
+      chaves: ['RETA:3:2026-09-21'],
+      lido: true,
+    });
 
     await userEvent.click(screen.getByRole('button', { name: 'Notificações: 1 não lidos' }));
     await userEvent.click(screen.getByRole('button', { name: 'Abrir central de avisos' }));
