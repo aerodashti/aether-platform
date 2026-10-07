@@ -43,7 +43,18 @@ describe('soma das participações', () => {
   it('diz quanto falta ou quanto passou, nunca um número negativo nem NaN', () => {
     expect(situacaoDaSoma(['50', '30'], SEM_NINGUEM).texto).toBe('Faltam 20% para fechar 100%.');
     expect(situacaoDaSoma(['50,5', '84,5'], SEM_NINGUEM).texto).toBe('Passou 35% de 100%.');
-    expect(situacaoDaSoma(['abc', '100'], SEM_NINGUEM).texto).toBe('Fechado em 100%.');
+  });
+
+  it('linha vazia ou inválida não fecha, mesmo com o resto somando 100', () => {
+    expect(situacaoDaSoma(['60', '40', ''], SEM_NINGUEM)).toEqual({
+      fecha: false,
+      texto: 'Preencha o percentual de cada proprietário.',
+    });
+    expect(situacaoDaSoma(['abc', '100'], SEM_NINGUEM)).toEqual({
+      fecha: false,
+      texto: 'Cada percentual vai de 0,01% a 100%, com até duas casas.',
+    });
+    expect(situacaoDaSoma(['0', '100'], SEM_NINGUEM).fecha).toBe(false);
   });
 
   it('lista vazia diz o que fazer no lugar de "faltam 100%"', () => {

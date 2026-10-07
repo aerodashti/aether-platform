@@ -197,6 +197,19 @@ describe('SecaoDeContrato', () => {
     ).toBeInTheDocument();
   });
 
+  it('quem acaba de entrar com o campo vazio não deixa a soma anunciar "fechado"', async () => {
+    montar();
+    await abrirEdicao();
+
+    await userEvent.selectOptions(screen.getByLabelText('Adicionar proprietário ao contrato'), '3');
+    await userEvent.click(screen.getByRole('button', { name: 'Incluir no contrato' }));
+
+    expect(screen.getByText('Σ 100%')).toBeInTheDocument();
+    expect(screen.getByText('Preencha o percentual de cada proprietário.')).toBeInTheDocument();
+    expect(screen.queryByText(/Fechado em 100%/)).not.toBeInTheDocument();
+    expect(campo('Helena Sarraf')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
   it('remover leva o foco à linha seguinte e anuncia quem saiu', async () => {
     montar();
     await abrirEdicao();

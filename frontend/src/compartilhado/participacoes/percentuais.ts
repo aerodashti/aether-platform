@@ -44,15 +44,33 @@ export interface SituacaoDaSoma {
   texto: string;
 }
 
+function algumPercentualInvalido(textos: string[]): boolean {
+  return textos.some((texto) => erroDaParticipacao(texto) !== undefined);
+}
+
+/**
+ * Por que a soma ainda não diz nada. Em tom de atenção, sem acusar o campo antes da tentativa:
+ * quem marca o campo é o envio, e até lá a linha de soma não pode anunciar "fechado".
+ */
+function pendenciaDosPercentuais(textos: string[]): string {
+  return textos.some((texto) => texto.trim() === '')
+    ? 'Preencha o percentual de cada proprietário.'
+    : 'Cada percentual vai de 0,01% a 100%, com até duas casas.';
+}
+
 /**
  * Onde a soma está em relação aos 100%. Diz a causa em vez de um número negativo ("faltam -235%")
- * ou "NaN": quem está acima ouve quanto passou, e quem está abaixo, quanto falta.
+ * ou "NaN": quem está acima ouve quanto passou, e quem está abaixo, quanto falta. Só fecha quando
+ * todo percentual vale: uma linha vazia somando 0 não é contrato fechado.
  *
  * @param semNinguem a frase da lista vazia — cada tela diz o que fazer no lugar dela.
  */
 export function situacaoDaSoma(textos: string[], semNinguem: string): SituacaoDaSoma {
   if (textos.length === 0) {
     return { fecha: false, texto: semNinguem };
+  }
+  if (algumPercentualInvalido(textos)) {
+    return { fecha: false, texto: pendenciaDosPercentuais(textos) };
   }
   const diferenca = CENTESIMOS_EM_CEM - somaEmCentesimos(textos);
   if (diferenca > 0) {
@@ -72,10 +90,7 @@ export function situacaoDaSoma(textos: string[], semNinguem: string): SituacaoDa
  * de um número que não vale não diz nada.
  */
 export function erroDaSoma(textos: string[], semNinguem: string): string | undefined {
-  const algumInvalido = textos.some(
-    (texto) => texto.trim() === '' || LIMITES_DA_PARTICIPACAO(texto) !== undefined,
-  );
-  if (algumInvalido) {
+  if (algumPercentualInvalido(textos)) {
     return undefined;
   }
   const situacao = situacaoDaSoma(textos, semNinguem);
