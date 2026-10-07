@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aporte;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.math.BigDecimal;
@@ -41,7 +42,7 @@ public class RendimentoService {
   public RendimentosResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
     PeriodoDeCompetencias periodo =
         RecorteDoFundo.exigirPeriodo("rendimentos", de, ate, YearMonth.now(relogio), contexto);
-    RecorteDoFundo.exigirAeronave("rendimentos", aeronaveId, aeronaves::existsById, contexto);
+    FiltroPorAeronave.exigirExistente("rendimentos", aeronaveId, aeronaves::existsById, contexto);
     List<Rendimento> recorte =
         aeronaveId == null
             ? rendimentos.findByDataBetweenOrderByDataDescIdDesc(

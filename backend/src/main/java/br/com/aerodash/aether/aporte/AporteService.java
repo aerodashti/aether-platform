@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aporte;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -49,7 +50,7 @@ public class AporteService {
   public AportesResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
     PeriodoDeCompetencias periodo =
         RecorteDoFundo.exigirPeriodo("aportes", de, ate, YearMonth.now(relogio), contexto);
-    RecorteDoFundo.exigirAeronave("aportes", aeronaveId, aeronaves::existsById, contexto);
+    FiltroPorAeronave.exigirExistente("aportes", aeronaveId, aeronaves::existsById, contexto);
     List<Aporte> recorte =
         aeronaveId == null
             ? aportes.findByCompetenciaBetweenOrderByDataDescIdDesc(periodo.de(), periodo.ate())

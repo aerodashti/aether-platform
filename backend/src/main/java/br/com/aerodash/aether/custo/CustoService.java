@@ -2,6 +2,7 @@ package br.com.aerodash.aether.custo;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -46,22 +47,12 @@ public class CustoService {
 
   @Transactional(readOnly = true)
   public LancamentosResponse listar(Long aeronaveId, YearMonth competencia) {
-    contexto.decisao("custos.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("custos.filtroPorCompetencia", competencia != null);
-    exigirAeronaveDoFiltro(aeronaveId);
+    FiltroPorAeronave.exigirExistente("custos", aeronaveId, aeronaves::existsById, contexto);
     List<Custo> recorte = recorteDe(aeronaveId, competencia);
 
     contexto.registrar("custos.lancamentos", recorte.size());
     return new LancamentosResponse(paraLinhas(recorte), totaisDe(recorte));
-  }
-
-  /** Filtrar por uma aeronave que não existe é 404: a grade vazia diria "nenhum lançamento". */
-  private void exigirAeronaveDoFiltro(Long aeronaveId) {
-    boolean existe = aeronaveId == null || aeronaves.existsById(aeronaveId);
-    contexto.decisao("custos.aeronaveDoFiltroExiste", existe);
-    if (!existe) {
-      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
-    }
   }
 
   @Transactional

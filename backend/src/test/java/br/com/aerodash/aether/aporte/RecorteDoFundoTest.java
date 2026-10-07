@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
-import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.YearMonth;
 import java.util.Optional;
@@ -21,24 +20,6 @@ class RecorteDoFundoTest {
   private static final YearMonth CORRENTE = YearMonth.of(2026, 10);
 
   @Mock private ContextoDaRequisicao contexto;
-
-  @Test
-  @DisplayName("a aeronave do filtro que não existe é 404; sem filtro, nem se consulta")
-  void aeronave() {
-    assertThatThrownBy(() -> RecorteDoFundo.exigirAeronave("aportes", 99L, id -> false, contexto))
-        .isInstanceOf(RecursoNaoEncontradoException.class)
-        .hasMessage("Aeronave não encontrada.");
-    verify(contexto).decisao("aportes.aeronaveDoFiltroExiste", false);
-
-    RecorteDoFundo.exigirAeronave(
-        "aportes",
-        null,
-        id -> {
-          throw new AssertionError("sem filtro não se consulta");
-        },
-        contexto);
-    verify(contexto).decisao("aportes.filtroPorAeronave", false);
-  }
 
   @Test
   @DisplayName("competência fora da janela é recusada no parâmetro que a trouxe")

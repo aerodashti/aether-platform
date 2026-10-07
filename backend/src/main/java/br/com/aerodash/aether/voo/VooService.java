@@ -2,6 +2,7 @@ package br.com.aerodash.aether.voo;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -52,22 +53,12 @@ public class VooService {
 
   @Transactional(readOnly = true)
   public DiarioDeVoosResponse listar(Long aeronaveId, YearMonth competencia) {
-    contexto.decisao("voos.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("voos.filtroPorCompetencia", competencia != null);
-    exigirAeronaveDoFiltro(aeronaveId);
+    FiltroPorAeronave.exigirExistente("voos", aeronaveId, aeronaves::existsById, contexto);
     List<Trecho> recorte = recorteDe(aeronaveId, competencia);
 
     contexto.registrar("voos.trechos", recorte.size());
     return new DiarioDeVoosResponse(paraLinhas(recorte), totaisDe(recorte));
-  }
-
-  /** Filtrar por uma aeronave que não existe é 404: o diário vazio diria "nenhum voo". */
-  private void exigirAeronaveDoFiltro(Long aeronaveId) {
-    boolean existe = aeronaveId == null || aeronaves.existsById(aeronaveId);
-    contexto.decisao("voos.aeronaveDoFiltroExiste", existe);
-    if (!existe) {
-      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
-    }
   }
 
   private List<Trecho> recorteDe(Long aeronaveId, YearMonth competencia) {
