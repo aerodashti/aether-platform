@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { salvarArquivo } from '@/compartilhado/arquivos/salvarArquivo';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 import { competenciaEntre } from '@/compartilhado/recorte/competencia';
 import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
@@ -92,13 +93,10 @@ export function PaginaDeCustos() {
 
   function exportarCsv() {
     void contexto.interacao('exportar-csv-de-custos', () => {
-      const csv = csvDosLancamentos(visiveis);
-      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-      const ancora = document.createElement('a');
-      ancora.href = url;
-      ancora.download = `custos-${competencia || 'todos'}.csv`;
-      ancora.click();
-      URL.revokeObjectURL(url);
+      salvarArquivo(
+        new Blob([csvDosLancamentos(visiveis)], { type: 'text/csv;charset=utf-8' }),
+        `custos-${competencia || 'todos'}.csv`,
+      );
       return Promise.resolve();
     });
   }

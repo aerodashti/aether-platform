@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { baixarArquivo, enviar, enviarArquivos } from '@/api/cliente';
+import { salvarArquivo } from '@/compartilhado/arquivos/salvarArquivo';
 import {
   chaveDosDocumentos,
   type DocumentoResponse,
@@ -43,22 +44,15 @@ export function useRemoverDocumento(aeronaveId: number) {
   });
 }
 
-/** Salva o conteúdo com o nome dado, pela janela de download do navegador. */
-function salvar(conteudo: Blob, nome: string) {
-  const endereco = URL.createObjectURL(conteudo);
-  const ancora = document.createElement('a');
-  ancora.href = endereco;
-  ancora.download = nome;
-  ancora.click();
-  URL.revokeObjectURL(endereco);
-}
-
 export function useBaixarDocumento(aeronaveId: number) {
   const invalidar = useInvalidarDocumentos(aeronaveId);
   return useMutation({
     mutationFn: ({ id, nome }: { id: number; nome: string }) =>
       contexto.interacao('baixar-documento', async () => {
-        salvar(await baixarArquivo(`/aeronaves/${aeronaveId}/documentos/${id}/conteudo`), nome);
+        salvarArquivo(
+          await baixarArquivo(`/aeronaves/${aeronaveId}/documentos/${id}/conteudo`),
+          nome,
+        );
       }),
     onError: invalidar,
   });
