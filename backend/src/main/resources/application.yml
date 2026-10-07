@@ -23,6 +23,11 @@ spring:
     # por exemplo) pergunta a este placeholder; produção o troca para "nao".
     placeholders:
       dadosDeDesenvolvimento: sim
+  # 1.5 num campo inteiro vira 400, e não um 1 gravado em silêncio. Propriedade desconhecida
+  # continua ignorada: o front manda campos derivados que o servidor não precisa ler.
+  jackson:
+    deserialization:
+      accept-float-as-int: false
   threads:
     virtual:
       enabled: true
