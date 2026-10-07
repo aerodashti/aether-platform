@@ -19,9 +19,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class FechamentoController {
 
   private final FechamentoService fechamentos;
+  private final ResumoDaFrotaService frota;
 
-  public FechamentoController(FechamentoService fechamentos) {
+  public FechamentoController(FechamentoService fechamentos, ResumoDaFrotaService frota) {
     this.fechamentos = fechamentos;
+    this.frota = frota;
+  }
+
+  @GetMapping("/frota")
+  @Operation(summary = "Resumo de cada aeronave numa competência, para a Visão geral")
+  public List<ResumoDaAeronaveResponse> frota(
+      @RequestParam(name = "competencia", required = false) YearMonth competencia) {
+    return frota.frota(competencia);
   }
 
   @GetMapping("/mensal")

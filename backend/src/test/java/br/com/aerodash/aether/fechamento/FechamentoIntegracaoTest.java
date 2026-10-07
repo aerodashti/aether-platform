@@ -92,6 +92,35 @@ class FechamentoIntegracaoTest {
   }
 
   @Test
+  @DisplayName("o resumo da frota bate com o fechamento do mês de cada aeronave")
+  void resumoDaFrota() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    YearMonth agora = YearMonth.now(relogio);
+    Cookie sessao = entrar();
+
+    JsonNode frota = ler("/fechamentos/frota", sessao);
+    JsonNode mes =
+        ler("/fechamentos/mensal?aeronave=%d&competencia=%s".formatted(psMep, agora), sessao);
+
+    JsonNode linha = null;
+    for (JsonNode candidata : frota) {
+      if (candidata.get("aeronaveId").asLong() == psMep) {
+        linha = candidata;
+      }
+    }
+    assertThat(linha).isNotNull();
+    assertThat(linha.get("competencia").asText()).isEqualTo(agora.toString());
+    assertThat(linha.get("saldoDoFundo").decimalValue())
+        .isEqualByComparingTo(mes.at("/saldoFinalDoFundo").decimalValue());
+    assertThat(
+            linha
+                .get("custosFixos")
+                .decimalValue()
+                .add(linha.get("custosVariaveis").decimalValue()))
+        .isEqualByComparingTo(mes.at("/indicadores/totalDeCustos").decimalValue());
+  }
+
+  @Test
   @DisplayName("o saldo da frota é o mesmo do fechamento do mês, e as contas somam o fundo")
   void saldosDaFrota() throws Exception {
     Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();

@@ -61,6 +61,7 @@ class FechamentoControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private FechamentoService fechamentos;
+  @MockitoBean private ResumoDaFrotaService frota;
   @MockitoBean private AutenticacaoService autenticacao;
 
   @Test
@@ -88,6 +89,30 @@ class FechamentoControllerTest {
         .andExpect(jsonPath("$.de").value("2026-01"))
         .andExpect(jsonPath("$.baseDoRateio").value("POR_USO"))
         .andExpect(jsonPath("$.modeloDeAporte").value("FIXO"));
+  }
+
+  @Test
+  @DisplayName("o resumo da frota aceita a competência ausente: o service escolhe a corrente")
+  void resumoDaFrota() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
+    when(frota.frota(null))
+        .thenReturn(
+            List.of(
+                new ResumoDaAeronaveResponse(
+                    1L,
+                    "PS-MEP",
+                    YearMonth.of(2026, 10),
+                    new java.math.BigDecimal("131945.81"),
+                    java.math.BigDecimal.ZERO,
+                    java.math.BigDecimal.ZERO,
+                    java.math.BigDecimal.ZERO,
+                    new java.math.BigDecimal("4.2"))));
+
+    mockMvc
+        .perform(get("/fechamentos/frota").cookie(new Cookie("aether_sessao", TOKEN)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].matricula").value("PS-MEP"))
+        .andExpect(jsonPath("$[0].coberturaEmMeses").value(4.2));
   }
 
   @Test
