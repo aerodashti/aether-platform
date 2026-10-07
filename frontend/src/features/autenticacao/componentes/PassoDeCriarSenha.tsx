@@ -1,7 +1,6 @@
 import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { BotaoDeLink } from '@/design-system/primitivos/BotaoDeLink';
-import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
 import type { Acesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
 
@@ -10,64 +9,49 @@ import { SetaAtras } from './Icones';
 import estilos from './Passos.module.css';
 
 /**
- * O `CampoDeTexto` não tem modo somente leitura, e `desabilitado` tiraria o campo do Tab e do
- * gerenciador de senhas. O atributo nativo resolve os dois.
+ * O fim do convite: a pessoa chega pelo link do e-mail e cria a própria senha. O convite vencido ou
+ * já usado volta como recusa no resumo, e o link de saída leva ao login.
  */
-function somenteLeitura(campo: HTMLInputElement | null) {
-  if (campo) {
-    campo.readOnly = true;
-  }
-}
-
-const nadaMuda = () => undefined;
-
-export function PassoDeNovaSenha({ acesso }: { acesso: Acesso }) {
-  const validacao = useValidacaoDaSenhaNova(acesso, acesso.falhaDaRedefinicao);
+export function PassoDeCriarSenha({ acesso }: { acesso: Acesso }) {
+  const validacao = useValidacaoDaSenhaNova(acesso, acesso.falhaDoConvite);
 
   return (
     <form
       className={estilos.passo}
       onSubmit={(evento) => {
         evento.preventDefault();
-        validacao.enviar(acesso.redefinirSenha);
+        validacao.enviar(acesso.criarSenha);
       }}
       noValidate
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
-          <span className={estilos.destaque}>Nova senha</span>
+          <span className={estilos.destaque}>Crie sua senha</span>
         </Texto>
-        <Texto tom="suave">Código confirmado — defina a nova senha.</Texto>
+        <Texto tom="suave">
+          Você foi convidado para o Æther. Escolha a senha que vai usar para entrar.
+        </Texto>
       </header>
 
       <div className={estilos.campos} ref={validacao.refDoFormulario}>
-        {/* A conta da senha nova, à vista e para o gerenciador de senhas guardar no lugar certo. */}
-        <CampoDeTexto
-          ref={somenteLeitura}
-          rotulo="E-mail"
-          tipo="email"
-          valor={acesso.campos.emailDeRecuperacao}
-          aoMudar={nadaMuda}
-          autoComplete="username"
-        />
         <CamposDaSenhaNova acesso={acesso} validacao={validacao} />
       </div>
 
       <div className={estilos.envio}>
         <ResumoDoFormulario resumo={validacao.resumo} />
         <Botao tipo="submit" tamanho="grande" largura="total" carregando={acesso.enviando}>
-          Redefinir senha
+          Criar senha
         </Botao>
       </div>
 
       <BotaoDeLink
-        aoClicar={acesso.voltarParaEntrada}
+        aoClicar={acesso.sairDoConvite}
         alinhamento="centro"
         largura="total"
         iconeAoInicio={<SetaAtras />}
         desabilitado={acesso.enviando}
       >
-        Voltar ao login
+        Ir para o login
       </BotaoDeLink>
     </form>
   );

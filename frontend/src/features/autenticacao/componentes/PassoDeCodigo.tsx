@@ -1,21 +1,47 @@
+import { useRef } from 'react';
+
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { BotaoDeLink } from '@/design-system/primitivos/BotaoDeLink';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
-import type { usePassosDeAcesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
+import type { Acesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
 
 import { SetaAtras } from './Icones';
 import estilos from './Passos.module.css';
+import { digitosDoCodigo } from './regrasDeAcesso';
+import { validarCodigo, type CampoDoCodigo } from './validacaoDoCodigo';
 
-type Acesso = ReturnType<typeof usePassosDeAcesso>;
+const ROTULOS: Record<CampoDoCodigo, string> = { codigo: 'Código de verificação' };
+
+/** "0:42": a espera cabe num minuto, mas a forma é a de um relógio. */
+function emMinutosESegundos(segundos: number): string {
+  return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
+}
 
 export function PassoDeCodigo({ acesso }: { acesso: Acesso }) {
+  const refDoCodigo = useRef<HTMLInputElement>(null);
+  const rascunho = { codigo: acesso.campos.codigo };
+  const validacao = useValidacao({
+    erros: validarCodigo(rascunho),
+    valores: rascunho,
+    rotulos: ROTULOS,
+    falha: acesso.falhaDoCodigo,
+  });
+
+  function reenviar() {
+    // O foco sai do link antes que ele fique inerte: é no campo que o código novo vai ser digitado.
+    refDoCodigo.current?.focus();
+    acesso.reenviarCodigo();
+  }
+
   return (
     <form
       className={estilos.passo}
       onSubmit={(evento) => {
         evento.preventDefault();
-        void acesso.submeterCodigo();
+        validacao.enviar(acesso.conferirCodigo);
       }}
       noValidate
     >
@@ -23,41 +49,53 @@ export function PassoDeCodigo({ acesso }: { acesso: Acesso }) {
         <Texto variante="titulo" como="h1">
           <span className={estilos.destaque}>Confirme o código</span>
         </Texto>
+        {/* "Se … estiver cadastrado": a tela não confirma quem tem conta, e o servidor responde
+            igual nos dois casos. */}
         <Texto tom="suave">
-          Enviamos um código de 6 dígitos para{' '}
-          <strong className={estilos.enfase}>{acesso.campos.emailDeRecuperacao}</strong>. Ele expira
-          em 10 minutos.
+          Se <strong className={estilos.enfase}>{acesso.campos.emailDeRecuperacao}</strong> estiver
+          cadastrado, enviamos para lá um código de 6 dígitos. Ele vale por 10 minutos.
         </Texto>
       </header>
 
-      <CampoDeTexto
-        rotulo="Código de verificação"
-        valor={acesso.campos.codigo}
-        // Só dígitos: colar "519 274" ou "519-274" do e-mail não deve reprovar a conferência.
-        aoMudar={(valor) => acesso.preencher('codigo', valor.replace(/\D/g, ''))}
-        erro={acesso.erros.codigo}
-        maxLength={6}
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        alinhamento="centro"
-        espacado
-      />
+      <div className={estilos.campos} ref={validacao.refDoFormulario}>
+        <CampoDeTexto
+          ref={refDoCodigo}
+          rotulo={ROTULOS.codigo}
+          obrigatorio
+          valor={acesso.campos.codigo}
+          aoMudar={(valor) => acesso.preencher('codigo', digitosDoCodigo(valor))}
+          erro={validacao.erroDe('codigo')}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          alinhamento="centro"
+          espacado
+        />
+      </div>
 
-      <Botao tipo="submit" tamanho="grande" largura="total" carregando={acesso.enviando}>
-        Validar código
-      </Botao>
+      <div className={estilos.envio}>
+        <ResumoDoFormulario resumo={validacao.resumo} />
+        <Botao tipo="submit" tamanho="grande" largura="total" carregando={acesso.enviando}>
+          Validar código
+        </Botao>
+      </div>
 
       <div className={estilos.linhaDeAcoes}>
         <BotaoDeLink
-          aoClicar={acesso.voltarParaEntrada}
+          aoClicar={acesso.voltarParaEmail}
           iconeAoInicio={<SetaAtras />}
           desabilitado={acesso.enviando}
         >
           Voltar
         </BotaoDeLink>
-        <BotaoDeLink aoClicar={() => void acesso.reenviarCodigo()} desabilitado={acesso.enviando}>
-          Reenviar código
-        </BotaoDeLink>
+        {acesso.esperaParaReenviar > 0 ? (
+          <Texto variante="apoio" tom="suave" como="span">
+            Reenviar em {emMinutosESegundos(acesso.esperaParaReenviar)}
+          </Texto>
+        ) : (
+          <BotaoDeLink aoClicar={reenviar} desabilitado={acesso.enviando}>
+            Reenviar código
+          </BotaoDeLink>
+        )}
       </div>
     </form>
   );

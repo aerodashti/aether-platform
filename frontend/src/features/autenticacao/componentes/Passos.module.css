@@ -5,6 +5,24 @@
   gap: var(--espaco-5);
 }
 
+/* Os campos têm o mesmo ritmo do passo; o grupo existe para a validação achar o primeiro inválido. */
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
+/* O resumo do formulário fica colado ao botão. Ele existe sempre — região viva precisa existir
+   antes do texto —, então o espaço vem da frase, e não de um gap que valeria também vazio. */
+.envio {
+  display: flex;
+  flex-direction: column;
+}
+
+.envio > [role='alert'] > p {
+  margin-bottom: var(--espaco-3);
+}
+
 .cabecalho {
   display: flex;
   flex-direction: column;
