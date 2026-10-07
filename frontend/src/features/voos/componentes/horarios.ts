@@ -1,10 +1,31 @@
 /**
- * Os horários do trecho viajam como instantes (ISO 8601 com fuso, o servidor responde em UTC) e
- * aparecem no fuso de quem olha. O painel continua pedindo data e hora, como no protótipo: quem
+ * Os horários do trecho viajam como instantes (ISO 8601; o servidor responde em UTC) e aparecem no
+ * fuso deste dispositivo (ADR-0021). O painel continua pedindo data e hora, como no protótipo: quem
  * monta o instante é a tela, a partir do relógio local.
  */
 
+export type CampoDeHorario =
+  'partidaPrevista' | 'pousoPrevisto' | 'partidaRealizada' | 'pousoRealizado';
+
+/** A hora de cada campo como o campo nativo a entrega: "HH:MM", ou vazio. */
+export type Horarios = Record<CampoDeHorario, string>;
+
+export type Instantes = Partial<Record<CampoDeHorario, Date>>;
+
+/** Os instantes gravados, como o servidor os devolve, e a data a que pertencem. */
+export interface HorariosGravados {
+  data: string;
+  instantes: Partial<Record<CampoDeHorario, string>>;
+}
+
 const HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
+const MILISSEGUNDOS_POR_DECIMO_DE_HORA = 6 * 60 * 1000;
+
+/** O fuso em que o painel lê e mostra os horários (decisão de produto D17). */
+export function fusoDoDispositivo(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
 
 /** "HH:MM" no fuso de quem olha; vazio sem horário. */
 export function horaLocal(instante: string | undefined): string {
@@ -12,24 +33,129 @@ export function horaLocal(instante: string | undefined): string {
 }
 
 /**
- * Pouso na mesma hora ou antes da partida é pouso no dia seguinte: um voo que sai às 23:30 e pousa
- * à 01:00 cruzou a meia-noite, e o painel diz isso em vez de calcular 23 horas.
+ * A hora na data do trecho, `dias` à frente ou atrás. Uma data que o campo nativo deixou passar
+ * mas não existe (ano de cinco dígitos) não vira instante — `toISOString` lançaria no meio do envio.
  */
-export function pousoNoDiaSeguinte(partida: string, pouso: string): boolean {
-  return partida !== '' && pouso !== '' && pouso <= partida;
-}
-
-/**
- * O instante de uma hora local na data do trecho. Para o pouso, informe a partida do mesmo par: se
- * ele cai no dia seguinte, a data avança um dia.
- */
-export function instanteDe(data: string, hora: string, partidaDoPar?: string): string | undefined {
+function naData(data: string, hora: string, dias = 0): Date | undefined {
   if (data === '' || hora === '') {
     return undefined;
   }
   const instante = new Date(`${data}T${hora}:00`);
-  if (partidaDoPar !== undefined && pousoNoDiaSeguinte(partidaDoPar, hora)) {
-    instante.setDate(instante.getDate() + 1);
+  instante.setDate(instante.getDate() + dias);
+  return Number.isNaN(instante.getTime()) ? undefined : instante;
+}
+
+/**
+ * O pouso depois da partida do par: no dia dela, ou no seguinte quando a hora é menor — quem sai
+ * às 23:30 e pousa à 01:00 cruzou a meia-noite. Na mesma hora não avança: um voo de 24 h por erro
+ * de digitação é o que a validação acusa.
+ */
+function pousoDepoisDe(partida: Date | undefined, data: string, hora: string): Date | undefined {
+  if (partida === undefined || hora === '') {
+    return naData(data, hora);
   }
-  return instante.toISOString();
+  const [horas = 0, minutos = 0] = hora.split(':').map(Number);
+  const pouso = new Date(partida);
+  pouso.setHours(horas, minutos, 0, 0);
+  if (pouso < partida) {
+    pouso.setDate(pouso.getDate() + 1);
+  }
+  return pouso;
+}
+
+/**
+ * A partida realizada no dia — o do trecho, o anterior ou o seguinte — que a deixa mais perto da
+ * prevista: o voo previsto para 23:30 que saiu às 00:20 saiu no dia seguinte, e não 23 h antes. No
+ * empate, fica o dia do trecho.
+ */
+function partidaPertoDe(prevista: Date | undefined, data: string, hora: string): Date | undefined {
+  const noDia = naData(data, hora);
+  if (prevista === undefined || noDia === undefined) {
+    return noDia;
+  }
+  const distancia = (candidata: Date) => Math.abs(candidata.getTime() - prevista.getTime());
+  return [naData(data, hora, -1), naData(data, hora, 1)].reduce<Date>(
+    (melhor, candidata) =>
+      candidata !== undefined && distancia(candidata) < distancia(melhor) ? candidata : melhor,
+    noDia,
+  );
+}
+
+function doGravado(instante: string | undefined): Date | undefined {
+  return instante ? new Date(instante) : undefined;
+}
+
+/**
+ * Os quatro instantes do trecho. Na correção, o par que a pessoa não tocou — nem a data — volta
+ * como foi gravado: remontá-lo com a hora local de quem corrige deslocaria em um dia o voo lançado
+ * noutro fuso.
+ */
+export function instantesDoTrecho(
+  data: string,
+  horarios: Horarios,
+  gravados?: HorariosGravados,
+): Instantes {
+  const intocado = (partida: CampoDeHorario, pouso: CampoDeHorario) =>
+    gravados !== undefined &&
+    gravados.data === data &&
+    horarios[partida] === horaLocal(gravados.instantes[partida]) &&
+    horarios[pouso] === horaLocal(gravados.instantes[pouso]);
+  const gravado = (campo: CampoDeHorario) => doGravado(gravados?.instantes[campo]);
+
+  const partidaPrevista = intocado('partidaPrevista', 'pousoPrevisto')
+    ? gravado('partidaPrevista')
+    : naData(data, horarios.partidaPrevista);
+  const pousoPrevisto = intocado('partidaPrevista', 'pousoPrevisto')
+    ? gravado('pousoPrevisto')
+    : pousoDepoisDe(partidaPrevista, data, horarios.pousoPrevisto);
+  if (intocado('partidaRealizada', 'pousoRealizado')) {
+    return {
+      partidaPrevista,
+      pousoPrevisto,
+      partidaRealizada: gravado('partidaRealizada'),
+      pousoRealizado: gravado('pousoRealizado'),
+    };
+  }
+  const partidaRealizada = partidaPertoDe(partidaPrevista, data, horarios.partidaRealizada);
+  return {
+    partidaPrevista,
+    pousoPrevisto,
+    partidaRealizada,
+    pousoRealizado: pousoDepoisDe(partidaRealizada, data, horarios.pousoRealizado),
+  };
+}
+
+/** Quantos dias o instante cai depois (ou antes, negativo) da data do trecho, no fuso local. */
+export function diasDepoisDaData(instante: Date, data: string): number {
+  const [ano = 0, mes = 1, dia = 1] = data.split('-').map(Number);
+  const doInstante = new Date(instante.getFullYear(), instante.getMonth(), instante.getDate());
+  return Math.round(
+    (doInstante.getTime() - new Date(ano, mes - 1, dia).getTime()) / MILISSEGUNDOS_POR_DIA,
+  );
+}
+
+/** O par que vale, pela regra do servidor: o realizado quando está completo, senão o previsto. */
+function parQueVale(instantes: Instantes): [Date | undefined, Date | undefined] {
+  const realizado =
+    instantes.partidaRealizada !== undefined && instantes.pousoRealizado !== undefined;
+  return realizado
+    ? [instantes.partidaRealizada, instantes.pousoRealizado]
+    : [instantes.partidaPrevista, instantes.pousoPrevisto];
+}
+
+/** A duração em horas, com uma casa. Sem par que feche, não há duração. */
+export function duracaoEmHoras(instantes: Instantes): number | undefined {
+  const [partida, pouso] = parQueVale(instantes);
+  if (partida === undefined || pouso === undefined || pouso <= partida) {
+    return undefined;
+  }
+  return Math.round((pouso.getTime() - partida.getTime()) / MILISSEGUNDOS_POR_DECIMO_DE_HORA) / 10;
+}
+
+/** O pouso do par que vale cai noutro dia que a partida: o voo cruzou a meia-noite. */
+export function pousoCruzaAMeiaNoite(instantes: Instantes): boolean {
+  const [partida, pouso] = parQueVale(instantes);
+  return (
+    partida !== undefined && pouso !== undefined && partida.toDateString() !== pouso.toDateString()
+  );
 }

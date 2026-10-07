@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import {
   podeReceberAtribuicao,
   useVinculosVigentes,
@@ -16,9 +18,25 @@ import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useCorrigirTrecho, useRegistrarTrecho, type TrechoResponse } from '../api/useVoos';
 
-import { horaLocal, instanteDe, pousoNoDiaSeguinte } from './horarios';
+import { fusoDoDispositivo, instantesDoTrecho } from './horarios';
 import estilos from './PainelDeTrecho.module.css';
-import { ATRIBUICAO_DE_MANUTENCAO } from './rotulos';
+import {
+  corpoDoTrecho,
+  horariosGravados,
+  rascunhoInicial,
+  ROTULOS_DO_TRECHO as ROTULOS,
+  type CampoDoTrecho,
+  type RascunhoDoTrecho,
+} from './rascunhoDoTrecho';
+import {
+  apoioDaAtribuicao,
+  apoioDaData,
+  apoioDoDestino,
+  apoioDoDia,
+  opcoesDeAtribuicao,
+  textoDaDuracao,
+} from './textosDoTrecho';
+import { estaRealizado, janelaDaData, LIMITES_DO_TRECHO, validarTrecho } from './validacaoDoTrecho';
 
 interface PainelDeTrechoProps {
   /** Sem trecho é lançamento novo; com ele, correção. */
@@ -28,79 +46,67 @@ interface PainelDeTrechoProps {
   aoFechar: () => void;
 }
 
-/** A duração exibida ao vivo, com a mesma regra do servidor: realizado completo, senão previsto. */
-function duracaoAoVivo(depPrev: string, arrPrev: string, depReal: string, arrReal: string): string {
-  const real = depReal && arrReal;
-  const dep = real ? depReal : depPrev;
-  const arr = real ? arrReal : arrPrev;
-  if (!dep || !arr) {
-    return '—';
-  }
-  let minutos =
-    Number(arr.slice(0, 2)) * 60 +
-    Number(arr.slice(3, 5)) -
-    (Number(dep.slice(0, 2)) * 60 + Number(dep.slice(3, 5)));
-  if (minutos <= 0) {
-    minutos += 24 * 60;
-  }
-  return `${(Math.round(minutos / 6) / 10).toLocaleString('pt-BR')} h`;
-}
-
 /**
- * Lançar e corrigir trecho. Trechos com o mesmo Rel. Voo formam o voo completo; cada trecho conta
- * um pouso e alimenta o % de uso do rateio. Na correção a aeronave fica travada — corrigir
+ * Lançar e corrigir trecho. As regras estão em `validarTrecho`, a política de quando mostrá-las em
+ * `useValidacao`; aqui só se ligam as peças. Na correção a aeronave fica travada — corrigir
  * aeronave é excluir e relançar, e o servidor recusa a troca.
  */
 export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTrechoProps) {
   const editando = trecho?.id != null;
-  const [aeronaveId, setAeronaveId] = useState(
-    trecho?.aeronaveId != null ? String(trecho.aeronaveId) : (aeronaveInicial ?? ''),
-  );
-  const [relatorioDeVoo, setRelatorioDeVoo] = useState(trecho?.relatorioDeVoo ?? '');
-  const [numeroDoTrecho, setNumeroDoTrecho] = useState(String(trecho?.numeroDoTrecho ?? 1));
-  const [data, setData] = useState(trecho?.data ?? '');
-  const [origem, setOrigem] = useState(trecho?.origem ?? '');
-  const [destino, setDestino] = useState(trecho?.destino ?? '');
-  const [km, setKm] = useState(trecho?.km === undefined ? '' : String(trecho.km));
-  // O servidor guarda instantes em UTC; o painel mostra e pede a hora no fuso de quem olha.
-  const [depPrev, setDepPrev] = useState(horaLocal(trecho?.partidaPrevista));
-  const [arrPrev, setArrPrev] = useState(horaLocal(trecho?.pousoPrevisto));
-  const [depReal, setDepReal] = useState(horaLocal(trecho?.partidaRealizada));
-  const [arrReal, setArrReal] = useState(horaLocal(trecho?.pousoRealizado));
-  const [atribuicao, setAtribuicao] = useState(
-    trecho?.proprietarioId != null ? String(trecho.proprietarioId) : '',
-  );
-  const [observacoes, setObservacoes] = useState(trecho?.observacoes ?? '');
-
+  const titulo = editando ? 'Corrigir trecho' : 'Registrar trecho';
+  const [rascunho, setRascunho] = useState(() => rascunhoInicial(trecho, aeronaveInicial));
   const aeronaves = useAeronaves();
   const proprietarios = useProprietarios();
   const vinculos = useVinculosVigentes();
-  // Só quem é dono da aeronave recebe custo ou voo: o fechamento não tem conta para os outros.
-  const podeReceber = podeReceberAtribuicao(
-    vinculos.data,
-    aeronaveId,
-    trecho?.proprietarioId != null ? String(trecho.proprietarioId) : '',
-  );
   const registrar = useRegistrarTrecho();
   const corrigir = useCorrigirTrecho();
   const mutacao = editando ? corrigir : registrar;
 
-  function salvar() {
-    const corpo = {
-      aeronaveId: Number(aeronaveId),
-      relatorioDeVoo,
-      numeroDoTrecho: Number(numeroDoTrecho),
-      data,
-      origem,
-      destino,
-      km: Number(km.trim().replace(',', '.')),
-      partidaPrevista: instanteDe(data, depPrev),
-      pousoPrevisto: instanteDe(data, arrPrev, depPrev),
-      partidaRealizada: instanteDe(data, depReal),
-      pousoRealizado: instanteDe(data, arrReal, depReal),
-      proprietarioId: atribuicao === '' ? undefined : Number(atribuicao),
-      observacoes,
+  // A aeronave que veio da URL só vale se está na frota: senão o select mostraria "Selecione…"
+  // enquanto o estado guardaria outra, e o envio iria para uma aeronave que não existe.
+  const aeronaveNaFrota = (aeronaves.data ?? []).some(
+    (aeronave) => String(aeronave.id) === rascunho.aeronaveId,
+  );
+  const valores: RascunhoDoTrecho =
+    editando || aeronaveNaFrota ? rascunho : { ...rascunho, aeronaveId: '' };
+  const instantes = instantesDoTrecho(valores.data, valores, horariosGravados(trecho));
+  const hoje = hojeLocal();
+  const realizado = estaRealizado(valores);
+  const janela = janelaDaData(realizado, hoje);
+  const validacao = useValidacao({
+    erros: validarTrecho(
+      valores,
+      { hoje, agora: Date.now(), dataGravada: trecho?.data },
+      instantes,
+    ),
+    valores,
+    rotulos: ROTULOS,
+    falha: mutacao.error,
+  });
+  const idDoResumo = useId();
+
+  const atribuido = trecho?.proprietarioId == null ? '' : String(trecho.proprietarioId);
+  const podeReceber = podeReceberAtribuicao(vinculos.data, valores.aeronaveId, atribuido);
+  const semContratoVigente =
+    valores.aeronaveId !== '' &&
+    vinculos.data !== undefined &&
+    !vinculos.data.some((vinculo) => String(vinculo.aeronaveId) === valores.aeronaveId);
+
+  function alterar(campo: CampoDoTrecho) {
+    return (valor: string) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
+  }
+
+  function campo(nome: CampoDoTrecho) {
+    return {
+      rotulo: ROTULOS[nome],
+      valor: valores[nome],
+      aoMudar: alterar(nome),
+      erro: validacao.erroDe(nome),
     };
+  }
+
+  function salvar() {
+    const corpo = corpoDoTrecho(valores, instantes);
     if (trecho?.id != null) {
       corrigir.mutate({ id: trecho.id, trecho: corpo }, { onSuccess: aoFechar });
     } else {
@@ -108,142 +114,138 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
     }
   }
 
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
-  const podeSalvar =
-    aeronaveId !== '' &&
-    relatorioDeVoo.trim() !== '' &&
-    data !== '' &&
-    origem.trim().length === 4 &&
-    destino.trim().length === 4 &&
-    km.trim() !== '';
-
   return (
-    <PainelModal
-      aberto
-      aoFechar={aoFechar}
-      rotulo={editando ? 'Corrigir trecho' : 'Registrar trecho'}
-    >
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
       <Texto variante="titulo" como="h2">
-        {editando ? 'Corrigir trecho' : 'Registrar trecho'}
+        {titulo}
       </Texto>
       <Texto variante="apoio" tom="suave" como="p">
-        Trechos com o mesmo Rel. Voo formam o voo completo — todas as pernas voadas enquanto a
-        aeronave esteve com o proprietário. Cada trecho conta 1 pouso e alimenta o % de uso do
-        rateio.
+        Trechos com o mesmo Rel. Voo formam o voo completo. O trecho entra no % de uso do rateio
+        pelo previsto; com os horários realizados, soma 1 pouso, as horas e os km nos contadores da
+        aeronave.
       </Texto>
 
-      <div className={estilos.grade}>
-        <Selecao
-          rotulo="Aeronave"
-          valor={aeronaveId}
-          desabilitado={editando}
-          opcoes={[
-            { valor: '', rotulo: 'Selecione…' },
-            ...(aeronaves.data ?? []).map((aeronave) => ({
-              valor: String(aeronave.id),
-              rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
-            })),
-          ]}
-          aoMudar={(escolhida) => {
-            setAeronaveId(escolhida);
+      <div ref={validacao.refDoFormulario} className={estilos.formulario}>
+        <div className={estilos.grade}>
+          <Selecao
+            {...campo('aeronaveId')}
+            obrigatorio
+            desabilitado={editando}
+            apoio={
+              editando ? 'Para trocar a aeronave, exclua o trecho e lance de novo.' : undefined
+            }
+            opcoes={[
+              { valor: '', rotulo: 'Selecione…' },
+              ...(aeronaves.data ?? []).map((aeronave) => ({
+                valor: String(aeronave.id),
+                rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
+              })),
+            ]}
             // O dono de uma aeronave não é dono da outra.
-            setAtribuicao('');
-          }}
-        />
-        <CampoDeTexto
-          rotulo="Rel. Voo"
-          valor={relatorioDeVoo}
-          aoMudar={setRelatorioDeVoo}
-          exemplo="RV-2026-044"
-          maxLength={20}
-        />
-        <CampoDeTexto
-          rotulo="Trecho"
-          valor={numeroDoTrecho}
-          aoMudar={setNumeroDoTrecho}
-          inputMode="numeric"
-        />
-        <CampoDeTexto rotulo="Data do trecho" tipo="data" valor={data} aoMudar={setData} />
-        <CampoDeTexto
-          rotulo="Origem"
-          valor={origem}
-          aoMudar={setOrigem}
-          exemplo="SBSP"
-          maxLength={4}
-        />
-        <CampoDeTexto
-          rotulo="Destino"
-          valor={destino}
-          aoMudar={setDestino}
-          exemplo="SBRJ"
-          maxLength={4}
-        />
-        <CampoDeTexto rotulo="KM" valor={km} aoMudar={setKm} inputMode="numeric" />
-      </div>
+            aoMudar={(escolhida) =>
+              setRascunho((atual) => ({ ...atual, aeronaveId: escolhida, proprietarioId: '' }))
+            }
+          />
+          <CampoDeTexto
+            {...campo('relatorioDeVoo')}
+            obrigatorio
+            exemplo="RV-2026-044"
+            maxLength={LIMITES_DO_TRECHO.relatorioDeVoo}
+          />
+          <CampoDeTexto
+            {...campo('numeroDoTrecho')}
+            obrigatorio
+            inputMode="numeric"
+            apoio="Ordem da perna dentro do Rel. Voo."
+          />
+          <CampoDeTexto
+            {...campo('data')}
+            tipo="data"
+            obrigatorio
+            minimo={janela.minimo}
+            maximo={janela.maximo}
+            apoio={apoioDaData(valores.data, realizado, hoje)}
+          />
+          <CampoDeTexto
+            {...campo('origem')}
+            obrigatorio
+            exemplo="SBSP"
+            maxLength={4}
+            apoio="Código ICAO de 4 letras."
+          />
+          <CampoDeTexto
+            {...campo('destino')}
+            obrigatorio
+            exemplo="SBRJ"
+            maxLength={4}
+            apoio={apoioDoDestino(valores.origem, valores.destino)}
+          />
+          <CampoDeTexto
+            {...campo('km')}
+            obrigatorio
+            inputMode="decimal"
+            apoio="Uma casa decimal, como 365,5."
+          />
+        </div>
 
-      <Texto variante="legenda" tom="suave" como="h3">
-        Horários previstos
-      </Texto>
-      <div className={estilos.grade}>
-        <CampoDeTexto rotulo="Partida prevista" tipo="hora" valor={depPrev} aoMudar={setDepPrev} />
-        <CampoDeTexto rotulo="Pouso previsto" tipo="hora" valor={arrPrev} aoMudar={setArrPrev} />
-      </div>
-
-      <Texto variante="legenda" tom="suave" como="h3">
-        Horários realizados
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Preencha após o voo. Com o par completo, a duração passa a valer pelo realizado.
-      </Texto>
-      <div className={estilos.grade}>
-        <CampoDeTexto rotulo="Partida realizada" tipo="hora" valor={depReal} aoMudar={setDepReal} />
-        <CampoDeTexto rotulo="Pouso realizado" tipo="hora" valor={arrReal} aoMudar={setArrReal} />
-      </div>
-      <Texto variante="corpo" como="p">
-        Duração (automática): {duracaoAoVivo(depPrev, arrPrev, depReal, arrReal)}
-      </Texto>
-      {pousoNoDiaSeguinte(depPrev, arrPrev) || pousoNoDiaSeguinte(depReal, arrReal) ? (
-        <Texto variante="apoio" tom="atencao" como="p">
-          Pouso no dia seguinte ao da partida (+1 dia).
+        <Texto variante="legenda" tom="suave" como="h3">
+          Horários previstos
         </Texto>
-      ) : null}
-      <Texto variante="apoio" tom="suave" como="p">
-        Os contadores da aeronave só recebem o trecho quando os horários realizados estão completos.
-      </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Horários no fuso deste dispositivo — {fusoDoDispositivo()}.
+        </Texto>
+        <div className={estilos.grade}>
+          <CampoDeTexto {...campo('partidaPrevista')} tipo="hora" />
+          <CampoDeTexto
+            {...campo('pousoPrevisto')}
+            tipo="hora"
+            apoio={apoioDoDia('Pouso', instantes.pousoPrevisto, valores.data)}
+          />
+        </div>
 
-      <Selecao
-        rotulo="Atribuição (quem usou)"
-        valor={atribuicao}
-        opcoes={[
-          { valor: '', rotulo: ATRIBUICAO_DE_MANUTENCAO },
-          ...(proprietarios.data ?? [])
-            .filter((dono) => dono.situacao === 'ATIVO' && podeReceber(dono.id))
-            .map((dono) => ({ valor: String(dono.id), rotulo: dono.nome ?? '' })),
-        ]}
-        aoMudar={setAtribuicao}
-      />
-
-      <AreaDeTexto
-        rotulo="Observações"
-        valor={observacoes}
-        aoMudar={setObservacoes}
-        maxLength={500}
-      />
-
-      {/* Junto do botão, não num campo: o painel rola, e a recusa pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
-          <Texto variante="apoio" tom="critico" como="p">
-            {erro}
+        <Texto variante="legenda" tom="suave" como="h3">
+          Horários realizados
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Preencha após o voo, a partida e o pouso juntos. Só com os dois o trecho soma nos
+          contadores da aeronave, e a duração passa a valer pelo realizado.
+        </Texto>
+        <div className={estilos.grade}>
+          <CampoDeTexto
+            {...campo('partidaRealizada')}
+            tipo="hora"
+            apoio={apoioDoDia('Partida', instantes.partidaRealizada, valores.data)}
+          />
+          <CampoDeTexto
+            {...campo('pousoRealizado')}
+            tipo="hora"
+            apoio={apoioDoDia('Pouso', instantes.pousoRealizado, valores.data)}
+          />
+        </div>
+        <div aria-live="polite">
+          <Texto variante="corpo" como="p">
+            {textoDaDuracao(instantes)}
           </Texto>
         </div>
-      ) : null}
 
+        <Selecao
+          {...campo('proprietarioId')}
+          apoio={apoioDaAtribuicao(semContratoVigente)}
+          opcoes={opcoesDeAtribuicao(proprietarios.data ?? [], podeReceber, atribuido)}
+        />
+        <AreaDeTexto {...campo('observacoes')} maxLength={LIMITES_DO_TRECHO.observacoes} />
+      </div>
+
+      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
       <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
+        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
           Cancelar
         </Botao>
-        <Botao aoClicar={salvar} desabilitado={!podeSalvar} carregando={mutacao.isPending}>
+        <Botao
+          aoClicar={() => validacao.enviar(salvar)}
+          carregando={mutacao.isPending}
+          descritoPor={idDoResumo}
+        >
           {editando ? 'Salvar correção' : 'Registrar trecho'}
         </Botao>
       </div>
