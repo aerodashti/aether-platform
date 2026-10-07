@@ -29,7 +29,18 @@ saude/
 ```
 
 Não existem pacotes horizontais (`controllers/`, `services/`, `repositories/`). O que é transversal
-— configuração, tratamento de erros, logs — vive em `comum/`.
+— configuração, tratamento de erros, logs e os formatos de validação que vários requests usam — vive
+em `comum/`:
+
+| Pacote | O que tem |
+| --- | --- |
+| `comum/config` | Configuração do Spring, o `Clock` da aplicação e o `FusoDoNegocio` |
+| `comum/erro` | `ExcecaoDeDominio` e o `TratadorGlobalDeErros` |
+| `comum/observabilidade` | Linha canônica, contexto da requisição, sanitização |
+| `comum/validacao` | `FormatoDeEmail` e `FormatoDeTelefone`, usados em todo request com e-mail ou telefone, com o mesmo par em `compartilhado/formulario/regras.ts` |
+
+Regra de formato que só uma feature usa fica nela (`autenticacao/FormatoDeNome`,
+`autenticacao/SenhaNova`, `proprietario/CpfCnpjValido`).
 
 ### Fluxo de um request
 
@@ -41,7 +52,10 @@ Não existem pacotes horizontais (`controllers/`, `services/`, `repositories/`).
    é a **fonte única** de quem entra onde — rota nova nasce fechada, e nenhum controller repete a
    regra em anotação. Recusa vira 401 (entre) ou 403 (não é seu), nos mesmos Problem Details do
    resto, por `RespostaDeAcessoNegado`. Veja `docs/adr/0013-sessao-opaca-em-cookie.md` e
-   `docs/adr/0015-papel-do-usuario-e-convite.md`.
+   `docs/adr/0015-papel-do-usuario-e-convite.md`. Quando a rota é aberta a todos mas parte da
+   resposta não é, o recorte é do Service: `GET /proprietarios` responde a toda sessão, e
+   `ProprietarioService.listar(papel)` devolve CPF/CNPJ, e-mail e telefone nulos para quem não é
+   administrador nem gestor.
 4. `*Controller` recebe o DTO de request, validado por Bean Validation.
 5. `*Service` orquestra: busca no repositório, chama regras da entidade, decide o que fazer.
 6. `*Mapper` (MapStruct) converte entidade → DTO de response.
@@ -98,6 +112,17 @@ O sintoma de que a regra está no lugar errado: o Service lê vários campos da 
 uma decisão que a própria entidade poderia tomar. Se um `if` olha só para o estado de um objeto,
 ele pertence àquele objeto.
 
+Quando o Service passa dos limites do Checkstyle, o que sai dele são as **recusas com campo**, num
+colaborador da feature (`voo/ValidacaoDoTrecho`), e não as regras: estas continuam no domínio
+(`ParDeHorarios`, `Trecho.janelaDaData`).
+
+### Datas e o relógio
+
+Toda regra que compara com "agora" ou "hoje" recebe o `Clock` da aplicação, nunca chama
+`LocalDate.now()` sem ele. O relógio está no fuso do negócio (`America/Sao_Paulo`), então
+`LocalDate.now(relogio)` é o dia de Brasília, o mesmo da tela; os instantes continuam em UTC.
+Veja `docs/adr/0023-relogio-no-fuso-do-negocio.md`.
+
 ### DTO na borda
 
 Entidade JPA **nunca** é parâmetro nem retorno de método de `*Controller`. Um `record` por
@@ -107,9 +132,16 @@ pelo ArchUnit e falha o build.
 ### Erros
 
 - Exceções de domínio herdam de `ExcecaoDeDominio` e vivem no pacote da própria feature quando são
-  específicas dela; as genéricas ficam em `comum/erro`.
+  específicas dela; as genéricas ficam em `comum/erro`. A exceção pode nomear o campo da recusa, e
+  ele volta em `campos`, como os erros do Bean Validation.
 - Um único `@RestControllerAdvice` (`TratadorGlobalDeErros`) converte tudo em `ProblemDetail`
   (RFC 9457), com `title` e `detail` em português e o `X-Request-Id` na propriedade `requisicao`.
+- O que a tela pode corrigir é 400 com `campos`: corpo que não converte (com o caminho do campo),
+  número com casas num campo inteiro, aeronave ou proprietário inexistente **no corpo**. Inexistente
+  **na URL ou no filtro** é 404. Violação de integridade é 409 (duplicidade) ou 400, com `WARN`;
+  as recusas do Spring MVC (404, 405, 415) mantêm o próprio status. A receita completa, das duas
+  pontas, está em `docs/adr/0022-validacao-de-formularios.md`.
+- Filtro por aeronave das listagens é conferido num lugar só, `aeronave/FiltroPorAeronave`.
 
 ### Convenções obrigatórias de código
 
@@ -166,6 +198,20 @@ src/
   o detalhe conta.
 - `compartilhado/fundo` tem o saldo do fundo de cada aeronave e proprietário, do fechamento: a
   frota, o detalhe e os cartões de proprietário o mostram.
+- `compartilhado/formulario` é a base dos formulários (ADR-0022): `Formulario` (o `<form>` dos
+  painéis, com Enter enviando), `useValidacao`, `ResumoDoFormulario` e as regras puras de
+  `regras.ts`. `compartilhado/formatacao` tem o único leitor de número no formato brasileiro
+  (`lerNumero`) e as datas locais (`hojeLocal`, `competenciaLocal`, somar dias e meses).
+  `compartilhado/cadastro` tem `nomeLegivel`, o espelho do `FormatoDeNome`.
+- `compartilhado/recorte` tem, além do `useRecorteDaUrl`, a competência, a ordem do período, a
+  leitura da falha da consulta e o `FalhaDaConsulta`, que a grade mostra no lugar da lista.
+- `compartilhado/arquivos/salvarArquivo` baixa um arquivo pela API: documentos e o CSV de custos.
+- `compartilhado/participacoes` tem a escolha em dois passos (`IncluirProprietario`), a soma dos
+  percentuais e o recomeço do formulário depois do 409 "Contrato desatualizado" (`conflito.ts`,
+  ADR-0025).
+- O cliente HTTP (`api/`) devolve `ErroDeApi` com `status`, `titulo` (o `title` do Problem
+  Details, que distingue recusas de mesmo status) e `campos`; falha de rede e resposta sem JSON
+  também viram `ErroDeApi`, com mensagem em português.
 
 ### Features que só leem outras
 

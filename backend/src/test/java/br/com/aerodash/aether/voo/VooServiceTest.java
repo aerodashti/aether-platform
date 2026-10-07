@@ -79,7 +79,7 @@ class VooServiceTest {
         aeronaves,
         proprietarios,
         new ValidacaoDoTrecho(proprietarios, participantes, contexto),
-        Clock.fixed(agora, ZoneOffset.UTC), // o relógio do servidor, em UTC como em produção
+        Clock.fixed(agora, ZoneOffset.UTC), // o hoje vem do FusoDoNegocio
         contexto);
   }
 

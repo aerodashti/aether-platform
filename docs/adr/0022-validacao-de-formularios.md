@@ -25,8 +25,12 @@ Cada camada tem uma responsabilidade.
 
 1. **Regras puras, por formulário.** Uma função `validar<Formulario>(rascunho)` devolve
    `Erros<Campo>`, montada com as regras pequenas de `compartilhado/formulario/regras.ts`:
-   `obrigatorio`, `tamanhoMaximo`, `numero({ maiorQue, maximo, casas })`, `dataEntre` e `email`.
-   Ela é testada sem renderizar nada, e os limites espelham o request do backend.
+   `obrigatorio`, `tamanhoMaximo`, `numero({ maiorQue, maximo, casas })`, `dataEntre`, `email`,
+   `senhaNova`, `telefone` e `competencia`. Ela é testada sem renderizar nada, e os limites
+   espelham o request do backend. As regras que existem nas duas pontas têm um par no servidor,
+   em `comum/validacao` (`FormatoDeEmail`, `FormatoDeTelefone`) ou na feature (`@SenhaNova`):
+   `email()` e `FormatoDeEmail` exigem domínio com ponto e sufixo de duas letras ou mais, porque
+   "fulano@empresa" não recebe e-mail.
 2. **A política de exibição.** `useValidacao` decide quando e onde mostrar:
    - nada aparece antes da primeira tentativa;
    - ao tentar salvar, aparecem todos os erros, o foco vai ao primeiro campo inválido e o resumo
@@ -73,6 +77,39 @@ Os números são lidos por um só leitor, `compartilhado/formatacao/numero.ts`:
 - O nome do campo no formulário deve ser o do JSON do request. Quando não for, `campoDoServidor`
   traduz.
 - Um limite muda em dois lugares, a regra do front e o request do back, e a coluna o confirma.
+
+### Padrões que a adoção trouxe (2026-10-07)
+
+A correção dos formulários aplicou a receita em todos os painéis e deixou estes padrões:
+
+- **A corrida contra a UNIQUE.** O serviço confere a duplicidade, mas dois pedidos simultâneos
+  passam pela conferência. Ele salva com `saveAndFlush`, reconhece a restrição pelo nome
+  (`ConstraintViolationException.getConstraintName`) e a traduz na mesma exceção de domínio, com o
+  campo. O tratador global continua como rede de segurança.
+- **Recusa que depende de algoritmo vira constraint da feature.** O dígito verificador do CPF/CNPJ
+  é `@CpfCnpjValido` (`ValidadorDeCpfCnpj`): sai no mesmo 400 dos outros campos, e o serviço
+  continua conferindo como invariante.
+- **Listas dinâmicas usam o nome indexado do JSON** (`participacoes[1].percentual`), e o valor da
+  linha leva o id do proprietário, para o erro do servidor achar a linha certa.
+- **Número que aceita negativo usa `inputMode="text"`** (o saldo de abertura): o teclado decimal do
+  iOS não tem o sinal de menos. É a exceção à regra de teclado decimal para número com casas.
+- **Filtros não usam `useValidacao`**: o erro aparece já na mudança e a consulta não sai. A política
+  está no ADR-0018.
+- **Um limite, dois arquivos.** Cada request tem o seu espelho no front, por exemplo
+  `TrocaRequest.java` ↔ `features/trocas/componentes/validacaoDaTroca.ts`, e a migration confirma.
+
+Lacunas conhecidas da base:
+
+- `dataEntre` compara datas como texto e aceita ano de cinco dígitos ("20266-10-07" cai dentro de
+  2025–2036). A manutenção contorna com uma regra local (`anoDeQuatroDigitos`).
+- O `CampoDeTexto` diz "Data incompleta" (`validity.badInput`), mas o `useValidacao` não sabe
+  disso e não segura o envio. O painel de tripulante contorna lendo `badInput` pelas refs; um
+  retorno como `aoMudarCompletude` no primitivo resolveria para todos.
+- O `CampoDeTexto` não tem modo somente leitura; o passo de nova senha contorna com uma ref.
+- O `maxLength` do `CampoDeTexto` corta o texto colado sem avisar. Os painéis da ficha técnica e da
+  configuração financeira o trocaram pela regra `tamanhoMaximo`, que diz o limite; os do trecho,
+  da manutenção, da troca e do rendimento ainda usam o corte nativo. A `AreaDeTexto` mostra a
+  contagem e pode mantê-lo.
 
 ## Quando revisitar
 

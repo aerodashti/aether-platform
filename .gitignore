@@ -26,3 +26,4 @@ infra/.env
 
 # Estado local do scripts/ambiente.sh
 .aether/
+.claude/worktrees/

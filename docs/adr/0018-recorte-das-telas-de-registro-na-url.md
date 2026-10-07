@@ -40,6 +40,22 @@ formulário de novo registro, e o pedido sai da URL depois de atendido.
   dependências: com ele nas dependências o efeito entrava em laço até o roteador confirmar a URL
   nova (visto e corrigido na tela de Aportes).
 
+### Ampliação de 2026-10-07 (correção dos formulários)
+
+O recorte passou a incluir `?proprietario=` (Trocas) e `?modo=periodo&de=&ate=` (Fechamento e
+Aportes), com a mesma regra: **ausente é o padrão, vazio é sem limite**. Mudanças combinadas (trocar
+o modo e as datas) vão numa navegação só. A aeronave do link que não está na frota é ignorada, com
+aviso na tela.
+
+Os filtros não usam o `useValidacao` (ADR-0022): o erro aparece no campo já na mudança, e a
+consulta não sai enquanto o recorte for inválido; a grade mostra o motivo em vez da lista. A ordem
+do período e o tipo do recorte moram em `compartilhado/recorte/recorteDeCompetencias.ts`. Quando a
+consulta falha, a ação oferecida depende da causa: recusa do recorte (4xx) → "Limpar filtros";
+401 ou 403 → nenhuma; 5xx, rede, 408 e 429 → "Tentar de novo" (`leituraDaFalha.ts`).
+
+No servidor, filtro por aeronave ou proprietário inexistente responde 404, e competência fora da
+janela (01/2000 até a corrente + 12 meses) responde 400 no parâmetro.
+
 ## Quando revisitar
 
 Se uma tela precisar de recorte que não cabe numa query string legível (seleção de dezenas de

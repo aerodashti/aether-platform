@@ -60,6 +60,13 @@ o caminho de quem já está `ATIVO`.
   primária por request, que o ADR-0013 já tinha aceitado pagar. A sessão em si continua vigente
   nesse caso: quem recusa é a situação do usuário, não a linha em `sessao_de_acesso`. Encerrar as
   sessões do desativado seria uma limpeza a mais, não uma mudança de comportamento.
+- **Desativar revoga o convite pendente e o código de recuperação em aberto** (correção dos
+  formulários, 2026-10-07). Concluir o convite exige que o usuário ainda esteja `PENDENTE`
+  (`Convite.podeSerConcluido`), e o código de quem foi desativado deixa de valer: o desativado não
+  se reativa sozinho com o link ou o código que já tinha. Reativar quem nunca concluiu o convite o
+  devolve a `PENDENTE` sem link válido; o caminho é reenviar o convite.
+- **O 403 é neutro**: "Seu perfil não tem permissão para esta ação.", porque o gestor também
+  alcança rotas de escrita e "exclusiva de administradores" seria falso nelas.
 - **O CSRF foi desligado**, e a proteção passa a ser o `SameSite=Lax` do cookie, que impede o
   navegador de mandá-lo num POST vindo de outro site. Nenhum fluxo do produto depende de request
   entre sites; se um dia depender, o CSRF volta antes dele.
