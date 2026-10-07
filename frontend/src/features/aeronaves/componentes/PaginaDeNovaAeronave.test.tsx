@@ -261,13 +261,14 @@ describe('PaginaDeNovaAeronave', () => {
     await userEvent.click(await cadastrar());
     const percentual = screen.getByLabelText('Participação de Ricardo Meirelles (%)');
     expect(percentual).toHaveFocus();
-    expect(percentual).toHaveAccessibleDescription('O mínimo é 0,01.');
+    expect(percentual).toHaveAccessibleDescription('Informe um valor maior que 0.');
 
     await userEvent.clear(percentual);
     await userEvent.type(percentual, '60');
-    expect(screen.getByText('Soma das participações: 60% — faltam 40%')).toBeInTheDocument();
+    expect(
+      screen.getByText('Soma das participações: 60%. Faltam 40% para fechar 100%.'),
+    ).toBeInTheDocument();
     await userEvent.click(await cadastrar());
-    expect(screen.getByText('As participações precisam fechar em 100%.')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toHaveTextContent('Revise o campo Soma das participações.');
     expect(chamadas).toHaveLength(0);
   });
@@ -290,7 +291,7 @@ describe('PaginaDeNovaAeronave', () => {
 
     expect(screen.getByLabelText('Participação de Ricardo Meirelles (%)')).toHaveValue('33,34');
     expect(screen.getByLabelText('Participação de Marcos Lins (%)')).toHaveValue('33,33');
-    expect(screen.getByText('Soma das participações: 100% — fechada')).toBeInTheDocument();
+    expect(screen.getByText('Soma das participações: 100%. Fechado em 100%.')).toBeInTheDocument();
   });
 
   it('sem a lista de proprietários, não afirma que não há nenhum e oferece tentar de novo', async () => {

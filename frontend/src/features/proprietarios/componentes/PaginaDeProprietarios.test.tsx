@@ -65,8 +65,22 @@ const PROPRIETARIOS = [
 ];
 
 const VINCULOS = [
-  { proprietarioId: 1, aeronaveId: 7, matricula: 'PS-AER', modelo: 'Phenom 300E', percentual: 60 },
-  { proprietarioId: 1, aeronaveId: 8, matricula: 'PR-HEL', modelo: 'AW109', percentual: 33.34 },
+  {
+    proprietarioId: 1,
+    aeronaveId: 7,
+    contratoId: 70,
+    matricula: 'PS-AER',
+    modelo: 'Phenom 300E',
+    percentual: 60,
+  },
+  {
+    proprietarioId: 1,
+    aeronaveId: 8,
+    contratoId: 80,
+    matricula: 'PR-HEL',
+    modelo: 'AW109',
+    percentual: 33.34,
+  },
 ];
 
 /** O cartão que contém o nome: o `li` mais próximo que é item da grade, não da lista de vínculos. */
@@ -216,13 +230,21 @@ describe('PaginaDeProprietarios', () => {
     );
     const painel = screen.getByRole('dialog', { name: 'Desativar Ricardo Meirelles' });
     const confirmar = within(painel).getByRole('button', { name: 'Redistribuir e desativar' });
-    expect(confirmar).toHaveAttribute('aria-disabled', 'true');
 
-    // Ricardo era o único nas duas: a fatia inteira vai para quem entra no lugar.
+    // Ricardo era o único nas duas: confirmar já diz que falta quem assuma cada uma.
+    await userEvent.click(confirmar);
+    expect(within(painel).getByRole('alert')).toHaveTextContent(
+      'Revise 2 campos: Soma da PS-AER, Soma da PR-HEL.',
+    );
+
+    // A participação inteira vai para quem entra no lugar.
     for (const matricula of ['PS-AER', 'PR-HEL']) {
       await userEvent.selectOptions(
         within(painel).getByLabelText(`Incluir proprietário na ${matricula}`),
         '3',
+      );
+      await userEvent.click(
+        within(painel).getByRole('button', { name: `Incluir na ${matricula}` }),
       );
       await userEvent.type(
         within(painel).getByLabelText(`Participação de Helena Sarraf na ${matricula} em %`),
@@ -236,8 +258,16 @@ describe('PaginaDeProprietarios', () => {
       .mock.calls.find(([entrada]) => String(entrada) === '/api/proprietarios/1/saida');
     expect(JSON.parse(String(saida?.[1]?.body))).toEqual({
       contratos: [
-        { aeronaveId: 7, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
-        { aeronaveId: 8, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
+        {
+          aeronaveId: 7,
+          contratoVigenteId: 70,
+          participacoes: [{ proprietarioId: 3, percentual: 100 }],
+        },
+        {
+          aeronaveId: 8,
+          contratoVigenteId: 80,
+          participacoes: [{ proprietarioId: 3, percentual: 100 }],
+        },
       ],
     });
   });

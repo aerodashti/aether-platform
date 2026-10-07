@@ -4,7 +4,6 @@ import { RASCUNHO_INICIAL, type RascunhoDaNovaAeronave } from './rascunhoDaNovaA
 import {
   campoDoServidor,
   rotulosDaNovaAeronave,
-  situacaoDaSoma,
   validarNovaAeronave,
   valoresDaNovaAeronave,
 } from './validacaoDaNovaAeronave';
@@ -132,22 +131,14 @@ describe('validarNovaAeronave', () => {
     const invalidas = errosDe({ vinculos: vinculos('abc', '0', '33,333', '') });
     expect(invalidas).toEqual({
       'participacoes[0].percentual': 'Use só números, com vírgula para as casas decimais.',
-      'participacoes[1].percentual': 'O mínimo é 0,01.',
+      'participacoes[1].percentual': 'Informe um valor maior que 0.',
       'participacoes[2].percentual': 'Use no máximo 2 casas decimais.',
-      'participacoes[3].percentual': 'Informe a participação.',
+      'participacoes[3].percentual': 'Informe o percentual.',
     });
     expect(errosDe({ vinculos: vinculos('60', '30') }).participacoes).toBe(
-      'As participações precisam fechar em 100%.',
+      'Faltam 10% para fechar 100%.',
     );
     expect(errosDe({ vinculos: vinculos('33,34', '33,33', '33,33') })).toEqual({});
-  });
-});
-
-describe('situacaoDaSoma', () => {
-  it('diz o que falta, o que sobra ou que fechou', () => {
-    expect(situacaoDaSoma(90)).toEqual({ fechada: false, texto: 'faltam 10%' });
-    expect(situacaoDaSoma(105.5)).toEqual({ fechada: false, texto: 'sobram 5,5%' });
-    expect(situacaoDaSoma(100)).toEqual({ fechada: true, texto: 'fechada' });
   });
 });
 

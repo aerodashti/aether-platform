@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   consequenciaDoVencimento,
   diasAte,
-  mensagemDaSoma,
   nomeDaAeronave,
   prazoDaValidade,
   prazoEmPalavras,
@@ -44,25 +43,6 @@ describe('consequenciaDoVencimento', () => {
     expect(consequenciaDoVencimento('CVA', -3)).toBe('CVA venceu há 3 dias');
     expect(consequenciaDoVencimento('RETA', -1)).toBe('RETA venceu ontem');
     expect(consequenciaDoVencimento('RETA', undefined)).toBe('RETA vence primeiro');
-  });
-});
-
-describe('mensagemDaSoma', () => {
-  it('só libera com 100% e alguma mudança', () => {
-    expect(mensagemDaSoma([70, 30], true).tom).toBe('positivo');
-    expect(mensagemDaSoma([60, 40], false)).toEqual({
-      tom: 'atencao',
-      texto: 'Nenhuma alteração nas participações — contrato mantido.',
-    });
-    expect(mensagemDaSoma([50, 40], true).texto).toBe('Ajuste os percentuais para somar 100%.');
-  });
-
-  it('negativo é crítico; zero e vazio pedem participação', () => {
-    expect(mensagemDaSoma([-1, 101], true).tom).toBe('critico');
-    expect(mensagemDaSoma([0, 100], true).texto).toBe(
-      'Todo proprietário precisa de participação maior que 0%.',
-    );
-    expect(mensagemDaSoma([], true).tom).toBe('atencao');
   });
 });
 

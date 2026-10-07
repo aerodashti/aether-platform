@@ -2,10 +2,14 @@ package br.com.aerodash.aether.participacao;
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
+import br.com.aerodash.aether.participacao.DefinirContratoRequest.ParticipacaoRequest;
+import br.com.aerodash.aether.participacao.SaidaDeProprietarioRequest.ContratoNovo;
 import br.com.aerodash.aether.proprietario.Proprietario;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -44,39 +48,65 @@ public class SaidaDeProprietarioService {
         proprietarios
             .findById(proprietarioId)
             .orElseThrow(() -> new RecursoNaoEncontradoException("Proprietário não encontrado."));
-    Set<Long> aeronavesDele =
-        contratos.findByFimDaVigenciaIsNullAndParticipacoesProprietarioId(proprietarioId).stream()
-            .map(ContratoDeParticipacao::getAeronaveId)
-            .collect(Collectors.toSet());
-    Set<Long> pedidas =
-        request.contratos().stream()
-            .map(SaidaDeProprietarioRequest.ContratoNovo::aeronaveId)
-            .collect(Collectors.toSet());
-
-    boolean cobreTodas =
-        pedidas.equals(aeronavesDele) && pedidas.size() == request.contratos().size();
-    contexto.decisao("saida.cobreTodasAsAeronaves", cobreTodas);
-    if (!cobreTodas) {
-      throw new ContratoInvalidoException(
-          "Informe um contrato novo para cada aeronave em que "
-              + quemSai.getNome()
-              + " participa.");
+    contexto.decisao("saida.quemSaiEstaAtivo", quemSai.estaAtivo());
+    if (!quemSai.estaAtivo()) {
+      throw new ProprietarioJaInativoException(quemSai.getNome());
     }
-    boolean aindaParticipa =
-        request.contratos().stream()
-            .flatMap(contrato -> contrato.participacoes().stream())
-            .anyMatch(participacao -> proprietarioId.equals(participacao.proprietarioId()));
-    contexto.decisao("saida.quemSaiContinuaNoContrato", aindaParticipa);
-    if (aindaParticipa) {
-      throw new ContratoInvalidoException(
-          quemSai.getNome() + " não pode continuar no contrato de que está saindo.");
-    }
+    List<ContratoNovo> novos = request.contratos();
+    exigirUmContratoPorAeronave(quemSai, novos);
+    exigirQueQuemSaiFiqueDeFora(quemSai, novos);
 
-    for (SaidaDeProprietarioRequest.ContratoNovo contrato : request.contratos()) {
+    for (int indice = 0; indice < novos.size(); indice++) {
+      ContratoNovo contrato = novos.get(indice);
       participacoes.definir(
-          contrato.aeronaveId(), new DefinirContratoRequest(contrato.participacoes()), autor);
+          contrato.aeronaveId(),
+          new DefinirContratoRequest(contrato.participacoes(), contrato.contratoVigenteId()),
+          autor,
+          "contratos[" + indice + "].");
     }
     quemSai.desativar(Instant.now(relogio));
-    contexto.registrar("saida.contratosRedistribuidos", request.contratos().size());
+    contexto.registrar("saida.contratosRedistribuidos", novos.size());
+  }
+
+  /**
+   * Um contrato novo por aeronave de quem sai: nem repetida, nem a mais, nem a menos. Aeronave a
+   * mais ou a menos quer dizer que os contratos mudaram desde que a tela os carregou — alguém
+   * incluiu ou tirou quem sai de um deles —, e a tela recomeça das aeronaves atuais.
+   */
+  private void exigirUmContratoPorAeronave(Proprietario quemSai, List<ContratoNovo> novos) {
+    Set<Long> pedidas = new HashSet<>();
+    for (int indice = 0; indice < novos.size(); indice++) {
+      boolean repetida = !pedidas.add(novos.get(indice).aeronaveId());
+      contexto.decisao("saida.aeronaveRepetida", repetida);
+      if (repetida) {
+        throw new ContratoInvalidoException(
+            "Esta aeronave aparece mais de uma vez: informe um contrato novo só por aeronave.",
+            "contratos[" + indice + "].aeronaveId");
+      }
+    }
+    Set<Long> aeronavesDele =
+        contratos.findByFimDaVigenciaIsNullAndParticipacoesProprietarioId(quemSai.getId()).stream()
+            .map(ContratoDeParticipacao::getAeronaveId)
+            .collect(Collectors.toSet());
+    boolean cobreTodas = pedidas.equals(aeronavesDele);
+    contexto.decisao("saida.cobreTodasAsAeronaves", cobreTodas);
+    if (!cobreTodas) {
+      throw ContratoDesatualizadoException.daSaida(quemSai.getNome());
+    }
+  }
+
+  private void exigirQueQuemSaiFiqueDeFora(Proprietario quemSai, List<ContratoNovo> novos) {
+    for (int contrato = 0; contrato < novos.size(); contrato++) {
+      List<ParticipacaoRequest> participacoesNovas = novos.get(contrato).participacoes();
+      for (int indice = 0; indice < participacoesNovas.size(); indice++) {
+        boolean continua = quemSai.getId().equals(participacoesNovas.get(indice).proprietarioId());
+        contexto.decisao("saida.quemSaiContinuaNoContrato", continua);
+        if (continua) {
+          throw new ContratoInvalidoException(
+              quemSai.getNome() + " não pode continuar no contrato de que está saindo.",
+              "contratos[" + contrato + "].participacoes[" + indice + "].proprietarioId");
+        }
+      }
+    }
   }
 }

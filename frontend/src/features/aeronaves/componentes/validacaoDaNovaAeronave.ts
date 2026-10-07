@@ -1,14 +1,12 @@
 import { somarMeses } from '@/compartilhado/formatacao/datas';
-import { lerNumero } from '@/compartilhado/formatacao/numero';
-import { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
 import {
   dataEntre,
-  numero,
   obrigatorio,
   primeiraFalha,
   tamanhoMaximo,
 } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
+import { erroDaParticipacao, erroDaSoma } from '@/compartilhado/participacoes/percentuais';
 
 import {
   motoresEscolhidos,
@@ -70,9 +68,6 @@ export function rotuloDaParticipacao(nome: string): string {
   return `Participação de ${nome} (%)`;
 }
 
-/** O contrato aceita de 0,01 a 999,99 com duas casas; somado, ninguém passa de 100. */
-const PERCENTUAL = numero({ minimo: 0.01, maximo: 100, casas: 2 });
-
 /** Antes de 2000 é ano digitado errado; depois da validade máxima, também. */
 const PRIMEIRO_VENCIMENTO = '2000-01-01';
 
@@ -85,45 +80,19 @@ export function limitesDosVencimentos(hoje: string) {
   };
 }
 
-/** A soma das participações, com as duas casas que o contrato guarda. */
-export function somarParticipacoes(vinculos: VinculoDoCadastro[]): number {
-  const soma = vinculos.reduce((total, vinculo) => total + (lerNumero(vinculo.percentual) ?? 0), 0);
-  return Math.round(soma * 100) / 100;
-}
-
-/** A soma em palavras, para a linha que acompanha a digitação: o que falta ou o que sobra. */
-export function situacaoDaSoma(soma: number): { fechada: boolean; texto: string } {
-  const diferenca = Math.round((100 - soma) * 100) / 100;
-  if (diferenca === 0) {
-    return { fechada: true, texto: 'fechada' };
-  }
-  return {
-    fechada: false,
-    texto:
-      diferenca > 0
-        ? `faltam ${percentualEmTexto(diferenca)}`
-        : `sobram ${percentualEmTexto(-diferenca)}`,
-  };
-}
-
+/** As regras do contrato, as mesmas da edição dele; sem vínculo nenhum, não há soma a cobrar. */
 function validarParticipacoes(
   vinculos: VinculoDoCadastro[],
 ): Erros<CampoDaParticipacao | 'participacoes'> {
   const erros: Erros<CampoDaParticipacao | 'participacoes'> = {};
   vinculos.forEach((vinculo, indice) => {
-    erros[campoDaParticipacao(indice)] = primeiraFalha(
-      vinculo.percentual,
-      obrigatorio('Informe a participação.'),
-      PERCENTUAL,
-    );
+    erros[campoDaParticipacao(indice)] = erroDaParticipacao(vinculo.percentual);
   });
-  const todasLegiveis = !Object.values(erros).some(Boolean);
-  if (
-    vinculos.length > 0 &&
-    todasLegiveis &&
-    !situacaoDaSoma(somarParticipacoes(vinculos)).fechada
-  ) {
-    erros.participacoes = 'As participações precisam fechar em 100%.';
+  if (vinculos.length > 0) {
+    erros.participacoes = erroDaSoma(
+      vinculos.map((vinculo) => vinculo.percentual),
+      '',
+    );
   }
   return erros;
 }

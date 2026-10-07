@@ -1,25 +1,27 @@
+import { lerNumero, numeroParaCampo } from '@/compartilhado/formatacao/numero';
+import { candidatosAoContrato } from '@/compartilhado/participacoes/candidatos';
+import type { CandidatoAoContrato } from '@/compartilhado/participacoes/IncluirProprietario';
 import type { VinculoVigenteResponse } from '@/compartilhado/participacoes/useVinculosVigentes';
 
-/** Uma fatia do contrato novo, com o percentual como o campo o mostra ("33,33"). */
-export interface FatiaNova {
+import type { ProprietarioResponse, SaidaDeProprietario } from '../api/useProprietarios';
+
+/** A participação de alguém no contrato novo, com o percentual como o campo o mostra ("33,33"). */
+export interface ParticipacaoNova {
   proprietarioId: number;
   percentual: string;
+  /** Entrou pelo painel. Só quem foi incluído aqui sai por aqui: os sócios atuais ficam. */
+  incluida: boolean;
 }
 
 /** O contrato novo de uma aeronave, sem quem sai: os demais com a participação atual. */
 export interface ContratoSemQuemSai {
   aeronaveId: number;
+  /** O vigente de onde o painel partiu; o servidor recusa a saída se outro entrou no lugar. */
+  contratoVigenteId: number | null;
   matricula: string;
   /** O percentual de quem sai, que precisa ir para alguém. */
   liberado: number;
-  fatias: FatiaNova[];
-}
-
-const DUAS_CASAS = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });
-
-export function lerPercentual(texto: string): number {
-  const valor = Number(texto.trim().replace(/\./g, '').replace(',', '.'));
-  return Number.isFinite(valor) ? valor : Number.NaN;
+  participacoes: ParticipacaoNova[];
 }
 
 /**
@@ -27,37 +29,104 @@ export function lerPercentual(texto: string): number {
  * participação atual — a soma fica abaixo de 100 pelo que ele tinha, e a pessoa distribui.
  */
 export function contratosSemQuemSai(
-  vinculos: VinculoVigenteResponse[] | undefined,
+  vinculos: VinculoVigenteResponse[],
   quemSai: number,
 ): ContratoSemQuemSai[] {
-  const aeronavesDele = (vinculos ?? []).filter((vinculo) => vinculo.proprietarioId === quemSai);
+  const aeronavesDele = vinculos.filter((vinculo) => vinculo.proprietarioId === quemSai);
   return aeronavesDele.map((dele) => ({
     aeronaveId: dele.aeronaveId ?? 0,
+    contratoVigenteId: dele.contratoId ?? null,
     matricula: dele.matricula ?? '',
     liberado: dele.percentual ?? 0,
-    fatias: (vinculos ?? [])
+    participacoes: vinculos
       .filter(
         (vinculo) => vinculo.aeronaveId === dele.aeronaveId && vinculo.proprietarioId !== quemSai,
       )
       .map((vinculo) => ({
         proprietarioId: vinculo.proprietarioId ?? 0,
-        percentual: DUAS_CASAS.format(vinculo.percentual ?? 0),
+        percentual: numeroParaCampo(vinculo.percentual),
+        incluida: false,
       })),
   }));
 }
 
-export function somaDasFatias(fatias: FatiaNova[]): number {
-  return (
-    Math.round(fatias.reduce((soma, fatia) => soma + lerPercentual(fatia.percentual), 0) * 100) /
-    100
-  );
+/** Quem pode entrar no contrato novo de uma aeronave: nem quem sai, nem quem já está nele. */
+export function candidatosDaSaida(
+  proprietarios: ProprietarioResponse[],
+  quemSai: number,
+  contrato: ContratoSemQuemSai,
+): CandidatoAoContrato[] {
+  return candidatosAoContrato(proprietarios, [
+    quemSai,
+    ...contrato.participacoes.map((participacao) => participacao.proprietarioId),
+  ]);
 }
 
-/** Fecha quando soma 100 e toda fatia é maior que zero — a mesma regra do servidor. */
-export function contratoFecha(fatias: FatiaNova[]): boolean {
-  return (
-    fatias.length > 0 &&
-    fatias.every((fatia) => lerPercentual(fatia.percentual) > 0) &&
-    Math.abs(somaDasFatias(fatias) - 100) < 0.005
-  );
+/**
+ * O que identifica os contratos de onde a saída parte. Se a recarga que acompanha a abertura do
+ * painel trouxer outros, o formulário recomeça deles em vez de seguir com os do cache.
+ */
+export function assinaturaDosContratos(
+  vinculos: VinculoVigenteResponse[],
+  quemSai: number,
+): string {
+  return vinculos
+    .filter((vinculo) => vinculo.proprietarioId === quemSai)
+    .map((vinculo) => `${vinculo.aeronaveId}:${vinculo.contratoId}`)
+    .join('|');
+}
+
+export function alterarPercentual(
+  contrato: ContratoSemQuemSai,
+  proprietarioId: number,
+  percentual: string,
+): ContratoSemQuemSai {
+  return {
+    ...contrato,
+    participacoes: contrato.participacoes.map((participacao) =>
+      participacao.proprietarioId === proprietarioId
+        ? { ...participacao, percentual }
+        : participacao,
+    ),
+  };
+}
+
+export function incluirParticipacao(
+  contrato: ContratoSemQuemSai,
+  proprietarioId: number,
+): ContratoSemQuemSai {
+  return {
+    ...contrato,
+    participacoes: [...contrato.participacoes, { proprietarioId, percentual: '', incluida: true }],
+  };
+}
+
+export function removerParticipacao(
+  contrato: ContratoSemQuemSai,
+  proprietarioId: number,
+): ContratoSemQuemSai {
+  return {
+    ...contrato,
+    participacoes: contrato.participacoes.filter(
+      (participacao) => participacao.proprietarioId !== proprietarioId,
+    ),
+  };
+}
+
+/** A saída na ordem da tela: os índices do pedido são os do `campos` que o servidor devolve. */
+export function pedidoDeSaida(
+  proprietarioId: number,
+  contratos: ContratoSemQuemSai[],
+): SaidaDeProprietario {
+  return {
+    proprietarioId,
+    contratos: contratos.map((contrato) => ({
+      aeronaveId: contrato.aeronaveId,
+      contratoVigenteId: contrato.contratoVigenteId,
+      participacoes: contrato.participacoes.map((participacao) => ({
+        proprietarioId: participacao.proprietarioId,
+        percentual: lerNumero(participacao.percentual),
+      })),
+    })),
+  };
 }

@@ -3,7 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { buscar } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 
-export type VinculoVigenteResponse = components['schemas']['VinculoVigenteResponse'];
+/**
+ * O `contratoId` já sai do servidor, mas ainda não está em `tipos-gerados.ts`: some daqui na
+ * próxima `npm run gerar-tipos`.
+ */
+export type VinculoVigenteResponse = components['schemas']['VinculoVigenteResponse'] & {
+  /** O contrato vigente de onde vem o vínculo; a saída o devolve para provar que partiu dele. */
+  contratoId?: number;
+};
 
 /** Chave da lista de vínculos vigentes no cache; o contrato da aeronave a invalida ao mudar. */
 export const CHAVE_DE_VINCULOS_VIGENTES = ['participacoes', 'vigentes'] as const;

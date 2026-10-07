@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 @Table(name = "participacao")
 public class Participacao {
 
+  private static final int CASAS_DECIMAIS = 2;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -45,10 +47,12 @@ public class Participacao {
     this.percentual = percentual;
   }
 
+  /** De 0,01 a 100, com no máximo duas casas — o que cabe no NUMERIC(5,2) e no CHECK da coluna. */
   public boolean possuiPercentualValido() {
     return percentual != null
         && percentual.signum() > 0
-        && percentual.compareTo(ContratoDeParticipacao.SOMA_TOTAL) <= 0;
+        && percentual.compareTo(ContratoDeParticipacao.SOMA_TOTAL) <= 0
+        && percentual.stripTrailingZeros().scale() <= CASAS_DECIMAIS;
   }
 
   public Long getId() {

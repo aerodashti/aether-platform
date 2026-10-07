@@ -41,6 +41,7 @@ describe('cliente da API', () => {
     expect((erro as ErroDeApi).campos).toEqual({
       km: 'Os quilômetros precisam ser maiores que zero.',
     });
+    expect((erro as ErroDeApi).titulo).toBe('Dados inválidos');
   });
 
   it('sem campos, a mensagem é o detalhe do servidor', async () => {

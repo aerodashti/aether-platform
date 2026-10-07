@@ -1,5 +1,8 @@
 package br.com.aerodash.aether.participacao;
 
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -35,6 +38,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ParticipacaoController.class)
 @DisplayName("ParticipacaoController")
@@ -151,5 +155,71 @@ class ParticipacaoControllerTest {
         .andExpect(status().isBadRequest());
 
     verify(participacoes, never()).definir(any(), any(), any());
+  }
+
+  private ResultActions definir(String corpo) throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    return mockMvc.perform(
+        post("/aeronaves/1/contratos")
+            .cookie(new Cookie("aether_sessao", TOKEN))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
+  }
+
+  @Test
+  @DisplayName("participação nula na lista é 400 no campo dela, não 500")
+  void participacaoNulaEh400() throws Exception {
+    definir(
+            """
+            {"participacoes":[null]}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos['participacoes[0]']").value("Informe a participação."));
+
+    verify(participacoes, never()).definir(any(), any(), any());
+  }
+
+  @Test
+  @DisplayName("participação acima de 100 diz que vai até 100%, venha do @DecimalMax ou do @Digits")
+  void percentualAcimaDeCemDizOLimite() throws Exception {
+    definir(
+            """
+            {"participacoes":[{"proprietarioId":1,"percentual":1000}]}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos['participacoes[0].percentual']")
+                .value(
+                    anyOf(
+                        is("A participação vai até 100%."),
+                        is("A participação vai até 100%, com no máximo duas casas decimais."))));
+  }
+
+  @Test
+  @DisplayName("três casas decimais são recusadas no campo da linha")
+  void tresCasasSaoRecusadas() throws Exception {
+    definir(
+            """
+            {"participacoes":[{"proprietarioId":1,"percentual":33.333},
+                              {"proprietarioId":2,"percentual":66.667}]}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos['participacoes[1].percentual']")
+                .value("A participação vai até 100%, com no máximo duas casas decimais."));
+  }
+
+  @Test
+  @DisplayName("a edição que perdeu a corrida para outro contrato recebe 409")
+  void edicaoDesatualizadaEh409() throws Exception {
+    when(participacoes.definir(eq(1L), any(), eq("Patrícia")))
+        .thenThrow(ContratoDesatualizadoException.daAeronave("PS-MEP"));
+
+    definir(
+            """
+            {"participacoes":[{"proprietarioId":1,"percentual":100}],"contratoVigenteId":9}
+            """)
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value(containsString("PS-MEP")));
   }
 }

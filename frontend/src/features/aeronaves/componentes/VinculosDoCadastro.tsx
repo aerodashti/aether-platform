@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { numeroParaCampo } from '@/compartilhado/formatacao/numero';
 import { percentualEmTexto } from '@/compartilhado/formatacao/percentual';
+import { situacaoDaSoma, somaDasParticipacoes } from '@/compartilhado/participacoes/percentuais';
 import {
   useProprietarios,
   type ProprietarioResponse,
@@ -17,8 +18,6 @@ import { dividirIgualmente } from './rotulos';
 import {
   campoDaParticipacao,
   rotuloDaParticipacao,
-  situacaoDaSoma,
-  somarParticipacoes,
   type CampoDaNovaAeronave,
 } from './validacaoDaNovaAeronave';
 import estilos from './VinculosDoCadastro.module.css';
@@ -196,11 +195,11 @@ function AdicionarVinculo({
   );
 }
 
-function tomDaSoma(fechada: boolean, erro: string | undefined): TomDeTexto {
+function tomDaSoma(fecha: boolean, erro: string | undefined): TomDeTexto {
   if (erro) {
     return 'critico';
   }
-  return fechada ? 'positivo' : 'atencao';
+  return fecha ? 'positivo' : 'atencao';
 }
 
 /** A soma acompanha a digitação em voz alta: o leitor de tela ouve quanto falta, sem procurar. */
@@ -213,22 +212,24 @@ function LinhaDaSoma({
   erro: string | undefined;
   aoDividir: () => void;
 }) {
-  const soma = somarParticipacoes(vinculos);
-  const { fechada, texto } = situacaoDaSoma(soma);
+  const textos = vinculos.map((vinculo) => vinculo.percentual);
+  const soma = somaDasParticipacoes(textos);
+  const { fecha, texto } = situacaoDaSoma(textos, '');
 
   return (
     <>
       <div className={estilos.somaLinha}>
         <div aria-live="polite">
-          <Texto variante="corpo" tom={tomDaSoma(fechada, erro)} como="p">
-            {`Soma das participações: ${percentualEmTexto(soma)} — ${texto}`}
+          <Texto variante="corpo" tom={tomDaSoma(fecha, erro)} como="p">
+            {`Soma das participações: ${percentualEmTexto(soma)}. ${texto}`}
           </Texto>
         </div>
         <Botao variante="fantasma" tamanho="pequeno" aoClicar={aoDividir}>
           Dividir igualmente
         </Botao>
       </div>
-      {erro ? (
+      {/* A recusa da soma é a própria frase da linha: repetida embaixo, seria lida duas vezes. */}
+      {erro && erro !== texto ? (
         <Texto variante="apoio" tom="critico" como="p">
           {erro}
         </Texto>

@@ -1,66 +1,35 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
-import { lerNumero } from '@/compartilhado/formatacao/numero';
 import {
   competenciaAbreviada,
   contaNoFundo,
   saldoDaAeronave,
   useSaldosDoFundo,
 } from '@/compartilhado/fundo/useSaldosDoFundo';
+import { recomecarNoConflito } from '@/compartilhado/participacoes/conflito';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
-import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
-import { Selecao } from '@/design-system/primitivos/Selecao';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import { useContratos, useDefinirContrato, type ContratoResponse } from '../api/useContratos';
+import {
+  useContratos,
+  useDefinirContrato,
+  type ContratoResponse,
+  type DefinirContratoRequest,
+} from '../api/useContratos';
 
 import { CartaoDeSecao } from './CartaoDeSecao';
+import { EdicaoDoContrato } from './EdicaoDoContrato';
 import { HistoricoDeContratos } from './HistoricoDeContratos';
-import {
-  dividirIgualmente,
-  mensagemDaSoma,
-  percentualEmTexto,
-  periodoDoContrato,
-  moedaEmTexto,
-} from './rotulos';
+import { moedaEmTexto, percentualEmTexto, periodoDoContrato } from './rotulos';
 import estilos from './SecaoDeContrato.module.css';
 
 interface SecaoDeContratoProps {
   aeronaveId: number;
   podeGerir: boolean;
-}
-
-interface LinhaDeEdicao {
-  proprietarioId: number;
-  nome: string;
-  cor: CorDeIdentificacao;
-  percentual: string;
-}
-
-/** O número como a pessoa o digita: com vírgula, sem zeros à direita. */
-function percentualParaCampo(percentual: number | undefined): string {
-  return percentual == null ? '' : String(percentual).replace('.', ',');
-}
-
-/** Mesmos proprietários com os mesmos percentuais (duas casas) — um contrato idêntico não arquiva nada. */
-function mesmasParticipacoes(linhas: LinhaDeEdicao[], vigente: ContratoResponse | undefined) {
-  const atuais = vigente?.participacoes ?? [];
-  if (atuais.length !== linhas.length) {
-    return false;
-  }
-  return linhas.every((linha) =>
-    atuais.some(
-      (participacao) =>
-        participacao.proprietarioId === linha.proprietarioId &&
-        Math.round((participacao.percentual ?? 0) * 100) ===
-          Math.round((lerNumero(linha.percentual) ?? Number.NaN) * 100),
-    ),
-  );
 }
 
 /**
@@ -89,105 +58,62 @@ function ColunasDoFundo({
   );
 }
 
+function apoioDoContrato(vigente: ContratoResponse | undefined): string {
+  return vigente
+    ? `Contrato vigente · ${periodoDoContrato(vigente.inicioDaVigencia, vigente.fimDaVigencia)}`
+    : 'Nenhum contrato definido para esta aeronave.';
+}
+
 /**
  * O contrato de participações, como no protótipo: o vigente numa tabela, a edição que cria um
- * contrato novo na mesma tabela, e o histórico dos arquivados num segundo cartão. Fora da edição,
+ * contrato novo no mesmo lugar, e o histórico dos arquivados num segundo cartão. Fora da edição,
  * o % no rateio da competência e o saldo acumulado de cada um, do fechamento.
+ *
+ * <p>O salvar mora aqui, e não na edição: se outro contrato entrou em vigor enquanto a pessoa
+ * editava (409), a edição recomeça do atual e o aviso do servidor continua à vista.
  */
 export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps) {
   const consulta = useContratos(aeronaveId);
   const definir = useDefinirContrato(aeronaveId);
   const proprietarios = useProprietarios();
   const saldos = useSaldosDoFundo();
-  const [linhas, setLinhas] = useState<LinhaDeEdicao[] | null>(null);
-  // Entrar e sair da edição troca os botões do cabeçalho: o que tinha o foco some do DOM e o foco
-  // cairia no <body>. Ele vai para o primeiro campo ao entrar e volta ao "Alterar" ao sair.
-  const focoAoEntrar = useRef<HTMLInputElement>(null);
-  const selecaoAoEntrar = useRef<HTMLSelectElement>(null);
-  const focoAoSair = useRef<HTMLButtonElement>(null);
-  const focoPendente = useRef<'entrar' | 'sair' | null>(null);
+  // A versão da edição aberta, que recomeça a cada 409; nula fora da edição.
+  const [edicao, setEdicao] = useState<number | null>(null);
+  const botaoAlterar = useRef<HTMLButtonElement>(null);
+  const voltandoDaEdicao = useRef(false);
 
   const vigente = consulta.data?.vigente;
   const historico = consulta.data?.historico ?? [];
-  const editando = linhas !== null;
-  // As colunas do fundo só existem fora da edição e quando o fechamento já respondeu.
-  const fundo = editando ? undefined : saldoDaAeronave(saldos.data, aeronaveId);
 
+  // Sair da edição troca os botões do cabeçalho: o foco volta ao "Alterar", e não ao <body>.
   useEffect(() => {
-    if (focoPendente.current === 'entrar') {
-      (focoAoEntrar.current ?? selecaoAoEntrar.current)?.focus();
-    } else if (focoPendente.current === 'sair') {
-      focoAoSair.current?.focus();
+    if (edicao === null && voltandoDaEdicao.current) {
+      voltandoDaEdicao.current = false;
+      botaoAlterar.current?.focus();
     }
-    focoPendente.current = null;
-  }, [editando]);
-
-  function sairDaEdicao() {
-    focoPendente.current = 'sair';
-    setLinhas(null);
-  }
+  }, [edicao]);
 
   function comecarEdicao() {
-    setLinhas(
-      (vigente?.participacoes ?? []).map((participacao) => ({
-        proprietarioId: participacao.proprietarioId ?? 0,
-        nome: participacao.nome ?? '',
-        cor: (participacao.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao,
-        percentual: percentualParaCampo(participacao.percentual),
-      })),
-    );
     definir.reset();
-    focoPendente.current = 'entrar';
+    setEdicao(0);
   }
 
-  function salvar() {
-    // Só com todos os percentuais legíveis e somando 100 — nenhum vai ao servidor como NaN.
-    if (!linhas || !podeSalvar) {
-      return;
-    }
-    definir.mutate(
-      {
-        participacoes: linhas.map((linha) => ({
-          proprietarioId: linha.proprietarioId,
-          percentual: lerNumero(linha.percentual) ?? 0,
-        })),
-      },
-      { onSuccess: sairDaEdicao },
-    );
+  function sairDaEdicao() {
+    voltandoDaEdicao.current = true;
+    setEdicao(null);
   }
 
-  const percentuais = (linhas ?? []).map((linha) => lerNumero(linha.percentual) ?? Number.NaN);
-  const soma = percentuais.reduce(
-    (total, valor) => (Number.isNaN(valor) ? total : total + valor),
-    0,
-  );
-  const resumo = mensagemDaSoma(percentuais, !mesmasParticipacoes(linhas ?? [], vigente));
-  const podeSalvar = resumo.tom === 'positivo';
-
-  /** Ativos que ainda não estão no contrato em edição. */
-  const disponiveis = (proprietarios.data ?? []).filter(
-    (proprietario) =>
-      proprietario.situacao === 'ATIVO' &&
-      !(linhas ?? []).some((linha) => linha.proprietarioId === proprietario.id),
-  );
-
-  function adicionar(idEscolhido: string) {
-    const proprietario = disponiveis.find((dono) => String(dono.id) === idEscolhido);
-    if (!proprietario) {
-      return;
-    }
-    setLinhas((atuais) => [
-      ...(atuais ?? []),
-      {
-        proprietarioId: proprietario.id ?? 0,
-        nome: proprietario.nome ?? '',
-        cor: (proprietario.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao,
-        percentual: '',
-      },
-    ]);
+  function salvar(pedido: DefinirContratoRequest) {
+    definir.mutate(pedido, {
+      onSuccess: sairDaEdicao,
+      onError: (erro) =>
+        recomecarNoConflito(
+          erro,
+          () => consulta.refetch(),
+          () => setEdicao((versao) => (versao === null ? null : versao + 1)),
+        ),
+    });
   }
-
-  const erro = definir.error instanceof ErroDeApi ? definir.error.message : undefined;
 
   if (consulta.isError) {
     return (
@@ -204,38 +130,44 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
     );
   }
 
-  const acao = consulta.isPending ? null : editando ? (
-    <>
-      <Botao variante="secundario" tamanho="medio" aoClicar={sairDaEdicao}>
-        Cancelar
-      </Botao>
-      <Botao
-        tamanho="medio"
-        aoClicar={salvar}
-        desabilitado={!podeSalvar}
-        carregando={definir.isPending}
-      >
-        Salvar novo contrato
-      </Botao>
-    </>
-  ) : podeGerir ? (
-    <Botao variante="contorno" tamanho="medio" aoClicar={comecarEdicao} ref={focoAoSair}>
-      {vigente ? 'Alterar participações' : 'Definir participações'}
-    </Botao>
-  ) : null;
+  const cartaoDeHistorico =
+    historico.length > 0 ? <HistoricoDeContratos historico={historico} /> : null;
+
+  if (edicao !== null) {
+    return (
+      <>
+        <EdicaoDoContrato
+          key={edicao}
+          vigente={vigente}
+          apoio={apoioDoContrato(vigente)}
+          proprietarios={proprietarios}
+          falha={definir.error}
+          enviando={definir.isPending}
+          aoSalvar={salvar}
+          aoCancelar={sairDaEdicao}
+        />
+        {cartaoDeHistorico}
+      </>
+    );
+  }
+
+  // As colunas do fundo só existem quando o fechamento já respondeu.
+  const fundo = saldoDaAeronave(saldos.data, aeronaveId);
 
   return (
     <>
       <CartaoDeSecao
         titulo="Contrato de participações"
         apoio={
-          consulta.isPending
-            ? 'Quem é dono de quanto desta aeronave.'
-            : vigente
-              ? `Contrato vigente · ${periodoDoContrato(vigente.inicioDaVigencia, vigente.fimDaVigencia)}`
-              : 'Nenhum contrato definido para esta aeronave.'
+          consulta.isPending ? 'Quem é dono de quanto desta aeronave.' : apoioDoContrato(vigente)
         }
-        acao={acao}
+        acao={
+          !consulta.isPending && podeGerir ? (
+            <Botao variante="contorno" tamanho="medio" aoClicar={comecarEdicao} ref={botaoAlterar}>
+              {vigente ? 'Alterar participações' : 'Definir participações'}
+            </Botao>
+          ) : null
+        }
       >
         {consulta.isPending ? (
           <div className={estilos.vazio}>
@@ -244,7 +176,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
             </div>
             <Esqueleto />
           </div>
-        ) : !editando && !vigente ? (
+        ) : !vigente ? (
           <div className={estilos.vazio}>
             <Texto variante="apoio" tom="suave" como="p">
               As participações definem quem é dono de quanto — e, com elas, o rateio dos custos.
@@ -254,11 +186,7 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
           <div className={estilos.rolagem}>
             <table
               role="table"
-              className={juntarClasses(
-                estilos.tabela,
-                editando && estilos.editando,
-                fundo && estilos.comFundo,
-              )}
+              className={juntarClasses(estilos.tabela, fundo && estilos.comFundo)}
             >
               <thead role="rowgroup" className={estilos.bloco}>
                 <tr role="row" className={estilos.linhaDeCabecalho}>
@@ -278,188 +206,37 @@ export function SecaoDeContrato({ aeronaveId, podeGerir }: SecaoDeContratoProps)
                       </th>
                     </>
                   ) : null}
-                  {editando ? (
-                    <th role="columnheader" scope="col" className={estilos.apenasLeitor}>
-                      Ações
-                    </th>
-                  ) : null}
                 </tr>
               </thead>
               <tbody role="rowgroup" className={estilos.bloco}>
-                {!editando
-                  ? (vigente?.participacoes ?? []).map((participacao) => (
-                      <tr role="row" key={participacao.proprietarioId} className={estilos.linha}>
-                        <td role="cell" className={estilos.celula}>
-                          <span className={estilos.dono}>
-                            <PontoDeCor
-                              cor={
-                                (participacao.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao
-                              }
-                            />
-                            <span className={estilos.trunca}>{participacao.nome}</span>
-                          </span>
-                        </td>
-                        <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
-                          <span className={estilos.percentual}>
-                            {percentualEmTexto(participacao.percentual)}
-                          </span>
-                        </td>
-                        {fundo ? (
-                          <ColunasDoFundo
-                            conta={contaNoFundo(
-                              saldos.data,
-                              aeronaveId,
-                              participacao.proprietarioId,
-                            )}
-                          />
-                        ) : null}
-                      </tr>
-                    ))
-                  : (linhas ?? []).map((linha, indice) => (
-                      <tr role="row" key={linha.proprietarioId} className={estilos.linha}>
-                        <td role="cell" className={estilos.celula}>
-                          <span className={estilos.dono}>
-                            <PontoDeCor cor={linha.cor} />
-                            <span className={estilos.trunca}>{linha.nome}</span>
-                          </span>
-                        </td>
-                        <td role="cell" className={juntarClasses(estilos.celula, estilos.campo)}>
-                          <span className={estilos.campoDePercentual}>
-                            <CampoDeTexto
-                              rotulo={`Participação de ${linha.nome} em %`}
-                              rotuloOculto
-                              ref={indice === 0 ? focoAoEntrar : undefined}
-                              valor={linha.percentual}
-                              inputMode="decimal"
-                              alinhamento="direita"
-                              aoMudar={(valor) =>
-                                setLinhas((atuais) =>
-                                  (atuais ?? []).map((cada) =>
-                                    cada.proprietarioId === linha.proprietarioId
-                                      ? { ...cada, percentual: valor }
-                                      : cada,
-                                  ),
-                                )
-                              }
-                            />
-                          </span>
-                          <span className={estilos.unidade}>%</span>
-                        </td>
-                        <td role="cell" className={juntarClasses(estilos.celula, estilos.acoes)}>
-                          <Botao
-                            variante="fantasma"
-                            tamanho="pequeno"
-                            tom="critico"
-                            rotuloAcessivel={`Remover ${linha.nome} do contrato`}
-                            aoClicar={() =>
-                              setLinhas((atuais) =>
-                                (atuais ?? []).filter(
-                                  (cada) => cada.proprietarioId !== linha.proprietarioId,
-                                ),
-                              )
-                            }
-                          >
-                            Remover
-                          </Botao>
-                        </td>
-                      </tr>
-                    ))}
+                {(vigente.participacoes ?? []).map((participacao) => (
+                  <tr role="row" key={participacao.proprietarioId} className={estilos.linha}>
+                    <td role="cell" className={estilos.celula}>
+                      <span className={estilos.dono}>
+                        <PontoDeCor
+                          cor={(participacao.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao}
+                        />
+                        <span className={estilos.trunca}>{participacao.nome}</span>
+                      </span>
+                    </td>
+                    <td role="cell" className={juntarClasses(estilos.celula, estilos.direita)}>
+                      <span className={estilos.percentual}>
+                        {percentualEmTexto(participacao.percentual)}
+                      </span>
+                    </td>
+                    {fundo ? (
+                      <ColunasDoFundo
+                        conta={contaNoFundo(saldos.data, aeronaveId, participacao.proprietarioId)}
+                      />
+                    ) : null}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
-
-        {editando ? (
-          <>
-            <div className={estilos.faixaDeAdicao}>
-              {proprietarios.isError ? (
-                <div className={estilos.caixaCheia} role="alert">
-                  Não foi possível carregar os proprietários.{' '}
-                  <Botao
-                    variante="fantasma"
-                    tamanho="pequeno"
-                    aoClicar={() => void proprietarios.refetch()}
-                  >
-                    Tentar de novo
-                  </Botao>
-                </div>
-              ) : proprietarios.isPending ? (
-                <div className={estilos.caixaCheia} role="status">
-                  Carregando os proprietários…
-                </div>
-              ) : disponiveis.length > 0 ? (
-                <div className={estilos.caixaDeAdicao}>
-                  <span className={estilos.mais} aria-hidden="true">
-                    +
-                  </span>
-                  <div className={estilos.caixaTexto}>
-                    <span className={estilos.caixaTitulo}>Adicionar proprietário ao contrato</span>
-                    <Texto variante="apoio" tom="suave" como="p">
-                      Escolha um proprietário já cadastrado para incluir a participação.
-                    </Texto>
-                  </div>
-                  <div className={estilos.selecao}>
-                    <Selecao
-                      rotulo="Adicionar proprietário ao contrato"
-                      rotuloOculto
-                      ref={selecaoAoEntrar}
-                      valor=""
-                      opcoes={[
-                        { valor: '', rotulo: 'Selecione…' },
-                        ...disponiveis.map((dono) => ({
-                          valor: String(dono.id),
-                          rotulo: dono.nome ?? '',
-                        })),
-                      ]}
-                      aoMudar={adicionar}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className={estilos.caixaCheia}>
-                  Todos os proprietários cadastrados já estão neste contrato.
-                </div>
-              )}
-            </div>
-            <div className={estilos.faixaDaSoma}>
-              <span className={estilos.somaRotulo}>Soma</span>
-              <Texto variante="corpo" tom={resumo.tom} como="span">
-                <strong>Σ {percentualEmTexto(Math.round(soma * 100) / 100)}</strong>
-              </Texto>
-              {/* A mensagem é o único motivo de o salvar estar desabilitado: precisa ser lida. */}
-              <span className={estilos.somaTexto} role="status">
-                <Texto variante="apoio" tom={resumo.tom} como="span">
-                  {resumo.texto} O contrato atual será arquivado no histórico.
-                </Texto>
-              </span>
-              <Botao
-                variante="contorno"
-                tamanho="medio"
-                aoClicar={() =>
-                  setLinhas((atuais) => {
-                    const fatias = dividirIgualmente(atuais?.length ?? 0);
-                    return (atuais ?? []).map((cada, indice) => ({
-                      ...cada,
-                      percentual: percentualParaCampo(fatias[indice]),
-                    }));
-                  })
-                }
-              >
-                Dividir igualmente
-              </Botao>
-            </div>
-            {erro ? (
-              <div role="alert" className={estilos.erro}>
-                <Texto variante="apoio" tom="critico" como="p">
-                  {erro}
-                </Texto>
-              </div>
-            ) : null}
-          </>
-        ) : null}
       </CartaoDeSecao>
-
-      {historico.length > 0 ? <HistoricoDeContratos historico={historico} /> : null}
+      {cartaoDeHistorico}
     </>
   );
 }

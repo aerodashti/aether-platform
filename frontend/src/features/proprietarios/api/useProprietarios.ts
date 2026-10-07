@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { enviar } from '@/api/cliente';
+import { enviar, ErroDeApi } from '@/api/cliente';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 import { useAcaoSobreProprietarios } from '@/compartilhado/proprietarios/useAcoesDeProprietario';
 import type { ProprietarioResponse as Proprietario } from '@/compartilhado/proprietarios/useProprietarios';
@@ -27,11 +27,17 @@ export function useReativarProprietario() {
   );
 }
 
+/**
+ * O pedido da saída. `contratoVigenteId` ainda não está em `tipos-gerados.ts` (some na próxima
+ * `npm run gerar-tipos`): é o vigente de onde o painel partiu, e o servidor responde 409 se outro
+ * entrou no lugar. O percentual ilegível vai nulo, nunca `NaN`.
+ */
 export interface SaidaDeProprietario {
   proprietarioId: number;
   contratos: Array<{
     aeronaveId: number;
-    participacoes: Array<{ proprietarioId: number; percentual: number }>;
+    contratoVigenteId: number | null;
+    participacoes: Array<{ proprietarioId: number; percentual: number | null }>;
   }>;
 }
 
@@ -48,4 +54,12 @@ export function useSairDosContratos() {
       ),
     onSuccess: () => cliente.invalidateQueries(),
   });
+}
+
+/**
+ * A saída recusada porque outra pessoa já desativou o cadastro. É um 409 como o do contrato
+ * desatualizado, mas recarregar e recomeçar não adianta: não há mais saída a registrar.
+ */
+export function ehProprietarioJaInativo(erro: unknown): boolean {
+  return erro instanceof ErroDeApi && erro.titulo === 'Proprietário já inativo';
 }

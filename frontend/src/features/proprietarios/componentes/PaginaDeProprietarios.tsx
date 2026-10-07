@@ -159,7 +159,6 @@ export function PaginaDeProprietarios() {
         <PainelDeDesativacao
           key={desativando.id}
           proprietario={desativando}
-          vinculos={vinculos.data}
           proprietarios={consulta.data ?? []}
           aoFechar={() => setDesativando(null)}
         />

@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.participacao;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -64,5 +65,37 @@ class ContratoDeParticipacaoTest {
         .isFalse();
     assertThat(atual.possuiAsMesmasParticipacoes(contratoCom("100.00").getParticipacoes()))
         .isFalse();
+  }
+
+  @Test
+  @DisplayName("contrato sem proprietário não fecha, nem com a soma zerada")
+  void contratoVazioNaoFecha() {
+    assertThat(contratoCom().somaFecha()).isFalse();
+  }
+
+  @Test
+  @DisplayName("o mesmo proprietário não entra duas vezes no contrato")
+  void recusaProprietarioRepetido() {
+    ContratoDeParticipacao contrato = contratoCom("60.00");
+
+    assertThat(contrato.possuiParticipacaoDe(1L)).isTrue();
+    assertThatThrownBy(() -> contrato.adicionarParticipacao(1L, new BigDecimal("40.00")))
+        .isInstanceOf(ContratoInvalidoException.class)
+        .hasMessage("Cada proprietário entra uma única vez no contrato.");
+    assertThat(contrato.getParticipacoes()).hasSize(1);
+  }
+
+  @Test
+  @DisplayName("participação fora de 0,01 a 100, ou com três casas, não entra no contrato")
+  void recusaPercentualInvalido() {
+    ContratoDeParticipacao contrato = contratoCom();
+
+    for (String invalido : new String[] {"0.00", "-5.00", "100.01", "33.333"}) {
+      assertThatThrownBy(() -> contrato.adicionarParticipacao(1L, new BigDecimal(invalido)))
+          .as(invalido)
+          .isInstanceOf(ContratoInvalidoException.class);
+    }
+    contrato.adicionarParticipacao(1L, new BigDecimal("100.000"));
+    assertThat(contrato.somaFecha()).isTrue();
   }
 }

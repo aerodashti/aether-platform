@@ -64,8 +64,26 @@ public class ContratoDeParticipacao {
     this.inicioDaVigencia = momento;
   }
 
+  /**
+   * Inclui a participação de um proprietário. O contrato defende as próprias invariantes — cada
+   * proprietário uma vez só, percentual de 0,01 a 100 com duas casas —, mesmo quando quem chama já
+   * conferiu: é o que impede um caminho novo de gravar um contrato que o banco recusaria.
+   */
   public void adicionarParticipacao(Long proprietarioId, BigDecimal percentual) {
-    participacoes.add(new Participacao(this, proprietarioId, percentual));
+    if (possuiParticipacaoDe(proprietarioId)) {
+      throw new ContratoInvalidoException("Cada proprietário entra uma única vez no contrato.");
+    }
+    Participacao participacao = new Participacao(this, proprietarioId, percentual);
+    if (!participacao.possuiPercentualValido()) {
+      throw new ContratoInvalidoException(
+          "A participação vai de 0,01% a 100%, com no máximo duas casas decimais.");
+    }
+    participacoes.add(participacao);
+  }
+
+  public boolean possuiParticipacaoDe(Long proprietarioId) {
+    return participacoes.stream()
+        .anyMatch(participacao -> participacao.getProprietarioId().equals(proprietarioId));
   }
 
   public boolean estaVigente() {
@@ -83,8 +101,9 @@ public class ContratoDeParticipacao {
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
+  /** Fecha em 100 exatos, com alguém dentro: contrato sem proprietário não é contrato. */
   public boolean somaFecha() {
-    return somaDosPercentuais().compareTo(SOMA_TOTAL) == 0;
+    return !participacoes.isEmpty() && somaDosPercentuais().compareTo(SOMA_TOTAL) == 0;
   }
 
   /** Mesmos proprietários com os mesmos percentuais, em qualquer ordem. */

@@ -1,3 +1,20 @@
+/* Título e instrução recebem o foco ao abrir: é um ponto de leitura, não um controle. */
+.apresentacao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.apresentacao:focus {
+  outline: none;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
 .aeronave {
   display: flex;
   flex-direction: column;
@@ -22,23 +39,54 @@
   line-height: var(--altura-m);
 }
 
-.fatia {
+/* Nome, campo com o "%" e, para quem entrou pelo painel, o "Remover". O erro do campo cresce
+   para baixo dele sem desalinhar o nome. */
+.participacao {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px;
+  grid-template-columns: minmax(0, 1fr) 140px 72px;
   gap: var(--espaco-3);
-  align-items: center;
+  align-items: start;
 }
 
+/* Uma linha da altura do campo: o nome fica centrado na caixa, mesmo com o erro abaixo dela. */
 .nome {
   overflow: hidden;
   font-size: var(--tamanho-m);
-  line-height: var(--altura-m);
+  line-height: var(--controle-altura-g);
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.campo {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: flex-start;
+}
+
+.unidade {
+  display: flex;
+  align-items: center;
+  min-height: var(--controle-altura-g);
+  font-size: var(--tamanho-s);
+  color: var(--cor-texto-suave);
+}
+
+.soma {
+  margin: 0;
 }
 
 .acoes {
   display: flex;
   gap: var(--espaco-3);
   justify-content: flex-end;
+}
+
+.apenasLeitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
