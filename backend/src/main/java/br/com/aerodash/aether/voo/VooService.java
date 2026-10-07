@@ -1,7 +1,6 @@
 package br.com.aerodash.aether.voo;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
-import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -9,6 +8,7 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
@@ -24,28 +24,31 @@ import org.springframework.transaction.annotation.Transactional;
  * O diário de voos. Cada lançamento alimenta os contadores da aeronave — horas de célula, km e
  * pousos — e cada correção ou exclusão estorna antes de reaplicar: o contador é consequência do
  * diário, nunca uma segunda fonte da verdade.
+ *
+ * <p>Toda escrita trava a linha da aeronave antes de ler os contadores, e a correção e a exclusão
+ * travam também a do trecho: lançamentos simultâneos na mesma aeronave passam um de cada vez.
  */
 @Service
 public class VooService {
 
   private final TrechoRepository trechos;
-  private final AeronaveRepository aeronaves;
+  private final AeronaveDoDiarioRepository aeronavesDoDiario;
   private final ProprietarioRepository proprietarios;
-  private final ParticipantesDoVoo participantes;
+  private final ValidacaoDoTrecho validacao;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
   public VooService(
       TrechoRepository trechos,
-      AeronaveRepository aeronaves,
+      AeronaveDoDiarioRepository aeronavesDoDiario,
       ProprietarioRepository proprietarios,
-      ParticipantesDoVoo participantes,
+      ValidacaoDoTrecho validacao,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.trechos = trechos;
-    this.aeronaves = aeronaves;
+    this.aeronavesDoDiario = aeronavesDoDiario;
     this.proprietarios = proprietarios;
-    this.participantes = participantes;
+    this.validacao = validacao;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -79,90 +82,95 @@ public class VooService {
 
   @Transactional
   public TrechoResponse criar(TrechoRequest request) {
-    Aeronave aeronave = exigirAeronave(request.aeronaveId());
-    validarAtribuicao(aeronave.getId(), request.proprietarioId());
+    Aeronave aeronave = travarAeronave(request.aeronaveId());
+    validacao.exigirAtribuicaoValida(aeronave.getId(), request.proprietarioId());
+    DadosDoTrecho dados = dadosDe(request);
+    validacao.exigirTrechoInedito(aeronave.getId(), dados, null);
 
-    DadosDoTrecho dados = validarHorarios(dadosDe(request));
     Instant agora = Instant.now(relogio);
     Trecho trecho = new Trecho(aeronave.getId(), dados, agora);
+    validacao.exigirHorariosCoerentes(trecho, agora);
+    validacao.exigirDataNaJanela(trecho, hojeEm(agora));
     trecho = trechos.save(trecho);
 
     somarNosContadores(aeronave, trecho, 1, agora);
     contexto.registrar("trecho.id", trecho.getId());
-    contexto.decisao("trecho.vooDeManutencao", trecho.ehVooDeManutencao());
     return paraLinhas(List.of(trecho)).get(0);
   }
 
+  /**
+   * Corrige o trecho. O que não mudou não é julgado de novo: a atribuição a quem ficou inativo
+   * continua (decisão de produto D12) e a data de um planejado antigo não barra a correção das
+   * observações. Uma recusa depois do estorno desfaz tudo com a transação.
+   */
   @Transactional
   public TrechoResponse atualizar(Long id, TrechoRequest request) {
-    Trecho trecho = exigirTrecho(id);
+    Trecho trecho = travarTrecho(id);
+    exigirMesmaAeronave(trecho, request.aeronaveId());
 
-    // A aeronave do trecho não muda numa correção: os contadores dela já contam este voo, e a
-    // troca silenciosa deixaria as duas erradas. Corrigir aeronave é excluir e relançar.
-    boolean trocaDeAeronave = !Objects.equals(request.aeronaveId(), trecho.getAeronaveId());
-    contexto.decisao("trecho.trocaDeAeronave", trocaDeAeronave);
-    if (trocaDeAeronave) {
-      throw new VooInvalidoException(
-          "A aeronave do trecho não muda: exclua o lançamento e relance na aeronave certa.");
+    boolean atribuicaoMudou = !Objects.equals(request.proprietarioId(), trecho.getProprietarioId());
+    contexto.decisao("trecho.atribuicaoMudou", atribuicaoMudou);
+    if (atribuicaoMudou) {
+      validacao.exigirAtribuicaoValida(trecho.getAeronaveId(), request.proprietarioId());
     }
-    validarAtribuicao(trecho.getAeronaveId(), request.proprietarioId());
-    DadosDoTrecho dados = validarHorarios(dadosDe(request));
+    Aeronave aeronave = travarAeronave(trecho.getAeronaveId());
+    DadosDoTrecho dados = dadosDe(request);
+    validacao.exigirTrechoInedito(trecho.getAeronaveId(), dados, trecho.getId());
+    boolean dataMudou = !Objects.equals(dados.data(), trecho.getData());
 
-    Aeronave aeronave = exigirAeronave(trecho.getAeronaveId());
     Instant agora = Instant.now(relogio);
     somarNosContadores(aeronave, trecho, -1, agora);
     trecho.atualizar(dados, agora);
+    validacao.exigirHorariosCoerentes(trecho, agora);
+    contexto.decisao("trecho.dataMudou", dataMudou);
+    if (dataMudou) {
+      validacao.exigirDataNaJanela(trecho, hojeEm(agora));
+    }
     somarNosContadores(aeronave, trecho, 1, agora);
     return paraLinhas(List.of(trecho)).get(0);
   }
 
   @Transactional
   public void excluir(Long id) {
-    Trecho trecho = exigirTrecho(id);
-    Aeronave aeronave = exigirAeronave(trecho.getAeronaveId());
+    Trecho trecho = travarTrecho(id);
+    Aeronave aeronave = travarAeronave(trecho.getAeronaveId());
 
     somarNosContadores(aeronave, trecho, -1, Instant.now(relogio));
     trechos.delete(trecho);
     contexto.registrar("trecho.excluido", id);
   }
 
-  private void validarAtribuicao(Long aeronaveId, Long proprietarioId) {
-    if (proprietarioId == null) {
-      contexto.decisao("trecho.vooDeManutencao", true);
-      return;
-    }
-    Proprietario proprietario =
-        proprietarios
-            .findById(proprietarioId)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Proprietário não encontrado."));
-    contexto.decisao("trecho.proprietarioAtivo", proprietario.estaAtivo());
-    if (!proprietario.estaAtivo()) {
+  /**
+   * A aeronave do trecho não muda numa correção: os contadores dela já contam este voo, e a troca
+   * silenciosa deixaria as duas erradas. Corrigir aeronave é excluir e relançar.
+   */
+  private void exigirMesmaAeronave(Trecho trecho, Long aeronaveId) {
+    boolean trocaDeAeronave = !Objects.equals(aeronaveId, trecho.getAeronaveId());
+    contexto.decisao("trecho.trocaDeAeronave", trocaDeAeronave);
+    if (trocaDeAeronave) {
       throw new VooInvalidoException(
-          "Proprietário inativo não recebe atribuição de voo: reative "
-              + proprietario.getNome()
-              + " antes.");
-    }
-    boolean participa = participantes.participaOuParticipou(aeronaveId, proprietarioId);
-    contexto.decisao("trecho.proprietarioParticipa", participa);
-    if (!participa) {
-      throw new VooInvalidoException(
-          proprietario.getNome()
-              + " nunca participou desta aeronave: inclua-o no contrato ou lance como manutenção.");
+          "A aeronave do trecho não muda: exclua o lançamento e relance na aeronave certa.",
+          "aeronaveId");
     }
   }
 
-  private Aeronave exigirAeronave(Long aeronaveId) {
+  /** A aeronave vem do corpo: a que não existe é um campo errado (400), não uma rota (404). */
+  private Aeronave travarAeronave(Long aeronaveId) {
     contexto.registrar("aeronave.id", aeronaveId);
-    return aeronaves
-        .findById(aeronaveId)
-        .orElseThrow(() -> new RecursoNaoEncontradoException("Aeronave não encontrada."));
+    return aeronavesDoDiario
+        .findTravadaById(aeronaveId)
+        .orElseThrow(() -> new VooInvalidoException("Aeronave não encontrada.", "aeronaveId"));
   }
 
-  private Trecho exigirTrecho(Long id) {
+  private Trecho travarTrecho(Long id) {
     contexto.registrar("trecho.id", id);
     return trechos
-        .findById(id)
+        .findTravadoById(id)
         .orElseThrow(() -> new RecursoNaoEncontradoException("Trecho não encontrado."));
+  }
+
+  private LocalDate hojeEm(Instant agora) {
+    return LocalDate.ofInstant(agora, relogio.getZone());
   }
 
   /**
@@ -179,15 +187,6 @@ public class VooService {
     BigDecimal fator = BigDecimal.valueOf(sinal);
     aeronave.acumularVoo(
         trecho.horasParaContadores().multiply(fator), trecho.getKm().multiply(fator), sinal, agora);
-  }
-
-  private DadosDoTrecho validarHorarios(DadosDoTrecho dados) {
-    boolean coerentes = Trecho.possuiHorariosCoerentes(dados);
-    contexto.decisao("trecho.horariosCoerentes", coerentes);
-    if (!coerentes) {
-      throw new VooInvalidoException("O pouso precisa ser depois da partida.");
-    }
-    return dados;
   }
 
   private DadosDoTrecho dadosDe(TrechoRequest request) {
@@ -209,7 +208,7 @@ public class VooService {
   /** Nome, cor e matrícula em lote: a grade não faz uma busca por linha. */
   private List<TrechoResponse> paraLinhas(List<Trecho> recorte) {
     Map<Long, Aeronave> frota =
-        aeronaves
+        aeronavesDoDiario
             .findAllById(recorte.stream().map(Trecho::getAeronaveId).distinct().toList())
             .stream()
             .collect(Collectors.toMap(Aeronave::getId, Function.identity()));
@@ -254,11 +253,18 @@ public class VooService {
         trecho.getObservacoes());
   }
 
+  /**
+   * Os totais do realizado, o mesmo critério dos contadores: o planejado ainda não gastou hora,
+   * quilômetro nem pouso, e somá-lo em parte das colunas fazia a linha não bater com nada.
+   */
   private DiarioDeVoosResponse.TotaisDoDiario totaisDe(List<Trecho> recorte) {
+    List<Trecho> realizados = recorte.stream().filter(Trecho::estaRealizado).toList();
     BigDecimal horas =
-        recorte.stream().map(Trecho::horasParaContadores).reduce(BigDecimal.ZERO, BigDecimal::add);
-    BigDecimal km = recorte.stream().map(Trecho::getKm).reduce(BigDecimal.ZERO, BigDecimal::add);
-    return new DiarioDeVoosResponse.TotaisDoDiario(horas, km, recorte.size());
+        realizados.stream()
+            .map(Trecho::horasParaContadores)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal km = realizados.stream().map(Trecho::getKm).reduce(BigDecimal.ZERO, BigDecimal::add);
+    return new DiarioDeVoosResponse.TotaisDoDiario(horas, km, realizados.size());
   }
 
   private static Instant instante(OffsetDateTime horario) {

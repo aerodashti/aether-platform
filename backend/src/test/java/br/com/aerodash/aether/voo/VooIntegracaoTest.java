@@ -12,6 +12,15 @@ import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -46,6 +55,7 @@ class VooIntegracaoTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private AeronaveRepository aeronaves;
+  @Autowired private VooService voos;
   @Autowired private ObjectMapper json;
 
   @Test
@@ -63,7 +73,78 @@ class VooIntegracaoTest {
                 .value(org.hamcrest.Matchers.containsInAnyOrder(1, 2)))
         .andExpect(
             jsonPath("$.trechos[?(@.relatorioDeVoo=='RV-2026-043')].vooDeManutencao").value(true))
-        .andExpect(jsonPath("$.totais.pousos").value(4));
+        // Quatro trechos, mas o RV-2026-042 só tem o previsto: os totais são do realizado.
+        .andExpect(jsonPath("$.trechos.length()").value(4))
+        .andExpect(jsonPath("$.totais.pousos").value(3))
+        .andExpect(jsonPath("$.totais.km").value(788.0));
+  }
+
+  @Test
+  @DisplayName("lançamentos simultâneos na mesma aeronave chegam todos aos contadores")
+  void lancamentosSimultaneosNaoSePerdem() throws Exception {
+    Aeronave ptXlb = aeronaves.findByMatricula("PT-XLB").orElseThrow();
+    int ciclosAntes = ptXlb.getContadores().ciclos();
+    BigDecimal kmAntes = ptXlb.getContadores().kmVoados();
+    int lancamentos = 8;
+    ExecutorService pilotos = Executors.newFixedThreadPool(lancamentos);
+    CountDownLatch largada = new CountDownLatch(1);
+    List<Future<TrechoResponse>> resultados = new ArrayList<>();
+
+    for (int indice = 1; indice <= lancamentos; indice++) {
+      TrechoRequest trecho = voadoEm(ptXlb.getId(), "RV-SIMULTANEO-" + indice);
+      resultados.add(
+          pilotos.submit(
+              () -> {
+                largada.await();
+                return voos.criar(trecho);
+              }));
+    }
+    largada.countDown();
+    List<Long> criados = new ArrayList<>();
+    for (Future<TrechoResponse> resultado : resultados) {
+      criados.add(resultado.get(30, TimeUnit.SECONDS).id());
+    }
+    pilotos.shutdown();
+
+    Aeronave depois = aeronaves.findById(ptXlb.getId()).orElseThrow();
+    assertThat(depois.getContadores().ciclos()).isEqualTo(ciclosAntes + lancamentos);
+    assertThat(depois.getContadores().kmVoados())
+        .isEqualByComparingTo(
+            kmAntes.add(BigDecimal.TEN.multiply(BigDecimal.valueOf(lancamentos))));
+    criados.forEach(voos::excluir);
+  }
+
+  @Test
+  @DisplayName("o mesmo trecho do mesmo voo, em outra caixa, é 409 no nº do trecho")
+  void trechoRepetidoEhRecusado() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+
+    mockMvc
+        .perform(
+            post("/voos")
+                .cookie(entrar())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json.writeValueAsString(voadoEm(psMep, "  rv-2026-041 "))))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.campos.numeroDoTrecho").exists());
+  }
+
+  /** Um trecho de 1 h e 10 km já voado, nº 1 do Rel. Voo dado. */
+  private static TrechoRequest voadoEm(Long aeronaveId, String relatorioDeVoo) {
+    return new TrechoRequest(
+        aeronaveId,
+        relatorioDeVoo,
+        1,
+        LocalDate.parse("2026-09-09"),
+        "SBJD",
+        "SBGR",
+        BigDecimal.TEN,
+        null,
+        null,
+        OffsetDateTime.parse("2026-09-09T13:00:00Z"),
+        OffsetDateTime.parse("2026-09-09T14:00:00Z"),
+        null,
+        null);
   }
 
   @Test

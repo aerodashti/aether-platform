@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(VooController.class)
 @DisplayName("VooController")
@@ -162,5 +163,84 @@ class VooControllerTest {
         .andExpect(jsonPath("$.campos.origem").exists());
 
     verify(voos, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("km além da coluna ou com duas casas é 400 no campo, não 500 do banco")
+  void kmForaDaColuna() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+
+    for (String km : new String[] {"10000000", "12.34"}) {
+      mockMvc
+          .perform(lancar(corpo("1", km)))
+          .andExpect(status().isBadRequest())
+          .andExpect(
+              jsonPath("$.campos.km").value("Use no máximo 9.999.999,9 km, com uma casa decimal."));
+    }
+    verify(voos, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("nº do trecho com casas decimais é recusado no campo, em vez de truncado")
+  void numeroDoTrechoDecimal() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+
+    mockMvc
+        .perform(lancar(corpo("1.7", "365.0")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.numeroDoTrecho").exists());
+    verify(voos, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("a recusa de regra do trecho volta em campos, no nome do JSON")
+  void recusaDeRegraNoCampo() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+    when(voos.criar(any()))
+        .thenThrow(
+            new VooInvalidoException("O pouso precisa ser depois da partida.", "pousoRealizado"));
+
+    mockMvc
+        .perform(lancar(corpo("1", "365.0")))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.pousoRealizado").value("O pouso precisa ser depois da partida."));
+  }
+
+  @Test
+  @DisplayName("trecho repetido é 409 apontando o nº do trecho")
+  void trechoRepetido() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+    when(voos.criar(any())).thenThrow(new TrechoRepetidoException("RV-2026-041", 1));
+
+    mockMvc
+        .perform(lancar(corpo("1", "365.0")))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.campos.numeroDoTrecho").exists());
+  }
+
+  @Test
+  @DisplayName("verbo que a rota do trecho não aceita é 405, não 500")
+  void verboNaoAceito() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
+
+    mockMvc
+        .perform(get("/voos/1").cookie(new Cookie("aether_sessao", TOKEN)))
+        .andExpect(status().isMethodNotAllowed());
+  }
+
+  private static String corpo(String numeroDoTrecho, String km) {
+    return """
+        {"aeronaveId":1,"relatorioDeVoo":"RV-2026-041","numeroDoTrecho":%s,
+         "data":"2026-09-08","origem":"SBSP","destino":"SBRJ","km":%s}
+        """
+        .formatted(numeroDoTrecho, km);
+  }
+
+  private static MockHttpServletRequestBuilder lancar(String corpo) {
+    return post("/voos")
+        .cookie(new Cookie("aether_sessao", TOKEN))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(corpo);
   }
 }

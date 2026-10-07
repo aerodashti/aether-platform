@@ -7,11 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * Uma perna voada. Trechos com o mesmo relatório de voo formam o voo completo — todas as pernas
@@ -21,6 +21,9 @@ import java.util.Locale;
 @Entity
 @Table(name = "trecho")
 public class Trecho {
+
+  /** A primeira data aceita para um trecho realizado (decisão de produto D1). */
+  public static final LocalDate PRIMEIRA_DATA = LocalDate.of(2000, 1, 1);
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,12 +88,20 @@ public class Trecho {
     return codigo == null ? null : codigo.trim().toUpperCase(Locale.ROOT);
   }
 
+  /**
+   * O Rel. Voo agrupa os trechos por igualdade: "rv-2026-041" e "RV-2026-041" são o mesmo voo, no
+   * diário, na conferência de duplicidade e no casamento com o custo (decisão de produto D19).
+   */
+  public static String normalizarRelatorio(String relatorioDeVoo) {
+    return relatorioDeVoo == null ? null : relatorioDeVoo.trim().toUpperCase(Locale.ROOT);
+  }
+
   public void atualizar(DadosDoTrecho dados, Instant momento) {
     preencher(dados, momento);
   }
 
   private void preencher(DadosDoTrecho dados, Instant momento) {
-    this.relatorioDeVoo = dados.relatorioDeVoo().trim();
+    this.relatorioDeVoo = normalizarRelatorio(dados.relatorioDeVoo());
     this.numeroDoTrecho = dados.numeroDoTrecho();
     this.data = dados.data();
     this.origem = normalizarAerodromo(dados.origem());
@@ -112,22 +123,37 @@ public class Trecho {
     return proprietarioId == null;
   }
 
+  public ParDeHorarios previsto() {
+    return new ParDeHorarios(partidaPrevista, pousoPrevisto);
+  }
+
+  public ParDeHorarios realizado() {
+    return new ParDeHorarios(partidaRealizada, pousoRealizado);
+  }
+
   /** Realizado é o trecho com o par de horários realizados: só ele move os contadores. */
   public boolean estaRealizado() {
-    return partidaRealizada != null && pousoRealizado != null;
+    return realizado().estaCompleto();
   }
 
   /**
-   * Os horários são instantes: o pouso tem que vir depois da partida, em cada par. Antes deles
-   * serem instantes, 10:00 depois de 10:45 virava um voo de 23 horas.
+   * Horário realizado é fato: nenhum fica depois do {@code limite} — agora, com a folga do relógio
+   * de bordo (decisão de produto D1).
    */
-  public static boolean possuiHorariosCoerentes(DadosDoTrecho dados) {
-    return pousoDepoisDaPartida(dados.partidaPrevista(), dados.pousoPrevisto())
-        && pousoDepoisDaPartida(dados.partidaRealizada(), dados.pousoRealizado());
+  public boolean possuiRealizadoAte(Instant limite) {
+    return Stream.of(partidaRealizada, pousoRealizado)
+        .filter(Objects::nonNull)
+        .noneMatch(horario -> horario.isAfter(limite));
   }
 
-  private static boolean pousoDepoisDaPartida(Instant partida, Instant pouso) {
-    return partida == null || pouso == null || pouso.isAfter(partida);
+  /**
+   * As datas que este trecho aceita. O realizado é fato: de 2000 até hoje (D1). O planejado vai de
+   * um ano para trás — o registro tardio — a dez anos à frente (D2).
+   */
+  public JanelaDeDatas janelaDaData(LocalDate hoje) {
+    return estaRealizado()
+        ? new JanelaDeDatas(PRIMEIRA_DATA, hoje)
+        : new JanelaDeDatas(hoje.minusYears(1), hoje.plusYears(10));
   }
 
   /**
@@ -136,17 +162,7 @@ public class Trecho {
    * afirmações diferentes.
    */
   public BigDecimal duracaoEmHoras() {
-    return estaRealizado()
-        ? horasEntre(partidaRealizada, pousoRealizado)
-        : horasEntre(partidaPrevista, pousoPrevisto);
-  }
-
-  private static BigDecimal horasEntre(Instant partida, Instant pouso) {
-    if (partida == null || pouso == null) {
-      return null;
-    }
-    return BigDecimal.valueOf(Duration.between(partida, pouso).toMinutes())
-        .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP);
+    return estaRealizado() ? realizado().horas() : previsto().horas();
   }
 
   /**
@@ -163,7 +179,7 @@ public class Trecho {
    * célula, ciclo nem quilômetro (decisão de produto, 2026-10-07).
    */
   public BigDecimal horasParaContadores() {
-    return estaRealizado() ? horasEntre(partidaRealizada, pousoRealizado) : BigDecimal.ZERO;
+    return estaRealizado() ? realizado().horas() : BigDecimal.ZERO;
   }
 
   public Long getId() {
@@ -228,5 +244,13 @@ public class Trecho {
 
   public Instant getAtualizadoEm() {
     return atualizadoEm;
+  }
+
+  /** Um intervalo fechado de datas. */
+  public record JanelaDeDatas(LocalDate minimo, LocalDate maximo) {
+
+    public boolean contem(LocalDate data) {
+      return !data.isBefore(minimo) && !data.isAfter(maximo);
+    }
   }
 }
