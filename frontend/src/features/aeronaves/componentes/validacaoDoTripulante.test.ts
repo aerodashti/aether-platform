@@ -45,7 +45,7 @@ describe('validarTripulante', () => {
     );
     expect(erros({ horasTotais: '-1' }).horasTotais).toBe('O mínimo é 0.');
     expect(erros({ horasTotais: '60.000,1' }).horasTotais).toBe('O máximo é 60.000.');
-    expect(erros({ horasTotais: '12,35' }).horasTotais).toBe('Use no máximo 1 casas decimais.');
+    expect(erros({ horasTotais: '12,35' }).horasTotais).toBe('Use no máximo 1 casa decimal.');
   });
 
   it('a validade vai de 01/01/2000 a cinco anos à frente; vencida é aceita', () => {
