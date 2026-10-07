@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -10,8 +10,10 @@ import {
   type RendimentoResponse,
   type RendimentosResponse,
 } from '../api/useAportes';
+import { useExclusaoNaGrade } from '../hooks/useExclusaoNaGrade';
 
 import { AcoesDaLinha } from './AcoesDaLinha';
+import { FalhaDaExclusao } from './FalhaDaExclusao';
 import estilos from './Grade.module.css';
 import { competenciaEmTexto, dataCurta, moedaEmTexto, taxaEmTexto } from './rotulos';
 
@@ -35,12 +37,19 @@ export function TabelaDeRendimentos({
   aoCorrigir,
   aoTentarDeNovo,
 }: TabelaDeRendimentosProps) {
-  const excluir = useExcluirRendimento();
-  const [confirmando, setConfirmando] = useState<number | null>(null);
+  const exclusao = useExclusaoNaGrade(useExcluirRendimento());
   const linha = juntarClasses(estilos.rendimentos, mostraAeronave && estilos.comAeronave);
+  // A falha fica no mesmo lugar em todo estado da grade: se a linha excluída era a última, ela some
+  // e a grade vira o recado de vazio, mas o aviso continua.
+  const comFalha = (conteudo: ReactNode) => (
+    <>
+      <FalhaDaExclusao falha={exclusao.falha} />
+      {conteudo}
+    </>
+  );
 
   if (erro) {
-    return (
+    return comFalha(
       <div className={estilos.recado} role="alert">
         <Texto variante="corpo" como="p">
           Não foi possível carregar os rendimentos.
@@ -48,31 +57,31 @@ export function TabelaDeRendimentos({
         <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
           Tentar de novo
         </Botao>
-      </div>
+      </div>,
     );
   }
 
   if (carregando) {
-    return (
+    return comFalha(
       <div className={estilos.recado} role="status">
         <Esqueleto />
         <span className={estilos.apenasLeitor}>Carregando os rendimentos…</span>
-      </div>
+      </div>,
     );
   }
 
   const rendimentos = resposta?.rendimentos ?? [];
   if (rendimentos.length === 0) {
-    return (
+    return comFalha(
       <div className={estilos.recado}>
         <Texto variante="corpo" como="p">
           Nenhum rendimento registrado no período selecionado.
         </Texto>
-      </div>
+      </div>,
     );
   }
 
-  return (
+  return comFalha(
     <table role="table" className={estilos.grade}>
       <thead role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={juntarClasses(estilos.cabecalho, linha)}>
@@ -139,14 +148,12 @@ export function TabelaDeRendimentos({
                 {podeGerir ? (
                   <AcoesDaLinha
                     descricao={descricao}
-                    confirmando={confirmando === id}
-                    excluindo={excluir.isPending}
+                    confirmando={exclusao.confirmando === id}
+                    excluindo={exclusao.excluindo}
                     aoEditar={() => aoCorrigir(rendimento)}
-                    aoPedirExclusao={() => setConfirmando(id)}
-                    aoConfirmar={() =>
-                      excluir.mutate(id, { onSettled: () => setConfirmando(null) })
-                    }
-                    aoDesistir={() => setConfirmando(null)}
+                    aoPedirExclusao={() => exclusao.pedir(id)}
+                    aoConfirmar={() => exclusao.confirmar(id, descricao)}
+                    aoDesistir={exclusao.desistir}
                   />
                 ) : null}
               </td>
@@ -170,6 +177,6 @@ export function TabelaDeRendimentos({
           <td role="cell" className={estilos.celula} />
         </tr>
       </tfoot>
-    </table>
+    </table>,
   );
 }

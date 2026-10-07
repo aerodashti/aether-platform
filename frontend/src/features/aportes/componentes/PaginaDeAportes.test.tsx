@@ -16,11 +16,10 @@ function envolver(conteudo: ReactNode, url = '/aportes') {
   );
 }
 
-function respostaDe(corpo: unknown) {
+function respostaDe(corpo: unknown, status = 200) {
   return {
-    ok: true,
-    status: 200,
-    statusText: 'OK',
+    ok: status >= 200 && status < 300,
+    status,
     headers: new Headers({ 'X-Request-Id': 'abc-123' }),
     json: () => Promise.resolve(corpo),
   } as unknown as Response;
@@ -74,10 +73,16 @@ const RENDIMENTOS = {
   total: 948.22,
 };
 
-function prepararFetch(sessao: unknown) {
+function prepararFetch(
+  sessao: unknown,
+  envio: () => Promise<Response> = () => Promise.resolve(respostaDe(undefined, 204)),
+) {
   vi.stubGlobal(
     'fetch',
-    vi.fn((entrada: string) => {
+    vi.fn((entrada: string, opcoes?: RequestInit) => {
+      if (opcoes?.method && opcoes.method !== 'GET') {
+        return envio();
+      }
       if (entrada.startsWith('/api/autenticacao/sessao')) {
         return Promise.resolve(respostaDe(sessao));
       }
@@ -176,6 +181,21 @@ describe('PaginaDeAportes', () => {
     const painel = await screen.findByRole('dialog', { name: 'Registrar aporte' });
     await userEvent.click(within(painel).getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('dialog', { name: 'Registrar aporte' })).not.toBeInTheDocument();
+  });
+
+  it('a exclusão que falha diz o porquê sobre a grade', async () => {
+    prepararFetch(GESTORA, () =>
+      Promise.resolve(respostaDe({ detail: 'Aporte não encontrado.' }, 404)),
+    );
+    envolver(<PaginaDeAportes />);
+
+    const descricao = 'aporte de Ricardo Meirelles em 03/10/26';
+    await userEvent.click(await screen.findByRole('button', { name: `Excluir ${descricao}` }));
+    await userEvent.click(screen.getByRole('button', { name: `Sim, excluir ${descricao}` }));
+
+    expect(
+      await screen.findByText('O aporte de Ricardo Meirelles em 03/10/26 já tinha sido excluído.'),
+    ).toBeInTheDocument();
   });
 
   it('o proprietário só lê: sem registrar, editar ou excluir', async () => {

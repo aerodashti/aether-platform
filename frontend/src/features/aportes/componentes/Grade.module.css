@@ -170,6 +170,12 @@
   text-align: center;
 }
 
+/* A exclusão que falhou, dita sobre a grade. Vazia, a região viva não ocupa espaço. */
+.falha:not(:empty) {
+  padding: var(--espaco-3) var(--espaco-6);
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
 .apenasLeitor {
   position: absolute;
   width: 1px;
