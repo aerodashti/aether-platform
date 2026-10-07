@@ -52,9 +52,10 @@ public class TrocaController {
   }
 
   @PostMapping("/{id}/conclusao")
-  @Operation(summary = "Registra a devolução das horas")
-  public TrocaResponse concluir(@PathVariable Long id) {
-    return trocas.concluir(id);
+  @Operation(summary = "Registra a devolução das horas, na data em que ela aconteceu")
+  public TrocaResponse concluir(
+      @PathVariable Long id, @Valid @RequestBody ConclusaoDaTrocaRequest request) {
+    return trocas.concluir(id, request);
   }
 
   @PostMapping("/{id}/reabertura")

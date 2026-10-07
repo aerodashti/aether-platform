@@ -31,6 +31,21 @@ class TrocaDeKmTest {
         AGORA);
   }
 
+  private static TrocaDeKm trocaEm(String data) {
+    return new TrocaDeKm(
+        1L,
+        new DadosDaTroca(
+            LocalDate.parse(data),
+            RICARDO,
+            VETOR,
+            new BigDecimal("2.5"),
+            null,
+            null,
+            " rv-2026-041 ",
+            null),
+        AGORA);
+  }
+
   @Test
   @DisplayName("nasce pendente: quem recebeu deve as horas, quem cedeu tem a receber")
   void horasADevolver() {
@@ -70,5 +85,57 @@ class TrocaDeKmTest {
   @DisplayName("ceder a si mesmo não é troca")
   void mesmoProprietario() {
     assertThat(troca(RICARDO, RICARDO, null).ehEntreProprietariosDiferentes()).isFalse();
+  }
+
+  @Test
+  @DisplayName("o Rel. Voo vai em maiúsculas e sem espaços, como no custo e no trecho")
+  void relatorioDeVooNormalizado() {
+    assertThat(trocaEm("2026-09-20").getRelatorioDeVoo()).isEqualTo("RV-2026-041");
+  }
+
+  @Test
+  @DisplayName("a data vai de 01/01/2000 até hoje: a troca registra horas já voadas")
+  void dataAceitavel() {
+    LocalDate hoje = LocalDate.parse("2026-10-06");
+
+    assertThat(trocaEm("2000-01-01").possuiDataAceitavel(hoje)).isTrue();
+    assertThat(trocaEm("2026-10-06").possuiDataAceitavel(hoje)).isTrue();
+    assertThat(trocaEm("1999-12-31").possuiDataAceitavel(hoje)).isFalse();
+    assertThat(trocaEm("2026-10-07").possuiDataAceitavel(hoje)).isFalse();
+  }
+
+  @Test
+  @DisplayName("a devolução fica entre a data da troca e hoje")
+  void devolucaoEntreATrocaEHoje() {
+    TrocaDeKm troca = trocaEm("2026-09-20");
+    LocalDate hoje = LocalDate.parse("2026-10-06");
+
+    assertThat(troca.podeSerDevolvidaEm(LocalDate.parse("2026-09-20"), hoje)).isTrue();
+    assertThat(troca.podeSerDevolvidaEm(hoje, hoje)).isTrue();
+    assertThat(troca.podeSerDevolvidaEm(LocalDate.parse("2026-09-19"), hoje)).isFalse();
+    assertThat(troca.podeSerDevolvidaEm(LocalDate.parse("2026-10-07"), hoje)).isFalse();
+  }
+
+  @Test
+  @DisplayName("corrigir a data de uma concluída para depois da devolução fica incoerente")
+  void devolucaoCoerente() {
+    TrocaDeKm troca = trocaEm("2026-09-20");
+    assertThat(troca.possuiDevolucaoCoerente()).isTrue();
+
+    troca.concluir(LocalDate.parse("2026-10-03"), AGORA);
+    assertThat(troca.possuiDevolucaoCoerente()).isTrue();
+
+    troca.atualizar(
+        new DadosDaTroca(
+            LocalDate.parse("2026-10-05"),
+            RICARDO,
+            VETOR,
+            new BigDecimal("2.5"),
+            null,
+            null,
+            null,
+            null),
+        AGORA);
+    assertThat(troca.possuiDevolucaoCoerente()).isFalse();
   }
 }
