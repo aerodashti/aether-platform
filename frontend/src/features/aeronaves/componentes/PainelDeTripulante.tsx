@@ -83,7 +83,6 @@ export function PainelDeTripulante({ aeronaveId, tripulante, aoFechar }: PainelD
         aoMudar={setNome}
         maxLength={120}
         autoComplete="off"
-        erro={erro}
       />
       <div className={estilos.duasColunas}>
         <CampoDeTexto
@@ -156,6 +155,15 @@ export function PainelDeTripulante({ aeronaveId, tripulante, aoFechar }: PainelD
         marcador
         larguraIgual
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

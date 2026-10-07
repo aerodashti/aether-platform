@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ public class AeronaveService {
   private final AeronaveRepository aeronaves;
   private final AeronaveMapper mapper;
   private final PoliticaDeVencimento politica;
+  private final PendenciasDaFrota pendencias;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
@@ -23,11 +25,13 @@ public class AeronaveService {
       AeronaveRepository aeronaves,
       AeronaveMapper mapper,
       PoliticaDeVencimento politica,
+      PendenciasDaFrota pendencias,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.aeronaves = aeronaves;
     this.mapper = mapper;
     this.politica = politica;
+    this.pendencias = pendencias;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -35,10 +39,23 @@ public class AeronaveService {
   @Transactional(readOnly = true)
   public List<AeronaveResponse> listar() {
     LocalDate hoje = LocalDate.now(relogio);
+    int diasDeAviso = politica.diasDeAviso();
+    List<Aeronave> todas = aeronaves.findAllByOrderByMatriculaAsc();
+    Map<Long, List<PendenciaOperacional>> pendenciasDaFrota =
+        pendencias.de(todas, hoje, diasDeAviso);
     List<AeronaveResponse> frota =
-        aeronaves.findAllByOrderByMatriculaAsc().stream()
-            .map(aeronave -> mapper.paraLinhaDaFrota(aeronave, hoje, politica.diasDeAviso()))
+        todas.stream()
+            .map(
+                aeronave ->
+                    mapper.paraLinhaDaFrota(
+                        aeronave,
+                        hoje,
+                        diasDeAviso,
+                        pendenciasDaFrota.getOrDefault(aeronave.getId(), List.of())))
             .toList();
+    contexto.registrar(
+        "frota.comPendencia",
+        pendenciasDaFrota.values().stream().filter(l -> !l.isEmpty()).count());
 
     contexto.registrar("frota.aeronaves", frota.size());
     contexto.registrar(
@@ -164,6 +181,9 @@ public class AeronaveService {
   }
 
   private DetalheDaAeronaveResponse paraDetalhe(Aeronave aeronave) {
-    return mapper.paraDetalhe(aeronave, LocalDate.now(relogio), politica.diasDeAviso());
+    LocalDate hoje = LocalDate.now(relogio);
+    int diasDeAviso = politica.diasDeAviso();
+    return mapper.paraDetalhe(
+        aeronave, hoje, diasDeAviso, pendencias.de(aeronave, hoje, diasDeAviso));
   }
 }

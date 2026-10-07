@@ -1,4 +1,5 @@
-/* A régua da armadura: id (rel. voo), data, id, id, número, número, rótulo e ações. */
+/* A régua da armadura: lockup (rel. voo · trecho, e a matrícula embaixo), data, id, id, número,
+   número, rótulo e ações. O Rel. Voo com o número do trecho não cabe na coluna de id. */
 .grade {
   display: block;
   width: 100%;
@@ -14,7 +15,7 @@
 .totais {
   display: grid;
   grid-template-columns:
-    var(--armadura-id) var(--armadura-data) var(--armadura-id) var(--armadura-id)
+    var(--armadura-lockup) var(--armadura-data) var(--armadura-id) var(--armadura-id)
     var(--armadura-numero) var(--armadura-numero) var(--armadura-rotulo)
     var(--armadura-acao-texto);
   gap: var(--armadura-gap);
@@ -23,12 +24,14 @@
 
 .cabecalho {
   padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
-  background: var(--cor-superficie-sutil);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -44,7 +47,7 @@
 
 .linha {
   min-height: var(--controle-altura-p);
-  padding: var(--espaco-1) var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-6);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 
@@ -69,6 +72,7 @@
 }
 
 .identificador {
+  display: block;
   overflow: hidden;
   font-family: var(--fonte-mono);
   font-size: var(--tamanho-s);
@@ -97,6 +101,7 @@
 }
 
 .dado {
+  display: block;
   overflow: hidden;
   font-size: var(--tamanho-s);
   line-height: var(--altura-s);
@@ -132,6 +137,20 @@
   color: var(--cor-texto-suave);
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/* A etiqueta tingida do protótipo: o fundo na cor de identificação de quem voou. O texto fica na
+   cor de texto — algumas cores da paleta são claras demais para serem texto. */
+.etiquetaDoDono {
+  min-width: 0;
+  padding: var(--espaco-1) var(--espaco-3);
+  overflow: hidden;
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--cor-da-amostra) 16%, transparent);
+  border-radius: var(--raio-m);
 }
 
 .trunca {

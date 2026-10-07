@@ -52,7 +52,14 @@ class AvisoServiceTest {
 
   private static Aviso aviso(String chave, GravidadeDoAviso gravidade, Long aeronave) {
     return new Aviso(
-        chave, CategoriaDoAviso.DOCUMENTOS, gravidade, "t", "d", aeronave, LocalDate.now(), "/x");
+        chave,
+        CategoriaDoAviso.DOCUMENTOS,
+        gravidade,
+        "t",
+        "d",
+        aeronave,
+        LocalDate.parse("2026-09-30"),
+        "/x");
   }
 
   @Test

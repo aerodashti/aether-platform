@@ -170,7 +170,6 @@ export function PainelDeTroca({ troca, aoFechar }: PainelDeTrocaProps) {
           aoMudar={setRelatorioDeVoo}
           maxLength={20}
           exemplo="RV-1042"
-          erro={erro}
         />
       </div>
       <AreaDeTexto
@@ -180,6 +179,15 @@ export function PainelDeTroca({ troca, aoFechar }: PainelDeTrocaProps) {
         maxLength={300}
         exemplo="Quem utilizou a aeronave, trecho, motivo da troca e condição de devolução."
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

@@ -81,7 +81,6 @@ export function PainelDeParametro({ aeronaveId, parametro, aoFechar }: PainelDeP
         aoMudar={setNome}
         exemplo="Inspeção de célula — 4.000 h"
         maxLength={120}
-        erro={erro}
       />
       <GrupoDeOpcoes
         rotulo="Régua do parâmetro"
@@ -111,6 +110,15 @@ export function PainelDeParametro({ aeronaveId, parametro, aoFechar }: PainelDeP
         inputMode="numeric"
         apoio="Dentro dessa faixa o parâmetro vira atenção."
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

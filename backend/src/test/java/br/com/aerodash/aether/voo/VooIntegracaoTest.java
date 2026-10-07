@@ -84,7 +84,9 @@ class VooIntegracaoTest {
                         """
                         {"aeronaveId":%d,"relatorioDeVoo":"RV-2026-090","numeroDoTrecho":1,
                          "data":"2026-09-09","origem":"sbjd","destino":"sbgr","km":42.0,
-                         "partidaPrevista":"10:00","pousoPrevisto":"10:30"}
+                         "partidaPrevista":"2026-09-09T13:00:00Z","pousoPrevisto":"2026-09-09T13:30:00Z",
+                         "partidaRealizada":"2026-09-09T13:00:00-03:00",
+                         "pousoRealizado":"2026-09-09T13:30:00-03:00"}
                         """
                             .formatted(prKrt.getId())))
             .andExpect(status().isCreated())

@@ -58,3 +58,101 @@
   color: var(--cor-acento-texto);
   background: var(--cor-acento-vestigio);
 }
+
+/* Trilho: o fundo azulado do protótipo envolve as abas, e a ativa é uma ficha branca. */
+.trilho {
+  display: inline-flex;
+  gap: var(--espaco-1);
+  padding: var(--espaco-1);
+  background: var(--cor-acento-trilho);
+  border-bottom: 0;
+  border-radius: var(--raio-m);
+}
+
+.trilho .aba {
+  height: auto;
+  padding: var(--espaco-2) var(--espaco-4);
+  margin-bottom: 0;
+  border: 1px solid transparent;
+  border-radius: var(--raio-s);
+}
+
+.trilho .ativa {
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  border-color: var(--cor-borda);
+}
+
+/* A contagem vira o contador redondo de 18px — uma das exceções ao canto de 4px. */
+.trilho .contagem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--espaco-2);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  border-radius: var(--raio-redondo);
+}
+
+.trilho .ativa .contagem {
+  color: var(--cor-acento-contraste);
+  background: var(--cor-acento-solido);
+}
+
+/* Contorno: as abas coladas numa caixa com borda, separadas por um fio. */
+.contorno {
+  display: inline-flex;
+  gap: 0;
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.contorno .aba {
+  height: var(--controle-altura-g);
+  padding: 0 var(--espaco-5);
+  margin-bottom: 0;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  border-bottom: 0;
+}
+
+.contorno .aba + .aba {
+  border-left: 1px solid var(--cor-borda);
+}
+
+.contorno .ativa {
+  color: var(--cor-acento-escuro);
+  background: var(--cor-acento-vestigio);
+}
+
+.contorno .contagem {
+  border-radius: var(--raio-redondo);
+}
+
+/* Fichas: cada aba com borda própria, a ativa no tom de ação. */
+.fichas {
+  gap: var(--espaco-3);
+  border-bottom: 0;
+}
+
+.fichas .aba {
+  padding: 0 var(--espaco-5);
+  margin-bottom: 0;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.fichas .aba:hover {
+  border-color: var(--cor-acento);
+}
+
+.fichas .ativa {
+  color: var(--cor-acento-escuro);
+  background: var(--cor-acento-vestigio);
+  border-color: var(--cor-acento);
+}

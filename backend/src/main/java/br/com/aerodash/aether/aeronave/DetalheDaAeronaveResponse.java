@@ -3,6 +3,7 @@ package br.com.aerodash.aether.aeronave;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * A aeronave inteira, para a tela de Detalhe: identidade, conformidade, ficha técnica e
@@ -27,6 +28,8 @@ public record DetalheDaAeronaveResponse(
     LocalDate proximoVencimento,
     long diasAteOProximoVencimento,
     boolean podeVoar,
+    @Schema(description = "O que, além dos documentos, pesa na situação; da mais grave à mais leve")
+        List<PendenciaResponse> pendencias,
     LocalDate vencimentoCva,
     LocalDate vencimentoReta,
     @Schema(description = "Totais acumulados declarados") Contadores contadores,

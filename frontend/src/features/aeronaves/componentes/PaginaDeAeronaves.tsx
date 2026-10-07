@@ -19,9 +19,8 @@ import { resumoDaFrota } from './rotulos';
 const CARTOES_DO_ESQUELETO = 3;
 
 /**
- * A frota, na lista de cartões do protótipo. Dos números do cartão só a contagem de proprietários
- * está aqui — saldo do fundo e custo da competência entram com aportes e lançamentos, porque
- * coluna vazia não existe. Ver `docs/design-system.md`.
+ * A frota, na lista de cartões do protótipo: identificação, situação, próximo vencimento, saldo do
+ * fundo, custo da competência e proprietários. Ver `docs/design-system.md`.
  */
 function Resumo({ total, impedidas }: { total: number; impedidas: number }) {
   const { frota, impedimento } = resumoDaFrota(total, impedidas);

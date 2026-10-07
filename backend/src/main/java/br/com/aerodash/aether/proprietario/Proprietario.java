@@ -22,6 +22,9 @@ import java.util.Locale;
 @Table(name = "proprietario")
 public class Proprietario {
 
+  private static final int[] PESOS_DO_CPF = {11, 10, 9, 8, 7, 6, 5, 4, 3, 2};
+  private static final int[] PESOS_DO_CNPJ = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -85,11 +88,34 @@ public class Proprietario {
     return digitos.isEmpty() ? null : digitos;
   }
 
-  /** 11 dígitos é CPF, 14 é CNPJ; qualquer outro comprimento é erro de digitação. */
+  /**
+   * 11 dígitos é CPF, 14 é CNPJ, e os dois últimos são os verificadores da Receita: é o documento
+   * do titular no RAB, e um dígito trocado na digitação vira outra pessoa. A sequência repetida
+   * passa na conta, mas não é emitida.
+   */
   public static boolean cpfCnpjEhValido(String cpfCnpjNormalizado) {
-    return cpfCnpjNormalizado == null
-        || cpfCnpjNormalizado.length() == 11
-        || cpfCnpjNormalizado.length() == 14;
+    if (cpfCnpjNormalizado == null) {
+      return true;
+    }
+    int tamanho = cpfCnpjNormalizado.length();
+    if ((tamanho != 11 && tamanho != 14) || cpfCnpjNormalizado.chars().distinct().count() == 1) {
+      return false;
+    }
+    int[] pesos = tamanho == 11 ? PESOS_DO_CPF : PESOS_DO_CNPJ;
+    return verificadorConfere(cpfCnpjNormalizado, tamanho - 2, pesos)
+        && verificadorConfere(cpfCnpjNormalizado, tamanho - 1, pesos);
+  }
+
+  /** Módulo 11 sobre os dígitos antes da `posicao`, com os pesos alinhados à direita. */
+  private static boolean verificadorConfere(String digitos, int posicao, int[] pesos) {
+    int soma = 0;
+    int deslocamento = pesos.length - posicao;
+    for (int i = 0; i < posicao; i++) {
+      soma += (digitos.charAt(i) - '0') * pesos[deslocamento + i];
+    }
+    int resto = soma % 11;
+    int esperado = resto < 2 ? 0 : 11 - resto;
+    return (digitos.charAt(posicao) - '0') == esperado;
   }
 
   public static String normalizarEmail(String email) {

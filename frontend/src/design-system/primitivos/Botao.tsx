@@ -22,8 +22,11 @@ interface BotaoProps {
   largura?: 'natural' | 'total';
   /** Nome acessível quando o rótulo visível não basta — botão só de ícone, por exemplo. */
   rotuloAcessivel?: string;
-  /** Deixa o rótulo em tom de perigo. A ação segue sendo secundária; só a cor muda. */
-  tom?: 'padrao' | 'critico';
+  /**
+   * `critico` deixa o rótulo em tom de perigo (a ação segue secundária; só a cor muda).
+   * `positivo` pinta o primário de verde — o "✓ Concluir" do protótipo, que fecha uma pendência.
+   */
+  tom?: 'padrao' | 'critico' | 'positivo';
   /** Para quem precisa devolver o foco ao botão quando o que o substituiu sai de cena. */
   ref?: Ref<HTMLButtonElement>;
 }
@@ -52,6 +55,7 @@ export function Botao({
         estilos[tamanho],
         largura === 'total' && estilos.total,
         tom === 'critico' && estilos.critico,
+        tom === 'positivo' && variante === 'primario' && estilos.positivo,
       )}
       aria-label={rotuloAcessivel}
       onClick={aoClicar}

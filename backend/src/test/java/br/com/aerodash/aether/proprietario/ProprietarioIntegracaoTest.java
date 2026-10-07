@@ -79,11 +79,11 @@ class ProprietarioIntegracaoTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(
                         """
-                        {"nome":"Nova Participante","cpfCnpj":"09.581.577/0001-05",
+                        {"nome":"Nova Participante","cpfCnpj":"09.581.577/0001-09",
                          "email":"CONTATO@NOVA.COM.BR","corDeIdentificacao":"CELESTE"}
                         """))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.cpfCnpj").value("09581577000105"))
+            .andExpect(jsonPath("$.cpfCnpj").value("09581577000109"))
             .andExpect(jsonPath("$.email").value("contato@nova.com.br"))
             .andReturn();
     JsonNode corpo = json.readTree(criado.getResponse().getContentAsString());

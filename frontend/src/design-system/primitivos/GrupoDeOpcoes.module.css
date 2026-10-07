@@ -62,6 +62,59 @@
   border-color: var(--cor-acento);
 }
 
+/* Segmentado: as opções coladas numa caixa só, separadas por um fio — o "Mensal | Período". */
+.segmentado {
+  flex-wrap: nowrap;
+  gap: 0;
+  height: var(--controle-altura-g);
+  overflow: hidden;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.segmentado .opcao {
+  height: 100%;
+  padding: 0 var(--espaco-5);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  border: 0;
+  border-radius: 0;
+}
+
+.segmentado .opcao + .opcao {
+  border-left: 1px solid var(--cor-borda);
+}
+
+.segmentado .escolhida {
+  color: var(--cor-acento-escuro);
+  background: var(--cor-acento-vestigio);
+}
+
+/* Trilho: as opções sobre um fundo cinza, a escolhida em branco com sombra — o segmentado clássico. */
+.trilho {
+  flex-wrap: nowrap;
+  gap: var(--espaco-2);
+  padding: var(--espaco-1);
+  background: var(--cor-trilho);
+  border-radius: var(--raio-m);
+}
+
+.trilho .opcao {
+  height: auto;
+  padding: var(--espaco-2) var(--espaco-5);
+  font-weight: var(--peso-medio);
+  background: transparent;
+  border: 0;
+}
+
+.trilho .escolhida {
+  color: var(--cor-texto);
+  background: var(--cor-superficie);
+  box-shadow: var(--elevacao-1);
+}
+
 @media (hover: none), (max-width: 700px) {
   .opcao {
     height: var(--controle-altura-toque);

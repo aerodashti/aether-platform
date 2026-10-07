@@ -441,6 +441,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/proprietarios/{proprietarioId}/saida": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redistribui a participação de quem sai e o desativa */
+        post: operations["sair"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/proprietarios/{id}/reativacao": {
         parameters: {
             query?: never;
@@ -919,7 +936,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Encerra a sessão corrente */
-        delete: operations["sair"];
+        delete: operations["sair_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -996,13 +1013,17 @@ export interface components {
             origem?: string;
             destino?: string;
             km: number;
-            /** @example 14:30:00 */
+            /**
+             * Format: date-time
+             * @description Instante com fuso, em ISO 8601
+             * @example 2026-09-01T11:30:00Z
+             */
             partidaPrevista?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoPrevisto?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             partidaRealizada?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoRealizado?: string;
             /**
              * Format: int64
@@ -1032,13 +1053,17 @@ export interface components {
             /** @description Duração em horas, uma casa; nula sem par de horários */
             horas?: number;
             km?: number;
-            /** @example 14:30:00 */
+            /**
+             * Format: date-time
+             * @description Instante com fuso, em ISO 8601
+             * @example 2026-09-01T11:30:00Z
+             */
             partidaPrevista?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoPrevisto?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             partidaRealizada?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoRealizado?: string;
             /** Format: int64 */
             proprietarioId?: number;
@@ -1473,6 +1498,8 @@ export interface components {
             /** Format: int64 */
             diasAteOProximoVencimento?: number;
             podeVoar?: boolean;
+            /** @description O que, além dos documentos, pesa na situação; da mais grave à mais leve */
+            pendencias?: components["schemas"]["PendenciaResponse"][];
             /** Format: date */
             vencimentoCva?: string;
             /** Format: date */
@@ -1495,6 +1522,17 @@ export interface components {
             diaDeFechamento?: number;
             /** @description Saldo do fundo no cadastro */
             saldoDeAbertura?: number;
+        };
+        /** @description O que, além dos documentos, pesa na situação da aeronave */
+        PendenciaResponse: {
+            /** @example Limite estourado: Pesagem regulamentar */
+            descricao?: string;
+            /**
+             * @description VENCIDO impede o voo; ATENCAO só avisa
+             * @example VENCIDO
+             * @enum {string}
+             */
+            situacao?: "REGULAR" | "ATENCAO" | "VENCIDO";
         };
         /** @description Correção dos totais acumulados da aeronave */
         ContadoresRequest: {
@@ -1625,6 +1663,22 @@ export interface components {
              */
             ultimoAcesso?: string;
         };
+        /** @description O contrato novo de uma aeronave */
+        ContratoNovo: {
+            /** Format: int64 */
+            aeronaveId: number;
+            participacoes: components["schemas"]["ParticipacaoRequest"][];
+        };
+        /** @description A fatia de um proprietário */
+        ParticipacaoRequest: {
+            /** Format: int64 */
+            proprietarioId: number;
+            percentual: number;
+        };
+        /** @description Contratos que redistribuem a participação de quem sai */
+        SaidaDeProprietarioRequest: {
+            contratos: components["schemas"]["ContratoNovo"][];
+        };
         /** @description Troca da própria senha */
         TrocarSenhaRequest: {
             senhaAtual?: string;
@@ -1753,12 +1807,6 @@ export interface components {
         /** @description Definição de um novo contrato de participação */
         DefinirContratoRequest: {
             participacoes?: components["schemas"]["ParticipacaoRequest"][];
-        };
-        /** @description A fatia de um proprietário */
-        ParticipacaoRequest: {
-            /** Format: int64 */
-            proprietarioId: number;
-            percentual: number;
         };
         /** @description Um contrato de participação */
         ContratoResponse: {
@@ -1982,6 +2030,13 @@ export interface components {
             de?: string;
             /** @example 2026-09 */
             ate?: string;
+            /**
+             * @description As regras de hoje da aeronave, as mesmas dos chips do mensal
+             * @enum {string}
+             */
+            baseDoRateio?: "POR_USO" | "POR_PROPRIEDADE";
+            /** @enum {string} */
+            modeloDeAporte?: "FIXO" | "PROPORCIONAL_AO_USO";
             competencias?: components["schemas"]["Competencia"][];
             /** @description Somas do período; o saldo é o do fim do período */
             totais?: components["schemas"]["Competencia"];
@@ -2149,6 +2204,8 @@ export interface components {
              * @example true
              */
             podeVoar?: boolean;
+            /** @description O que, além dos documentos, pesa na situação; da mais grave à mais leve */
+            pendencias?: components["schemas"]["PendenciaResponse"][];
         };
         /** @description Documentos de uma aeronave */
         DocumentosResponse: {
@@ -3035,6 +3092,30 @@ export interface operations {
             };
         };
     };
+    sair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proprietarioId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaidaDeProprietarioRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     reativar_1: {
         parameters: {
             query?: never;
@@ -3819,7 +3900,7 @@ export interface operations {
             };
         };
     };
-    sair: {
+    sair_1: {
         parameters: {
             query?: never;
             header?: never;

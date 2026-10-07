@@ -253,7 +253,7 @@ function Cabecalho({ podeGerir }: { podeGerir: boolean }) {
           Atribuição
         </th>
         <th role="columnheader" scope="col" className={estilos.direita}>
-          Valor · R$
+          Valor
         </th>
         <th role="columnheader" scope="col">
           NF / Invoice

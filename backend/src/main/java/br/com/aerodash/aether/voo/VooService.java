@@ -9,7 +9,9 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,6 +31,7 @@ public class VooService {
   private final TrechoRepository trechos;
   private final AeronaveRepository aeronaves;
   private final ProprietarioRepository proprietarios;
+  private final ParticipantesDoVoo participantes;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
@@ -36,11 +39,13 @@ public class VooService {
       TrechoRepository trechos,
       AeronaveRepository aeronaves,
       ProprietarioRepository proprietarios,
+      ParticipantesDoVoo participantes,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.trechos = trechos;
     this.aeronaves = aeronaves;
     this.proprietarios = proprietarios;
+    this.participantes = participantes;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -75,13 +80,14 @@ public class VooService {
   @Transactional
   public TrechoResponse criar(TrechoRequest request) {
     Aeronave aeronave = exigirAeronave(request.aeronaveId());
-    validarAtribuicao(request.proprietarioId());
+    validarAtribuicao(aeronave.getId(), request.proprietarioId());
 
+    DadosDoTrecho dados = validarHorarios(dadosDe(request));
     Instant agora = Instant.now(relogio);
-    Trecho trecho = new Trecho(aeronave.getId(), dadosDe(request), agora);
+    Trecho trecho = new Trecho(aeronave.getId(), dados, agora);
     trecho = trechos.save(trecho);
 
-    aeronave.acumularVoo(trecho.horasParaContadores(), trecho.getKm(), 1, agora);
+    somarNosContadores(aeronave, trecho, 1, agora);
     contexto.registrar("trecho.id", trecho.getId());
     contexto.decisao("trecho.vooDeManutencao", trecho.ehVooDeManutencao());
     return paraLinhas(List.of(trecho)).get(0);
@@ -99,13 +105,14 @@ public class VooService {
       throw new VooInvalidoException(
           "A aeronave do trecho não muda: exclua o lançamento e relance na aeronave certa.");
     }
-    validarAtribuicao(request.proprietarioId());
+    validarAtribuicao(trecho.getAeronaveId(), request.proprietarioId());
+    DadosDoTrecho dados = validarHorarios(dadosDe(request));
 
     Aeronave aeronave = exigirAeronave(trecho.getAeronaveId());
     Instant agora = Instant.now(relogio);
-    aeronave.acumularVoo(trecho.horasParaContadores().negate(), trecho.getKm().negate(), -1, agora);
-    trecho.atualizar(dadosDe(request), agora);
-    aeronave.acumularVoo(trecho.horasParaContadores(), trecho.getKm(), 1, agora);
+    somarNosContadores(aeronave, trecho, -1, agora);
+    trecho.atualizar(dados, agora);
+    somarNosContadores(aeronave, trecho, 1, agora);
     return paraLinhas(List.of(trecho)).get(0);
   }
 
@@ -114,13 +121,12 @@ public class VooService {
     Trecho trecho = exigirTrecho(id);
     Aeronave aeronave = exigirAeronave(trecho.getAeronaveId());
 
-    aeronave.acumularVoo(
-        trecho.horasParaContadores().negate(), trecho.getKm().negate(), -1, Instant.now(relogio));
+    somarNosContadores(aeronave, trecho, -1, Instant.now(relogio));
     trechos.delete(trecho);
     contexto.registrar("trecho.excluido", id);
   }
 
-  private void validarAtribuicao(Long proprietarioId) {
+  private void validarAtribuicao(Long aeronaveId, Long proprietarioId) {
     if (proprietarioId == null) {
       contexto.decisao("trecho.vooDeManutencao", true);
       return;
@@ -135,6 +141,13 @@ public class VooService {
           "Proprietário inativo não recebe atribuição de voo: reative "
               + proprietario.getNome()
               + " antes.");
+    }
+    boolean participa = participantes.participaOuParticipou(aeronaveId, proprietarioId);
+    contexto.decisao("trecho.proprietarioParticipa", participa);
+    if (!participa) {
+      throw new VooInvalidoException(
+          proprietario.getNome()
+              + " nunca participou desta aeronave: inclua-o no contrato ou lance como manutenção.");
     }
   }
 
@@ -152,6 +165,31 @@ public class VooService {
         .orElseThrow(() -> new RecursoNaoEncontradoException("Trecho não encontrado."));
   }
 
+  /**
+   * Soma (sinal 1) ou estorna (sinal -1) o trecho nos contadores — só se ele foi realizado. Trecho
+   * planejado não gastou célula, ciclo nem quilômetro; ao receber os horários realizados, a
+   * correção estorna o nada de antes e soma o voo de agora.
+   */
+  private void somarNosContadores(Aeronave aeronave, Trecho trecho, int sinal, Instant agora) {
+    boolean realizado = trecho.estaRealizado();
+    contexto.decisao("trecho.realizado", realizado);
+    if (!realizado) {
+      return;
+    }
+    BigDecimal fator = BigDecimal.valueOf(sinal);
+    aeronave.acumularVoo(
+        trecho.horasParaContadores().multiply(fator), trecho.getKm().multiply(fator), sinal, agora);
+  }
+
+  private DadosDoTrecho validarHorarios(DadosDoTrecho dados) {
+    boolean coerentes = Trecho.possuiHorariosCoerentes(dados);
+    contexto.decisao("trecho.horariosCoerentes", coerentes);
+    if (!coerentes) {
+      throw new VooInvalidoException("O pouso precisa ser depois da partida.");
+    }
+    return dados;
+  }
+
   private DadosDoTrecho dadosDe(TrechoRequest request) {
     return new DadosDoTrecho(
         request.relatorioDeVoo(),
@@ -160,10 +198,10 @@ public class VooService {
         request.origem(),
         request.destino(),
         request.km(),
-        request.partidaPrevista(),
-        request.pousoPrevisto(),
-        request.partidaRealizada(),
-        request.pousoRealizado(),
+        instante(request.partidaPrevista()),
+        instante(request.pousoPrevisto()),
+        instante(request.partidaRealizada()),
+        instante(request.pousoRealizado()),
         request.proprietarioId(),
         request.observacoes());
   }
@@ -205,10 +243,10 @@ public class VooService {
         trecho.getDestino(),
         trecho.duracaoEmHoras(),
         trecho.getKm(),
-        trecho.getPartidaPrevista(),
-        trecho.getPousoPrevisto(),
-        trecho.getPartidaRealizada(),
-        trecho.getPousoRealizado(),
+        emUtc(trecho.getPartidaPrevista()),
+        emUtc(trecho.getPousoPrevisto()),
+        emUtc(trecho.getPartidaRealizada()),
+        emUtc(trecho.getPousoRealizado()),
         trecho.getProprietarioId(),
         dono == null ? null : dono.getNome(),
         dono == null ? null : dono.getCorDeIdentificacao(),
@@ -221,5 +259,14 @@ public class VooService {
         recorte.stream().map(Trecho::horasParaContadores).reduce(BigDecimal.ZERO, BigDecimal::add);
     BigDecimal km = recorte.stream().map(Trecho::getKm).reduce(BigDecimal.ZERO, BigDecimal::add);
     return new DiarioDeVoosResponse.TotaisDoDiario(horas, km, recorte.size());
+  }
+
+  private static Instant instante(OffsetDateTime horario) {
+    return horario == null ? null : horario.toInstant();
+  }
+
+  /** O servidor responde em UTC; quem converte para o fuso de quem olha é a tela. */
+  private static OffsetDateTime emUtc(Instant horario) {
+    return horario == null ? null : horario.atOffset(ZoneOffset.UTC);
   }
 }

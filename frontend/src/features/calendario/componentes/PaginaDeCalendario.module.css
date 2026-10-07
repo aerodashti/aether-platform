@@ -18,88 +18,165 @@
   align-items: center;
 }
 
+/* O cartão do mês: legenda, dias da semana e uma grade de blocos, como no protótipo. */
 .painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-5);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
 }
 
-.semana {
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: 0;
+  margin: 0 0 var(--espaco-2);
+  list-style: none;
+}
+
+.itemDaLegenda {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: center;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.amostra {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: var(--cor-da-amostra);
+  border-radius: var(--raio-m);
+}
+
+.amostraManutencao {
+  background: var(--cor-critico-vestigio);
+  border: 1px solid var(--cor-critico);
+}
+
+.dica {
+  margin-left: auto;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.semana,
+.mes {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--espaco-2);
 }
 
 .diaDaSemana {
-  padding: var(--espaco-3) var(--espaco-4);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  padding: var(--espaco-1) 0;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-align: center;
   text-transform: uppercase;
-  letter-spacing: var(--rastreio-etiqueta);
-  background: var(--cor-superficie-sutil);
-  border-bottom: 1px solid var(--cor-borda);
+  letter-spacing: var(--rastreio-legenda);
+}
+
+.vazio {
+  min-height: 86px;
 }
 
 .dia {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-1);
-  align-items: flex-start;
-  min-height: 96px;
+  min-width: 0;
+  min-height: 86px;
   padding: var(--espaco-2) var(--espaco-3);
-  border-right: 1px solid var(--cor-borda-suave);
-  border-bottom: 1px solid var(--cor-borda-suave);
-}
-
-.dia:last-child {
-  border-right: 0;
-}
-
-.foraDoMes {
-  background: var(--cor-superficie-sutil);
-  opacity: 0.6;
+  overflow: hidden;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda-suave);
+  border-radius: var(--raio-m);
 }
 
 .hoje {
-  /* A régua do dia corrente: borda, e não sombra — box-shadow literal é barrado pelo Stylelint
-     e os dias só têm borda à direita e abaixo, então esta não colide com nenhuma. */
-  border-top: 2px solid var(--cor-acento);
+  border-color: var(--cor-acento);
 }
 
 .numeroDoDia {
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  margin-bottom: var(--espaco-1);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
   font-variant-numeric: tabular-nums;
 }
 
+.hoje .numeroDoDia {
+  font-weight: var(--peso-forte);
+  color: var(--cor-acento-escuro);
+}
+
+/* O trecho: régua de 3px na cor de quem voou, fundo tingido, iniciais e a rota. O link da rota se
+   estende sobre o bloco inteiro, que continua sendo um link de verdade. */
 .trecho {
-  display: inline-flex;
+  position: relative;
+  display: flex;
   gap: var(--espaco-2);
   align-items: center;
   min-width: 0;
-  font-family: var(--fonte-mono);
-  font-size: var(--tamanho-xs);
-  font-variant-numeric: tabular-nums;
+  padding: var(--espaco-1) var(--espaco-2);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  background: color-mix(in srgb, var(--cor-da-amostra) 14%, transparent);
+  border-left: 3px solid var(--cor-da-amostra);
+  border-radius: var(--raio-m);
 }
 
-.trechoTexto {
-  max-width: 120px;
+.trecho:hover {
+  background: color-mix(in srgb, var(--cor-da-amostra) 22%, transparent);
+}
+
+.iniciais {
+  flex: none;
+  font-weight: var(--peso-forte);
+  letter-spacing: var(--rastreio-legenda);
+}
+
+.trecho a {
+  min-width: 0;
   overflow: hidden;
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
+.trecho a::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
 .manutencao {
-  display: inline-flex;
-  gap: var(--espaco-2);
-  align-items: center;
   min-width: 0;
-  font-size: var(--tamanho-xs);
-  line-height: var(--altura-xs);
-  color: var(--cor-atencao);
+  padding: var(--espaco-1) var(--espaco-2);
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
+  color: var(--cor-critico);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  background: var(--cor-critico-vestigio);
+  border-radius: var(--raio-m);
 }
 
 .recado {
@@ -116,7 +193,8 @@
     overflow-x: auto;
   }
 
-  .semana {
+  .semana,
+  .mes {
     min-width: 900px;
   }
 }

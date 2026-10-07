@@ -32,6 +32,26 @@ export function agruparPorProprietario(
   return grupos;
 }
 
+/**
+ * Quem pode receber a atribuição de um custo ou trecho da aeronave: os donos do contrato vigente,
+ * mais a atribuição `atual` — corrigindo o lançamento de quem já saiu, ele continua escolhível.
+ */
+export function podeReceberAtribuicao(
+  vinculos: VinculoVigenteResponse[] | undefined,
+  aeronaveId: string,
+  atual: string,
+): (proprietarioId: number | undefined) => boolean {
+  const donos = new Set(
+    (vinculos ?? [])
+      .filter((vinculo) => String(vinculo.aeronaveId) === aeronaveId)
+      .map((vinculo) => String(vinculo.proprietarioId)),
+  );
+  return (proprietarioId) => {
+    const id = String(proprietarioId);
+    return donos.has(id) || (atual !== '' && id === atual);
+  };
+}
+
 /** Quantos proprietários cada aeronave tem no contrato vigente — o número do cartão da frota. */
 export function contarProprietariosPorAeronave(
   vinculos: VinculoVigenteResponse[] | undefined,

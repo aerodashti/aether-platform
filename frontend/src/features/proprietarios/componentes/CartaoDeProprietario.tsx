@@ -6,11 +6,7 @@ import { Botao } from '@/design-system/primitivos/Botao';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import {
-  useDesativarProprietario,
-  useReativarProprietario,
-  type ProprietarioResponse,
-} from '../api/useProprietarios';
+import { useReativarProprietario, type ProprietarioResponse } from '../api/useProprietarios';
 
 import estilos from './CartaoDeProprietario.module.css';
 import { formatarCpfCnpj, percentualEmTexto } from './rotulos';
@@ -21,6 +17,8 @@ interface CartaoDeProprietarioProps {
   /** Escrita é de administrador e gestor; para os demais o cartão é só leitura. */
   podeGerir: boolean;
   aoEditar: (proprietario: ProprietarioResponse) => void;
+  /** Desativar abre o painel: com participação vigente, há fatia a redistribuir antes. */
+  aoDesativar: (proprietario: ProprietarioResponse) => void;
   /** O saldo de cada vínculo no fundo, do fechamento; `undefined` enquanto não chegou. */
   saldos: SaldoDaAeronave[] | undefined;
 }
@@ -40,9 +38,9 @@ export function CartaoDeProprietario({
   vinculos,
   podeGerir,
   aoEditar,
+  aoDesativar,
   saldos,
 }: CartaoDeProprietarioProps) {
-  const desativar = useDesativarProprietario();
   const reativar = useReativarProprietario();
 
   const id = proprietario.id ?? 0;
@@ -71,7 +69,7 @@ export function CartaoDeProprietario({
             {inativo ? (
               <Botao
                 variante="contorno"
-                tamanho="pequeno"
+                tamanho="medio"
                 carregando={reativar.isPending}
                 aoClicar={() => reativar.mutate(id)}
               >
@@ -81,17 +79,16 @@ export function CartaoDeProprietario({
               <>
                 <Botao
                   variante="secundario"
-                  tamanho="pequeno"
+                  tamanho="medio"
                   aoClicar={() => aoEditar(proprietario)}
                 >
                   Editar
                 </Botao>
                 <Botao
                   variante="secundario"
-                  tamanho="pequeno"
+                  tamanho="medio"
                   tom="critico"
-                  carregando={desativar.isPending}
-                  aoClicar={() => desativar.mutate(id)}
+                  aoClicar={() => aoDesativar(proprietario)}
                 >
                   Desativar
                 </Botao>

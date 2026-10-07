@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
+import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
-import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
+import { CLASSE_DA_COR, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useExcluirTrecho, type DiarioDeVoosResponse, type TrechoResponse } from '../api/useVoos';
@@ -129,12 +130,14 @@ export function TabelaDeTrechos({
                   {trecho.vooDeManutencao ? (
                     <span className={estilos.manutencao}>{ATRIBUICAO_DE_MANUTENCAO}</span>
                   ) : (
-                    <>
-                      <PontoDeCor
-                        cor={(trecho.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao}
-                      />
-                      <span className={estilos.trunca}>{trecho.nomeDoProprietario}</span>
-                    </>
+                    <span
+                      className={juntarClasses(
+                        estilos.etiquetaDoDono,
+                        CLASSE_DA_COR[(trecho.corDeIdentificacao ?? 'CINZA') as CorDeIdentificacao],
+                      )}
+                    >
+                      {trecho.nomeDoProprietario}
+                    </span>
                   )}
                 </span>
               </td>
@@ -194,7 +197,8 @@ export function TabelaDeTrechos({
       <tfoot role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={estilos.totais}>
           <td role="cell" className={estilos.celula}>
-            TOTAIS
+            TOTAIS · {diario?.totais?.pousos ?? 0}{' '}
+            {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
           </td>
           <td role="cell" className={estilos.celula} />
           <td role="cell" className={estilos.celula} />
@@ -205,12 +209,7 @@ export function TabelaDeTrechos({
           <td role="cell" className={estilos.celula}>
             <span className={estilos.numero}>{kmEmTexto(diario?.totais?.km)}</span>
           </td>
-          <td role="cell" className={estilos.celula}>
-            <span className={estilos.dado}>
-              {diario?.totais?.pousos ?? 0}{' '}
-              {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
-            </span>
-          </td>
+          <td role="cell" className={estilos.celula} />
           <td role="cell" className={estilos.celula} />
         </tr>
       </tfoot>

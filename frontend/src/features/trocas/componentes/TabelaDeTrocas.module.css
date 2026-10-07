@@ -17,7 +17,7 @@
   /* Os dois proprietários e o R$/hora com total pedem mais que a régua padrão: nome cortado ao
      meio é exatamente o que a coluna existe para dizer. */
   grid-template-columns:
-    var(--armadura-data) var(--armadura-id) minmax(130px, 1fr) minmax(130px, 1fr) 72px 72px
+    var(--armadura-data) 132px minmax(130px, 1fr) minmax(130px, 1fr) 72px 72px
     120px minmax(120px, 1.2fr) 170px;
   gap: var(--armadura-gap);
   align-items: center;
@@ -25,12 +25,14 @@
 
 .cabecalho {
   padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
   white-space: nowrap;
-  background: var(--cor-superficie-sutil);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -46,7 +48,7 @@
 
 .linha {
   min-height: var(--controle-altura-g);
-  padding: var(--espaco-2) var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-6);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 

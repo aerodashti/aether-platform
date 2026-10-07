@@ -24,6 +24,11 @@ public interface ContratoDeParticipacaoRepository
   /** Se o proprietário está ou esteve em algum contrato da aeronave, vigente ou arquivado. */
   boolean existsByAeronaveIdAndParticipacoesProprietarioId(Long aeronaveId, Long proprietarioId);
 
+  /** Os contratos vigentes de que o proprietário participa: a saída redistribui cada um. */
+  @EntityGraph(attributePaths = "participacoes")
+  List<ContratoDeParticipacao> findByFimDaVigenciaIsNullAndParticipacoesProprietarioId(
+      Long proprietarioId);
+
   /** O histórico, do mais recente para o mais antigo — a ordem em que a tela o conta. */
   List<ContratoDeParticipacao> findByAeronaveIdAndFimDaVigenciaIsNotNullOrderByFimDaVigenciaDesc(
       Long aeronaveId);

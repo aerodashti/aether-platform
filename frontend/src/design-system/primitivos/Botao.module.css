@@ -65,6 +65,19 @@
   border-color: var(--cor-acento-solido-hover);
 }
 
+/* Primário positivo: fecha uma pendência. Não há tom de verde mais escuro em token, então o hover
+   levanta o botão em vez de escurecê-lo. */
+.positivo,
+.positivo:hover:not(:disabled) {
+  background: var(--cor-positivo-solido);
+  border-color: var(--cor-positivo-solido);
+  color: var(--cor-acento-contraste);
+}
+
+.positivo:hover:not(:disabled) {
+  box-shadow: var(--elevacao-2);
+}
+
 /* Secundário: superfície branca, borda neutra e rótulo na cor de ação — o botão de apoio do
    Projeto final. O hover escurece a borda, não o fundo. */
 .secundario {

@@ -52,15 +52,18 @@
 
 .indicadorRotulo {
   font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
   line-height: var(--altura-s);
   color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
 }
 
 .indicadorValor {
   margin: var(--espaco-2) 0 0;
-  font-size: var(--tamanho-gg);
+  font-size: var(--tamanho-g);
   font-weight: var(--peso-forte);
-  line-height: var(--altura-gg);
+  line-height: var(--altura-g);
   font-variant-numeric: tabular-nums;
 }
 

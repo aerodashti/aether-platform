@@ -11,7 +11,6 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Locale;
 
 /**
@@ -49,16 +48,16 @@ public class Trecho {
   private BigDecimal km;
 
   @Column(name = "partida_prevista")
-  private LocalTime partidaPrevista;
+  private Instant partidaPrevista;
 
   @Column(name = "pouso_previsto")
-  private LocalTime pousoPrevisto;
+  private Instant pousoPrevisto;
 
   @Column(name = "partida_realizada")
-  private LocalTime partidaRealizada;
+  private Instant partidaRealizada;
 
   @Column(name = "pouso_realizado")
-  private LocalTime pousoRealizado;
+  private Instant pousoRealizado;
 
   /** Nulo é voo de manutenção: o rateio divide entre todos os proprietários. */
   @Column(name = "proprietario_id")
@@ -113,31 +112,58 @@ public class Trecho {
     return proprietarioId == null;
   }
 
+  /** Realizado é o trecho com o par de horários realizados: só ele move os contadores. */
+  public boolean estaRealizado() {
+    return partidaRealizada != null && pousoRealizado != null;
+  }
+
   /**
-   * A duração em horas, com uma casa: o realizado quando o par está completo, senão o previsto.
-   * Pouso antes da partida é virada de meia-noite, não voo negativo. Sem par completo não há
-   * duração — nulo, e não zero: "não voou ainda" e "voo instantâneo" são afirmações diferentes.
+   * Os horários são instantes: o pouso tem que vir depois da partida, em cada par. Antes deles
+   * serem instantes, 10:00 depois de 10:45 virava um voo de 23 horas.
+   */
+  public static boolean possuiHorariosCoerentes(DadosDoTrecho dados) {
+    return pousoDepoisDaPartida(dados.partidaPrevista(), dados.pousoPrevisto())
+        && pousoDepoisDaPartida(dados.partidaRealizada(), dados.pousoRealizado());
+  }
+
+  private static boolean pousoDepoisDaPartida(Instant partida, Instant pouso) {
+    return partida == null || pouso == null || pouso.isAfter(partida);
+  }
+
+  /**
+   * A duração em horas, com uma casa: o realizado quando o par está completo, senão o previsto. Sem
+   * par completo não há duração — nulo, e não zero: "não voou ainda" e "voo instantâneo" são
+   * afirmações diferentes.
    */
   public BigDecimal duracaoEmHoras() {
-    LocalTime partida =
-        partidaRealizada != null && pousoRealizado != null ? partidaRealizada : partidaPrevista;
-    LocalTime pouso =
-        partidaRealizada != null && pousoRealizado != null ? pousoRealizado : pousoPrevisto;
+    return estaRealizado()
+        ? horasEntre(partidaRealizada, pousoRealizado)
+        : horasEntre(partidaPrevista, pousoPrevisto);
+  }
+
+  private static BigDecimal horasEntre(Instant partida, Instant pouso) {
     if (partida == null || pouso == null) {
       return null;
     }
-    Duration duracao = Duration.between(partida, pouso);
-    if (duracao.isNegative() || duracao.isZero()) {
-      duracao = duracao.plusHours(24);
-    }
-    return BigDecimal.valueOf(duracao.toMinutes())
+    return BigDecimal.valueOf(Duration.between(partida, pouso).toMinutes())
         .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP);
   }
 
-  /** O que este trecho soma nos contadores da aeronave; horas nulas somam zero. */
-  public BigDecimal horasParaContadores() {
+  /**
+   * O que o trecho pesa no % de uso do rateio: o realizado, senão o previsto — o voo de ontem ainda
+   * sem os horários fechados já é uso. Sem duração, zero.
+   */
+  public BigDecimal horasParaRateio() {
     BigDecimal duracao = duracaoEmHoras();
     return duracao == null ? BigDecimal.ZERO : duracao;
+  }
+
+  /**
+   * O que o trecho soma nos contadores da aeronave: só o realizado. Trecho planejado não gastou
+   * célula, ciclo nem quilômetro (decisão de produto, 2026-10-07).
+   */
+  public BigDecimal horasParaContadores() {
+    return estaRealizado() ? horasEntre(partidaRealizada, pousoRealizado) : BigDecimal.ZERO;
   }
 
   public Long getId() {
@@ -172,19 +198,19 @@ public class Trecho {
     return km;
   }
 
-  public LocalTime getPartidaPrevista() {
+  public Instant getPartidaPrevista() {
     return partidaPrevista;
   }
 
-  public LocalTime getPousoPrevisto() {
+  public Instant getPousoPrevisto() {
     return pousoPrevisto;
   }
 
-  public LocalTime getPartidaRealizada() {
+  public Instant getPartidaRealizada() {
     return partidaRealizada;
   }
 
-  public LocalTime getPousoRealizado() {
+  public Instant getPousoRealizado() {
     return pousoRealizado;
   }
 

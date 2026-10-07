@@ -19,12 +19,16 @@
   align-items: center;
 }
 
+/* O selo ADMIN do protótipo: preenchido no acento, como a etiqueta de quem tem o poder da tela. */
 .etiqueta {
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
-  color: var(--cor-texto-suave);
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-normal);
+  line-height: var(--altura-s);
+  color: var(--cor-acento-contraste);
   letter-spacing: var(--rastreio-legenda);
+  background: var(--cor-acento-solido);
+  border-radius: var(--raio-m);
 }
 
 .filtros {

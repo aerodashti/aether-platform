@@ -62,18 +62,20 @@
   display: grid;
   /* A coluna de ações tem largura fixa, do tamanho da confirmação: cada linha é uma grid, e uma
      coluna `auto` cresceria só na linha que está confirmando, desalinhando as outras. */
-  grid-template-columns: minmax(240px, 1fr) var(--armadura-data) var(--armadura-numero) 280px;
+  grid-template-columns: minmax(240px, 1fr) 160px 120px 280px;
   gap: var(--armadura-gap);
   align-items: center;
 }
 
 .cabecalhoDaGrade {
   padding: var(--espaco-4) var(--espaco-6);
-  font-size: var(--tamanho-xs);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-xs);
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-medio);
+  line-height: var(--altura-s);
   color: var(--cor-texto-suave);
-  background: var(--cor-superficie-sutil);
+  text-transform: uppercase;
+  letter-spacing: var(--rastreio-legenda);
+  background: var(--cor-fundo);
   border-bottom: 1px solid var(--cor-borda);
 }
 
@@ -89,7 +91,7 @@
 
 .linha {
   min-height: var(--controle-altura-g);
-  padding: var(--espaco-2) var(--espaco-6);
+  padding: var(--espaco-3) var(--espaco-6);
   border-bottom: 1px solid var(--cor-borda-suave);
 }
 

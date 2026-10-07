@@ -51,7 +51,9 @@ export function PaginaDeUsuarios() {
             Página restrita — visível apenas para administradores.
           </Texto>
         </div>
-        <Botao aoClicar={() => setConvidando(true)}>Convidar usuário</Botao>
+        <Botao tamanho="grande" aoClicar={() => setConvidando(true)}>
+          + Convidar usuário
+        </Botao>
       </div>
 
       <div className={estilos.filtros}>

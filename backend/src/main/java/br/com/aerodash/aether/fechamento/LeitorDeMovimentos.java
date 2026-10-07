@@ -65,7 +65,7 @@ class LeitorDeMovimentos {
                         trecho.getData(),
                         trecho.getRelatorioDeVoo(),
                         trecho.getProprietarioId(),
-                        trecho.horasParaContadores()))
+                        trecho.horasParaRateio()))
             .toList(),
         aportes.findByAeronaveId(id).stream()
             .map(

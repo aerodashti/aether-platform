@@ -2,6 +2,10 @@ import { useState } from 'react';
 
 import { ErroDeApi } from '@/api/cliente';
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import {
+  podeReceberAtribuicao,
+  useVinculosVigentes,
+} from '@/compartilhado/participacoes/useVinculosVigentes';
 import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
@@ -63,6 +67,13 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
 
   const aeronaves = useAeronaves();
   const proprietarios = useProprietarios();
+  const vinculos = useVinculosVigentes();
+  // Só quem é dono da aeronave recebe custo ou voo: o fechamento não tem conta para os outros.
+  const podeReceber = podeReceberAtribuicao(
+    vinculos.data,
+    aeronaveId,
+    custo?.proprietarioId != null ? String(custo.proprietarioId) : '',
+  );
   const registrar = useRegistrarCusto();
   const corrigir = useCorrigirCusto();
   const mutacao = editando ? corrigir : registrar;
@@ -127,7 +138,11 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
             rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
           })),
         ]}
-        aoMudar={setAeronaveId}
+        aoMudar={(escolhida) => {
+          setAeronaveId(escolhida);
+          // O dono de uma aeronave não é dono da outra.
+          setAtribuicao('');
+        }}
       />
       <GrupoDeOpcoes
         rotulo="Tipo"
@@ -170,7 +185,7 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
           opcoes={[
             { valor: '', rotulo: ATRIBUICAO_RATEADA },
             ...(proprietarios.data ?? [])
-              .filter((dono) => dono.situacao === 'ATIVO')
+              .filter((dono) => dono.situacao === 'ATIVO' && podeReceber(dono.id))
               .map((dono) => ({ valor: String(dono.id), rotulo: dono.nome ?? '' })),
           ]}
           aoMudar={setAtribuicao}
@@ -204,7 +219,6 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
           valor={valor}
           aoMudar={setValor}
           inputMode="numeric"
-          erro={erro}
         />
         {moeda === 'USD' ? (
           <CampoDeTexto
@@ -238,6 +252,15 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
         aoMudar={setNotaFiscal}
         maxLength={40}
       />
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

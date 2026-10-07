@@ -14,16 +14,19 @@ public class ProprietarioService {
 
   private final ProprietarioRepository proprietarios;
   private final ProprietarioMapper mapper;
+  private final ParticipacoesVigentes participacoes;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
   public ProprietarioService(
       ProprietarioRepository proprietarios,
       ProprietarioMapper mapper,
+      ParticipacoesVigentes participacoes,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.proprietarios = proprietarios;
     this.mapper = mapper;
+    this.participacoes = participacoes;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -77,6 +80,11 @@ public class ProprietarioService {
   public ProprietarioResponse desativar(Long id) {
     Proprietario proprietario = buscar(id);
     contexto.decisao("proprietario.estaAtivo", proprietario.estaAtivo());
+    boolean participa = participacoes.participaDeContratoVigente(id);
+    contexto.decisao("proprietario.participaDeContratoVigente", participa);
+    if (participa) {
+      throw new ProprietarioComParticipacaoException(proprietario.getNome());
+    }
     proprietario.desativar(Instant.now(relogio));
     return mapper.paraResponse(proprietario);
   }

@@ -6,7 +6,13 @@ import type { AeronaveResponse } from '../api/useAeronaves';
 
 import estilos from './CartaoDaAeronave.module.css';
 import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
-import { dataCurta, moedaEmTexto, prazoEmPalavras, ROTULO_DO_DOCUMENTO } from './rotulos';
+import {
+  dataCurta,
+  moedaEmTexto,
+  pendenciaQueGoverna,
+  prazoEmPalavras,
+  ROTULO_DO_DOCUMENTO,
+} from './rotulos';
 
 interface CartaoDaAeronaveProps {
   aeronave: AeronaveResponse;
@@ -27,6 +33,7 @@ interface CartaoDaAeronaveProps {
  */
 export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAeronaveProps) {
   const situacao = aeronave.situacaoRegular ?? 'REGULAR';
+  const motivo = pendenciaQueGoverna(aeronave);
   const documento = aeronave.documentoDoProximoVencimento
     ? ROTULO_DO_DOCUMENTO[aeronave.documentoDoProximoVencimento]
     : '';
@@ -52,7 +59,18 @@ export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAer
         </span>
       </div>
 
-      <EtiquetaDeSituacao situacao={situacao} />
+      <span className={estilos.situacao}>
+        <EtiquetaDeSituacao situacao={situacao} />
+        {/* Quando é a manutenção ou a tripulação que tira a aeronave do regular, o cartão diz o
+            quê — o próximo vencimento ao lado só fala dos documentos. */}
+        {motivo ? (
+          <span
+            className={juntarClasses(estilos.motivo, situacao === 'VENCIDO' && estilos.devedor)}
+          >
+            {motivo}
+          </span>
+        ) : null}
+      </span>
 
       <span className={estilos.espaco} />
 
@@ -75,7 +93,7 @@ export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAer
               {moedaEmTexto(saldo.saldoDoFundo)}
             </span>
           </span>
-          <span className={estilos.numero}>
+          <span className={juntarClasses(estilos.numero, estilos.foraDoCelular)}>
             <span className={estilos.rotulo}>Custo {competenciaAbreviada(saldo.competencia)}</span>
             <span className={estilos.valor}>{moedaEmTexto(saldo.custoDaCompetencia)}</span>
           </span>
@@ -83,7 +101,7 @@ export function CartaoDaAeronave({ aeronave, proprietarios, saldo }: CartaoDaAer
       ) : null}
 
       {proprietarios !== undefined ? (
-        <span className={estilos.numero}>
+        <span className={juntarClasses(estilos.numero, estilos.foraDoCelular)}>
           <span className={estilos.rotulo}>Proprietários</span>
           <span className={estilos.valor}>{proprietarios}</span>
         </span>

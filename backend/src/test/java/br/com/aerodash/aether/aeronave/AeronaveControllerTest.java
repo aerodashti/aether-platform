@@ -82,12 +82,16 @@ class AeronaveControllerTest {
                     DocumentoDaAeronave.RETA,
                     LocalDate.of(2026, 9, 21),
                     12,
-                    true)));
+                    true,
+                    List.of(
+                        new PendenciaResponse(
+                            "Trem de pouso perto do limite", SituacaoRegular.ATENCAO)))));
 
     mockMvc
         .perform(get("/aeronaves").cookie(new Cookie("aether_sessao", TOKEN)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].matricula").value("PS-MEP"))
+        .andExpect(jsonPath("$[0].pendencias[0].descricao").value("Trem de pouso perto do limite"))
         .andExpect(jsonPath("$[0].situacaoRegular").value("ATENCAO"))
         .andExpect(jsonPath("$[0].documentoDoProximoVencimento").value("RETA"))
         .andExpect(jsonPath("$[0].diasAteOProximoVencimento").value(12))

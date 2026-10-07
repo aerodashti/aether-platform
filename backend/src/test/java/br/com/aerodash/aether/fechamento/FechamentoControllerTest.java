@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.aerodash.aether.aeronave.BaseDoRateio;
+import br.com.aerodash.aether.aeronave.ModeloDeAporte;
 import br.com.aerodash.aether.autenticacao.AutenticacaoService;
 import br.com.aerodash.aether.autenticacao.ConfiguracaoDeSeguranca;
 import br.com.aerodash.aether.autenticacao.PapelDoUsuario;
@@ -68,7 +70,14 @@ class FechamentoControllerTest {
     when(fechamentos.periodo(eq(1L), eq(YearMonth.of(2026, 1)), eq(YearMonth.of(2026, 9))))
         .thenReturn(
             new FechamentoDoPeriodoResponse(
-                1L, "PS-MEP", YearMonth.of(2026, 1), YearMonth.of(2026, 9), List.of(), null));
+                1L,
+                "PS-MEP",
+                YearMonth.of(2026, 1),
+                YearMonth.of(2026, 9),
+                BaseDoRateio.POR_USO,
+                ModeloDeAporte.FIXO,
+                List.of(),
+                null));
 
     mockMvc
         .perform(
@@ -76,7 +85,9 @@ class FechamentoControllerTest {
                 .cookie(new Cookie("aether_sessao", TOKEN)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.matricula").value("PS-MEP"))
-        .andExpect(jsonPath("$.de").value("2026-01"));
+        .andExpect(jsonPath("$.de").value("2026-01"))
+        .andExpect(jsonPath("$.baseDoRateio").value("POR_USO"))
+        .andExpect(jsonPath("$.modeloDeAporte").value("FIXO"));
   }
 
   @Test

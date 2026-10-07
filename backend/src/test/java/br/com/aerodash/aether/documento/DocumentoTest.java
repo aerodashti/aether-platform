@@ -53,7 +53,9 @@ class DocumentoTest {
     }
     disco.apagar(chave);
     disco.apagar(chave);
-    assertThat(Files.list(pasta)).isEmpty();
+    try (var restantes = Files.list(pasta)) {
+      assertThat(restantes).isEmpty();
+    }
 
     org.assertj.core.api.Assertions.assertThatThrownBy(() -> disco.abrir("../segredo"))
         .isInstanceOf(IllegalArgumentException.class);

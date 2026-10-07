@@ -31,6 +31,11 @@ interface CampoDeTextoProps {
    */
   rotuloOculto?: boolean;
   desabilitado?: boolean;
+  /**
+   * Marca o campo com o asterisco do protótipo e o anuncia como obrigatório. Não bloqueia o envio:
+   * quem decide se dá para salvar é a tela.
+   */
+  obrigatorio?: boolean;
   /** Para quem precisa devolver o foco ao campo — a edição que acabou de abrir, por exemplo. */
   ref?: Ref<HTMLInputElement>;
 }
@@ -60,6 +65,7 @@ export function CampoDeTexto({
   espacado = false,
   rotuloOculto = false,
   desabilitado = false,
+  obrigatorio = false,
   ref,
 }: CampoDeTextoProps) {
   const id = useId();
@@ -72,7 +78,11 @@ export function CampoDeTexto({
   return (
     <div className={estilos.campo}>
       <label
-        className={juntarClasses(estilos.rotulo, rotuloOculto && estilos.apenasLeitor)}
+        className={juntarClasses(
+          estilos.rotulo,
+          rotuloOculto && estilos.apenasLeitor,
+          obrigatorio && estilos.obrigatorio,
+        )}
         htmlFor={id}
       >
         {rotulo}
@@ -94,6 +104,7 @@ export function CampoDeTexto({
         maxLength={maxLength}
         inputMode={inputMode}
         disabled={desabilitado}
+        aria-required={obrigatorio || undefined}
         aria-invalid={erro ? true : undefined}
         aria-describedby={descritores || undefined}
       />

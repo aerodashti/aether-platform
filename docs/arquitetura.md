@@ -171,6 +171,9 @@ src/
 
 `aviso` deriva a Central de avisos do estado das outras features a cada leitura, do mesmo jeito,
 e grava só quem leu qual aviso.
+Como os avisos dependem de quase tudo, o cliente do Query (`app/clienteDeConsultas.ts`) invalida
+a consulta de avisos depois de **qualquer** escrita bem-sucedida — enumerar as mutações que os
+afetam esqueceria uma, e o sino ficaria desatualizado.
 
 `fechamento` não grava nada: consolida, a cada leitura, custos, voos, aportes, rendimentos e
 contratos (ADR-0019). Por isso importa os repositórios dessas features direto, sem porta — e

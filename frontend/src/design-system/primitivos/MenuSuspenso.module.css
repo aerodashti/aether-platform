@@ -9,7 +9,7 @@
   display: inline-flex;
   gap: var(--espaco-3);
   align-items: center;
-  height: var(--controle-altura-g);
+  height: var(--controle-altura-m);
   padding: 0 var(--espaco-5);
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda-forte);
@@ -112,7 +112,7 @@
 .soIcone {
   position: relative;
   justify-content: center;
-  width: var(--controle-altura-g);
+  width: var(--controle-altura-m);
   padding: 0;
 }
 

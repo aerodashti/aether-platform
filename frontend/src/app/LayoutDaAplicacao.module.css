@@ -1,8 +1,10 @@
+/* O fundo da área logada é o cinza recuado do protótipo (#f2f2f3): os cartões brancos se destacam
+   dele, e o #fafafb fica para faixas dentro dos cartões (cabeçalho de grade, totais). */
 .moldura {
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--cor-fundo);
+  background: var(--cor-superficie-recuada);
   color: var(--cor-texto);
 }
 
@@ -11,7 +13,7 @@
   flex: none;
   flex-direction: column;
   width: 232px;
-  background: var(--cor-superficie-recuada);
+  background: var(--cor-superficie-sutil);
   border-right: 1px solid var(--cor-borda);
 }
 
@@ -19,7 +21,7 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--espaco-2);
+  gap: var(--espaco-1);
   padding: var(--espaco-6) var(--espaco-4) var(--espaco-5);
   text-align: center;
 }
@@ -128,8 +130,17 @@
 
   /* Com o "+ Registrar" na barra, nome e e-mail espremeriam o título até sumir: no celular o
      avatar basta para dizer quem está logado. */
+  /* O título ganha a linha inteira e as ações descem: com "+ Registrar", sino, avatar e "Sair"
+     na mesma linha, o título virava "A…". */
   .topo {
-    padding: 0 var(--espaco-5);
+    flex-wrap: wrap;
+    row-gap: var(--espaco-3);
+    height: auto;
+    padding: var(--espaco-4) var(--espaco-5);
+  }
+
+  .titulo {
+    flex-basis: 100%;
   }
 
   .nomeEEmail {

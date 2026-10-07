@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -42,6 +42,7 @@ class VooServiceTest {
   @Mock private TrechoRepository trechos;
   @Mock private AeronaveRepository aeronaves;
   @Mock private ProprietarioRepository proprietarios;
+  @Mock private ParticipantesDoVoo participantes;
   @Mock private ContextoDaRequisicao contexto;
 
   private VooService service;
@@ -52,7 +53,12 @@ class VooServiceTest {
   void montar() {
     service =
         new VooService(
-            trechos, aeronaves, proprietarios, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
+            trechos,
+            aeronaves,
+            proprietarios,
+            participantes,
+            Clock.fixed(AGORA, ZoneOffset.UTC),
+            contexto);
     aeronave =
         new Aeronave(
             "PS-MEP",
@@ -70,6 +76,7 @@ class VooServiceTest {
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
     when(trechos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(true);
   }
 
   private TrechoRequest request(Long proprietarioId) {
@@ -81,12 +88,72 @@ class VooServiceTest {
         "sbsp",
         "sbrj",
         new BigDecimal("365.0"),
-        LocalTime.parse("08:30"),
-        LocalTime.parse("09:30"),
-        null,
-        null,
+        OffsetDateTime.parse("2026-09-08T08:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T09:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T08:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T09:30:00Z"),
         proprietarioId,
         null);
+  }
+
+  @Test
+  @DisplayName("trecho só previsto não mexe nos contadores: o voo ainda não aconteceu")
+  void previstoNaoContaNosContadores() {
+    TrechoRequest planejado =
+        new TrechoRequest(
+            1L,
+            "RV-2026-050",
+            1,
+            LocalDate.parse("2026-09-20"),
+            "SBSP",
+            "SBRJ",
+            new BigDecimal("365.0"),
+            OffsetDateTime.parse("2026-09-20T12:00:00Z"),
+            OffsetDateTime.parse("2026-09-20T13:00:00Z"),
+            null,
+            null,
+            7L,
+            null);
+
+    service.criar(planejado);
+
+    assertThat(aeronave.getContadores().ciclos()).isZero();
+    assertThat(aeronave.getContadores().kmVoados()).isEqualByComparingTo("0");
+  }
+
+  @Test
+  @DisplayName("pouso antes da partida é recusado antes de salvar")
+  void recusaPousoAntesDaPartida() {
+    TrechoRequest invertido =
+        new TrechoRequest(
+            1L,
+            "RV-2026-051",
+            1,
+            LocalDate.parse("2026-09-20"),
+            "SBSP",
+            "SBGR",
+            new BigDecimal("120.0"),
+            null,
+            null,
+            OffsetDateTime.parse("2026-09-20T13:45:00Z"),
+            OffsetDateTime.parse("2026-09-20T13:00:00Z"),
+            7L,
+            null);
+
+    assertThatThrownBy(() -> service.criar(invertido))
+        .isInstanceOf(VooInvalidoException.class)
+        .hasMessage("O pouso precisa ser depois da partida.");
+  }
+
+  @Test
+  @DisplayName("quem nunca participou da aeronave não recebe o trecho: o rateio lhe cobraria o voo")
+  void recusaQuemNuncaParticipou() {
+    when(participantes.participaOuParticipou(1L, 7L)).thenReturn(false);
+
+    assertThatThrownBy(() -> service.criar(request(7L)))
+        .isInstanceOf(VooInvalidoException.class)
+        .hasMessageContaining("Ricardo");
+    assertThat(aeronave.getContadores().ciclos()).isZero();
   }
 
   @Test
@@ -117,10 +184,10 @@ class VooServiceTest {
             "SBSP",
             "SBSV",
             new BigDecimal("1962.0"),
-            LocalTime.parse("09:00"),
-            LocalTime.parse("11:40"),
-            null,
-            null,
+            OffsetDateTime.parse("2026-09-08T09:00:00Z"),
+            OffsetDateTime.parse("2026-09-08T11:40:00Z"),
+            OffsetDateTime.parse("2026-09-08T09:00:00Z"),
+            OffsetDateTime.parse("2026-09-08T11:40:00Z"),
             7L,
             null);
     service.atualizar(criado.id(), maisLongo);
@@ -206,10 +273,10 @@ class VooServiceTest {
         request.origem(),
         request.destino(),
         request.km(),
-        request.partidaPrevista(),
-        request.pousoPrevisto(),
-        request.partidaRealizada(),
-        request.pousoRealizado(),
+        request.partidaPrevista().toInstant(),
+        request.pousoPrevisto().toInstant(),
+        request.partidaRealizada().toInstant(),
+        request.pousoRealizado().toInstant(),
         request.proprietarioId(),
         request.observacoes());
   }

@@ -74,10 +74,13 @@ export function PainelDeProprietario({
       <Texto variante="titulo" como="h2">
         {editando ? 'Editar proprietário' : 'Novo proprietário'}
       </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar, com
-        percentuais diferentes em cada uma.
-      </Texto>
+      {/* A orientação é de cadastro: na edição, o proprietário já existe e já pode estar vinculado. */}
+      {editando ? null : (
+        <Texto variante="apoio" tom="suave" como="p">
+          Cadastre o proprietário uma única vez — depois vincule-o a quantas aeronaves precisar, com
+          percentuais diferentes em cada uma.
+        </Texto>
+      )}
 
       <CampoDeTexto
         rotulo="Nome / Nome fantasia"
@@ -95,7 +98,6 @@ export function PainelDeProprietario({
         maxLength={20}
         inputMode="numeric"
         autoComplete="off"
-        erro={erro}
       />
       <CampoDeTexto
         rotulo="E-mail"
@@ -127,6 +129,15 @@ export function PainelDeProprietario({
           <SeletorDeCor rotulo="Cor de identificação" valor={cor} aoEscolher={setCor} />
         </div>
       </div>
+
+      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
+      {erro ? (
+        <div role="alert">
+          <Texto variante="apoio" tom="critico" como="p">
+            {erro}
+          </Texto>
+        </div>
+      ) : null}
 
       <div className={estilos.acoes}>
         <Botao variante="secundario" aoClicar={aoFechar}>

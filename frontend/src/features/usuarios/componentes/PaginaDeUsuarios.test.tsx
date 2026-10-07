@@ -170,7 +170,7 @@ describe('PaginaDeUsuarios', () => {
     envolver(<PaginaDeUsuarios />);
 
     await screen.findByText('Camila Nogueira');
-    await usuario.click(screen.getByRole('button', { name: 'Convidar usuário' }));
+    await usuario.click(screen.getByRole('button', { name: '+ Convidar usuário' }));
 
     expect(screen.getByLabelText('Nome')).toBeInTheDocument();
     expect(screen.getByLabelText('E-mail')).toBeInTheDocument();
@@ -183,7 +183,7 @@ describe('PaginaDeUsuarios', () => {
     envolver(<PaginaDeUsuarios />);
 
     await screen.findByText('Camila Nogueira');
-    await usuario.click(screen.getByRole('button', { name: 'Convidar usuário' }));
+    await usuario.click(screen.getByRole('button', { name: '+ Convidar usuário' }));
     await usuario.type(screen.getByLabelText('Nome'), 'Rafael Prado');
     await usuario.type(screen.getByLabelText('E-mail'), 'rafael@administraair.com.br');
     await usuario.selectOptions(screen.getByLabelText('Papel'), 'PILOTO');

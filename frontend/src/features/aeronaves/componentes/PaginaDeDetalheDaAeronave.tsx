@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDocumentos } from '@/compartilhado/documentos/useDocumentos';
 import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useSessao } from '@/compartilhado/sessao/sessao';
+import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { LinkDeTexto } from '@/design-system/primitivos/LinkDeTexto';
@@ -17,7 +18,13 @@ import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
-import { consequenciaDoVencimento, dataCurta, moedaEmTexto, nomeDaAeronave } from './rotulos';
+import {
+  consequenciaDoVencimento,
+  dataCurta,
+  moedaEmTexto,
+  nomeDaAeronave,
+  pendenciaQueGoverna,
+} from './rotulos';
 import { SecaoDeContrato } from './SecaoDeContrato';
 import { SecaoDeTripulacao } from './SecaoDeTripulacao';
 
@@ -98,13 +105,15 @@ export function PaginaDeDetalheDaAeronave() {
         <span className={estilos.matricula}>{detalhe.matricula}</span>
         <span className={estilos.subtitulo}>{subtitulo}</span>
         <EtiquetaDeSituacao situacao={situacao} />
-        {/* "Atenção" sozinho é estado sem consequência: a linha diz qual documento e quando. */}
+        {/* "Atenção" sozinho é estado sem consequência: a linha diz o motivo — o documento e
+            quando, ou a pendência de manutenção ou de tripulação que tirou a aeronave do regular. */}
         {situacao !== 'REGULAR' && detalhe.documentoDoProximoVencimento ? (
           <Texto variante="apoio" tom={situacao === 'VENCIDO' ? 'critico' : 'atencao'} como="span">
-            {consequenciaDoVencimento(
-              detalhe.documentoDoProximoVencimento,
-              detalhe.diasAteOProximoVencimento,
-            )}
+            {pendenciaQueGoverna(detalhe) ??
+              consequenciaDoVencimento(
+                detalhe.documentoDoProximoVencimento,
+                detalhe.diasAteOProximoVencimento,
+              )}
           </Texto>
         ) : null}
         <Botao
@@ -130,9 +139,10 @@ export function PaginaDeDetalheDaAeronave() {
             <div className={estilos.vencimento}>
               <dt className={estilos.vencimentoRotulo}>Saldo do fundo</dt>
               <dd
-                className={
-                  (saldo.saldoDoFundo ?? 0) < 0 ? estilos.saldoDevedor : estilos.vencimentoValor
-                }
+                className={juntarClasses(
+                  estilos.saldoValor,
+                  (saldo.saldoDoFundo ?? 0) < 0 && estilos.saldoDevedor,
+                )}
               >
                 {moedaEmTexto(saldo.saldoDoFundo)}
               </dd>

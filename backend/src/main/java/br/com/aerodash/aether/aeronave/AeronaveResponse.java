@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Uma linha da lista da frota.
@@ -24,4 +25,6 @@ public record AeronaveResponse(
     @Schema(description = "Dias até esse vencimento; negativo quando já passou", example = "12")
         long diasAteOProximoVencimento,
     @Schema(description = "Se a aeronave está liberada para voar", example = "true")
-        boolean podeVoar) {}
+        boolean podeVoar,
+    @Schema(description = "O que, além dos documentos, pesa na situação; da mais grave à mais leve")
+        List<PendenciaResponse> pendencias) {}

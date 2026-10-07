@@ -75,14 +75,37 @@ export function PaginaDeAvisos() {
 
       <dl className={estilos.indicadores} role="group" aria-label="Indicadores dos avisos">
         {[
-          ['Avisos ativos', indicadores?.ativos, `${indicadores?.naoLidos ?? 0} não lidos`],
-          ['Vencidos', indicadores?.vencidos, 'exigem ação imediata'],
-          ['Próximos do limite', indicadores?.proximos, 'dentro da janela de aviso'],
-          ['Aeronaves envolvidas', indicadores?.aeronavesEnvolvidas, 'com ao menos um aviso'],
-        ].map(([rotulo, valor, apoio]) => (
+          [
+            'Avisos ativos',
+            indicadores?.ativos,
+            `${indicadores?.naoLidos ?? 0} não lidos`,
+            undefined,
+          ],
+          ['Vencidos', indicadores?.vencidos, 'exigem ação imediata', estilos.valorCritico],
+          [
+            'Próximos do limite',
+            indicadores?.proximos,
+            'dentro da janela de aviso',
+            estilos.valorAtencao,
+          ],
+          [
+            'Aeronaves envolvidas',
+            indicadores?.aeronavesEnvolvidas,
+            'com ao menos um aviso',
+            undefined,
+          ],
+        ].map(([rotulo, valor, apoio, tom]) => (
           <div className={estilos.indicador} key={String(rotulo)}>
             <dt className={estilos.indicadorRotulo}>{rotulo}</dt>
-            <dd className={estilos.indicadorValor}>{valor ?? '—'}</dd>
+            {/* A cor só quando há o que pintar: zero vencidos em vermelho seria alarme falso. */}
+            <dd
+              className={juntarClasses(
+                estilos.indicadorValor,
+                Number(valor) > 0 && String(tom ?? ''),
+              )}
+            >
+              {valor ?? '—'}
+            </dd>
             <dd className={estilos.indicadorApoio}>{apoio}</dd>
           </div>
         ))}
@@ -90,6 +113,7 @@ export function PaginaDeAvisos() {
 
       <Abas<Filtro>
         rotulo="Categorias de aviso"
+        variante="trilho"
         valor={filtro}
         aoEscolher={setFiltro}
         abas={[{ valor: 'TODOS', rotulo: 'Todos', contagem: avisos.length }, ...categorias]}

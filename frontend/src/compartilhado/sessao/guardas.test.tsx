@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { RotaAutenticada } from './RotaAutenticada';
@@ -16,13 +16,19 @@ function respostaDe(corpo: unknown, status = 200) {
   } as unknown as Response;
 }
 
+/** A tela de entrada de mentira mostra para onde a pessoa voltará depois de entrar. */
+function TelaDeEntrada() {
+  const estado = useLocation().state as { de?: string } | null;
+  return <p>Tela de entrada · volta para {estado?.de}</p>;
+}
+
 function montar(rotaInicial = '/usuarios') {
   const cliente = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={cliente}>
       <MemoryRouter initialEntries={[rotaInicial]}>
         <Routes>
-          <Route path="/entrar" element={<p>Tela de entrada</p>} />
+          <Route path="/entrar" element={<TelaDeEntrada />} />
           <Route element={<RotaAutenticada />}>
             <Route path="/" element={<p>Área logada</p>} />
             <Route element={<RotaDeAdministrador />}>
@@ -48,7 +54,20 @@ describe('guardas de rota', () => {
 
     montar();
 
-    expect(await screen.findByText('Tela de entrada')).toBeInTheDocument();
+    expect(await screen.findByText(/Tela de entrada/)).toBeInTheDocument();
+  });
+
+  it('guarda a tela pedida com o recorte da URL, para voltar a ela depois de entrar', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(respostaDe({ detail: 'expirou' }, 401))),
+    );
+
+    montar('/?aeronave=1&competencia=2026-09');
+
+    expect(
+      await screen.findByText('Tela de entrada · volta para /?aeronave=1&competencia=2026-09'),
+    ).toBeInTheDocument();
   });
 
   it('com sessão de administrador, a tela restrita aparece', async () => {
@@ -86,7 +105,7 @@ describe('guardas de rota', () => {
 
     montar();
 
-    expect(screen.queryByText('Tela de entrada')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tela de entrada/)).not.toBeInTheDocument();
     expect(screen.queryByText('Tela restrita')).not.toBeInTheDocument();
   });
 });

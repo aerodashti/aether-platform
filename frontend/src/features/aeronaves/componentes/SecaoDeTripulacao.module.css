@@ -17,7 +17,7 @@
 .linhaDeCabecalho,
 .linha {
   display: grid;
-  grid-template-columns: 1.5fr 0.85fr 1fr 1fr 0.6fr 96px;
+  grid-template-columns: minmax(0, 1.7fr) 96px minmax(0, 1fr) minmax(0, 1fr) 72px 64px;
   gap: var(--espaco-4);
   align-items: center;
   padding: var(--espaco-4) var(--espaco-6);
@@ -25,7 +25,7 @@
 
 .semAcoes .linhaDeCabecalho,
 .semAcoes .linha {
-  grid-template-columns: 1.5fr 0.85fr 1fr 1fr 0.6fr;
+  grid-template-columns: minmax(0, 1.7fr) 96px minmax(0, 1fr) minmax(0, 1fr) 72px;
 }
 
 .linhaDeCabecalho {
@@ -114,6 +114,11 @@
   font-weight: var(--peso-forte);
   color: var(--cor-texto);
   font-variant-numeric: tabular-nums;
+}
+
+/* O prazo é a consequência — "vencida há 38 dias" —, não um apoio: quebra a linha em vez de cortar. */
+.validade .sublinha {
+  white-space: normal;
 }
 
 .vencida .forte,

@@ -193,11 +193,11 @@ export function PaginaDeNovaAeronave() {
         <div className={estilos.grade}>
           <CampoDeTexto
             rotulo="Matrícula"
+            obrigatorio
             valor={matricula}
             aoMudar={setMatricula}
             exemplo="PS-AER"
             maxLength={7}
-            erro={erro}
           />
           <CampoDeTexto
             rotulo="Fabricante"
@@ -205,7 +205,13 @@ export function PaginaDeNovaAeronave() {
             aoMudar={setFabricante}
             maxLength={80}
           />
-          <CampoDeTexto rotulo="Modelo" valor={modelo} aoMudar={setModelo} maxLength={120} />
+          <CampoDeTexto
+            rotulo="Modelo"
+            obrigatorio
+            valor={modelo}
+            aoMudar={setModelo}
+            maxLength={120}
+          />
           <CampoDeTexto
             rotulo="Nº de série"
             valor={numeroDeSerie}
@@ -214,6 +220,7 @@ export function PaginaDeNovaAeronave() {
           />
           <CampoDeTexto
             rotulo="Base (ICAO)"
+            obrigatorio
             valor={base}
             aoMudar={setBase}
             exemplo="SBSP"
@@ -228,12 +235,14 @@ export function PaginaDeNovaAeronave() {
           />
           <CampoDeTexto
             rotulo="Vigência do seguro (vencimento)"
+            obrigatorio
             tipo="data"
             valor={vencimentoReta}
             aoMudar={setVencimentoReta}
           />
           <CampoDeTexto
             rotulo="Vencimento do CVA"
+            obrigatorio
             tipo="data"
             valor={vencimentoCva}
             aoMudar={setVencimentoCva}
@@ -263,6 +272,7 @@ export function PaginaDeNovaAeronave() {
         <div className={estilos.grade}>
           <CampoDeTexto
             rotulo="Horas de voo (célula)"
+            obrigatorio
             valor={horasDeCelula}
             aoMudar={setHorasDeCelula}
             inputMode="numeric"
@@ -270,6 +280,7 @@ export function PaginaDeNovaAeronave() {
           <div>
             <CampoDeTexto
               rotulo="Kilômetros voados"
+              obrigatorio
               valor={kmVoados}
               aoMudar={setKmVoados}
               inputMode="numeric"
@@ -364,6 +375,7 @@ export function PaginaDeNovaAeronave() {
           />
           <CampoDeTexto
             rotulo="Saldo atual do fundo (R$)"
+            obrigatorio
             valor={saldoDeAbertura}
             aoMudar={setSaldoDeAbertura}
             inputMode="decimal"
@@ -490,6 +502,15 @@ export function PaginaDeNovaAeronave() {
       ) : null}
 
       <div className={estilos.acoes}>
+        {/* O botão desabilitado diz por quê, como a barra do protótipo: sem isso, a pessoa procura
+            o campo que falta. */}
+        {!obrigatoriosOk || !contratoFecha ? (
+          <Texto variante="apoio" tom="suave" como="p">
+            {!obrigatoriosOk
+              ? 'Preencha os campos marcados com * para cadastrar.'
+              : 'A soma das participações precisa fechar em 100%.'}
+          </Texto>
+        ) : null}
         <Botao variante="secundario" aoClicar={() => void navegar('/aeronaves')}>
           Cancelar
         </Botao>
@@ -538,9 +559,7 @@ function Cabecalho({
         {numero}
       </span>
       <div className={estilos.textoDaSecao}>
-        <Texto variante="subtitulo" como="h2">
-          {titulo}
-        </Texto>
+        <h2 className={estilos.tituloDaSecao}>{titulo}</h2>
         <Texto variante="apoio" tom="suave" como="p">
           {descricao}
         </Texto>

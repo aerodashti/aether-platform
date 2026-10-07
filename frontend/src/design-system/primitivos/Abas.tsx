@@ -15,6 +15,13 @@ interface AbasProps<T extends string> {
   abas: Array<Aba<T>>;
   valor: T;
   aoEscolher: (valor: T) => void;
+  /**
+   * `sublinhado` (padrão): rótulos sobre uma régua, a ativa sublinhada. `trilho`: abas sobre um
+   * fundo azulado, a ativa em branco, contagem num círculo — Trocas e Central de avisos.
+   * `contorno`: abas coladas numa caixa com borda — Aportes · Rendimentos. `fichas`: cada aba é
+   * uma ficha com borda — as categorias de Lançamentos.
+   */
+  variante?: 'sublinhado' | 'trilho' | 'contorno' | 'fichas';
 }
 
 /**
@@ -22,9 +29,19 @@ interface AbasProps<T extends string> {
  * sublinhado de 3px na cor de ação. Quem escolhe a aba decide o que renderizar — o primitivo só
  * cuida da lista, do estado e da semântica (`tablist`/`tab`).
  */
-export function Abas<T extends string>({ rotulo, abas, valor, aoEscolher }: AbasProps<T>) {
+export function Abas<T extends string>({
+  rotulo,
+  abas,
+  valor,
+  aoEscolher,
+  variante = 'sublinhado',
+}: AbasProps<T>) {
   return (
-    <div className={estilos.lista} role="tablist" aria-label={rotulo}>
+    <div
+      className={juntarClasses(estilos.lista, variante !== 'sublinhado' && estilos[variante])}
+      role="tablist"
+      aria-label={rotulo}
+    >
       {abas.map((aba) => {
         const ativa = aba.valor === valor;
         return (

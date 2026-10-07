@@ -32,7 +32,10 @@ const PROPRIETARIO_LOGADO = { nome: 'Rubens', email: 'rubens@x.com.br', papel: '
 const AERONAVES = [{ id: 1, matricula: 'PS-MEP', modelo: 'Citation XLS+' }];
 const PROPRIETARIOS = [
   { id: 7, nome: 'Ricardo Meirelles', corDeIdentificacao: 'PETROLEO', situacao: 'ATIVO' },
+  // Ativo, mas sem participação na PS-MEP: não pode receber atribuição dela.
+  { id: 8, nome: 'Otávio Lins', corDeIdentificacao: 'AZUL', situacao: 'ATIVO' },
 ];
+const VINCULOS = [{ aeronaveId: 1, proprietarioId: 7, matricula: 'PS-MEP', percentual: 100 }];
 const DIARIO = {
   trechos: [
     {
@@ -78,6 +81,9 @@ function prepararFetch(sessao: unknown) {
       if (entrada.startsWith('/api/aeronaves')) {
         return Promise.resolve(respostaDe(AERONAVES));
       }
+      if (entrada.startsWith('/api/participacoes/vigentes')) {
+        return Promise.resolve(respostaDe(VINCULOS));
+      }
       if (entrada.startsWith('/api/proprietarios')) {
         return Promise.resolve(respostaDe(PROPRIETARIOS));
       }
@@ -86,8 +92,9 @@ function prepararFetch(sessao: unknown) {
   );
 }
 
+/** A linha da grade, não a opção homônima do filtro por voo. */
 function linhaDe(texto: string) {
-  return screen.getByText(texto).closest('tr') as HTMLElement;
+  return within(screen.getByRole('table')).getByText(texto).closest('tr') as HTMLElement;
 }
 
 describe('PaginaDeVoos', () => {
@@ -109,7 +116,7 @@ describe('PaginaDeVoos', () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
-    expect(await screen.findByText('RV-2026-041')).toBeInTheDocument();
+    expect(await screen.findByRole('cell', { name: /RV-2026-041/ })).toBeInTheDocument();
     expect(within(linhaDe('RV-2026-041')).getByText('Ricardo Meirelles')).toBeInTheDocument();
     expect(
       within(linhaDe('RV-2026-043')).getByText('Manutenção · divide entre todos'),
@@ -120,11 +127,10 @@ describe('PaginaDeVoos', () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
-    await screen.findByText('RV-2026-041');
-    const totais = linhaDe('TOTAIS');
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
+    const totais = linhaDe('TOTAIS · 2 pousos');
     expect(within(totais).getByText('1,2 h')).toBeInTheDocument();
     expect(within(totais).getByText('423')).toBeInTheDocument();
-    expect(within(totais).getByText('2 pousos')).toBeInTheDocument();
   });
 
   it('chega filtrada pela URL, e ?registrar=1 abre o painel de trecho', async () => {
@@ -140,7 +146,7 @@ describe('PaginaDeVoos', () => {
     prepararFetch(PROPRIETARIO_LOGADO);
     envolver(<PaginaDeVoos />);
 
-    await screen.findByText('RV-2026-041');
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
     expect(screen.queryByRole('button', { name: 'Registrar trecho' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
   });
@@ -149,7 +155,7 @@ describe('PaginaDeVoos', () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
-    await screen.findByText('RV-2026-041');
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
     await userEvent.click(within(linhaDe('RV-2026-041')).getByRole('button', { name: 'Excluir' }));
 
     expect(within(linhaDe('RV-2026-041')).getByText('Excluir?')).toBeInTheDocument();
@@ -160,7 +166,7 @@ describe('PaginaDeVoos', () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
-    await screen.findByText('RV-2026-041');
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
     await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
 
     const partida = screen.getByLabelText('Partida prevista');
@@ -170,5 +176,70 @@ describe('PaginaDeVoos', () => {
 
     // Virada de meia-noite: 1,5 h, não negativo.
     expect(screen.getByText(/Duração \(automática\): 1,5 h/)).toBeInTheDocument();
+    expect(screen.getByText(/Pouso no dia seguinte/)).toBeInTheDocument();
+  });
+  it('a recusa do servidor aparece junto do botão, dizendo qual campo falhou', async () => {
+    prepararFetch(PILOTO);
+    const buscarPadrao = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((entrada, opcoes) =>
+      opcoes?.method === 'POST'
+        ? Promise.resolve(
+            respostaDe(
+              {
+                detail: 'Verifique os campos informados e tente novamente.',
+                campos: { km: 'Os quilômetros precisam ser maiores que zero.' },
+              },
+              400,
+            ),
+          )
+        : (buscarPadrao as typeof fetch)(entrada, opcoes),
+    );
+    envolver(<PaginaDeVoos />);
+
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
+    const painel = screen.getByRole('dialog');
+    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
+    await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
+    await userEvent.type(within(painel).getByLabelText('Rel. Voo'), 'RV-2026-044');
+    await userEvent.type(within(painel).getByLabelText('Data do trecho'), '2026-10-05');
+    await userEvent.type(within(painel).getByLabelText('Origem'), 'SBSP');
+    await userEvent.type(within(painel).getByLabelText('Destino'), 'SBGR');
+    await userEvent.type(within(painel).getByLabelText('KM'), '0');
+    await userEvent.click(within(painel).getByRole('button', { name: 'Registrar trecho' }));
+
+    expect(await within(painel).findByRole('alert')).toHaveTextContent(
+      'Os quilômetros precisam ser maiores que zero.',
+    );
+    expect(within(painel).getByLabelText('Rel. Voo')).not.toHaveAttribute('aria-invalid', 'true');
+  });
+  it('a atribuição só oferece quem é dono da aeronave escolhida', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />);
+
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
+    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
+    const painel = screen.getByRole('dialog');
+    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
+    await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
+
+    const atribuicao = within(painel).getByLabelText('Atribuição (quem usou)');
+    expect(
+      await within(atribuicao).findByRole('option', { name: 'Ricardo Meirelles' }),
+    ).toBeInTheDocument();
+    expect(within(atribuicao).queryByRole('option', { name: 'Otávio Lins' })).toBeNull();
+  });
+
+  it('numa aeronave, mostra o % de uso de cada proprietário; o filtro por voo recorta a grade', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?aeronave=1');
+
+    const usos = await screen.findByRole('list', { name: 'Uso da aeronave por proprietário' });
+    expect(within(usos).getByText('Ricardo Meirelles')).toBeInTheDocument();
+    expect(within(usos).getByText('100%')).toBeInTheDocument();
+
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-043');
+    expect(within(screen.getByRole('table')).queryByText('RV-2026-041')).not.toBeInTheDocument();
+    expect(linhaDe('TOTAIS · 1 pouso')).toBeInTheDocument();
   });
 });
