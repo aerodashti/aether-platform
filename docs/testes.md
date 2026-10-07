@@ -5,11 +5,11 @@
 
 ## Backend
 
-| Camada     | Ferramenta                    | O que testar                                                                                                             |
-| ---------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Entidade   | JUnit 5 + AssertJ, sem Spring | As regras de negócio: `estaOperante()`, `podeVoar()`. Rápido e sem mock.                                                 |
-| Service    | JUnit 5 + Mockito             | Orquestração: o que acontece quando o repositório devolve vazio, quando a regra recusa, quando lança exceção de domínio. |
-| Controller | `@WebMvcTest` + MockMvc       | Contrato HTTP: status, formato do JSON, validação de entrada, Problem Details no erro.                                   |
+| Camada | Ferramenta | O que testar |
+| --- | --- | --- |
+| Entidade | JUnit 5 + AssertJ, sem Spring | As regras de negócio: `estaOperante()`, `podeVoar()`. Rápido e sem mock. |
+| Service | JUnit 5 + Mockito | Orquestração: o que acontece quando o repositório devolve vazio, quando a regra recusa, quando lança exceção de domínio. |
+| Controller | `@WebMvcTest` + MockMvc | Contrato HTTP: status, formato do JSON, validação de entrada, Problem Details no erro. |
 
 > **O slice do `@WebMvcTest` não carrega a cadeia de autorização.** Ele traz o `FiltroDeSessao`,
 > porque é um `Filter`, mas não a `ConfiguracaoDeSeguranca` — e sem ela vale o padrão do starter,
@@ -23,8 +23,8 @@
 > E declara `@MockitoBean AutenticacaoService`, que é de quem o filtro depende. Autenticar no teste
 > é ensinar esse mock: `when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(...))` e mandar
 > o cookie no request — assim o que está sob teste é a cadeia real, não um atalho.
-> | Repositório / SQL | Testcontainers, `@Tag("integracao")` | Só quando há query própria ou migration a validar. Não teste o Spring Data. |
-> | Arquitetura | ArchUnit | `ArquiteturaTest` — seis regras, descritas abaixo. |
+| Repositório / SQL | Testcontainers, `@Tag("integracao")` | Só quando há query própria ou migration a validar. Não teste o Spring Data. |
+| Arquitetura | ArchUnit | `ArquiteturaTest` — seis regras, descritas abaixo. |
 
 ### Como rodar
 
@@ -64,11 +64,11 @@ relaxar uma delas, o caminho é um ADR, não um `@ArchIgnore`.
 
 ## Frontend
 
-| Camada                     | O que testar                                                                                                                            |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Primitivo do design system | Renderiza as variantes, aplica os tokens, mantém a semântica (papel, foco, `aria-*`).                                                   |
-| Hook de feature            | Estados do TanStack Query: carregando, sucesso, erro.                                                                                   |
-| Componente de feature      | O que a pessoa vê: texto na tela, estado de carregamento, mensagem de erro. Consulta por papel e texto acessível, nunca por classe CSS. |
+| Camada | O que testar |
+| --- | --- |
+| Primitivo do design system | Renderiza as variantes, aplica os tokens, mantém a semântica (papel, foco, `aria-*`). |
+| Hook de feature | Estados do TanStack Query: carregando, sucesso, erro. |
+| Componente de feature | O que a pessoa vê: texto na tela, estado de carregamento, mensagem de erro. Consulta por papel e texto acessível, nunca por classe CSS. |
 
 Não há Playwright nem MSW nesta fase (`docs/adr/`). Chamadas de rede em teste são substituídas por
 um `fetch` falso local ao teste.

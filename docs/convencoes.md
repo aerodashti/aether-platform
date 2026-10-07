@@ -5,14 +5,14 @@
 
 ## Idioma
 
-| Onde                                                             | Idioma                                 | Exemplo                                                                                        |
-| ---------------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Identificadores de código                                        | Português **sem acento e sem cedilha** | `situacaoRegular`, `verificadoEm`                                                              |
-| Campos de API (JSON)                                             | Português sem acento                   | `{"situacaoGeral": "OPERANTE"}`                                                                |
-| Tabelas e colunas                                                | Português sem acento, **singular**     | `registro_de_saude`, `verificado_em`                                                           |
-| Sufixos de framework                                             | Inglês                                 | `AeronaveController`, `AeronaveService`, `AeronaveRepository`, `AeronaveDTO`, `AeronaveMapper` |
-| Palavras reservadas e padrões universais                         | Inglês                                 | `id`, `main`, `test`, `build`, `src`                                                           |
-| Documentação, comentários, commits, mensagens de erro ao usuário | Português com acentuação normal        | "Aeronave não encontrada."                                                                     |
+| Onde | Idioma | Exemplo |
+| --- | --- | --- |
+| Identificadores de código | Português **sem acento e sem cedilha** | `situacaoRegular`, `verificadoEm` |
+| Campos de API (JSON) | Português sem acento | `{"situacaoGeral": "OPERANTE"}` |
+| Tabelas e colunas | Português sem acento, **singular** | `registro_de_saude`, `verificado_em` |
+| Sufixos de framework | Inglês | `AeronaveController`, `AeronaveService`, `AeronaveRepository`, `AeronaveDTO`, `AeronaveMapper` |
+| Palavras reservadas e padrões universais | Inglês | `id`, `main`, `test`, `build`, `src` |
+| Documentação, comentários, commits, mensagens de erro ao usuário | Português com acentuação normal | "Aeronave não encontrada." |
 
 Casos que já geraram dúvida:
 
@@ -39,14 +39,14 @@ No TypeScript vale o mesmo: `estaCarregando`, `possuiErro`, `podeEnviar`.
 
 ## Arquivos
 
-| Tipo                 | Convenção                            | Exemplo                          |
-| -------------------- | ------------------------------------ | -------------------------------- |
-| Classe Java          | `PascalCase`, singular               | `RegistroDeSaude.java`           |
-| Componente React     | `PascalCase`                         | `PaginaSaude.tsx`                |
-| Hook React           | `use` + substantivo em português     | `useSaude.ts`                    |
-| CSS Module           | mesmo nome do componente             | `PaginaSaude.module.css`         |
-| Migration Flyway     | `V<n>__<descricao_em_portugues>.sql` | `V1__cria_registro_de_saude.sql` |
-| Documento em `docs/` | `kebab-case.md`                      | `design-system.md`               |
+| Tipo | Convenção | Exemplo |
+| --- | --- | --- |
+| Classe Java | `PascalCase`, singular | `RegistroDeSaude.java` |
+| Componente React | `PascalCase` | `PaginaSaude.tsx` |
+| Hook React | `use` + substantivo em português | `useSaude.ts` |
+| CSS Module | mesmo nome do componente | `PaginaSaude.module.css` |
+| Migration Flyway | `V<n>__<descricao_em_portugues>.sql` | `V1__cria_registro_de_saude.sql` |
+| Documento em `docs/` | `kebab-case.md` | `design-system.md` |
 
 ## Commits
 

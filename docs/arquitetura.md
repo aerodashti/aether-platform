@@ -182,12 +182,12 @@ nenhuma delas pode importar `fechamento`. A regra mora numa calculadora pura
 
 ### Fronteiras (falham o lint)
 
-| Regra                                                     | Motivo                                                         |
-| --------------------------------------------------------- | -------------------------------------------------------------- |
-| `design-system` não importa de `features`, `app` ou `api` | O design system tem que poder ser lido isoladamente            |
-| `features/A` não importa de `features/B`                  | Features se comunicam pela URL e pelo servidor, não por import |
-| `compartilhado` não importa de `features`                 | Senão deixa de ser compartilhado                               |
-| `<button>`, `<input>`, `<a>` crus só em `design-system`   | Garante estados, acessibilidade e tokens em um lugar só        |
+| Regra | Motivo |
+| --- | --- |
+| `design-system` não importa de `features`, `app` ou `api` | O design system tem que poder ser lido isoladamente |
+| `features/A` não importa de `features/B` | Features se comunicam pela URL e pelo servidor, não por import |
+| `compartilhado` não importa de `features` | Senão deixa de ser compartilhado |
+| `<button>`, `<input>`, `<a>` crus só em `design-system` | Garante estados, acessibilidade e tokens em um lugar só |
 
 ### Como adicionar uma tela no frontend
 

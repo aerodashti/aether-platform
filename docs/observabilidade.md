@@ -7,7 +7,7 @@
 
 Um request produz **uma** linha de log INFO, escrita quando ele termina, com tudo o que é preciso
 para entender aquele request — identificação, duração, status, corpos tratados e todas as variáveis
-que determinaram o caminho de execução. É o padrão _canonical log line_.
+que determinaram o caminho de execução. É o padrão *canonical log line*.
 
 A consequência prática: **não se investiga um problema juntando linhas**. Você acha a linha do
 request e ela já responde. Por isso `INFO` e `DEBUG` manuais não existem no código de negócio — o
@@ -111,13 +111,13 @@ precisa perguntar isso — está no `/revisar`.
 
 ### Tamanho: limites que valem para todo campo
 
-| Regra                          | Comportamento                                                  |
-| ------------------------------ | -------------------------------------------------------------- |
-| String acima de 500 caracteres | truncada, com sufixo `…[truncado, 2310 chars]`                 |
-| Lista com até 5 itens          | aparece inteira                                                |
-| Lista com mais de 5 itens      | `{itens: [os 5 primeiros], _total: N}`                         |
-| Objeto aninhado                | mesma regra, recursivamente, até profundidade 6                |
-| Multipart ou binário           | **nunca é lido**: registra só `content_type` e `tamanho_bytes` |
+| Regra | Comportamento |
+| --- | --- |
+| String acima de 500 caracteres | truncada, com sufixo `…[truncado, 2310 chars]` |
+| Lista com até 5 itens | aparece inteira |
+| Lista com mais de 5 itens | `{itens: [os 5 primeiros], _total: N}` |
+| Objeto aninhado | mesma regra, recursivamente, até profundidade 6 |
+| Multipart ou binário | **nunca é lido**: registra só `content_type` e `tamanho_bytes` |
 
 Isso não é sobre sigilo: é para que nenhum corpo de request consiga inundar a linha canônica.
 
@@ -156,17 +156,17 @@ Duas linhas, o mesmo `trace_id` nas duas.
 
 ### Campos da linha canônica
 
-| Campo                            | O que é                                                                      |
-| -------------------------------- | ---------------------------------------------------------------------------- |
-| `http.metodo`                    | Verbo HTTP                                                                   |
-| `http.rota`                      | O **template** da rota (`/saude/componente/{componente}`), não a URL com ids |
-| `http.status`                    | Status real da resposta                                                      |
-| `duracao_ms`                     | Tempo do request inteiro, medido pelo filtro                                 |
-| `usuario.id`                     | Quando há usuário autenticado                                                |
-| `request.body` / `response.body` | Corpos depois da sanitização; ausentes quando vazios                         |
-| `decisao.*`                      | Tudo que veio de `contexto.decisao`                                          |
-| `erro`                           | Sempre presente, `true` ou `false`                                           |
-| `erro.classe`                    | Só quando `erro=true`                                                        |
+| Campo | O que é |
+| --- | --- |
+| `http.metodo` | Verbo HTTP |
+| `http.rota` | O **template** da rota (`/saude/componente/{componente}`), não a URL com ids |
+| `http.status` | Status real da resposta |
+| `duracao_ms` | Tempo do request inteiro, medido pelo filtro |
+| `usuario.id` | Quando há usuário autenticado |
+| `request.body` / `response.body` | Corpos depois da sanitização; ausentes quando vazios |
+| `decisao.*` | Tudo que veio de `contexto.decisao` |
+| `erro` | Sempre presente, `true` ou `false` |
+| `erro.classe` | Só quando `erro=true` |
 
 Rotas de infraestrutura (`/actuator`, Swagger, `/v3/api-docs`, favicon) não geram linha canônica.
 
@@ -210,12 +210,12 @@ A escolha do coletor está em `docs/adr/0011-coletor-local-de-observabilidade.md
 A fachada em `src/compartilhado/observabilidade/observabilidade.ts` é o espelho do backend:
 
 ```ts
-import { contexto } from "@/compartilhado/observabilidade/observabilidade";
+import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 
-contexto.interacao("consultar-saude", () => buscar<Saude>("/saude"));
-contexto.registrar("http.status", 200);
-contexto.decisao("saude.operante", true);
-contexto.erro("Falha na requisição à API");
+contexto.interacao('consultar-saude', () => buscar<Saude>('/saude'));
+contexto.registrar('http.status', 200);
+contexto.decisao('saude.operante', true);
+contexto.erro('Falha na requisição à API');
 ```
 
 - `interacao` delimita uma ação de usuário: abre um span, acumula o que acontecer dentro e emite
@@ -230,14 +230,14 @@ contexto.erro("Falha na requisição à API");
 
 ## Proibições verificadas pelo build
 
-| Regra                                                  | Onde                                         |
-| ------------------------------------------------------ | -------------------------------------------- |
-| `io.opentelemetry.*` só em `comum/observabilidade`     | ArchUnit, `opentelemetrySoNaObservabilidade` |
-| Nenhum `Logger.info` ou `Logger.debug` fora de `comum` | ArchUnit, `negocioNaoEmiteInfoNemDebug`      |
-| Nenhum `System.out`, `System.err`, `printStackTrace`   | ArchUnit, `nenhumaClasseUsaSaidaPadrao`      |
-| Nenhum `console.*` fora da fachada                     | ESLint, `no-console`                         |
+| Regra | Onde |
+| --- | --- |
+| `io.opentelemetry.*` só em `comum/observabilidade` | ArchUnit, `opentelemetrySoNaObservabilidade` |
+| Nenhum `Logger.info` ou `Logger.debug` fora de `comum` | ArchUnit, `negocioNaoEmiteInfoNemDebug` |
+| Nenhum `System.out`, `System.err`, `printStackTrace` | ArchUnit, `nenhumaClasseUsaSaidaPadrao` |
+| Nenhum `console.*` fora da fachada | ESLint, `no-console` |
 
 `ERROR` e `WARN` continuam permitidos em qualquer lugar: são para o que exige ação humana, não para
 narrar o fluxo. A regra foi implementada em **ArchUnit e não em Checkstyle** porque depende do
-_tipo_ do receptor da chamada — só o ArchUnit sabe que aquela variável é um `org.slf4j.Logger`;
+*tipo* do receptor da chamada — só o ArchUnit sabe que aquela variável é um `org.slf4j.Logger`;
 o Checkstyle enxerga tokens e teria que adivinhar pelo nome da variável.
