@@ -397,7 +397,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Registra a devolução das horas */
+        /** Registra a devolução das horas, na data em que ela aconteceu */
         post: operations["concluir"];
         delete?: never;
         options?: never;
@@ -430,7 +430,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista os proprietários em ordem de nome */
+        /**
+         * Lista os proprietários em ordem de nome
+         * @description Documento, e-mail e telefone saem nulos para quem não é administrador nem gestor.
+         */
         get: operations["listar_4"];
         put?: never;
         /** Cadastra um proprietário */
@@ -536,7 +539,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Conclui: sai das programadas e entra no histórico permanente */
+        /** Conclui no dia em que foi feita: sai das programadas e entra no histórico */
         post: operations["concluir_1"];
         delete?: never;
         options?: never;
@@ -588,7 +591,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Troca a própria senha: exige a senha atual e o código enviado por e-mail */
+        /** Troca a própria senha: exige a senha atual e o código enviado por e-mail, e encerra as outras sessões */
         post: operations["trocarSenha"];
         delete?: never;
         options?: never;
@@ -1186,8 +1189,8 @@ export interface components {
              */
             nome?: string;
             /**
-             * @description CPF ou CNPJ, com ou sem pontuação
-             * @example 123.456.789-01
+             * @description CPF ou CNPJ, com ou sem pontuação; o CNPJ alfanumérico tem letras nos 12 primeiros caracteres
+             * @example 123.456.789-09
              */
             cpfCnpj?: string;
             /**
@@ -1221,17 +1224,17 @@ export interface components {
              */
             nome?: string;
             /**
-             * @description CPF ou CNPJ, só dígitos
-             * @example 12345678901
+             * @description CPF ou CNPJ sem pontuação, em maiúsculas; nulo para quem não gere a conta
+             * @example 12345678909
              */
             cpfCnpj?: string;
             /**
-             * @description E-mail de contato
+             * @description E-mail de contato; nulo para quem não gere a conta
              * @example ricardo@exemplo.com.br
              */
             email?: string;
             /**
-             * @description Telefone de contato
+             * @description Telefone de contato; nulo para quem não gere a conta
              * @example +55 11 98888-0000
              */
             telefone?: string;
@@ -1275,6 +1278,11 @@ export interface components {
             valor?: number;
             /** @enum {string} */
             status?: "PROGRAMADA" | "CONCLUIDA";
+            /**
+             * Format: date
+             * @description O dia em que foi feita; nulo enquanto programada
+             */
+            concluidaEm?: string;
         };
         /** @description Parâmetro de controle */
         ParametroRequest: {
@@ -1313,6 +1321,7 @@ export interface components {
             nomeFantasia?: string;
             razaoSocial?: string;
             email?: string;
+            /** @example +55 11 3000-0000 */
             telefone?: string;
         };
         /** @description A empresa dona desta instalação */
@@ -1353,7 +1362,7 @@ export interface components {
              * @description Dias de antecedência
              * @example 30
              */
-            diasDeAviso?: number;
+            diasDeAviso: number;
         };
         /** @description Um lançamento de custo */
         CustoRequest: {
@@ -1374,6 +1383,7 @@ export interface components {
             /** @enum {string} */
             moeda: "BRL" | "USD";
             valor: number;
+            /** @description Reais por dólar, no dia do lançamento; só em USD */
             cambio?: number;
         };
         /** @description Lançamento de custo */
@@ -1403,6 +1413,7 @@ export interface components {
             moeda?: "BRL" | "USD";
             /** @description Valor original na moeda estrangeira; nulo em BRL */
             valorOriginal?: number;
+            /** @description Reais por dólar do dia do lançamento; nulo em BRL */
             cambio?: number;
             /** @description Valor em BRL, o que o rateio consome */
             valor?: number;
@@ -1457,9 +1468,15 @@ export interface components {
             base?: string;
             hangar?: string;
             apoliceDoSeguro?: string;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description MTOW em kg inteiros, até 600.000
+             */
             pesoMaxDecolagemKg?: number;
-            /** Format: int32 */
+            /**
+             * Format: int32
+             * @description MLW em kg inteiros, até 600.000 e nunca acima do MTOW
+             */
             pesoMaxPousoKg?: number;
         };
         /** @description Totais acumulados da aeronave */
@@ -1551,7 +1568,7 @@ export interface components {
              */
             situacao?: "REGULAR" | "ATENCAO" | "VENCIDO";
         };
-        /** @description Correção dos totais acumulados da aeronave */
+        /** @description Totais acumulados da aeronave, no cadastro e na correção manual */
         ContadoresRequest: {
             horasDeCelula: number;
             /** Format: int32 */
@@ -1561,6 +1578,8 @@ export interface components {
             horasMotor2?: number;
             horasMotor3?: number;
             horasApu?: number;
+            /** @description Os totais que a tela mostrava ao abrir a correção. Se mudaram desde então — um voo lançado no meio —, a correção é recusada com 409 em vez de apagar o voo dos totais. Ignorado no cadastro. */
+            lidos?: components["schemas"]["Contadores"];
         };
         /** @description Rateio e fundo da aeronave */
         ConfiguracaoFinanceiraRequest: {
@@ -1570,6 +1589,7 @@ export interface components {
             modeloDeAporte: "FIXO" | "PROPORCIONAL_AO_USO";
             /** Format: int32 */
             periodicidadeDoAporteMeses: number;
+            /** @description Quanto se cobra a cada período no aporte fixo, maior que zero. No proporcional ao uso não se aplica e é descartado. */
             valorDoAporte?: number;
             /** Format: int32 */
             diaDeFechamento: number;
@@ -1580,7 +1600,7 @@ export interface components {
         TripulanteRequest: {
             nome?: string;
             /**
-             * @description Código ANAC, com ou sem máscara
+             * @description Código ANAC: 6 dígitos, com ou sem máscara
              * @example 123456
              */
             canac?: string;
@@ -1588,14 +1608,15 @@ export interface components {
             funcao: "COMANDANTE" | "COPILOTO" | "INSTRUTOR" | "EXAMINADOR";
             /**
              * Format: date
-             * @description Validade do Certificado Médico Aeronáutico
+             * @description Validade do Certificado Médico Aeronáutico, de 2000 a hoje + 5 anos
              */
             validadeCma?: string;
             /**
              * Format: date
-             * @description Validade do Certificado de Habilitação Técnica
+             * @description Validade do Certificado de Habilitação Técnica, de 2000 a hoje + 5 anos
              */
             validadeCht?: string;
+            /** @description Horas totais de voo, até 60.000 h com uma casa decimal */
             horasTotais?: number;
             telefone?: string;
             email?: string;
@@ -1680,13 +1701,27 @@ export interface components {
              */
             ultimoAcesso?: string;
         };
+        /** @description A devolução de uma troca de KM */
+        ConclusaoDaTrocaRequest: {
+            /**
+             * Format: date
+             * @description Data da devolução: entre a data da troca e hoje
+             */
+            concluidaEm: string;
+        };
         /** @description O contrato novo de uma aeronave */
         ContratoNovo: {
             /** Format: int64 */
             aeronaveId: number;
-            participacoes: components["schemas"]["ParticipacaoRequest"][];
+            /**
+             * Format: int64
+             * @description O contrato vigente que o painel tinha à vista. Se o vigente mudou desde então, a resposta é 409.
+             * @example 10
+             */
+            contratoVigenteId: number;
+            participacoes?: components["schemas"]["ParticipacaoRequest"][];
         };
-        /** @description A fatia de um proprietário */
+        /** @description A participação de um proprietário */
         ParticipacaoRequest: {
             /** Format: int64 */
             proprietarioId: number;
@@ -1696,9 +1731,18 @@ export interface components {
         SaidaDeProprietarioRequest: {
             contratos: components["schemas"]["ContratoNovo"][];
         };
+        /** @description Conclusão de uma manutenção */
+        ConclusaoRequest: {
+            /**
+             * Format: date
+             * @description O dia em que a manutenção foi feita; nunca no futuro
+             */
+            concluidaEm: string;
+        };
         /** @description Troca da própria senha */
         TrocarSenhaRequest: {
             senhaAtual?: string;
+            /** @description Senha nova: de 8 caracteres a 72 bytes, e diferente da atual */
             novaSenha?: string;
             /**
              * @description Código de seis dígitos
@@ -1723,7 +1767,7 @@ export interface components {
              * @example 519274
              */
             codigo?: string;
-            /** @description Senha nova, de no mínimo oito caracteres */
+            /** @description Senha nova: de 8 caracteres a 72 bytes, e diferente da atual */
             novaSenha?: string;
         };
         /** @description Conferência do código de recuperação */
@@ -1769,7 +1813,7 @@ export interface components {
         ConcluirConviteRequest: {
             /** @description Token que veio no link do convite */
             convite?: string;
-            /** @description Senha escolhida pela própria pessoa */
+            /** @description Senha escolhida pela própria pessoa: de 8 caracteres a 72 bytes */
             novaSenha?: string;
         };
         /** @description Cadastro de uma nova aeronave */
@@ -1824,6 +1868,12 @@ export interface components {
         /** @description Definição de um novo contrato de participação */
         DefinirContratoRequest: {
             participacoes?: components["schemas"]["ParticipacaoRequest"][];
+            /**
+             * Format: int64
+             * @description O contrato vigente que a edição tinha à vista, ou nulo se a aeronave não tinha contrato. Se o vigente mudou desde então, a resposta é 409.
+             * @example 10
+             */
+            contratoVigenteId?: number;
         };
         /** @description Um contrato de participação */
         ContratoResponse: {
@@ -1863,7 +1913,7 @@ export interface components {
             /** @description Totais do recorte */
             totais?: components["schemas"]["TotaisDoDiario"];
         };
-        /** @description Totais do recorte */
+        /** @description Totais do que foi realizado no recorte */
         TotaisDoDiario: {
             horas?: number;
             km?: number;
@@ -1977,6 +2027,12 @@ export interface components {
              * @example 3
              */
             aeronaveId?: number;
+            /**
+             * Format: int64
+             * @description O contrato vigente de onde vem o vínculo: a saída do proprietário o devolve para provar que partiu dele
+             * @example 10
+             */
+            contratoId?: number;
             /**
              * @description Matrícula da aeronave
              * @example PS-AER
@@ -3020,7 +3076,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConclusaoDaTrocaRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -3270,7 +3330,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConclusaoRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -3359,7 +3423,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie: {
+                aether_sessao: string;
+            };
         };
         requestBody: {
             content: {

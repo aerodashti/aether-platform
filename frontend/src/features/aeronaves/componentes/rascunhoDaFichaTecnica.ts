@@ -1,7 +1,7 @@
 import { numeroParaCampo } from '@/compartilhado/formatacao/numero';
 
 import type {
-  CorrecaoDeContadoresRequest,
+  ContadoresRequest,
   DetalheDaAeronaveResponse,
   FichaTecnicaRequest,
 } from '../api/useDetalheDaAeronave';
@@ -113,7 +113,7 @@ export function contadoresForamAlterados(
 export function contadoresParaEnvio(
   rascunho: RascunhoDosContadores,
   lidos: DetalheDaAeronaveResponse['contadores'],
-): CorrecaoDeContadoresRequest {
+): ContadoresRequest {
   return {
     horasDeCelula: numeroValidado(rascunho.horasDeCelula),
     ciclos: numeroValidado(rascunho.ciclos),

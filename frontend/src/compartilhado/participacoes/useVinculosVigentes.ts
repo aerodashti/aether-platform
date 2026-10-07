@@ -4,13 +4,10 @@ import { buscar } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 
 /**
- * O `contratoId` já sai do servidor, mas ainda não está em `tipos-gerados.ts`: some daqui na
- * próxima `npm run gerar-tipos`.
+ * O `contratoId` é o contrato vigente de onde vem o vínculo: a saída o devolve para provar que
+ * partiu dele.
  */
-export type VinculoVigenteResponse = components['schemas']['VinculoVigenteResponse'] & {
-  /** O contrato vigente de onde vem o vínculo; a saída o devolve para provar que partiu dele. */
-  contratoId?: number;
-};
+export type VinculoVigenteResponse = components['schemas']['VinculoVigenteResponse'];
 
 /** Chave da lista de vínculos vigentes no cache; o contrato da aeronave a invalida ao mudar. */
 export const CHAVE_DE_VINCULOS_VIGENTES = ['participacoes', 'vigentes'] as const;

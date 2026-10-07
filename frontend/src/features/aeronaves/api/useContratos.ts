@@ -10,9 +10,10 @@ export type ContratoResponse = components['schemas']['ContratoResponse'];
 export type ParticipacaoResponse = components['schemas']['ParticipacaoResponse'];
 
 /**
- * O pedido do contrato novo, declarado aqui até a próxima `npm run gerar-tipos`:
- * `contratoVigenteId` é o vigente que a edição tinha à vista (nulo se não havia nenhum) — se
- * outro entrou em vigor, o servidor responde 409. O percentual ilegível vai nulo, nunca `NaN`.
+ * O pedido do contrato novo. `contratoVigenteId` é o vigente que a edição tinha à vista (nulo se
+ * não havia nenhum) — se outro entrou em vigor, o servidor responde 409. Declarado aqui, e não
+ * tirado de `tipos-gerados.ts`, porque o percentual ilegível vai nulo, nunca `NaN`, e o tipo gerado
+ * não admite o nulo que o servidor recusa no campo.
  */
 export interface DefinirContratoRequest {
   participacoes: Array<{ proprietarioId: number; percentual: number | null }>;

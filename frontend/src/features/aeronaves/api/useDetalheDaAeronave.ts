@@ -9,14 +9,6 @@ export type FichaTecnicaRequest = components['schemas']['FichaTecnicaRequest'];
 export type ContadoresRequest = components['schemas']['ContadoresRequest'];
 export type ConfiguracaoFinanceiraRequest = components['schemas']['ConfiguracaoFinanceiraRequest'];
 
-/**
- * A correção leva os totais que a tela leu ao abrir: se um voo os mudou no meio, o servidor recusa
- * com 409 em vez de apagar o voo. O `lidos` ainda não está em `tipos-gerados.ts` — ao regenerar os
- * tipos com o backend no ar, esta declaração vira o `ContadoresRequest` gerado.
- */
-export type CorrecaoDeContadoresRequest = ContadoresRequest & {
-  lidos?: DetalheDaAeronaveResponse['contadores'];
-};
 export type BaseDoRateio = NonNullable<ConfiguracaoFinanceiraRequest['baseDoRateio']>;
 export type ModeloDeAporte = NonNullable<ConfiguracaoFinanceiraRequest['modeloDeAporte']>;
 
@@ -51,7 +43,7 @@ export function useAtualizarFichaTecnica(id: number) {
 }
 
 export function useCorrigirContadores(id: number) {
-  return useEdicaoDoDetalhe<CorrecaoDeContadoresRequest>('corrigir-contadores', (contadores) =>
+  return useEdicaoDoDetalhe<ContadoresRequest>('corrigir-contadores', (contadores) =>
     enviar<DetalheDaAeronaveResponse>(`/aeronaves/${id}/contadores`, contadores, 'PUT'),
   );
 }
