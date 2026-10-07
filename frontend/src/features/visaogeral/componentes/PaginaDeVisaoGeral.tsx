@@ -1,5 +1,6 @@
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { useAvisos } from '@/compartilhado/avisos/useAvisos';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
 import { competenciaAbreviada } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -13,7 +14,7 @@ import { CartaoDaFrota } from './CartaoDaFrota';
 import { GraficoDeBarras } from './GraficoDeBarras';
 import estilos from './PaginaDeVisaoGeral.module.css';
 import { comparativo, custoPorHora, linhasDaFrota, porAtencao } from './regras';
-import { competenciaAtual, horas, moedaCurta } from './rotulos';
+import { horas, moedaCurta } from './rotulos';
 
 /** Quantos cartões a "Frota gerenciada" mostra: os que mais pedem atenção. */
 const CARTOES = 3;
@@ -25,7 +26,7 @@ const CARTOES = 3;
  * alertas da Central.
  */
 export function PaginaDeVisaoGeral() {
-  const competencia = competenciaAtual();
+  const competencia = competenciaLocal();
   const aeronaves = useAeronaves();
   const resumos = useResumoDaFrota(competencia);
   const trechos = useTrechosDoMes(competencia);

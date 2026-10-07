@@ -4,7 +4,7 @@ import {
   hojeLocal,
   somarMesesNaCompetencia,
 } from '@/compartilhado/formatacao/datas';
-import { ehCompetencia } from '@/compartilhado/recorte/competencia';
+import { ehCompetencia } from '@/compartilhado/formulario/regras';
 import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { juntarClasses } from '@/design-system/classes';

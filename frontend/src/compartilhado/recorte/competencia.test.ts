@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { competenciaEntre, ehCompetencia, janelaDeCompetencias, mesesEntre } from './competencia';
+import { ehCompetencia } from '@/compartilhado/formulario/regras';
+
+import { competenciaEntre, janelaDeCompetencias, mesesEntre } from './competencia';
 
 describe('competência do recorte', () => {
   it('reconhece só AAAA-MM com mês de 01 a 12', () => {

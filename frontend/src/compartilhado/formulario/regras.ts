@@ -178,7 +178,10 @@ export function telefone(
 /** "AAAA-MM", com mês de 01 a 12 — o que o campo de mês entrega, ou o que se digita onde ele falta. */
 const FORMATO_DE_COMPETENCIA = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+export function ehCompetencia(texto: string): boolean {
+  return FORMATO_DE_COMPETENCIA.test(texto);
+}
+
 export function competencia(mensagem = 'Use o formato AAAA-MM, como 2026-10.'): Regra {
-  return (texto) =>
-    estaVazio(texto) || FORMATO_DE_COMPETENCIA.test(texto.trim()) ? undefined : mensagem;
+  return (texto) => (estaVazio(texto) || ehCompetencia(texto.trim()) ? undefined : mensagem);
 }

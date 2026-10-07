@@ -34,9 +34,3 @@ export function cobertura(meses: number | undefined, saldo: number): string {
   }
   return meses === 1 ? '1 mês' : `${UMA_CASA.format(meses)} meses`;
 }
-
-/** O mês corrente no fuso de quem usa, "AAAA-MM" — toISOString é UTC. */
-export function competenciaAtual(): string {
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-}

@@ -1,12 +1,5 @@
 import { competenciaLocal, somarMesesNaCompetencia } from '@/compartilhado/formatacao/datas';
-import type { Regra } from '@/compartilhado/formulario/regras';
-
-/** "AAAA-MM", com mês de 01 a 12 — o que o campo de mês entrega, ou o que se digita onde ele falta. */
-const FORMATO_DE_COMPETENCIA = /^\d{4}-(0[1-9]|1[0-2])$/;
-
-export function ehCompetencia(texto: string): boolean {
-  return FORMATO_DE_COMPETENCIA.test(texto);
-}
+import { ehCompetencia, type Regra } from '@/compartilhado/formulario/regras';
 
 /** As competências que um recorte do fundo aceita, nas duas pontas. */
 export interface JanelaDeCompetencias {
