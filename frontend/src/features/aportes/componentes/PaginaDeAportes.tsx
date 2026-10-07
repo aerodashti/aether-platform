@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { competenciaLocal, somarMesesNaCompetencia } from '@/compartilhado/formatacao/datas';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Abas } from '@/design-system/primitivos/Abas';
@@ -21,7 +22,7 @@ import {
 import { FormularioDeRendimento } from './FormularioDeRendimento';
 import estilos from './PaginaDeAportes.module.css';
 import { PainelDeAporte } from './PainelDeAporte';
-import { competenciaAtual, deslocarCompetencia, moedaEmTexto } from './rotulos';
+import { moedaEmTexto } from './rotulos';
 import { TabelaDeAportes } from './TabelaDeAportes';
 import { TabelaDeRendimentos } from './TabelaDeRendimentos';
 
@@ -40,8 +41,8 @@ type FormularioAberto =
  */
 export function PaginaDeAportes() {
   const [modo, setModo] = useState<Modo>('MENSAL');
-  const [de, setDe] = useState(deslocarCompetencia(competenciaAtual(), -11));
-  const [ate, setAte] = useState(competenciaAtual());
+  const [de, setDe] = useState(somarMesesNaCompetencia(competenciaLocal(), -11));
+  const [ate, setAte] = useState(competenciaLocal());
   const [aba, setAba] = useState<Aba>('APORTES');
   const [painel, setPainel] = useState<PainelDoAporte>(null);
   const [formulario, setFormulario] = useState<FormularioAberto>(null);
@@ -50,7 +51,7 @@ export function PaginaDeAportes() {
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  const recorte = useRecorteDaUrl(competenciaAtual(), {
+  const recorte = useRecorteDaUrl(competenciaLocal(), {
     podeRegistrar: podeGerir,
     aoPedir: () => setPainel({ modo: 'novo' }),
   });
@@ -199,6 +200,7 @@ export function PaginaDeAportes() {
                 rendimento={formulario.modo === 'corrigir' ? formulario.rendimento : undefined}
                 aeronaveInicial={aeronaveId || undefined}
                 aoFechar={() => setFormulario(null)}
+                aoSalvar={() => setFormulario(null)}
               />
             ) : null}
             <Texto variante="apoio" tom="suave" como="p">
@@ -217,6 +219,7 @@ export function PaginaDeAportes() {
           aporte={painel.modo === 'corrigir' ? painel.aporte : undefined}
           aeronaveInicial={aeronaveId || undefined}
           aoFechar={() => setPainel(null)}
+          aoSalvar={() => setPainel(null)}
         />
       ) : null}
     </div>

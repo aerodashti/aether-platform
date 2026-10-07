@@ -168,9 +168,9 @@ describe('PaginaDeAportes', () => {
     await screen.findByRole('option', { name: 'Ricardo Meirelles' });
     expect(within(dono).queryByRole('option', { name: 'Helena Sarraf' })).not.toBeInTheDocument();
     const painel = screen.getByRole('dialog', { name: 'Registrar aporte' });
-    expect(within(painel).getByRole('button', { name: 'Registrar aporte' })).toHaveAttribute(
+    // Salvar não fica desabilitado por validação: é ao tentar que o painel diz o que falta.
+    expect(within(painel).getByRole('button', { name: 'Registrar aporte' })).not.toHaveAttribute(
       'aria-disabled',
-      'true',
     );
   });
 
