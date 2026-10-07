@@ -265,14 +265,15 @@ export function PaginaDeManutencao() {
                                   className={juntarClasses(tabela.celula, tabela.acoes)}
                                 >
                                   <Botao
-                                    variante="secundario"
+                                    tom="positivo"
                                     tamanho="pequeno"
+                                    rotuloAcessivel="Concluir"
                                     carregando={concluir.isPending}
                                     aoClicar={() =>
                                       manutencao.id != null && concluir.mutate(manutencao.id)
                                     }
                                   >
-                                    Concluir
+                                    ✓ Concluir
                                   </Botao>
                                   <Botao
                                     variante="secundario"

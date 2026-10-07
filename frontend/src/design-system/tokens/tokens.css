@@ -15,12 +15,13 @@
   --cor-acento-texto: #416180;
   --cor-acento-solido: #5980a6;
   --cor-acento-solido-hover: #2c455d;
-  --cor-acento-vestigio: rgba(89, 128, 166, 0.1);
+  --cor-acento-vestigio: rgba(89, 128, 166, 0.10);
   --cor-acento-contraste: #ffffff;
   --cor-positivo: #0f766e;
   --cor-atencao: #b45309;
   --cor-critico: #dc2626;
   --cor-positivo-vestigio: #d2e6e3;
+  --cor-positivo-solido: #0f766e;
   --cor-atencao-vestigio: #fbf0dd;
   --cor-critico-vestigio: #f4d9d9;
   --cor-foco: #5980a6;
@@ -113,6 +114,7 @@
   --cor-atencao: #f0b34e;
   --cor-critico: #f87171;
   --cor-positivo-vestigio: rgba(74, 222, 154, 0.12);
+  --cor-positivo-solido: #0f766e;
   --cor-atencao-vestigio: rgba(240, 179, 78, 0.12);
   --cor-critico-vestigio: rgba(248, 113, 113, 0.14);
   --cor-foco: #4f7ea8;
@@ -148,6 +150,7 @@
     --cor-atencao: #f0b34e;
     --cor-critico: #f87171;
     --cor-positivo-vestigio: rgba(74, 222, 154, 0.12);
+    --cor-positivo-solido: #0f766e;
     --cor-atencao-vestigio: rgba(240, 179, 78, 0.12);
     --cor-critico-vestigio: rgba(248, 113, 113, 0.14);
     --cor-foco: #4f7ea8;

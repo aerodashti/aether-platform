@@ -19,8 +19,9 @@ conversa antes:
 - **Raio 4px.** `--raio-m` e `--raio-g` são `4px`, `--raio-s` é `3px`: controles, cartões, badges
   e popovers têm o mesmo canto discreto. `--raio-redondo` existe só para avatar, dot de situação,
   contador e spinner. Formato pill continua proibido.
-- **Neutros quentes, cartões brancos.** O fundo da página é `#fafafb`, os cartões são `#ffffff`
-  com borda `#e0e0e3`, a barra lateral é `#f4f4f6`. O texto é `#1d1f20` e o secundário `#5d5d60`.
+- **Neutros quentes, cartões brancos.** O fundo da área logada é `#f2f2f3`, os cartões são
+  `#ffffff` com borda `#e0e0e3`, a barra lateral é `#f4f4f6` e `#fafafb` fica para as faixas dentro
+  dos cartões (cabeçalho de grade, totais) e para a tela de entrada. O texto é `#1d1f20` e o secundário `#5d5d60`.
 - **Alta densidade.** A escala tipográfica vai de 11px a 26px, e o corpo da interface é 14px; os
   campos e as tabelas ficam em 13px. Alturas de controle 32, 36 e 40 — o degrau de 32 é a
   densidade compacta da grade. Sem respiros decorativos.
@@ -191,7 +192,7 @@ acessibilidade ficam em um lugar só.
 | Primitivo | Arquivo | Variantes | Observações |
 | --- | --- | --- | --- |
 | `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
-| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (40px), `grande` (48px) | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco |
+| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (36px), `grande` (40px) — os `btn-sm`, `btn-md` e `btn-lg` do protótipo | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco; `tom="positivo"` pinta o primário de verde (`--cor-positivo-solido`, o mesmo nos dois temas), o "✓ Concluir" de manutenção e trocas |
 | `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required` |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
 | `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |

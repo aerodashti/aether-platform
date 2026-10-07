@@ -1,8 +1,10 @@
+/* O fundo da área logada é o cinza recuado do protótipo (#f2f2f3): os cartões brancos se destacam
+   dele, e o #fafafb fica para faixas dentro dos cartões (cabeçalho de grade, totais). */
 .moldura {
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--cor-fundo);
+  background: var(--cor-superficie-recuada);
   color: var(--cor-texto);
 }
 

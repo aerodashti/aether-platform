@@ -71,7 +71,7 @@ export function CartaoDeProprietario({
             {inativo ? (
               <Botao
                 variante="contorno"
-                tamanho="pequeno"
+                tamanho="medio"
                 carregando={reativar.isPending}
                 aoClicar={() => reativar.mutate(id)}
               >
@@ -81,14 +81,14 @@ export function CartaoDeProprietario({
               <>
                 <Botao
                   variante="secundario"
-                  tamanho="pequeno"
+                  tamanho="medio"
                   aoClicar={() => aoEditar(proprietario)}
                 >
                   Editar
                 </Botao>
                 <Botao
                   variante="secundario"
-                  tamanho="pequeno"
+                  tamanho="medio"
                   tom="critico"
                   carregando={desativar.isPending}
                   aoClicar={() => desativar.mutate(id)}

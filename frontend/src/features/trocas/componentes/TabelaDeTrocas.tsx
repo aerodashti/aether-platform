@@ -175,6 +175,7 @@ export function TabelaDeTrocas({
                   <span className={estilos.acoes}>
                     {situacao === 'PENDENTE' ? (
                       <Botao
+                        tom="positivo"
                         tamanho="pequeno"
                         rotuloAcessivel={`Concluir ${descricao}`}
                         carregando={concluir.isPending && concluir.variables === id}
