@@ -1,3 +1,10 @@
+/* O formulário repete a coluna do corpo do painel: o <form> entre os dois não pode quebrar o ritmo. */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
 .duasColunas {
   display: grid;
   grid-template-columns: 1fr 1fr;

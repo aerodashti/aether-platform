@@ -344,7 +344,7 @@ describe('PaginaDeDetalheDaAeronave', () => {
     await screen.findAllByText('PS-MEP');
     expect(screen.queryByRole('button', { name: 'Alterar participações' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Adicionar tripulante' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Editar/ })).not.toBeInTheDocument();
   });
 
   it('a ficha técnica mostra os contadores formatados, com travessão para o APU ausente', async () => {

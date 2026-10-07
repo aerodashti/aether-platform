@@ -92,6 +92,44 @@ class TripulanteIntegracaoTest {
     mockMvc.perform(atualizacaoDe(psMep, id, sessao)).andExpect(status().isNotFound());
   }
 
+  @Test
+  @DisplayName("o que estourava a coluna ou passava da janela volta 400 no campo, e nada é gravado")
+  void recusasNoCampo() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    Cookie sessao = entrar();
+
+    mockMvc
+        .perform(
+            post("/aeronaves/" + psMep + "/tripulantes")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"Recusado","canac":"12345678901","funcao":"COMANDANTE",
+                     "horasTotais":12.35,"situacao":"ATIVO"}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.canac").exists())
+        .andExpect(jsonPath("$.campos.horasTotais").exists());
+
+    mockMvc
+        .perform(
+            post("/aeronaves/" + psMep + "/tripulantes")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"nome":"Recusado","funcao":"COMANDANTE","validadeCht":"9999-12-31",
+                     "situacao":"ATIVO"}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.validadeCht").exists());
+
+    mockMvc
+        .perform(get("/aeronaves/" + psMep + "/tripulantes").cookie(sessao))
+        .andExpect(jsonPath("$[?(@.nome=='Recusado')]").isEmpty());
+  }
+
   private org.springframework.test.web.servlet.RequestBuilder atualizacaoDe(
       Long aeronaveId, long id, Cookie sessao) {
     return put("/aeronaves/" + aeronaveId + "/tripulantes/" + id)

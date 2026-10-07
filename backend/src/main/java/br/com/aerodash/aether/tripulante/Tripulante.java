@@ -24,6 +24,12 @@ import java.util.Locale;
 @Table(name = "tripulante")
 public class Tripulante {
 
+  /** A validade mais antiga que se cadastra: antes disso é ano digitado errado, não histórico. */
+  public static final LocalDate PRIMEIRA_VALIDADE = LocalDate.of(2000, 1, 1);
+
+  /** CMA e CHT valem poucos anos: uma validade em 2062 é erro de digitação, não documento. */
+  private static final int ANOS_DE_VALIDADE_A_FRENTE = 5;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -90,6 +96,19 @@ public class Tripulante {
     }
     String limpo = email.trim().toLowerCase(Locale.ROOT);
     return limpo.isEmpty() ? null : limpo;
+  }
+
+  public static LocalDate ultimaValidade(LocalDate hoje) {
+    return hoje.plusYears(ANOS_DE_VALIDADE_A_FRENTE);
+  }
+
+  /**
+   * A validade de CMA ou CHT cabe na janela plausível. Já vencida é aceita — é um fato que a tela
+   * avisa —, e nula também: é "não informada".
+   */
+  public static boolean aceitaValidade(LocalDate validade, LocalDate hoje) {
+    return validade == null
+        || (!validade.isBefore(PRIMEIRA_VALIDADE) && !validade.isAfter(ultimaValidade(hoje)));
   }
 
   public boolean estaAtivo() {

@@ -3,6 +3,8 @@ package br.com.aerodash.aether.tripulante;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
@@ -121,6 +123,58 @@ class TripulanteServiceTest {
 
     assertThatThrownBy(() -> service.atualizar(AERONAVE, 7L, request("Marcos", null)))
         .isInstanceOf(RecursoNaoEncontradoException.class);
+  }
+
+  @Test
+  @DisplayName("validade além de cinco anos é recusada no campo, com a janela, antes de gravar")
+  void recusaValidadeImplausivel() {
+    assertThatThrownBy(
+            () -> service.criar(AERONAVE, request("Marcos", LocalDate.parse("2062-01-10"))))
+        .isInstanceOf(TripulanteInvalidoException.class)
+        .hasMessage("Use uma data de 01/01/2000 a 10/09/2031.")
+        .satisfies(
+            erro ->
+                assertThat(((TripulanteInvalidoException) erro).getCampo())
+                    .hasValue("validadeCht"));
+
+    verify(contexto).decisao("tripulante.validadeChtPlausivel", false);
+    verify(tripulantes, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("validade já vencida é aceita: é um fato, e a lista a julga vencida")
+  void aceitaValidadeVencida() {
+    TripulanteResponse criado =
+        service.criar(AERONAVE, request("Juliana Prates", LocalDate.parse("2026-08-29")));
+
+    assertThat(criado.chtVencido()).isTrue();
+    verify(contexto).decisao("tripulante.validadeChtPlausivel", true);
+  }
+
+  @Test
+  @DisplayName("a correção também confere a janela, sem tocar no tripulante gravado")
+  void atualizacaoConfereJanela() {
+    Tripulante existente =
+        new Tripulante(
+            AERONAVE,
+            new DadosDoTripulante(
+                "Marcos",
+                null,
+                FuncaoDoTripulante.COMANDANTE,
+                null,
+                null,
+                null,
+                null,
+                null,
+                SituacaoDoTripulante.ATIVO),
+            AGORA);
+    when(tripulantes.findById(7L)).thenReturn(Optional.of(existente));
+
+    assertThatThrownBy(
+            () -> service.atualizar(AERONAVE, 7L, request("Marcos", LocalDate.parse("1990-05-01"))))
+        .isInstanceOf(TripulanteInvalidoException.class);
+
+    assertThat(existente.getValidadeCht()).isNull();
   }
 
   @Test
