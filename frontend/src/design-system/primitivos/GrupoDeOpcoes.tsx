@@ -16,6 +16,12 @@ interface GrupoDeOpcoesProps {
   marcador?: boolean;
   /** Cada opção ocupa a mesma fração da linha, em vez do tamanho do próprio texto. */
   larguraIgual?: boolean;
+  /**
+   * `cartoes` (padrão): cada opção é um botão com borda própria. `segmentado`: as opções coladas
+   * numa caixa de 40px, o "Mensal | Período" do protótipo. `trilho`: as opções sobre um trilho
+   * cinza, a escolhida em branco — o "Todos · Fixos · Variáveis" de Lançamentos.
+   */
+  variante?: 'cartoes' | 'segmentado' | 'trilho';
 }
 
 /**
@@ -35,9 +41,14 @@ export function GrupoDeOpcoes({
   aoEscolher,
   marcador = false,
   larguraIgual = false,
+  variante = 'cartoes',
 }: GrupoDeOpcoesProps) {
   return (
-    <div className={estilos.grupo} role="radiogroup" aria-label={rotulo}>
+    <div
+      className={juntarClasses(estilos.grupo, variante !== 'cartoes' && estilos[variante])}
+      role="radiogroup"
+      aria-label={rotulo}
+    >
       {opcoes.map((opcao) => {
         const escolhida = opcao.valor === valor;
         return (

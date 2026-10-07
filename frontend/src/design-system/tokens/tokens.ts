@@ -28,6 +28,8 @@ export const tokens = {
     'foco': 'var(--cor-foco)',
     'superficie-recuada': 'var(--cor-superficie-recuada)',
     'hover': 'var(--cor-hover)',
+    'trilho': 'var(--cor-trilho)',
+    'acento-trilho': 'var(--cor-acento-trilho)',
     'linha-hover': 'var(--cor-linha-hover)',
     'overlay': 'var(--cor-overlay)',
   },

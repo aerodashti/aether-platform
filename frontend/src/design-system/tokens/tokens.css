@@ -27,6 +27,8 @@
   --cor-foco: #5980a6;
   --cor-superficie-recuada: #f2f2f3;
   --cor-hover: #f4f4f6;
+  --cor-trilho: #ececef;
+  --cor-acento-trilho: rgba(89, 128, 166, 0.05);
   --cor-linha-hover: #fafafb;
   --cor-overlay: rgba(29, 31, 32, 0.45);
   --elevacao-0: none;
@@ -120,6 +122,8 @@
   --cor-foco: #4f7ea8;
   --cor-superficie-recuada: #12171f;
   --cor-hover: rgba(255, 255, 255, 0.04);
+  --cor-trilho: rgba(255, 255, 255, 0.06);
+  --cor-acento-trilho: rgba(255, 255, 255, 0.04);
   --cor-linha-hover: #232c3a;
   --cor-overlay: rgba(5, 9, 14, 0.66);
   --elevacao-0: none;
@@ -156,6 +160,8 @@
     --cor-foco: #4f7ea8;
     --cor-superficie-recuada: #12171f;
     --cor-hover: rgba(255, 255, 255, 0.04);
+    --cor-trilho: rgba(255, 255, 255, 0.06);
+    --cor-acento-trilho: rgba(255, 255, 255, 0.04);
     --cor-linha-hover: #232c3a;
     --cor-overlay: rgba(5, 9, 14, 0.66);
     --elevacao-0: none;

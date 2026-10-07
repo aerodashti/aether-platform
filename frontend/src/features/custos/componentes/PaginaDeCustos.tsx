@@ -123,6 +123,7 @@ export function PaginaDeCustos() {
         </div>
         <GrupoDeOpcoes
           rotulo="Escopo"
+          variante="trilho"
           valor={escopo}
           opcoes={ESCOPOS}
           aoEscolher={(valor) => setEscopo(valor as Escopo)}
@@ -137,6 +138,7 @@ export function PaginaDeCustos() {
       {categorias.length > 0 ? (
         <Abas<Categoria>
           rotulo="Categorias"
+          variante="fichas"
           valor={categoriaAtiva}
           aoEscolher={setCategoria}
           abas={[{ valor: 'TODAS', rotulo: 'Todas', contagem: doEscopo.length }, ...categorias]}

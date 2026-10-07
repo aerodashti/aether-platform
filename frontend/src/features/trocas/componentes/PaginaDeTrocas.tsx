@@ -76,6 +76,7 @@ export function PaginaDeTrocas() {
 
       <Abas<SituacaoDaTroca>
         rotulo="Situação das trocas"
+        variante="trilho"
         valor={situacao}
         aoEscolher={setSituacao}
         abas={[

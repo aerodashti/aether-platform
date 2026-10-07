@@ -113,6 +113,7 @@ export function PaginaDeAvisos() {
 
       <Abas<Filtro>
         rotulo="Categorias de aviso"
+        variante="trilho"
         valor={filtro}
         aoEscolher={setFiltro}
         abas={[{ valor: 'TODOS', rotulo: 'Todos', contagem: avisos.length }, ...categorias]}

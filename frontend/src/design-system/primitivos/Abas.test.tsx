@@ -24,4 +24,28 @@ describe('Abas', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Histórico' }));
     expect(escolher).toHaveBeenCalledWith('historico');
   });
+
+  it.each(['trilho', 'contorno', 'fichas'] as const)(
+    'na variante %s continua um tablist com a aba ativa marcada',
+    (variante) => {
+      render(
+        <Abas
+          rotulo="Situação das trocas"
+          valor="PENDENTE"
+          abas={[
+            { valor: 'PENDENTE', rotulo: 'Pendentes', contagem: 2 },
+            { valor: 'CONCLUIDA', rotulo: 'Realizadas', contagem: 1 },
+          ]}
+          aoEscolher={() => {}}
+          variante={variante}
+        />,
+      );
+
+      expect(screen.getByRole('tablist', { name: 'Situação das trocas' })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Pendentes/ })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    },
+  );
 });

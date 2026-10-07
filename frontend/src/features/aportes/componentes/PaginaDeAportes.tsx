@@ -108,6 +108,7 @@ export function PaginaDeAportes() {
         />
         <GrupoDeOpcoes
           rotulo="Recorte de competência"
+          variante="segmentado"
           valor={modo}
           opcoes={[
             { valor: 'MENSAL', rotulo: 'Mensal' },
@@ -150,6 +151,7 @@ export function PaginaDeAportes() {
       <div className={estilos.faixaDasAbas}>
         <Abas<Aba>
           rotulo="Entradas do fundo"
+          variante="contorno"
           valor={aba}
           aoEscolher={setAba}
           abas={[
