@@ -132,6 +132,47 @@ describe('PaginaDeFechamento', () => {
     );
   });
 
+  it('período invertido: o campo De diz o porquê, e nada de outro período fica na tela', async () => {
+    montar('/fechamento?aeronave=1&modo=periodo&de=2026-12&ate=2026-10');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'A competência inicial vem depois da final.',
+    );
+    expect(screen.getByRole('radio', { name: 'Período' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByLabelText(/^De/)).toHaveAccessibleDescription(
+      'A competência inicial vem depois da final.',
+    );
+    expect(screen.queryByRole('group', { name: 'Indicadores do fechamento' })).toBeNull();
+    expect(chamadas().some((url) => url.startsWith('/api/fechamentos/periodo'))).toBe(false);
+  });
+
+  it('competência além da janela do servidor nem é pedida', async () => {
+    montar('/fechamento?aeronave=1&competencia=9999-12');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /Use uma competência de 01\/2000 até/,
+    );
+    expect(chamadas().some((url) => url.startsWith('/api/fechamentos/mensal'))).toBe(false);
+  });
+
+  it('sem aeronave na frota, pede o cadastro em vez de calcular para sempre', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(respostaDe([]))),
+    );
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={['/fechamento']}>
+          <PaginaDeFechamento />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByText('Cadastre uma aeronave para ver o fechamento.'),
+    ).toBeInTheDocument();
+  });
+
   it('o nome abre o extrato, que vai do saldo anterior ao acumulado', async () => {
     montar();
 

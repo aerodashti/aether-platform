@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -16,7 +17,8 @@ interface TabelaDeCustosProps {
   /** Os totais do recorte do servidor (aeronave e competência), não do filtro local. */
   totais: TotaisDosLancamentos | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   podeGerir: boolean;
   aoCorrigir: (custo: CustoResponse) => void;
   aoTentarDeNovo: () => void;
@@ -45,15 +47,12 @@ export function TabelaDeCustos({
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar os lançamentos.
-        </Texto>
-        <Texto variante="apoio" tom="suave" como="p">
-          Nenhum lançamento foi perdido.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar os lançamentos."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }

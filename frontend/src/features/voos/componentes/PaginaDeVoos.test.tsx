@@ -142,6 +142,18 @@ describe('PaginaDeVoos', () => {
     expect(chamadas.some((url) => url.startsWith('/api/voos?aeronave=1&competencia='))).toBe(true);
   });
 
+  it('competência fora do formato: o diário diz o formato e oferece Limpar filtros', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?competencia=2026-1');
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('Use o formato AAAA-MM, como 2026-10.');
+    await userEvent.click(within(alerta).getByRole('button', { name: 'Limpar filtros' }));
+
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas).toContain('/api/voos?');
+  });
+
   it('o piloto lança e corrige; o proprietário só lê', async () => {
     prepararFetch(PROPRIETARIO_LOGADO);
     envolver(<PaginaDeVoos />);

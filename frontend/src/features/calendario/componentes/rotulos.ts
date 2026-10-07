@@ -54,28 +54,3 @@ export function tituloDaCompetencia(competencia: string): string {
   const texto = MES_LONGO.format(new Date(Date.UTC(ano, mes - 1, 1)));
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
-
-/** Soma meses a uma competência "AAAA-MM" sem passar por fuso nenhum. */
-export function somarMeses(competencia: string, delta: number): string {
-  const [ano, mes] = competencia.split('-').map(Number);
-  if (!ano || !mes) {
-    return competencia;
-  }
-  const total = ano * 12 + (mes - 1) + delta;
-  const novoAno = Math.floor(total / 12);
-  const novoMes = (total % 12) + 1;
-  return `${String(novoAno).padStart(4, '0')}-${String(novoMes).padStart(2, '0')}`;
-}
-
-export function competenciaAtual(): string {
-  // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,
-  // já estaria no mês seguinte.
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-}
-
-/** O dia de hoje no fuso de quem usa, "AAAA-MM-DD" — o mesmo cuidado da competência atual. */
-export function hoje(): string {
-  const agora = new Date();
-  return `${competenciaAtual()}-${String(agora.getDate()).padStart(2, '0')}`;
-}

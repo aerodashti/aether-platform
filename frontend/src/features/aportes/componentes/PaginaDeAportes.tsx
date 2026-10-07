@@ -1,7 +1,9 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
-import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
+import { janelaDeCompetencias } from '@/compartilhado/recorte/competencia';
+import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
+import { useRecorteDaUrl, type ModoDoRecorte } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Abas } from '@/design-system/primitivos/Abas';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -21,11 +23,11 @@ import {
 import { FormularioDeRendimento } from './FormularioDeRendimento';
 import estilos from './PaginaDeAportes.module.css';
 import { PainelDeAporte } from './PainelDeAporte';
-import { competenciaAtual, deslocarCompetencia, moedaEmTexto } from './rotulos';
+import { competenciaAtual, moedaEmTexto } from './rotulos';
 import { TabelaDeAportes } from './TabelaDeAportes';
 import { TabelaDeRendimentos } from './TabelaDeRendimentos';
+import { validarRecorteDoFundo } from './validarRecorteDoFundo';
 
-type Modo = 'MENSAL' | 'PERIODO';
 type Aba = 'APORTES' | 'RENDIMENTOS';
 type PainelDoAporte = { modo: 'novo' } | { modo: 'corrigir'; aporte: AporteResponse } | null;
 type FormularioAberto =
@@ -39,9 +41,6 @@ type FormularioAberto =
  * fechamento. Sem paginação, como em Lançamentos: o recorte natural cabe numa grade.
  */
 export function PaginaDeAportes() {
-  const [modo, setModo] = useState<Modo>('MENSAL');
-  const [de, setDe] = useState(deslocarCompetencia(competenciaAtual(), -11));
-  const [ate, setAte] = useState(competenciaAtual());
   const [aba, setAba] = useState<Aba>('APORTES');
   const [painel, setPainel] = useState<PainelDoAporte>(null);
   const [formulario, setFormulario] = useState<FormularioAberto>(null);
@@ -54,11 +53,15 @@ export function PaginaDeAportes() {
     podeRegistrar: podeGerir,
     aoPedir: () => setPainel({ modo: 'novo' }),
   });
-  const { aeronaveId, competencia } = recorte;
+  const { aeronaveId, competencia, modo, de, ate } = recorte;
+  const janela = janelaDeCompetencias();
+  const erros = validarRecorteDoFundo({ modo, competencia, de, ate }, janela);
+  const erroDoRecorte = erros.competencia ?? erros.de ?? erros.ate;
+  const falhaDoRecorte = erroDoRecorte ? new RecorteInvalido(erroDoRecorte) : null;
   const filtro: FiltroDoFundo =
     modo === 'MENSAL' ? { aeronaveId, de: competencia, ate: competencia } : { aeronaveId, de, ate };
-  const aportes = useAportes(filtro);
-  const rendimentos = useRendimentos(filtro);
+  const aportes = useAportes(filtro, !falhaDoRecorte);
+  const rendimentos = useRendimentos(filtro, !falhaDoRecorte);
 
   const totalAportado = aportes.data?.total;
   const totalRendido = rendimentos.data?.total;
@@ -105,6 +108,7 @@ export function PaginaDeAportes() {
             })),
           ]}
           aoMudar={recorte.setAeronaveId}
+          apoio={recorte.avisoDaAeronave}
         />
         <GrupoDeOpcoes
           rotulo="Recorte de competência"
@@ -115,7 +119,7 @@ export function PaginaDeAportes() {
             { valor: 'MENSAL', rotulo: 'Mensal' },
             { valor: 'PERIODO', rotulo: 'Período' },
           ]}
-          aoEscolher={(valor) => setModo(valor as Modo)}
+          aoEscolher={(valor) => recorte.setModo(valor as ModoDoRecorte)}
         />
         {modo === 'MENSAL' ? (
           <div className={estilos.competencia}>
@@ -125,16 +129,37 @@ export function PaginaDeAportes() {
               tipo="mes"
               valor={competencia}
               aoMudar={recorte.setCompetencia}
+              minimo={janela.primeira}
+              maximo={janela.ultima}
+              erro={erros.competencia}
               apoio="Vazio mostra todo o histórico."
             />
           </div>
         ) : (
           <>
             <div className={estilos.competencia}>
-              <CampoDeTexto rotulo="De" tipo="mes" valor={de} aoMudar={setDe} />
+              <CampoDeTexto
+                rotulo="De"
+                tipo="mes"
+                valor={de}
+                aoMudar={recorte.setDe}
+                minimo={janela.primeira}
+                maximo={janela.ultima}
+                erro={erros.de}
+                apoio="Vazio é sem limite."
+              />
             </div>
             <div className={estilos.competencia}>
-              <CampoDeTexto rotulo="Até" tipo="mes" valor={ate} aoMudar={setAte} />
+              <CampoDeTexto
+                rotulo="Até"
+                tipo="mes"
+                valor={ate}
+                aoMudar={recorte.setAte}
+                minimo={janela.primeira}
+                maximo={janela.ultima}
+                erro={erros.ate}
+                apoio="Vazio é sem limite."
+              />
             </div>
           </>
         )}
@@ -176,22 +201,24 @@ export function PaginaDeAportes() {
           <TabelaDeAportes
             resposta={aportes.data}
             carregando={aportes.isPending}
-            erro={aportes.isError}
+            erro={falhaDoRecorte ?? aportes.error}
             mostraAeronave={aeronaveId === ''}
             podeGerir={podeGerir}
             aoCorrigir={(aporte) => setPainel({ modo: 'corrigir', aporte })}
             aoTentarDeNovo={() => void aportes.refetch()}
+            aoLimparFiltros={recorte.limpar}
           />
         ) : (
           <>
             <TabelaDeRendimentos
               resposta={rendimentos.data}
               carregando={rendimentos.isPending}
-              erro={rendimentos.isError}
+              erro={falhaDoRecorte ?? rendimentos.error}
               mostraAeronave={aeronaveId === ''}
               podeGerir={podeGerir}
               aoCorrigir={(rendimento) => setFormulario({ modo: 'corrigir', rendimento })}
               aoTentarDeNovo={() => void rendimentos.refetch()}
+              aoLimparFiltros={recorte.limpar}
             />
             {formulario ? (
               <FormularioDeRendimento

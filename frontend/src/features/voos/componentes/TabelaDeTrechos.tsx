@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -14,11 +15,13 @@ import estilos from './TabelaDeTrechos.module.css';
 interface TabelaDeTrechosProps {
   diario: DiarioDeVoosResponse | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   mostraAeronave: boolean;
   podeLancar: boolean;
   aoCorrigir: (trecho: TrechoResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 const LINHAS_DO_ESQUELETO = 4;
@@ -35,6 +38,7 @@ export function TabelaDeTrechos({
   podeLancar,
   aoCorrigir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeTrechosProps) {
   const excluir = useExcluirTrecho();
   const [confirmando, setConfirmando] = useState<number | null>(null);
@@ -42,12 +46,12 @@ export function TabelaDeTrechos({
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar o diário.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar o diário."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }

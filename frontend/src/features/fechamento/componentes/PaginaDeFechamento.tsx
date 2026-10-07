@@ -1,8 +1,11 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
-import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
-import { Botao } from '@/design-system/primitivos/Botao';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
+import { janelaDeCompetencias } from '@/compartilhado/recorte/competencia';
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
+import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
+import { useRecorteDaUrl, type ModoDoRecorte } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { GrupoDeOpcoes } from '@/design-system/primitivos/GrupoDeOpcoes';
@@ -18,9 +21,7 @@ import {
 import { ExtratoDoProprietario } from './ExtratoDoProprietario';
 import estilos from './PaginaDeFechamento.module.css';
 import {
-  competenciaAtual,
   competenciaPorExtenso,
-  deslocarCompetencia,
   horasEmTexto,
   moedaEmTexto,
   ROTULO_DA_BASE,
@@ -28,8 +29,7 @@ import {
 } from './rotulos';
 import { TabelaDoPeriodo } from './TabelaDoPeriodo';
 import { TabelaMensal } from './TabelaMensal';
-
-type Modo = 'MENSAL' | 'PERIODO';
+import { validarRecorteDoFechamento } from './validarRecorteDoFechamento';
 
 function Indicadores({ itens }: { itens: Array<[string, string]> }) {
   return (
@@ -44,16 +44,23 @@ function Indicadores({ itens }: { itens: Array<[string, string]> }) {
   );
 }
 
-function Carregando({ erro, aoTentarDeNovo }: { erro: boolean; aoTentarDeNovo: () => void }) {
-  if (erro) {
+interface CarregandoProps {
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  falha: Error | null;
+  aoTentarDeNovo: () => void;
+  aoLimpar: () => void;
+}
+
+function Carregando({ falha, aoTentarDeNovo, aoLimpar }: CarregandoProps) {
+  if (falha) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível calcular o fechamento.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={falha}
+          generica="Não foi possível calcular o fechamento."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimpar}
+        />
       </div>
     );
   }
@@ -74,18 +81,22 @@ function Carregando({ erro, aoTentarDeNovo }: { erro: boolean; aoTentarDeNovo: (
  * PDF) e o ciclo de fatura pelo dia de fechamento — a competência é o mês civil.
  */
 export function PaginaDeFechamento() {
-  const recorte = useRecorteDaUrl(competenciaAtual());
+  const recorte = useRecorteDaUrl(competenciaLocal());
   const aeronaves = useAeronaves();
-  const [modo, setModo] = useState<Modo>('MENSAL');
-  const [de, setDe] = useState(deslocarCompetencia(competenciaAtual(), -11));
-  const [ate, setAte] = useState(competenciaAtual());
   const [extrato, setExtrato] = useState<LinhaDoProprietario | null>(null);
 
   // Fechamento é sempre de uma aeronave: sem escolha na URL, vale a primeira da frota.
   const aeronaveId = recorte.aeronaveId || String(aeronaves.data?.[0]?.id ?? '');
-  const competencia = recorte.competencia || competenciaAtual();
-  const mensal = useFechamentoMensal(modo === 'MENSAL' ? aeronaveId : '', competencia);
-  const periodo = useFechamentoDoPeriodo(modo === 'PERIODO' ? aeronaveId : '', de, ate);
+  const competencia = recorte.competencia || competenciaLocal();
+  const { modo, de, ate } = recorte;
+  const janela = janelaDeCompetencias();
+  const erros = validarRecorteDoFechamento({ modo, competencia, de, ate }, janela);
+  const erroDoRecorte = erros.competencia ?? erros.de ?? erros.ate;
+  const falhaDoRecorte = erroDoRecorte ? new RecorteInvalido(erroDoRecorte) : null;
+  const consultar = (doModo: ModoDoRecorte) =>
+    modo === doModo && aeronaveId !== '' && !falhaDoRecorte;
+  const mensal = useFechamentoMensal(aeronaveId, competencia, consultar('MENSAL'));
+  const periodo = useFechamentoDoPeriodo(aeronaveId, de, ate, consultar('PERIODO'));
   const atual = modo === 'MENSAL' ? mensal.data : periodo.data;
 
   return (
@@ -100,6 +111,7 @@ export function PaginaDeFechamento() {
             rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
           }))}
           aoMudar={recorte.setAeronaveId}
+          apoio={recorte.avisoDaAeronave}
         />
         <GrupoDeOpcoes
           rotulo="Recorte do fechamento"
@@ -110,7 +122,7 @@ export function PaginaDeFechamento() {
             { valor: 'MENSAL', rotulo: 'Mensal' },
             { valor: 'PERIODO', rotulo: 'Período' },
           ]}
-          aoEscolher={(valor) => setModo(valor as Modo)}
+          aoEscolher={(valor) => recorte.setModo(valor as ModoDoRecorte)}
         />
         {modo === 'MENSAL' ? (
           <div className={estilos.competencia}>
@@ -120,15 +132,37 @@ export function PaginaDeFechamento() {
               tipo="mes"
               valor={competencia}
               aoMudar={recorte.setCompetencia}
+              minimo={janela.primeira}
+              maximo={janela.ultima}
+              erro={erros.competencia}
             />
           </div>
         ) : (
           <>
             <div className={estilos.competencia}>
-              <CampoDeTexto rotulo="De" tipo="mes" valor={de} aoMudar={setDe} />
+              <CampoDeTexto
+                rotulo="De"
+                tipo="mes"
+                valor={de}
+                aoMudar={recorte.setDe}
+                minimo={janela.primeira}
+                maximo={janela.ultima}
+                erro={erros.de}
+                obrigatorio
+              />
             </div>
             <div className={estilos.competencia}>
-              <CampoDeTexto rotulo="Até" tipo="mes" valor={ate} aoMudar={setAte} />
+              <CampoDeTexto
+                rotulo="Até"
+                tipo="mes"
+                valor={ate}
+                aoMudar={recorte.setAte}
+                minimo={janela.primeira}
+                maximo={janela.ultima}
+                erro={erros.ate}
+                apoio="Até dez anos de uma vez."
+                obrigatorio
+              />
             </div>
           </>
         )}
@@ -144,7 +178,21 @@ export function PaginaDeFechamento() {
         ) : null}
       </div>
 
-      {modo === 'MENSAL' ? (
+      {aeronaves.isError ? (
+        <div className={estilos.recado} role="alert">
+          <FalhaDaConsulta
+            falha={aeronaves.error}
+            generica="Não foi possível carregar a frota."
+            aoTentarDeNovo={() => void aeronaves.refetch()}
+          />
+        </div>
+      ) : aeronaves.data?.length === 0 ? (
+        <div className={estilos.recado}>
+          <Texto variante="corpo" como="p">
+            Cadastre uma aeronave para ver o fechamento.
+          </Texto>
+        </div>
+      ) : modo === 'MENSAL' ? (
         mensal.data ? (
           <>
             <Texto variante="apoio" tom="suave" como="p">
@@ -190,7 +238,11 @@ export function PaginaDeFechamento() {
             </Texto>
           </>
         ) : (
-          <Carregando erro={mensal.isError} aoTentarDeNovo={() => void mensal.refetch()} />
+          <Carregando
+            falha={falhaDoRecorte ?? mensal.error}
+            aoTentarDeNovo={() => void mensal.refetch()}
+            aoLimpar={recorte.limpar}
+          />
         )
       ) : periodo.data ? (
         <>
@@ -212,24 +264,18 @@ export function PaginaDeFechamento() {
             ]}
           />
           <div className={estilos.painel}>
-            <TabelaDoPeriodo
-              periodo={periodo.data}
-              aoAbrirCompetencia={(escolhida) => {
-                recorte.setCompetencia(escolhida);
-                setModo('MENSAL');
-              }}
-            />
+            <TabelaDoPeriodo periodo={periodo.data} aoAbrirCompetencia={recorte.abrirCompetencia} />
           </div>
           <Texto variante="apoio" tom="suave" como="p">
             Clique em uma competência para abrir o fechamento mensal correspondente.
           </Texto>
         </>
-      ) : de > ate ? (
-        <div className={estilos.aviso} role="alert">
-          A competência inicial vem depois da final.
-        </div>
       ) : (
-        <Carregando erro={periodo.isError} aoTentarDeNovo={() => void periodo.refetch()} />
+        <Carregando
+          falha={falhaDoRecorte ?? periodo.error}
+          aoTentarDeNovo={() => void periodo.refetch()}
+          aoLimpar={recorte.limpar}
+        />
       )}
 
       {extrato ? (

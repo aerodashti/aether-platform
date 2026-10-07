@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
-import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
@@ -15,11 +15,13 @@ import { competenciaEmTexto, dataCurta, moedaEmTexto } from './rotulos';
 interface TabelaDeAportesProps {
   resposta: AportesResponse | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   mostraAeronave: boolean;
   podeGerir: boolean;
   aoCorrigir: (aporte: AporteResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 /** Os aportes do recorte, com a linha de TOTAL somada no servidor. */
@@ -31,6 +33,7 @@ export function TabelaDeAportes({
   podeGerir,
   aoCorrigir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeAportesProps) {
   const excluir = useExcluirAporte();
   const [confirmando, setConfirmando] = useState<number | null>(null);
@@ -39,12 +42,12 @@ export function TabelaDeAportes({
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar os aportes.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar os aportes."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }

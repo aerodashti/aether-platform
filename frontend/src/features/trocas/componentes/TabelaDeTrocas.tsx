@@ -1,3 +1,4 @@
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -18,11 +19,13 @@ interface TabelaDeTrocasProps {
   trocas: TrocaResponse[] | undefined;
   situacao: SituacaoDaTroca;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta: a recusa do filtro é dita como veio, com "Limpar filtros". */
+  erro: Error | null;
   filtrada: boolean;
   podeGerir: boolean;
   aoEditar: (troca: TrocaResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 function Dono({ nome, cor }: { nome: string | undefined; cor: string | undefined }) {
@@ -49,6 +52,7 @@ export function TabelaDeTrocas({
   podeGerir,
   aoEditar,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeTrocasProps) {
   const concluir = useConcluirTroca();
   const reabrir = useReabrirTroca();
@@ -56,12 +60,12 @@ export function TabelaDeTrocas({
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar as trocas.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar as trocas."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }

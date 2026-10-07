@@ -23,13 +23,15 @@ type Painel = { modo: 'nova' } | { modo: 'editar'; troca: TrocaResponse } | null
  * dezenas por ano.
  */
 export function PaginaDeTrocas() {
-  const [proprietarioId, setProprietarioId] = useState('');
   const [situacao, setSituacao] = useState<SituacaoDaTroca>('PENDENTE');
   const [painel, setPainel] = useState<Painel>(null);
   const { usuario } = useSessao();
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
-  // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  useRecorteDaUrl('', { podeRegistrar: podeGerir, aoPedir: () => setPainel({ modo: 'nova' }) });
+  // O proprietário do filtro mora na URL; o "+ Registrar" da casca chega aqui por ?registrar=1.
+  const { proprietarioId, setProprietarioId, limpar } = useRecorteDaUrl('', {
+    podeRegistrar: podeGerir,
+    aoPedir: () => setPainel({ modo: 'nova' }),
+  });
 
   const proprietarios = useProprietarios();
   const consulta = useTrocas(proprietarioId, situacao);
@@ -90,11 +92,12 @@ export function PaginaDeTrocas() {
           trocas={consulta.data?.trocas}
           situacao={situacao}
           carregando={consulta.isPending}
-          erro={consulta.isError}
+          erro={consulta.error}
           filtrada={proprietarioId !== ''}
           podeGerir={podeGerir}
           aoEditar={(troca) => setPainel({ modo: 'editar', troca })}
           aoTentarDeNovo={() => void consulta.refetch()}
+          aoLimparFiltros={limpar}
         />
       </div>
 

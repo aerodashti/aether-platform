@@ -49,18 +49,6 @@ export function competenciaCurta(competencia: string | undefined): string {
   return `${(MESES[Number(mes) - 1] ?? '').slice(0, 3)}/${ano.slice(2)}`;
 }
 
-/** O mês corrente no fuso de quem usa — toISOString é UTC. */
-export function competenciaAtual(): string {
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-}
-
-export function deslocarCompetencia(competencia: string, meses: number): string {
-  const [ano = 0, mes = 1] = competencia.split('-').map(Number);
-  const data = new Date(Date.UTC(ano, mes - 1 + meses, 1));
-  return data.toISOString().slice(0, 7);
-}
-
 export const ROTULO_DA_BASE: Record<string, string> = {
   POR_USO: 'por uso (horas)',
   POR_PROPRIEDADE: 'por % de propriedade',

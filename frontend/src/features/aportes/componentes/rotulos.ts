@@ -44,13 +44,6 @@ export function competenciaAtual(): string {
   return hoje().slice(0, 7);
 }
 
-/** A competência `meses` antes (negativo) ou depois de outra. */
-export function deslocarCompetencia(competencia: string, meses: number): string {
-  const [ano = 0, mes = 1] = competencia.split('-').map(Number);
-  const data = new Date(Date.UTC(ano, mes - 1 + meses, 1));
-  return data.toISOString().slice(0, 7);
-}
-
 /**
  * O valor como a pessoa o digita no Brasil: "25.000,00", "25000,5" ou "25000.50". Com vírgula,
  * o ponto é milhar; sem vírgula, o ponto é decimal.

@@ -155,6 +155,22 @@ describe('PaginaDeAportes', () => {
     expect(chamadas()).toContain(`/api/aportes?aeronave=1&de=${de}&ate=${ate}`);
   });
 
+  it('o período vem do link; De depois de Até é dito no campo e nem vai ao servidor', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeAportes />, '/aportes?modo=periodo&de=2026-10&ate=2026-01');
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('A competência inicial vem depois da final.');
+    expect(screen.getByLabelText('De')).toHaveAccessibleDescription(
+      'A competência inicial vem depois da final. Vazio é sem limite.',
+    );
+    expect(chamadas().some((url) => url.startsWith('/api/aportes'))).toBe(false);
+
+    await userEvent.click(within(alerta).getByRole('button', { name: 'Limpar filtros' }));
+    expect(await screen.findByText('Ricardo Meirelles')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Mensal' })).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('?registrar=1 abre o painel, e o proprietário vem do contrato da aeronave', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeAportes />, '/aportes?aeronave=1&registrar=1');
