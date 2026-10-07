@@ -86,6 +86,14 @@ public class CodigoDeRecuperacao {
     this.tentativas = tentativas + 1;
   }
 
+  /**
+   * Encerra a validade agora, sem dizer que alguém usou o código: {@code usado_em} fica para o uso
+   * de verdade. Desativar o usuário revoga o código que ele pediu antes.
+   */
+  public void revogar(Instant momento) {
+    this.expiraEm = momento;
+  }
+
   public void marcarComoUsado(Instant momento) {
     this.usadoEm = momento;
   }

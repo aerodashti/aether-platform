@@ -106,9 +106,11 @@ public class UsuarioService {
 
   private void revogarCodigoDeRecuperacao(Usuario usuario, Instant agora) {
     Optional<CodigoDeRecuperacao> pendente =
-        codigos.findFirstByUsuarioOrderByCriadoEmDesc(usuario).filter(codigo -> !codigo.foiUsado());
+        codigos
+            .findFirstByUsuarioOrderByCriadoEmDesc(usuario)
+            .filter(codigo -> !codigo.foiUsado() && !codigo.estaExpirado(agora));
     contexto.decisao("usuarios.codigo_pendente_revogado", pendente.isPresent());
-    pendente.ifPresent(codigo -> codigo.marcarComoUsado(agora));
+    pendente.ifPresent(codigo -> codigo.revogar(agora));
   }
 
   private Usuario exigirOutroUsuario(Long id, UsuarioAutenticado solicitante) {

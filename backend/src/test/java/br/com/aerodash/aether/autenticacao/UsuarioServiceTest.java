@@ -133,8 +133,8 @@ class UsuarioServiceTest {
   }
 
   @Test
-  @DisplayName("desativar gasta o código de recuperação pedido antes")
-  void desativarGastaOCodigoDeRecuperacao() {
+  @DisplayName("desativar revoga o código de recuperação pedido antes, sem marcá-lo como usado")
+  void desativarRevogaOCodigoDeRecuperacao() {
     Usuario alvo = comId(7L);
     alvo.definirSenha("hash", AGORA);
     CodigoDeRecuperacao pedido =
@@ -144,7 +144,8 @@ class UsuarioServiceTest {
 
     service.desativar(7L, ADMINISTRADOR);
 
-    assertThat(pedido.foiUsado()).isTrue();
+    assertThat(pedido.estaVigente(AGORA, 5)).isFalse();
+    assertThat(pedido.foiUsado()).isFalse();
   }
 
   @Test
