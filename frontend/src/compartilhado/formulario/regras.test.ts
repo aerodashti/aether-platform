@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { dataEntre, email, numero, obrigatorio, primeiraFalha, tamanhoMaximo } from './regras';
+import {
+  dataEntre,
+  email,
+  numero,
+  obrigatorio,
+  primeiraFalha,
+  tamanhoMaximo,
+  telefone,
+} from './regras';
 
 describe('regras de formulário', () => {
   it('obrigatório recusa vazio e só espaços', () => {
@@ -53,5 +61,15 @@ describe('regras de formulário', () => {
     expect(primeiraFalha('0', obrigatorio('Informe o valor.'), numero({ maiorQue: 0 }))).toBe(
       'Informe um valor maior que 0.',
     );
+  });
+});
+
+describe('telefone', () => {
+  it('aceita os formatos comuns e recusa texto ou número curto', () => {
+    const regra = telefone();
+    expect(regra('+55 11 98888-0000')).toBeUndefined();
+    expect(regra('(11) 3000-0000')).toBeUndefined();
+    expect(regra('abc')).toBeDefined();
+    expect(regra('1')).toBeDefined();
   });
 });

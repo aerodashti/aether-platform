@@ -122,3 +122,13 @@ export function email(mensagem = 'Informe um e-mail válido, como nome@empresa.c
   return (texto) =>
     estaVazio(texto) || FORMATO_DE_EMAIL.test(texto.trim()) ? undefined : mensagem;
 }
+
+/** A mesma expressão de `FormatoDeTelefone` no backend: 8 a 20 caracteres, ao menos 8 dígitos. */
+const FORMATO_DE_TELEFONE = /^(?=(?:\D*\d){8})\+?[0-9 ()-]{8,20}$/;
+
+export function telefone(
+  mensagem = 'Use só números, com +, espaço, parênteses ou hífen, como +55 11 98888-0000.',
+): Regra {
+  return (texto) =>
+    estaVazio(texto) || FORMATO_DE_TELEFONE.test(texto.trim()) ? undefined : mensagem;
+}
