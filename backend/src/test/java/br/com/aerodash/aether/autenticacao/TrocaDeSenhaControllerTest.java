@@ -80,6 +80,10 @@ class TrocaDeSenhaControllerTest {
   /** Dependências do controller que esta classe não exercita; têm teste próprio. */
   @SuppressWarnings("UnusedVariable")
   @MockitoBean
+  private SolicitacaoDeCodigoService solicitacaoDeCodigo;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
   private RecuperacaoDeSenhaService recuperacao;
 
   @SuppressWarnings("UnusedVariable")

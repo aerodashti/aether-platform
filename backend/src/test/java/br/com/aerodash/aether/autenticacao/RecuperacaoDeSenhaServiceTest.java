@@ -1,9 +1,7 @@
 package br.com.aerodash.aether.autenticacao;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,7 +38,6 @@ class RecuperacaoDeSenhaServiceTest {
   @Mock private UsuarioRepository usuarios;
   @Mock private CodigoDeRecuperacaoRepository codigos;
   @Mock private SessaoDeAcessoRepository sessoes;
-  @Mock private EnviadorDeCodigoDeRecuperacao enviador;
   @Mock private CofreDeSegredos cofre;
   @Mock private ContextoDaRequisicao contexto;
 
@@ -62,64 +59,7 @@ class RecuperacaoDeSenhaServiceTest {
                 "nao-responda@aether.com.br",
                 false),
             Clock.fixed(AGORA, ZoneOffset.UTC));
-    service =
-        new RecuperacaoDeSenhaService(
-            usuarios, codigos, sessoes, enviador, cofre, politica, contexto);
-    when(cofre.novoCodigoDeRecuperacao()).thenReturn(CODIGO);
-    when(cofre.codificar(CODIGO)).thenReturn(HASH_DO_CODIGO);
-  }
-
-  @Test
-  @DisplayName("grava e envia o código para quem está ativo")
-  void enviaParaUsuarioAtivo() {
-    Usuario usuario = ativo();
-    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(usuario));
-    when(codigos.findFirstByUsuarioOrderByCriadoEmDesc(usuario)).thenReturn(Optional.empty());
-
-    service.solicitarCodigo(EMAIL);
-
-    verify(codigos).save(any(CodigoDeRecuperacao.class));
-    verify(enviador).enviar(usuario, CODIGO);
-  }
-
-  @Test
-  @DisplayName("e-mail desconhecido não falha e não envia nada — a tela não vira consulta")
-  void emailDesconhecidoNaoSeDenuncia() {
-    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.empty());
-
-    assertThatCode(() -> service.solicitarCodigo(EMAIL)).doesNotThrowAnyException();
-
-    verify(enviador, never()).enviar(any(), anyString());
-    verify(codigos, never()).save(any());
-    // Sem gastar o tempo do BCrypt que o código novo gastaria, a resposta rápida denunciaria a
-    // conta.
-    verify(cofre).gastarTempoDeConferencia();
-  }
-
-  @Test
-  @DisplayName("usuário pendente não recebe código — o caminho dele é o convite")
-  void pendenteNaoRecebeCodigo() {
-    when(usuarios.findByEmail(EMAIL))
-        .thenReturn(Optional.of(new Usuario("Camila", EMAIL, PapelDoUsuario.GESTOR, AGORA)));
-
-    assertThatCode(() -> service.solicitarCodigo(EMAIL)).doesNotThrowAnyException();
-
-    verify(enviador, never()).enviar(any(), anyString());
-  }
-
-  @Test
-  @DisplayName("reenvio antes do intervalo mínimo não dispara outro e-mail")
-  void respeitaOIntervaloEntreEnvios() {
-    Usuario usuario = ativo();
-    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(usuario));
-    when(codigos.findFirstByUsuarioOrderByCriadoEmDesc(usuario))
-        .thenReturn(Optional.of(new CodigoDeRecuperacao(usuario, HASH_DO_CODIGO, AGORA, VALIDADE)));
-
-    service.solicitarCodigo(EMAIL);
-
-    verify(enviador, never()).enviar(any(), anyString());
-    verify(codigos, never()).save(any());
-    verify(cofre).gastarTempoDeConferencia();
+    service = new RecuperacaoDeSenhaService(usuarios, codigos, sessoes, cofre, politica, contexto);
   }
 
   @Test

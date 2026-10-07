@@ -3,7 +3,6 @@ package br.com.aerodash.aether.autenticacao;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -76,8 +75,19 @@ class AutenticacaoControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private AutenticacaoService autenticacao;
-  @MockitoBean private RecuperacaoDeSenhaService recuperacao;
-  @MockitoBean private ConviteService convites;
+
+  /** Dependências do controller que esta classe não exercita; têm teste próprio. */
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private SolicitacaoDeCodigoService solicitacaoDeCodigo;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private RecuperacaoDeSenhaService recuperacao;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
+  private ConviteService convites;
 
   /**
    * Dependência do controller; a troca de senha tem teste próprio em TrocaDeSenhaControllerTest.
@@ -210,104 +220,6 @@ class AutenticacaoControllerTest {
   }
 
   @Test
-  @DisplayName("senha nova curta demais é barrada pela validação")
-  void senhaCurtaEBarrada() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"519274\",\"novaSenha\":\"curta\"}"
-                        .formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.campos.novaSenha").value("A senha precisa de ao menos 8 caracteres."));
-  }
-
-  @Test
-  @DisplayName("senha nova acima de 72 bytes é barrada na validação, e não vira 500 no BCrypt")
-  void senhaAcimaDoLimiteDoBcryptEhBarrada() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"519274\",\"novaSenha\":\"%s\"}"
-                        .formatted(EMAIL, "ç".repeat(37))))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.campos.novaSenha")
-                .value(
-                    "A senha passa do limite de 72 caracteres"
-                        + " (letras acentuadas e símbolos contam como dois ou mais)."));
-
-    verify(recuperacao, never()).redefinirSenha(anyString(), anyString(), anyString());
-  }
-
-  @Test
-  @DisplayName("senha nova igual à atual volta no campo novaSenha")
-  void senhaRepetidaVoltaNoCampo() throws Exception {
-    doThrow(new SenhaRepetidaException())
-        .when(recuperacao)
-        .redefinirSenha(anyString(), anyString(), anyString());
-
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"email\":\"%s\",\"codigo\":\"519274\",\"novaSenha\":\"a-mesma-senha\"}"
-                        .formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.campos.novaSenha").value("A nova senha precisa ser diferente da atual."));
-  }
-
-  @Test
-  @DisplayName("código fora do formato de seis dígitos é barrado")
-  void codigoForaDoFormatoEBarrado() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/codigo")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\",\"codigo\":\"12ab\"}".formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.codigo").value("O código tem seis dígitos."));
-  }
-
-  @Test
-  @DisplayName("pedir código responde 202 mesmo para e-mail que não existe")
-  void pedirCodigoRespondeSempre202() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"desconhecido@exemplo.com.br\"}"))
-        .andExpect(status().isAccepted());
-
-    verify(recuperacao).solicitarCodigo("desconhecido@exemplo.com.br");
-  }
-
-  @Test
-  @DisplayName("código inválido vira Problem Details 400")
-  void codigoInvalidoViraProblemDetails() throws Exception {
-    doThrow(new CodigoInvalidoException())
-        .when(recuperacao)
-        .validarCodigo(anyString(), anyString());
-
-    mockMvc
-        .perform(
-            post("/autenticacao/recuperacao/codigo")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"email\":\"%s\",\"codigo\":\"000000\"}".formatted(EMAIL)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.title").value("Código inválido"))
-        .andExpect(
-            jsonPath("$.campos.codigo")
-                .value("Código incorreto ou expirado. Confira os dígitos ou peça um novo."));
-  }
-
-  @Test
   @DisplayName("consultar a sessão sem cookie responde 401")
   void sessaoSemCookieResponde401() throws Exception {
     when(autenticacao.consultarSessao(any())).thenThrow(new SessaoInvalidaException());
@@ -328,54 +240,5 @@ class AutenticacaoControllerTest {
         .andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));
 
     verify(autenticacao).sair("token");
-  }
-
-  @Test
-  @DisplayName("o convidado cria a própria senha pelo link, sem sessão")
-  void concluirConviteResponde204() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/convite/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"convite":"token-do-link","novaSenha":"minha-senha-nova"}
-                    """))
-        .andExpect(status().isNoContent());
-
-    verify(convites).concluir("token-do-link", "minha-senha-nova");
-  }
-
-  @Test
-  @DisplayName("senha curta demais é barrada pela validação, antes do service")
-  void senhaCurtaEhBarrada() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/convite/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"convite":"token-do-link","novaSenha":"curta"}
-                    """))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.novaSenha").exists());
-
-    verify(convites, never()).concluir(anyString(), anyString());
-  }
-
-  @Test
-  @DisplayName("convite com senha acima de 72 bytes é barrado, mesmo com 72 caracteres ou menos")
-  void conviteComSenhaAcimaDoLimiteEhBarrado() throws Exception {
-    mockMvc
-        .perform(
-            post("/autenticacao/convite/senha")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"convite\":\"token-do-link\",\"novaSenha\":\"%s\"}"
-                        .formatted("ç".repeat(72))))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.campos.novaSenha").exists());
-
-    verify(convites, never()).concluir(anyString(), anyString());
   }
 }
