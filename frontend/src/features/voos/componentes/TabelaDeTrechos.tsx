@@ -24,8 +24,9 @@ interface TabelaDeTrechosProps {
 const LINHAS_DO_ESQUELETO = 4;
 
 /**
- * A grade do diário, com a linha de totais somada no servidor — só o realizado, como os contadores
- * da aeronave; a linha de um trecho planejado mostra as horas previstas. A exclusão pede
+ * A grade do diário, com a linha de totais do realizado, como os contadores da aeronave — somada
+ * no servidor, ou por `diarioDoVoo` no filtro por voo, com o mesmo critério; a linha de um trecho
+ * planejado mostra as horas previstas, mas ele não entra nos totais. A exclusão pede
  * confirmação na própria linha — "Excluir?" — como no protótipo: modal para isso seria cerimônia.
  */
 export function TabelaDeTrechos({

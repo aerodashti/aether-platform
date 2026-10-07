@@ -49,6 +49,8 @@ const DIARIO = {
       destino: 'SBRJ',
       horas: 0.8,
       km: 365,
+      partidaRealizada: '2026-09-08T11:42:00Z',
+      pousoRealizado: '2026-09-08T12:31:00Z',
       proprietarioId: 7,
       nomeDoProprietario: 'Ricardo Meirelles',
       corDeIdentificacao: 'PETROLEO',
@@ -65,9 +67,31 @@ const DIARIO = {
       destino: 'SBJD',
       horas: 0.4,
       km: 58,
+      partidaRealizada: '2026-09-09T13:00:00Z',
+      pousoRealizado: '2026-09-09T13:24:00Z',
       vooDeManutencao: true,
     },
+    {
+      // Só planejado: a grade mostra as horas previstas, mas ele ainda não voou.
+      id: 7,
+      aeronaveId: 1,
+      matricula: 'PS-MEP',
+      relatorioDeVoo: 'RV-2026-044',
+      numeroDoTrecho: 1,
+      data: '2026-09-20',
+      origem: 'SBSP',
+      destino: 'SBGL',
+      horas: 1.1,
+      km: 370,
+      partidaPrevista: '2026-09-20T12:00:00Z',
+      pousoPrevisto: '2026-09-20T13:06:00Z',
+      proprietarioId: 7,
+      nomeDoProprietario: 'Ricardo Meirelles',
+      corDeIdentificacao: 'PETROLEO',
+      vooDeManutencao: false,
+    },
   ],
+  // O servidor soma só o realizado: o RV-2026-044 fica de fora.
   totais: { horas: 1.2, km: 423, pousos: 2 },
 };
 
@@ -189,6 +213,21 @@ describe('PaginaDeVoos', () => {
 
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-043');
     expect(within(screen.getByRole('table')).queryByText('RV-2026-041')).not.toBeInTheDocument();
-    expect(linhaDe('TOTAIS REALIZADOS · 1 pouso')).toBeInTheDocument();
+    const totais = linhaDe('TOTAIS REALIZADOS · 1 pouso');
+    expect(within(totais).getByText('0,4 h')).toBeInTheDocument();
+    expect(within(totais).getByText('58')).toBeInTheDocument();
+  });
+
+  it('filtrado por um voo só planejado, a grade o mostra e os totais do realizado ficam zerados', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?aeronave=1');
+
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-044');
+
+    expect(within(linhaDe('RV-2026-044')).getByText('1,1 h')).toBeInTheDocument();
+    const totais = linhaDe('TOTAIS REALIZADOS · 0 pousos');
+    expect(within(totais).getByText('0 h')).toBeInTheDocument();
+    expect(within(totais).getByText('0')).toBeInTheDocument();
   });
 });
