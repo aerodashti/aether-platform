@@ -1,4 +1,3 @@
-import { lerNumero } from '@/compartilhado/formatacao/numero';
 import type { ProprietarioResponse } from '@/compartilhado/proprietarios/useProprietarios';
 import type { CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 
@@ -8,6 +7,8 @@ import type {
   CriarAeronaveRequest,
   ModeloDeAporte,
 } from '../api/useDetalheDaAeronave';
+
+import { numeroOuAusente, numeroValidado, textoOuAusente } from './numerosDoRascunho';
 
 export interface VinculoDoCadastro {
   proprietarioId: number;
@@ -110,27 +111,6 @@ export function comVinculo(
   ];
 }
 
-function textoOuAusente(texto: string): string | undefined {
-  const limpo = texto.trim();
-  return limpo === '' ? undefined : limpo;
-}
-
-function numeroOuAusente(texto: string): number | undefined {
-  return lerNumero(texto) ?? undefined;
-}
-
-/**
- * O número de um campo que a validação já aprovou. Ilegível aqui é defeito de quem chamou antes de
- * validar — e nunca vai ao servidor como `NaN`, que o JSON transformaria em `null` calado.
- */
-function numeroAprovado(texto: string): number {
-  const valor = lerNumero(texto);
-  if (valor === null) {
-    throw new Error('O cadastro só é montado depois de validado.');
-  }
-  return valor;
-}
-
 /**
  * O corpo do `POST /aeronaves`. Só depois de `validarNovaAeronave` passar: o opcional vazio vai
  * ausente, e não como texto vazio; motor que a aeronave não tem e valor de aporte proporcional não
@@ -139,7 +119,7 @@ function numeroAprovado(texto: string): number {
 export function paraCadastro(rascunho: RascunhoDaNovaAeronave): CriarAeronaveRequest {
   const motores = motoresEscolhidos(rascunho);
   const horasDoMotor = (campo: CampoDeMotor) =>
-    motores.includes(campo) ? numeroAprovado(rascunho[campo]) : undefined;
+    motores.includes(campo) ? numeroValidado(rascunho[campo]) : undefined;
 
   return {
     matricula: rascunho.matricula.trim().toUpperCase(),
@@ -154,9 +134,9 @@ export function paraCadastro(rascunho: RascunhoDaNovaAeronave): CriarAeronaveReq
     vencimentoCva: rascunho.vencimentoCva,
     vencimentoReta: rascunho.vencimentoReta,
     contadores: {
-      horasDeCelula: numeroAprovado(rascunho.horasDeCelula),
-      ciclos: numeroAprovado(rascunho.ciclos),
-      kmVoados: numeroAprovado(rascunho.kmVoados),
+      horasDeCelula: numeroValidado(rascunho.horasDeCelula),
+      ciclos: numeroValidado(rascunho.ciclos),
+      kmVoados: numeroValidado(rascunho.kmVoados),
       horasMotor1: horasDoMotor('horasMotor1'),
       horasMotor2: horasDoMotor('horasMotor2'),
       horasMotor3: horasDoMotor('horasMotor3'),
@@ -169,7 +149,7 @@ export function paraCadastro(rascunho: RascunhoDaNovaAeronave): CriarAeronaveReq
       valorDoAporte:
         rascunho.modeloDeAporte === 'FIXO' ? numeroOuAusente(rascunho.valorDoAporte) : undefined,
       diaDeFechamento: Number(rascunho.diaDeFechamento),
-      saldoDeAbertura: numeroAprovado(rascunho.saldoDeAbertura),
+      saldoDeAbertura: numeroValidado(rascunho.saldoDeAbertura),
     },
   };
 }
@@ -179,7 +159,7 @@ export function paraContrato(rascunho: RascunhoDaNovaAeronave): DefinirContratoR
   return {
     participacoes: rascunho.vinculos.map((vinculo) => ({
       proprietarioId: vinculo.proprietarioId,
-      percentual: numeroAprovado(vinculo.percentual),
+      percentual: numeroValidado(vinculo.percentual),
     })),
   };
 }

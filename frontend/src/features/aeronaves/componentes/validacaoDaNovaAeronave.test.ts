@@ -66,7 +66,9 @@ describe('validarNovaAeronave', () => {
   it('matrícula e base têm o formato do servidor; espaço nas pontas não é erro', () => {
     expect(errosDe({ matricula: 'PSABC' }).matricula).toBe('Use o padrão do RAB: PS-MEP.');
     expect(errosDe({ matricula: ' ps-abc ' }).matricula).toBeUndefined();
-    expect(errosDe({ base: 'SB1P' }).base).toBe('Use o código ICAO de quatro letras, como SBSP.');
+    expect(errosDe({ base: 'SB1P' }).base).toBe(
+      'A base é um código ICAO de quatro letras, como SBSP.',
+    );
   });
 
   it('lê o número brasileiro: ponto de milhar não vira decimal', () => {
@@ -76,7 +78,7 @@ describe('validarNovaAeronave', () => {
 
   it('recusa no campo o que a coluna não guarda, dizendo o limite', () => {
     expect(errosDe({ horasDeCelula: '1234,56' }).horasDeCelula).toBe(
-      'Use no máximo 1 casas decimais.',
+      'Use no máximo 1 casa decimal.',
     );
     expect(errosDe({ horasDeCelula: '1e10' }).horasDeCelula).toBe(
       'Use só números, com vírgula para as casas decimais.',
@@ -96,7 +98,7 @@ describe('validarNovaAeronave', () => {
       'Use um número inteiro.',
     );
     expect(errosDe({ pesoMaxDecolagemKg: '1.000', pesoMaxPousoKg: '90.000' }).pesoMaxPousoKg).toBe(
-      'O peso de pouso não pode passar do de decolagem.',
+      'O peso máximo de pouso não pode passar do peso máximo de decolagem.',
     );
     expect(errosDe({ pesoMaxPousoKg: '90.000' }).pesoMaxPousoKg).toBeUndefined();
   });

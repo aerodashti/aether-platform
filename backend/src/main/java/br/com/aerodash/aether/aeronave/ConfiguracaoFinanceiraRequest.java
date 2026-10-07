@@ -8,13 +8,19 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 
-/** Os valores em reais têm o {@code @Digits} da coluna, NUMERIC(14,2). */
+/**
+ * Os valores em reais têm o limite da coluna, NUMERIC(14,2): até 999.999.999.999,99 e duas casas.
+ * Acima disso o banco recusaria com 500; com três casas, arredondaria em silêncio.
+ */
 @Schema(description = "Rateio e fundo da aeronave")
 public record ConfiguracaoFinanceiraRequest(
     @NotNull(message = "Escolha a base do rateio.") BaseDoRateio baseDoRateio,
     @NotNull(message = "Escolha o modelo de aporte.") ModeloDeAporte modeloDeAporte,
     @NotNull(message = "Informe a periodicidade do aporte.") Integer periodicidadeDoAporteMeses,
-    @Schema(description = "Valor de cada aporte no modelo FIXO; ignorado no proporcional ao uso")
+    @Schema(
+            description =
+                "Quanto se cobra a cada período no aporte fixo, maior que zero. No proporcional ao"
+                    + " uso não se aplica e é descartado.")
         @PositiveOrZero(message = "O valor do aporte não pode ser negativo.")
         @Digits(
             integer = 12,

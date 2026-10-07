@@ -8,31 +8,48 @@ import org.junit.jupiter.api.Test;
 @DisplayName("FichaTecnica")
 class FichaTecnicaTest {
 
+  private static FichaTecnica comPesos(Integer decolagem, Integer pouso) {
+    return new FichaTecnica("Pilatus", "PC-12 NGX", null, "SBPS", null, null, decolagem, pouso);
+  }
+
   @Test
-  @DisplayName("texto opcional vazio ou só de espaços vira ausência; o resto é aparado")
-  void normalizaTextos() {
+  @DisplayName("apara as pontas, e o opcional em branco vira nulo — não texto vazio")
+  void normalizaOsTextos() {
     FichaTecnica ficha =
-        new FichaTecnica("   ", "  Citation XLS+  ", "", " sbjd ", " Hangar 7 ", "  ", null, null);
+        new FichaTecnica("", "  Pilatus PC-12 NGX  ", "   ", " sbps ", "\t", "  ", null, null);
 
     assertThat(ficha.fabricante()).isNull();
-    assertThat(ficha.modelo()).isEqualTo("Citation XLS+");
+    assertThat(ficha.modelo()).isEqualTo("Pilatus PC-12 NGX");
     assertThat(ficha.numeroDeSerie()).isNull();
-    assertThat(ficha.base()).isEqualTo("SBJD");
-    assertThat(ficha.hangar()).isEqualTo("Hangar 7");
+    assertThat(ficha.base()).isEqualTo("SBPS");
+    assertThat(ficha.hangar()).isNull();
     assertThat(ficha.apoliceDoSeguro()).isNull();
   }
 
   @Test
-  @DisplayName("o peso de pouso não passa do de decolagem; sem um dos dois, não há o que comparar")
-  void pesosCoerentes() {
-    assertThat(comPesos(8300, 7665).possuiPesosCoerentes()).isTrue();
-    assertThat(comPesos(8300, 8300).possuiPesosCoerentes()).isTrue();
-    assertThat(comPesos(1000, 90000).possuiPesosCoerentes()).isFalse();
-    assertThat(comPesos(null, 90000).possuiPesosCoerentes()).isTrue();
-    assertThat(comPesos(8300, null).possuiPesosCoerentes()).isTrue();
+  @DisplayName("o texto informado é guardado sem os espaços das pontas")
+  void preservaOTextoInformado() {
+    FichaTecnica ficha =
+        new FichaTecnica(" Cessna ", "XLS+", " 560-6321 ", "SBSP", " Hangar 7 ", " R-1 ", 1, 1);
+
+    assertThat(ficha.fabricante()).isEqualTo("Cessna");
+    assertThat(ficha.numeroDeSerie()).isEqualTo("560-6321");
+    assertThat(ficha.hangar()).isEqualTo("Hangar 7");
+    assertThat(ficha.apoliceDoSeguro()).isEqualTo("R-1");
   }
 
-  private static FichaTecnica comPesos(Integer decolagem, Integer pouso) {
-    return new FichaTecnica(null, "PC-24", "SBJD", null, null, null, decolagem, pouso);
+  @Test
+  @DisplayName("pouso acima da decolagem não é coerente; igual ou abaixo é")
+  void pesosCoerentes() {
+    assertThat(comPesos(5670, 9999).possuiPesosCoerentes()).isFalse();
+    assertThat(comPesos(5670, 5670).possuiPesosCoerentes()).isTrue();
+    assertThat(comPesos(9163, 8482).possuiPesosCoerentes()).isTrue();
+  }
+
+  @Test
+  @DisplayName("sem um dos pesos não há relação a conferir")
+  void pesoAusenteNaoTemRelacao() {
+    assertThat(comPesos(null, 9999).possuiPesosCoerentes()).isTrue();
+    assertThat(comPesos(5670, null).possuiPesosCoerentes()).isTrue();
   }
 }

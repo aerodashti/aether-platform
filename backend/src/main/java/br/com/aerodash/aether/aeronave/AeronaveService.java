@@ -84,17 +84,7 @@ public class AeronaveService {
   public DetalheDaAeronaveResponse atualizarFichaTecnica(Long id, FichaTecnicaRequest request) {
     Aeronave aeronave = carregar(id);
     aeronave.atualizarFichaTecnica(
-        validarPesos(
-            new FichaTecnica(
-                request.fabricante(),
-                request.modelo(),
-                request.numeroDeSerie(),
-                request.base(),
-                request.hangar(),
-                request.apoliceDoSeguro(),
-                request.pesoMaxDecolagemKg(),
-                request.pesoMaxPousoKg())),
-        Instant.now(relogio));
+        validarFicha(mapper.paraFichaTecnica(request)), Instant.now(relogio));
     return paraDetalhe(aeronave);
   }
 
@@ -117,7 +107,7 @@ public class AeronaveService {
             request.vencimentoReta(),
             agora);
     validarVencimentos(aeronave, LocalDate.now(relogio));
-    aeronave.atualizarFichaTecnica(validarPesos(fichaDoCadastro(request)), agora);
+    aeronave.atualizarFichaTecnica(validarFicha(mapper.paraFichaTecnica(request)), agora);
     aeronave.corrigirContadores(validarMotores(montarContadores(request.contadores())), agora);
     aeronave.atualizarConfiguracaoFinanceira(
         montarConfiguracao(request.configuracaoFinanceira(), CONFIGURACAO_FINANCEIRA), agora);
@@ -125,18 +115,6 @@ public class AeronaveService {
     aeronave = salvarNova(aeronave);
     contexto.registrar("aeronave.id", aeronave.getId());
     return paraDetalhe(aeronave);
-  }
-
-  private static FichaTecnica fichaDoCadastro(CriarAeronaveRequest request) {
-    return new FichaTecnica(
-        request.fabricante(),
-        request.modelo(),
-        request.numeroDeSerie(),
-        request.base(),
-        request.hangar(),
-        request.apoliceDoSeguro(),
-        request.pesoMaxDecolagemKg(),
-        request.pesoMaxPousoKg());
   }
 
   /**
@@ -184,15 +162,6 @@ public class AeronaveService {
     }
   }
 
-  private FichaTecnica validarPesos(FichaTecnica ficha) {
-    contexto.decisao("aeronave.pesosCoerentes", ficha.possuiPesosCoerentes());
-    if (!ficha.possuiPesosCoerentes()) {
-      throw new AeronaveInvalidaException(
-          "O peso máximo de pouso não pode passar do de decolagem.", "pesoMaxPousoKg");
-    }
-    return ficha;
-  }
-
   /** Só no cadastro: é nele que a pessoa escolhe quantos motores a aeronave tem. */
   private ContadoresDaAeronave validarMotores(ContadoresDaAeronave contadores) {
     OptionalInt motorSemHoras = contadores.motorSemHoras();
@@ -206,9 +175,24 @@ public class AeronaveService {
     return contadores;
   }
 
+  /**
+   * A correção substitui os totais que os voos somaram. Se a tela leu outros totais, um voo entrou
+   * no meio: gravar por cima o apagaria dos contadores, e a recusa pede para reabrir a edição.
+   */
   @Transactional
   public DetalheDaAeronaveResponse corrigirContadores(Long id, ContadoresRequest request) {
     Aeronave aeronave = carregar(id);
+    boolean lidosInformados = request.lidos() != null;
+    contexto.decisao("aeronave.contadoresLidosInformados", lidosInformados);
+    boolean desatualizados =
+        lidosInformados
+            && !aeronave
+                .getContadores()
+                .possuiOsMesmosTotaisDe(mapper.paraContadores(request.lidos()));
+    contexto.decisao("aeronave.contadoresDesatualizados", desatualizados);
+    if (desatualizados) {
+      throw new ContadoresDesatualizadosException();
+    }
     aeronave.corrigirContadores(montarContadores(request), Instant.now(relogio));
     return paraDetalhe(aeronave);
   }
@@ -221,17 +205,19 @@ public class AeronaveService {
     return paraDetalhe(aeronave);
   }
 
+  private FichaTecnica validarFicha(FichaTecnica ficha) {
+    boolean pesosCoerentes = ficha.possuiPesosCoerentes();
+    contexto.decisao("aeronave.pesosCoerentes", pesosCoerentes);
+    if (!pesosCoerentes) {
+      throw new FichaTecnicaInvalidaException(
+          "O peso máximo de pouso não pode passar do peso máximo de decolagem.", "pesoMaxPousoKg");
+    }
+    return ficha;
+  }
+
   /** Monta e valida: o Bean Validation barrou campo a campo; a regra composta é da entidade. */
   private ContadoresDaAeronave montarContadores(ContadoresRequest request) {
-    ContadoresDaAeronave novos =
-        new ContadoresDaAeronave(
-            request.horasDeCelula(),
-            request.ciclos(),
-            request.kmVoados(),
-            request.horasMotor1(),
-            request.horasMotor2(),
-            request.horasMotor3(),
-            request.horasApu());
+    ContadoresDaAeronave novos = mapper.paraContadores(request);
     contexto.decisao("aeronave.contadoresNegativos", novos.possuiValoresNegativos());
     if (novos.possuiValoresNegativos()) {
       throw new ConfiguracaoFinanceiraInvalidaException("Contadores não podem ser negativos.");
@@ -239,17 +225,13 @@ public class AeronaveService {
     return novos;
   }
 
-  /** {@code prefixo} é o caminho da configuração no JSON: aninhada no cadastro, raiz na edição. */
+  /**
+   * Monta e valida a configuração. O prefixo é o caminho dela no JSON — vazio na rota própria,
+   * {@code configuracaoFinanceira.} no cadastro — para a recusa cair no campo certo da tela.
+   */
   private ConfiguracaoFinanceira montarConfiguracao(
       ConfiguracaoFinanceiraRequest request, String prefixo) {
-    ConfiguracaoFinanceira nova =
-        new ConfiguracaoFinanceira(
-            request.baseDoRateio(),
-            request.modeloDeAporte(),
-            request.periodicidadeDoAporteMeses(),
-            request.valorDoAporte(),
-            request.diaDeFechamento(),
-            request.saldoDeAbertura());
+    ConfiguracaoFinanceira nova = mapper.paraConfiguracao(request);
     contexto.decisao("aeronave.periodicidadeValida", nova.possuiPeriodicidadeValida());
     if (!nova.possuiPeriodicidadeValida()) {
       throw new ConfiguracaoFinanceiraInvalidaException(
@@ -259,7 +241,7 @@ public class AeronaveService {
     contexto.decisao("aeronave.valorDoAporteCoerente", nova.possuiValorDoAporteCoerente());
     if (!nova.possuiValorDoAporteCoerente()) {
       throw new ConfiguracaoFinanceiraInvalidaException(
-          "No aporte fixo, informe o valor de cada aporte, maior que zero.",
+          "Informe o valor de cada aporte: no aporte fixo, é ele que se cobra a cada período.",
           prefixo + "valorDoAporte");
     }
     return nova;

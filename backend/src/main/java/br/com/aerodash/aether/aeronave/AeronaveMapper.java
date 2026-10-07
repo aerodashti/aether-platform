@@ -6,7 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Converte a entidade em DTO: a borda HTTP nunca vê uma {@code Aeronave}.
+ * Converte a entidade em DTO, e o request nos valores da aeronave: a borda HTTP nunca vê uma {@code
+ * Aeronave}, e o service não monta valor campo a campo.
  *
  * <p>É escrito à mão, e não gerado por MapStruct, porque nenhum campo do response é cópia de campo
  * da entidade — todos são perguntas feitas a ela, e todas dependem de "hoje" e da política. Um
@@ -76,5 +77,64 @@ public class AeronaveMapper {
         .sorted(Comparator.comparing(PendenciaOperacional::situacao).reversed())
         .map(pendencia -> new PendenciaResponse(pendencia.descricao(), pendencia.situacao()))
         .toList();
+  }
+
+  /** A ficha da edição. Normalizar é do {@link FichaTecnica}; validar, do service. */
+  public FichaTecnica paraFichaTecnica(FichaTecnicaRequest request) {
+    return new FichaTecnica(
+        request.fabricante(),
+        request.modelo(),
+        request.numeroDeSerie(),
+        request.base(),
+        request.hangar(),
+        request.apoliceDoSeguro(),
+        request.pesoMaxDecolagemKg(),
+        request.pesoMaxPousoKg());
+  }
+
+  /** A ficha do cadastro: os mesmos campos, e as mesmas regras, da edição. */
+  public FichaTecnica paraFichaTecnica(CriarAeronaveRequest request) {
+    return new FichaTecnica(
+        request.fabricante(),
+        request.modelo(),
+        request.numeroDeSerie(),
+        request.base(),
+        request.hangar(),
+        request.apoliceDoSeguro(),
+        request.pesoMaxDecolagemKg(),
+        request.pesoMaxPousoKg());
+  }
+
+  public ContadoresDaAeronave paraContadores(ContadoresRequest request) {
+    return new ContadoresDaAeronave(
+        request.horasDeCelula(),
+        request.ciclos(),
+        request.kmVoados(),
+        request.horasMotor1(),
+        request.horasMotor2(),
+        request.horasMotor3(),
+        request.horasApu());
+  }
+
+  /** Os totais que a tela leu ao abrir a correção, para comparar com os de agora. */
+  public ContadoresDaAeronave paraContadores(DetalheDaAeronaveResponse.Contadores lidos) {
+    return new ContadoresDaAeronave(
+        lidos.horasDeCelula(),
+        lidos.ciclos(),
+        lidos.kmVoados(),
+        lidos.horasMotor1(),
+        lidos.horasMotor2(),
+        lidos.horasMotor3(),
+        lidos.horasApu());
+  }
+
+  public ConfiguracaoFinanceira paraConfiguracao(ConfiguracaoFinanceiraRequest request) {
+    return new ConfiguracaoFinanceira(
+        request.baseDoRateio(),
+        request.modeloDeAporte(),
+        request.periodicidadeDoAporteMeses(),
+        request.valorDoAporte(),
+        request.diaDeFechamento(),
+        request.saldoDeAbertura());
   }
 }

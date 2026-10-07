@@ -101,7 +101,14 @@ class AeronaveServiceTest {
         service.corrigirContadores(
             1L,
             new ContadoresRequest(
-                new BigDecimal("3412.5"), 2890, new BigDecimal("1482300"), null, null, null, null));
+                new BigDecimal("3412.5"),
+                2890,
+                new BigDecimal("1482300"),
+                null,
+                null,
+                null,
+                null,
+                null));
 
     assertThat(detalhe.contadores().horasDeCelula()).isEqualByComparingTo("3412.5");
     assertThat(aeronave.getContadores().ciclos()).isEqualTo(2890);
@@ -170,7 +177,14 @@ class AeronaveServiceTest {
   private static ContadoresRequest contadores(
       BigDecimal motor1, BigDecimal motor2, BigDecimal motor3) {
     return new ContadoresRequest(
-        new BigDecimal("1200.0"), 950, new BigDecimal("510000"), motor1, motor2, motor3, null);
+        new BigDecimal("1200.0"),
+        950,
+        new BigDecimal("510000"),
+        motor1,
+        motor2,
+        motor3,
+        null,
+        null);
   }
 
   private static ConfiguracaoFinanceiraRequest configuracao(

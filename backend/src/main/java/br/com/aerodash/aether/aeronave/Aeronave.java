@@ -21,8 +21,8 @@ import java.util.Optional;
  * <p>A camada regulatória mora aqui, não no service: se um {@code if} olha só para os vencimentos
  * deste objeto, ele pertence a este objeto. Veja {@code docs/arquitetura.md}.
  *
- * <p>Além do cadastro e da conformidade, a aeronave carrega a ficha técnica (contadores declarados,
- * corrigidos só por administrador até o diário de voos alimentá-los) e a configuração financeira do
+ * <p>Além do cadastro e da conformidade, a aeronave carrega a ficha técnica (contadores alimentados
+ * pelo diário de voos e corrigidos à mão só por administrador) e a configuração financeira do
  * rateio. As participações de proprietários moram em {@code participacao}, com o contrato vigente e
  * o histórico.
  */
@@ -214,7 +214,7 @@ public class Aeronave {
     this.atualizadoEm = momento;
   }
 
-  /** Correção manual dos totais — rota de administrador enquanto o diário de voos não existe. */
+  /** Correção manual dos totais — rota de administrador; substitui o que os voos somaram. */
   public void corrigirContadores(ContadoresDaAeronave novosContadores, Instant momento) {
     this.contadores = novosContadores;
     this.atualizadoEm = momento;

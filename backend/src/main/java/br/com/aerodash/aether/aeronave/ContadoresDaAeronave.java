@@ -10,9 +10,9 @@ import java.util.OptionalInt;
 /**
  * Os totais acumulados da aeronave: célula, ciclos, quilômetros, motores e APU.
  *
- * <p>Hoje são valores declarados — informados no cadastro e corrigidos só por administrador. Quando
- * o diário de voos existir, é ele que os alimentará, e a correção manual vira exceção de auditoria,
- * não rotina.
+ * <p>Célula, ciclos e km são declarados no cadastro e alimentados pelo diário de voos; motores e
+ * APU seguem declarados. A correção manual, só de administrador, é exceção de auditoria, não
+ * rotina.
  *
  * <p>Motor 2 e APU são nulos quando o equipamento não os tem: monomotor não tem segundo motor, e "0
  * horas de APU" diria que existe um APU zerado, o que é outra afirmação.
@@ -67,6 +67,27 @@ public record ContadoresDaAeronave(
       }
     }
     return OptionalInt.empty();
+  }
+
+  /**
+   * Os mesmos totais, sem olhar a escala: 3412.5 e 3412.50 são as mesmas horas. É a pergunta da
+   * correção manual — os totais que a tela leu ainda são os de agora?
+   */
+  public boolean possuiOsMesmosTotaisDe(ContadoresDaAeronave outros) {
+    return mesmoValor(horasDeCelula, outros.horasDeCelula)
+        && ciclos == outros.ciclos
+        && mesmoValor(kmVoados, outros.kmVoados)
+        && mesmoValor(horasMotor1, outros.horasMotor1)
+        && mesmoValor(horasMotor2, outros.horasMotor2)
+        && mesmoValor(horasMotor3, outros.horasMotor3)
+        && mesmoValor(horasApu, outros.horasApu);
+  }
+
+  private static boolean mesmoValor(BigDecimal um, BigDecimal outro) {
+    if (um == null || outro == null) {
+      return um == null && outro == null;
+    }
+    return um.compareTo(outro) == 0;
   }
 
   public boolean possuiValoresNegativos() {

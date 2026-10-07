@@ -45,10 +45,14 @@ public record CriarAeronaveRequest(
     @Size(max = 60, message = "O hangar pode ter no máximo 60 caracteres.") String hangar,
     @Size(max = 40, message = "A apólice pode ter no máximo 40 caracteres.") String apoliceDoSeguro,
     @Positive(message = "O peso máximo de decolagem precisa ser maior que zero.")
-        @Max(value = 600_000, message = "O peso máximo de decolagem vai até 600.000 kg.")
+        @Max(
+            value = FichaTecnica.PESO_MAXIMO_KG,
+            message = "O peso máximo de decolagem vai até 600.000 kg.")
         Integer pesoMaxDecolagemKg,
     @Positive(message = "O peso máximo de pouso precisa ser maior que zero.")
-        @Max(value = 600_000, message = "O peso máximo de pouso vai até 600.000 kg.")
+        @Max(
+            value = FichaTecnica.PESO_MAXIMO_KG,
+            message = "O peso máximo de pouso vai até 600.000 kg.")
         Integer pesoMaxPousoKg,
     @Schema(description = "Vencimento do CVA") @NotNull(message = "Informe o vencimento do CVA.")
         LocalDate vencimentoCva,

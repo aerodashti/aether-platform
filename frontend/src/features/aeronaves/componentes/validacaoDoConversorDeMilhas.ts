@@ -2,13 +2,13 @@ import { lerNumero } from '@/compartilhado/formatacao/numero';
 import { numero, obrigatorio, primeiraFalha } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
 
-import { MAXIMO_DE_KM } from './validacaoDaNovaAeronave';
+import { KM_MAXIMOS } from './regrasDaAeronave';
 
 /** 1 NM = 1,852 km, por definição — é a constante da milha náutica, não configuração. */
 const KM_POR_MILHA_NAUTICA = 1.852;
 
 /** O maior total em milhas cujo equivalente em km ainda cabe no campo de km. */
-const MAXIMO_DE_MILHAS = Math.floor((MAXIMO_DE_KM / KM_POR_MILHA_NAUTICA) * 10) / 10;
+const MAXIMO_DE_MILHAS = Math.floor((KM_MAXIMOS / KM_POR_MILHA_NAUTICA) * 10) / 10;
 
 export type CampoDoConversor = 'milhas';
 

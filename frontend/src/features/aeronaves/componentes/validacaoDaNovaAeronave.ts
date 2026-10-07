@@ -7,7 +7,6 @@ import {
   obrigatorio,
   primeiraFalha,
   tamanhoMaximo,
-  type Regra,
 } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
 
@@ -16,6 +15,17 @@ import {
   type RascunhoDaNovaAeronave,
   type VinculoDoCadastro,
 } from './rascunhoDaNovaAeronave';
+import {
+  ateOPesoDeDecolagem,
+  CICLOS,
+  CODIGO_ICAO,
+  HORAS,
+  MATRICULA,
+  PESO,
+  QUILOMETROS,
+  SALDO,
+  VALOR_DO_APORTE,
+} from './regrasDaAeronave';
 
 /** O percentual de cada vínculo, com o nome que o contrato usa no JSON. */
 export type CampoDaParticipacao = `participacoes[${number}].percentual`;
@@ -60,24 +70,8 @@ export function rotuloDaParticipacao(nome: string): string {
   return `Participação de ${nome} (%)`;
 }
 
-/* Os limites espelham o request do backend, e o request espelha a coluna. */
-const HORAS = numero({ minimo: 0, maximo: 999_999_999.9, casas: 1 }); // NUMERIC(10,1)
-export const MAXIMO_DE_KM = 99_999_999_999.9; // NUMERIC(12,1)
-const QUILOMETROS = numero({ minimo: 0, maximo: MAXIMO_DE_KM, casas: 1 });
-const CICLOS = numero({ minimo: 0, maximo: 2_147_483_647, casas: 0 }); // INTEGER
-const PESO = numero({ maiorQue: 0, maximo: 600_000, casas: 0 }); // teto do produto
-const MAXIMO_EM_REAIS = 999_999_999_999.99; // NUMERIC(14,2)
-const VALOR_DO_APORTE = numero({ maiorQue: 0, maximo: MAXIMO_EM_REAIS, casas: 2 });
-const SALDO = numero({ minimo: -MAXIMO_EM_REAIS, maximo: MAXIMO_EM_REAIS, casas: 2 });
 /** O contrato aceita de 0,01 a 999,99 com duas casas; somado, ninguém passa de 100. */
 const PERCENTUAL = numero({ minimo: 0.01, maximo: 100, casas: 2 });
-
-function formato(expressao: RegExp, mensagem: string): Regra {
-  return (texto) => (texto.trim() === '' || expressao.test(texto.trim()) ? undefined : mensagem);
-}
-
-const MATRICULA = formato(/^P[PRSTU]-[A-Z]{3}$/i, 'Use o padrão do RAB: PS-MEP.');
-const BASE = formato(/^[A-Z]{4}$/i, 'Use o código ICAO de quatro letras, como SBSP.');
 
 /** Antes de 2000 é ano digitado errado; depois da validade máxima, também. */
 const PRIMEIRO_VENCIMENTO = '2000-01-01';
@@ -88,16 +82,6 @@ export function limitesDosVencimentos(hoje: string) {
     minimo: PRIMEIRO_VENCIMENTO,
     maximoDoCva: somarMeses(hoje, 13),
     maximoDoSeguro: somarMeses(hoje, 60),
-  };
-}
-
-function pousoAte(decolagem: string): Regra {
-  return (texto) => {
-    const pouso = lerNumero(texto);
-    const limite = lerNumero(decolagem);
-    return pouso !== null && limite !== null && pouso > limite
-      ? 'O peso de pouso não pode passar do de decolagem.'
-      : undefined;
   };
 }
 
@@ -151,7 +135,7 @@ function validarMotores(rascunho: RascunhoDaNovaAeronave): Erros<CampoDoCadastro
       primeiraFalha(
         rascunho[campo],
         obrigatorio(`Informe as horas do motor ${indice + 1} (0 se for novo).`),
-        HORAS,
+        ...HORAS,
       ),
     ]),
   );
@@ -173,7 +157,7 @@ export function validarNovaAeronave(
     fabricante: primeiraFalha(rascunho.fabricante, tamanhoMaximo(80)),
     modelo: primeiraFalha(rascunho.modelo, obrigatorio('Informe o modelo.'), tamanhoMaximo(120)),
     numeroDeSerie: primeiraFalha(rascunho.numeroDeSerie, tamanhoMaximo(40)),
-    base: primeiraFalha(rascunho.base, obrigatorio('Informe a base.'), BASE),
+    base: primeiraFalha(rascunho.base, obrigatorio('Informe a base.'), CODIGO_ICAO),
     hangar: primeiraFalha(rascunho.hangar, tamanhoMaximo(60)),
     apoliceDoSeguro: primeiraFalha(rascunho.apoliceDoSeguro, tamanhoMaximo(40)),
     vencimentoReta: primeiraFalha(
@@ -190,12 +174,12 @@ export function validarNovaAeronave(
     pesoMaxPousoKg: primeiraFalha(
       rascunho.pesoMaxPousoKg,
       PESO,
-      pousoAte(rascunho.pesoMaxDecolagemKg),
+      ateOPesoDeDecolagem(rascunho.pesoMaxDecolagemKg),
     ),
     horasDeCelula: primeiraFalha(
       rascunho.horasDeCelula,
       obrigatorio('Informe as horas de célula.'),
-      HORAS,
+      ...HORAS,
     ),
     ciclos: primeiraFalha(rascunho.ciclos, obrigatorio('Informe os ciclos (pousos).'), CICLOS),
     kmVoados: primeiraFalha(
@@ -203,7 +187,7 @@ export function validarNovaAeronave(
       obrigatorio('Informe os quilômetros voados.'),
       QUILOMETROS,
     ),
-    horasApu: primeiraFalha(rascunho.horasApu, HORAS),
+    horasApu: primeiraFalha(rascunho.horasApu, ...HORAS),
     ...validarMotores(rascunho),
     valorDoAporte: aporteFixo
       ? primeiraFalha(
