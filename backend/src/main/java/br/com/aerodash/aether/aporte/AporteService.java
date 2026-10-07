@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +23,14 @@ import org.springframework.transaction.annotation.Transactional;
 /** Os aportes: o dinheiro que cada proprietário pôs no fundo de cada aeronave. */
 @Service
 public class AporteService {
+
+  private static final String APORTE_INVALIDO = "Aporte inválido";
+  private static final String CAMPO_AERONAVE = "aeronaveId";
+  private static final String CAMPO_PROPRIETARIO = "proprietarioId";
+  private static final String CAMPO_DATA = "data";
+  private static final String CAMPO_COMPETENCIA = "competencia";
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private static final DateTimeFormatter COMPETENCIA = DateTimeFormatter.ofPattern("MM/yyyy");
 
   private final AporteRepository aportes;
   private final AeronaveRepository aeronaves;
@@ -75,7 +84,7 @@ public class AporteService {
             request.competencia(),
             request.valor(),
             Instant.now(relogio));
-    exigirRecebido(aporte);
+    exigirDatasAceitas(aporte);
     aporte = aportes.save(aporte);
     contexto.registrar("aporte.id", aporte.getId());
     return paraLinhas(List.of(aporte)).get(0);
@@ -88,7 +97,9 @@ public class AporteService {
     contexto.decisao("aporte.trocaDeAeronave", trocaDeAeronave);
     if (trocaDeAeronave) {
       throw new AporteInvalidoException(
-          "Aporte inválido", "A aeronave do aporte não muda: exclua e registre na aeronave certa.");
+          APORTE_INVALIDO,
+          "A aeronave do aporte não muda: exclua e registre na aeronave certa.",
+          CAMPO_AERONAVE);
     }
     validar(request);
 
@@ -99,7 +110,7 @@ public class AporteService {
         request.valor(),
         Instant.now(relogio));
     // Recusar depois de alterar é seguro: a exceção desfaz a transação antes do flush.
-    exigirRecebido(aporte);
+    exigirDatasAceitas(aporte);
     return paraLinhas(List.of(aporte)).get(0);
   }
 
@@ -110,8 +121,11 @@ public class AporteService {
   }
 
   private void validar(AporteRequest request) {
-    if (!proprietarios.existsById(request.proprietarioId())) {
-      throw new RecursoNaoEncontradoException("Proprietário não encontrado.");
+    boolean proprietarioExiste = proprietarios.existsById(request.proprietarioId());
+    contexto.decisao("aporte.proprietarioExiste", proprietarioExiste);
+    if (!proprietarioExiste) {
+      throw new AporteInvalidoException(
+          APORTE_INVALIDO, "Proprietário não encontrado.", CAMPO_PROPRIETARIO);
     }
 
     boolean participa =
@@ -119,18 +133,50 @@ public class AporteService {
     contexto.decisao("aporte.proprietarioParticipa", participa);
     if (!participa) {
       throw new AporteInvalidoException(
-          "Aporte inválido",
-          "Este proprietário nunca participou desta aeronave: inclua-o no contrato antes.");
+          APORTE_INVALIDO,
+          "Este proprietário nunca participou desta aeronave: inclua-o no contrato antes.",
+          CAMPO_PROPRIETARIO);
     }
   }
 
-  private void exigirRecebido(Aporte aporte) {
-    boolean noFuturo = aporte.estaNoFuturo(LocalDate.now(relogio));
+  /** Hoje é o de Brasília: em UTC, depois das 21h, o crédito de amanhã passaria. */
+  private void exigirDatasAceitas(Aporte aporte) {
+    LocalDate hoje = CalendarioDoFundo.hoje(relogio);
+    exigirDataAceita(aporte, hoje);
+    exigirCompetenciaAceita(aporte, YearMonth.from(hoje));
+  }
+
+  private void exigirDataAceita(Aporte aporte, LocalDate hoje) {
+    boolean noFuturo = aporte.estaNoFuturo(hoje);
     contexto.decisao("aporte.dataNoFuturo", noFuturo);
     if (noFuturo) {
       throw new AporteInvalidoException(
-          "Aporte inválido",
-          "O aporte é registrado como recebido: registre depois que a transferência cair.");
+          APORTE_INVALIDO,
+          "O aporte é registrado como recebido: registre depois que a transferência cair.",
+          CAMPO_DATA);
+    }
+    boolean antigaDemais = aporte.estaAntesDaPrimeiraData();
+    contexto.decisao("aporte.dataAntesDaPrimeira", antigaDemais);
+    if (antigaDemais) {
+      throw new AporteInvalidoException(
+          APORTE_INVALIDO,
+          "Use uma data a partir de " + CalendarioDoFundo.PRIMEIRA_DATA.format(DATA) + ".",
+          CAMPO_DATA);
+    }
+  }
+
+  private void exigirCompetenciaAceita(Aporte aporte, YearMonth corrente) {
+    boolean aceitavel = aporte.possuiCompetenciaAceitavel(corrente);
+    contexto.decisao("aporte.competenciaAceitavel", aceitavel);
+    if (!aceitavel) {
+      throw new AporteInvalidoException(
+          APORTE_INVALIDO,
+          "Use uma competência de "
+              + Aporte.PRIMEIRA_COMPETENCIA.format(COMPETENCIA)
+              + " até "
+              + Aporte.ultimaCompetencia(corrente).format(COMPETENCIA)
+              + ".",
+          CAMPO_COMPETENCIA);
     }
   }
 
@@ -143,11 +189,15 @@ public class AporteService {
     }
   }
 
-  private Aeronave exigirAeronave(Long aeronaveId) {
+  /** A aeronave vem no corpo: inexistente é erro do campo, não recurso da URL que falta. */
+  private void exigirAeronave(Long aeronaveId) {
     contexto.registrar("aeronave.id", aeronaveId);
-    return aeronaves
-        .findById(aeronaveId)
-        .orElseThrow(() -> new RecursoNaoEncontradoException("Aeronave não encontrada."));
+    boolean existe = aeronaves.existsById(aeronaveId);
+    contexto.decisao("aporte.aeronaveExiste", existe);
+    if (!existe) {
+      throw new AporteInvalidoException(
+          APORTE_INVALIDO, "Aeronave não encontrada.", CAMPO_AERONAVE);
+    }
   }
 
   private Aporte exigirAporte(Long id) {

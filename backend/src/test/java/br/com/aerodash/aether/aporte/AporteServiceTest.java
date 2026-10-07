@@ -21,6 +21,7 @@ import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class AporteServiceTest {
         new Proprietario("Ricardo", null, null, null, CorDeIdentificacao.PETROLEO, AGORA);
     ReflectionTestUtils.setField(ricardo, "id", 7L);
 
-    when(aeronaves.findById(1L)).thenReturn(Optional.of(aeronave));
+    when(aeronaves.existsById(1L)).thenReturn(true);
     when(aeronaves.findAllById(any())).thenReturn(List.of(aeronave));
     when(proprietarios.existsById(7L)).thenReturn(true);
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
@@ -78,7 +79,21 @@ class AporteServiceTest {
   }
 
   private AporteRequest request(LocalDate data) {
-    return new AporteRequest(1L, 7L, data, YearMonth.of(2026, 9), new BigDecimal("25000.00"));
+    return request(data, YearMonth.of(2026, 9));
+  }
+
+  private AporteRequest request(LocalDate data, YearMonth competencia) {
+    return new AporteRequest(1L, 7L, data, competencia, new BigDecimal("25000.00"));
+  }
+
+  private static void recusadoNoCampo(ThrowingCallable acao, String campo, String trecho) {
+    assertThatThrownBy(acao)
+        .isInstanceOfSatisfying(
+            AporteInvalidoException.class,
+            recusa -> {
+              assertThat(recusa.getCampo()).contains(campo);
+              assertThat(recusa.getMessage()).contains(trecho);
+            });
   }
 
   @Test
@@ -92,22 +107,82 @@ class AporteServiceTest {
   }
 
   @Test
-  @DisplayName("crédito com data futura é previsão: recusado antes de salvar")
+  @DisplayName("crédito com data futura é previsão: recusado no campo data, antes de salvar")
   void recusaFuturo() {
-    assertThatThrownBy(() -> service.criar(request(LocalDate.parse("2026-10-06"))))
-        .isInstanceOf(AporteInvalidoException.class)
-        .hasMessageContaining("registrado como recebido");
+    recusadoNoCampo(
+        () -> service.criar(request(LocalDate.parse("2026-10-06"))),
+        "data",
+        "registrado como recebido");
     verify(aportes, never()).save(any());
   }
 
   @Test
-  @DisplayName("quem nunca participou da aeronave não aporta nela")
+  @DisplayName("às 22h em Brasília o relógio em UTC já virou o dia, e o dia seguinte é futuro")
+  void hojeEmBrasilia() {
+    AporteService aoAnoitecer =
+        new AporteService(
+            aportes,
+            aeronaves,
+            proprietarios,
+            participantes,
+            Clock.fixed(Instant.parse("2026-10-06T01:00:00Z"), ZoneOffset.UTC),
+            contexto);
+
+    recusadoNoCampo(
+        () -> aoAnoitecer.criar(request(LocalDate.parse("2026-10-06"))),
+        "data",
+        "registrado como recebido");
+  }
+
+  @Test
+  @DisplayName("data antes de 2000 é ano digitado errado: recusada no campo data")
+  void recusaDataAntiga() {
+    recusadoNoCampo(
+        () -> service.criar(request(LocalDate.parse("0001-01-01"))), "data", "01/01/2000");
+  }
+
+  @Test
+  @DisplayName("competência fora de 01/2000 a um ano à frente é recusada, dizendo a faixa")
+  void recusaCompetenciaForaDaFaixa() {
+    LocalDate data = LocalDate.parse("2026-10-03");
+
+    recusadoNoCampo(
+        () -> service.criar(request(data, YearMonth.of(2027, 11))),
+        "competencia",
+        "de 01/2000 até 10/2027");
+    recusadoNoCampo(
+        () -> service.criar(request(data, YearMonth.of(20266, 9))), "competencia", "10/2027");
+    recusadoNoCampo(
+        () -> service.criar(request(data, YearMonth.of(0, 1))), "competencia", "01/2000");
+    verify(aportes, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("quem nunca participou da aeronave não aporta nela: recusa no proprietário")
   void recusaQuemNaoParticipa() {
     when(participantes.participaOuParticipou(1L, 7L)).thenReturn(false);
 
-    assertThatThrownBy(() -> service.criar(request(LocalDate.parse("2026-10-03"))))
-        .isInstanceOf(AporteInvalidoException.class)
-        .hasMessageContaining("nunca participou");
+    recusadoNoCampo(
+        () -> service.criar(request(LocalDate.parse("2026-10-03"))),
+        "proprietarioId",
+        "nunca participou");
+    verify(aportes, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("aeronave ou proprietário inexistente no corpo é erro do campo, não 404")
+  void referenciaInexistente() {
+    when(proprietarios.existsById(7L)).thenReturn(false);
+    recusadoNoCampo(
+        () -> service.criar(request(LocalDate.parse("2026-10-03"))),
+        "proprietarioId",
+        "Proprietário não encontrado");
+
+    when(aeronaves.existsById(1L)).thenReturn(false);
+    recusadoNoCampo(
+        () -> service.criar(request(LocalDate.parse("2026-10-03"))),
+        "aeronaveId",
+        "Aeronave não encontrada");
     verify(aportes, never()).save(any());
   }
 
@@ -157,8 +232,6 @@ class AporteServiceTest {
         new AporteRequest(
             2L, 7L, LocalDate.parse("2026-10-03"), YearMonth.of(2026, 9), BigDecimal.TEN);
 
-    assertThatThrownBy(() -> service.atualizar(5L, outraAeronave))
-        .isInstanceOf(AporteInvalidoException.class)
-        .hasMessageContaining("não muda");
+    recusadoNoCampo(() -> service.atualizar(5L, outraAeronave), "aeronaveId", "não muda");
   }
 }
