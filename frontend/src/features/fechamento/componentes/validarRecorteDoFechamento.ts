@@ -5,16 +5,11 @@ import {
   mesesEntre,
   type JanelaDeCompetencias,
 } from '@/compartilhado/recorte/competencia';
-import type { ModoDoRecorte } from '@/compartilhado/recorte/useRecorteDaUrl';
-
-export type CampoDoRecorte = 'competencia' | 'de' | 'ate';
-
-export interface RecorteDoFechamento {
-  modo: ModoDoRecorte;
-  competencia: string;
-  de: string;
-  ate: string;
-}
+import {
+  periodoForaDeOrdem,
+  type CampoDoRecorte,
+  type RecorteDeCompetencias,
+} from '@/compartilhado/recorte/recorteDeCompetencias';
 
 /** Dez anos de uma vez é o teto do servidor: `ChronoUnit.MONTHS.between(de, ate) >= 120`. */
 const MESES_NO_PERIODO = 120;
@@ -25,7 +20,7 @@ const MESES_NO_PERIODO = 120;
  * é sempre de um mês ou de um período fechado.
  */
 export function validarRecorteDoFechamento(
-  recorte: RecorteDoFechamento,
+  recorte: RecorteDeCompetencias,
   janela: JanelaDeCompetencias,
 ): Erros<CampoDoRecorte> {
   const naJanela = competenciaEntre(janela);
@@ -45,8 +40,9 @@ export function validarRecorteDoFechamento(
   if (erros.de || erros.ate) {
     return erros;
   }
-  if (recorte.de > recorte.ate) {
-    return { de: 'A competência inicial vem depois da final.' };
+  const foraDeOrdem = periodoForaDeOrdem(recorte.de, recorte.ate);
+  if (foraDeOrdem) {
+    return foraDeOrdem;
   }
   if (mesesEntre(recorte.de, recorte.ate) >= MESES_NO_PERIODO) {
     return { ate: 'O período vai até dez anos.' };

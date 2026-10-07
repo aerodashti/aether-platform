@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { janelaDeCompetencias } from '@/compartilhado/recorte/competencia';
-import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
+import { falhaDoRecorte } from '@/compartilhado/recorte/recorteDeCompetencias';
 import { useRecorteDaUrl, type ModoDoRecorte } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Abas } from '@/design-system/primitivos/Abas';
@@ -56,12 +56,11 @@ export function PaginaDeAportes() {
   const { aeronaveId, competencia, modo, de, ate } = recorte;
   const janela = janelaDeCompetencias();
   const erros = validarRecorteDoFundo({ modo, competencia, de, ate }, janela);
-  const erroDoRecorte = erros.competencia ?? erros.de ?? erros.ate;
-  const falhaDoRecorte = erroDoRecorte ? new RecorteInvalido(erroDoRecorte) : null;
+  const recusaDoRecorte = falhaDoRecorte(erros);
   const filtro: FiltroDoFundo =
     modo === 'MENSAL' ? { aeronaveId, de: competencia, ate: competencia } : { aeronaveId, de, ate };
-  const aportes = useAportes(filtro, !falhaDoRecorte);
-  const rendimentos = useRendimentos(filtro, !falhaDoRecorte);
+  const aportes = useAportes(filtro, !recusaDoRecorte);
+  const rendimentos = useRendimentos(filtro, !recusaDoRecorte);
 
   const totalAportado = aportes.data?.total;
   const totalRendido = rendimentos.data?.total;
@@ -201,7 +200,7 @@ export function PaginaDeAportes() {
           <TabelaDeAportes
             resposta={aportes.data}
             carregando={aportes.isPending}
-            erro={falhaDoRecorte ?? aportes.error}
+            erro={recusaDoRecorte ?? aportes.error}
             mostraAeronave={aeronaveId === ''}
             podeGerir={podeGerir}
             aoCorrigir={(aporte) => setPainel({ modo: 'corrigir', aporte })}
@@ -213,7 +212,7 @@ export function PaginaDeAportes() {
             <TabelaDeRendimentos
               resposta={rendimentos.data}
               carregando={rendimentos.isPending}
-              erro={falhaDoRecorte ?? rendimentos.error}
+              erro={recusaDoRecorte ?? rendimentos.error}
               mostraAeronave={aeronaveId === ''}
               podeGerir={podeGerir}
               aoCorrigir={(rendimento) => setFormulario({ modo: 'corrigir', rendimento })}

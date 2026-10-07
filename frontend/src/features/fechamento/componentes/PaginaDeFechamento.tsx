@@ -4,7 +4,7 @@ import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
 import { competenciaLocal } from '@/compartilhado/formatacao/datas';
 import { janelaDeCompetencias } from '@/compartilhado/recorte/competencia';
 import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
-import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
+import { falhaDoRecorte } from '@/compartilhado/recorte/recorteDeCompetencias';
 import { useRecorteDaUrl, type ModoDoRecorte } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -91,10 +91,9 @@ export function PaginaDeFechamento() {
   const { modo, de, ate } = recorte;
   const janela = janelaDeCompetencias();
   const erros = validarRecorteDoFechamento({ modo, competencia, de, ate }, janela);
-  const erroDoRecorte = erros.competencia ?? erros.de ?? erros.ate;
-  const falhaDoRecorte = erroDoRecorte ? new RecorteInvalido(erroDoRecorte) : null;
+  const recusaDoRecorte = falhaDoRecorte(erros);
   const consultar = (doModo: ModoDoRecorte) =>
-    modo === doModo && aeronaveId !== '' && !falhaDoRecorte;
+    modo === doModo && aeronaveId !== '' && !recusaDoRecorte;
   const mensal = useFechamentoMensal(aeronaveId, competencia, consultar('MENSAL'));
   const periodo = useFechamentoDoPeriodo(aeronaveId, de, ate, consultar('PERIODO'));
   const atual = modo === 'MENSAL' ? mensal.data : periodo.data;
@@ -239,7 +238,7 @@ export function PaginaDeFechamento() {
           </>
         ) : (
           <Carregando
-            falha={falhaDoRecorte ?? mensal.error}
+            falha={recusaDoRecorte ?? mensal.error}
             aoTentarDeNovo={() => void mensal.refetch()}
             aoLimpar={recorte.limpar}
           />
@@ -272,7 +271,7 @@ export function PaginaDeFechamento() {
         </>
       ) : (
         <Carregando
-          falha={falhaDoRecorte ?? periodo.error}
+          falha={recusaDoRecorte ?? periodo.error}
           aoTentarDeNovo={() => void periodo.refetch()}
           aoLimpar={recorte.limpar}
         />
