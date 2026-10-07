@@ -7,14 +7,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 /**
- * As recusas do trecho antes de gravar — atribuição, duplicidade, horários e data. A regra de cada
- * uma mora na entidade ({@link Trecho}, {@link ParDeHorarios}); aqui ficam a decisão registrada e a
- * recusa com o nome do campo do request, para a tela marcá-lo. Os limites são os mesmos de {@code
+ * As recusas do trecho antes de gravar — atribuição, horários e data. A regra de cada uma mora na
+ * entidade ({@link Trecho}, {@link ParDeHorarios}); aqui ficam a decisão registrada e a recusa com
+ * o nome do campo do request, para a tela marcá-lo. Os limites são os mesmos de {@code
  * features/voos/componentes/validacaoDoTrecho.ts}.
+ *
+ * <p>O mesmo nº de trecho no mesmo Rel. Voo não é recusado: duplicidade não bloqueia o lançamento
+ * (decisão de produto D7).
  */
 @Component
 public class ValidacaoDoTrecho {
@@ -29,17 +31,14 @@ public class ValidacaoDoTrecho {
   private static final CamposDoPar REALIZADO =
       new CamposDoPar("realizado", "partidaRealizada", "pousoRealizado");
 
-  private final TrechoRepository trechos;
   private final ProprietarioRepository proprietarios;
   private final ParticipantesDoVoo participantes;
   private final ContextoDaRequisicao contexto;
 
   public ValidacaoDoTrecho(
-      TrechoRepository trechos,
       ProprietarioRepository proprietarios,
       ParticipantesDoVoo participantes,
       ContextoDaRequisicao contexto) {
-    this.trechos = trechos;
     this.proprietarios = proprietarios;
     this.participantes = participantes;
     this.contexto = contexto;
@@ -71,24 +70,6 @@ public class ValidacaoDoTrecho {
           proprietario.getNome()
               + " nunca participou desta aeronave: inclua-o no contrato ou lance como manutenção.",
           "proprietarioId");
-    }
-  }
-
-  /**
-   * O mesmo número no mesmo Rel. Voo da aeronave é o mesmo trecho: cada cópia contaria outro pouso.
-   * Na correção, o próprio trecho não conta ({@code idProprio}).
-   */
-  public void exigirTrechoInedito(Long aeronaveId, DadosDoTrecho dados, Long idProprio) {
-    String relatorio = Trecho.normalizarRelatorio(dados.relatorioDeVoo());
-    boolean repetido =
-        trechos
-            .findByAeronaveIdAndRelatorioDeVooIgnoreCaseAndNumeroDoTrecho(
-                aeronaveId, relatorio, dados.numeroDoTrecho())
-            .stream()
-            .anyMatch(outro -> !Objects.equals(outro.getId(), idProprio));
-    contexto.decisao("trecho.repetido", repetido);
-    if (repetido) {
-      throw new TrechoRepetidoException(relatorio, dados.numeroDoTrecho());
     }
   }
 

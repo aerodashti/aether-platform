@@ -208,18 +208,6 @@ class VooControllerTest {
   }
 
   @Test
-  @DisplayName("trecho repetido é 409 apontando o nº do trecho")
-  void trechoRepetido() throws Exception {
-    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));
-    when(voos.criar(any())).thenThrow(new TrechoRepetidoException("RV-2026-041", 1));
-
-    mockMvc
-        .perform(lancar(corpo("1", "365.0")))
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.campos.numeroDoTrecho").exists());
-  }
-
-  @Test
   @DisplayName("verbo que a rota do trecho não aceita é 405, não 500")
   void verboNaoAceito() throws Exception {
     when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PILOTO));

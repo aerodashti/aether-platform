@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.voo;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
+import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +33,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class VooService {
 
+  /**
+   * O fuso do "hoje" das janelas de data, o mesmo do painel. O relógio do servidor está em UTC: à
+   * noite no Brasil ele já estaria no dia seguinte, e recusaria a data que a tela acabou de
+   * aceitar.
+   */
+  static final ZoneId FUSO_DA_OPERACAO = ZoneId.of("America/Sao_Paulo");
+
   private final TrechoRepository trechos;
-  private final AeronaveDoDiarioRepository aeronavesDoDiario;
+  private final AeronaveRepository aeronaves;
   private final ProprietarioRepository proprietarios;
   private final ValidacaoDoTrecho validacao;
   private final Clock relogio;
@@ -40,13 +49,13 @@ public class VooService {
 
   public VooService(
       TrechoRepository trechos,
-      AeronaveDoDiarioRepository aeronavesDoDiario,
+      AeronaveRepository aeronaves,
       ProprietarioRepository proprietarios,
       ValidacaoDoTrecho validacao,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.trechos = trechos;
-    this.aeronavesDoDiario = aeronavesDoDiario;
+    this.aeronaves = aeronaves;
     this.proprietarios = proprietarios;
     this.validacao = validacao;
     this.relogio = relogio;
@@ -84,11 +93,8 @@ public class VooService {
   public TrechoResponse criar(TrechoRequest request) {
     Aeronave aeronave = travarAeronave(request.aeronaveId());
     validacao.exigirAtribuicaoValida(aeronave.getId(), request.proprietarioId());
-    DadosDoTrecho dados = dadosDe(request);
-    validacao.exigirTrechoInedito(aeronave.getId(), dados, null);
-
     Instant agora = Instant.now(relogio);
-    Trecho trecho = new Trecho(aeronave.getId(), dados, agora);
+    Trecho trecho = new Trecho(aeronave.getId(), dadosDe(request), agora);
     validacao.exigirHorariosCoerentes(trecho, agora);
     validacao.exigirDataNaJanela(trecho, hojeEm(agora));
     trecho = trechos.save(trecho);
@@ -115,7 +121,6 @@ public class VooService {
     }
     Aeronave aeronave = travarAeronave(trecho.getAeronaveId());
     DadosDoTrecho dados = dadosDe(request);
-    validacao.exigirTrechoInedito(trecho.getAeronaveId(), dados, trecho.getId());
     boolean dataMudou = !Objects.equals(dados.data(), trecho.getData());
 
     Instant agora = Instant.now(relogio);
@@ -157,7 +162,7 @@ public class VooService {
   /** A aeronave vem do corpo: a que não existe é um campo errado (400), não uma rota (404). */
   private Aeronave travarAeronave(Long aeronaveId) {
     contexto.registrar("aeronave.id", aeronaveId);
-    return aeronavesDoDiario
+    return aeronaves
         .findTravadaById(aeronaveId)
         .orElseThrow(() -> new VooInvalidoException("Aeronave não encontrada.", "aeronaveId"));
   }
@@ -169,8 +174,8 @@ public class VooService {
         .orElseThrow(() -> new RecursoNaoEncontradoException("Trecho não encontrado."));
   }
 
-  private LocalDate hojeEm(Instant agora) {
-    return LocalDate.ofInstant(agora, relogio.getZone());
+  private static LocalDate hojeEm(Instant agora) {
+    return LocalDate.ofInstant(agora, FUSO_DA_OPERACAO);
   }
 
   /**
@@ -208,7 +213,7 @@ public class VooService {
   /** Nome, cor e matrícula em lote: a grade não faz uma busca por linha. */
   private List<TrechoResponse> paraLinhas(List<Trecho> recorte) {
     Map<Long, Aeronave> frota =
-        aeronavesDoDiario
+        aeronaves
             .findAllById(recorte.stream().map(Trecho::getAeronaveId).distinct().toList())
             .stream()
             .collect(Collectors.toMap(Aeronave::getId, Function.identity()));

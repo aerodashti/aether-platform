@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
+import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.CorDeIdentificacao;
@@ -40,7 +41,7 @@ class VooServiceTest {
   private static final Instant AGORA = Instant.parse("2026-09-10T12:00:00Z");
 
   @Mock private TrechoRepository trechos;
-  @Mock private AeronaveDoDiarioRepository aeronavesDoDiario;
+  @Mock private AeronaveRepository aeronaves;
   @Mock private ProprietarioRepository proprietarios;
   @Mock private ParticipantesDoVoo participantes;
   @Mock private ContextoDaRequisicao contexto;
@@ -51,14 +52,7 @@ class VooServiceTest {
 
   @BeforeEach
   void montar() {
-    service =
-        new VooService(
-            trechos,
-            aeronavesDoDiario,
-            proprietarios,
-            new ValidacaoDoTrecho(trechos, proprietarios, participantes, contexto),
-            Clock.fixed(AGORA, ZoneOffset.UTC),
-            contexto);
+    service = servicoEm(AGORA);
     aeronave =
         new Aeronave(
             "PS-MEP",
@@ -71,12 +65,22 @@ class VooServiceTest {
     ricardo = new Proprietario("Ricardo", null, null, null, CorDeIdentificacao.PETROLEO, AGORA);
     ReflectionTestUtils.setField(ricardo, "id", 7L);
 
-    when(aeronavesDoDiario.findTravadaById(1L)).thenReturn(Optional.of(aeronave));
-    when(aeronavesDoDiario.findAllById(any())).thenReturn(List.of(aeronave));
+    when(aeronaves.findTravadaById(1L)).thenReturn(Optional.of(aeronave));
+    when(aeronaves.findAllById(any())).thenReturn(List.of(aeronave));
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
     when(proprietarios.findAllById(any())).thenReturn(List.of(ricardo));
     when(trechos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
     when(participantes.participaOuParticipou(1L, 7L)).thenReturn(true);
+  }
+
+  private VooService servicoEm(Instant agora) {
+    return new VooService(
+        trechos,
+        aeronaves,
+        proprietarios,
+        new ValidacaoDoTrecho(proprietarios, participantes, contexto),
+        Clock.fixed(agora, ZoneOffset.UTC), // o relógio do servidor, em UTC como em produção
+        contexto);
   }
 
   private static TrechoRequest request(
@@ -104,6 +108,10 @@ class VooServiceTest {
         "2026-09-08", "2026-09-08T08:30:00Z", "2026-09-08T09:30:00Z", true, proprietarioId);
   }
 
+  private static TrechoRequest planejadoEm(String data) {
+    return request(data, data + "T12:00:00Z", data + "T13:00:00Z", false, 7L);
+  }
+
   /** O trecho já gravado, como a correção o encontra. */
   private Trecho salvo(TrechoRequest request) {
     Trecho trecho = new Trecho(1L, dadosDe(request), AGORA);
@@ -119,7 +127,7 @@ class VooServiceTest {
   @Test
   @DisplayName("trecho só previsto não mexe nos contadores: o voo ainda não aconteceu")
   void previstoNaoContaNosContadores() {
-    service.criar(request("2026-09-20", "2026-09-20T12:00:00Z", "2026-09-20T13:00:00Z", false, 7L));
+    service.criar(planejadoEm("2026-09-20"));
 
     assertThat(aeronave.getContadores().ciclos()).isZero();
     assertThat(aeronave.getContadores().kmVoados()).isEqualByComparingTo("0");
@@ -153,7 +161,7 @@ class VooServiceTest {
   @Test
   @DisplayName("aeronave que não existe é um campo errado do corpo (400), não uma rota (404)")
   void aeronaveInexistente() {
-    when(aeronavesDoDiario.findTravadaById(1L)).thenReturn(Optional.empty());
+    when(aeronaves.findTravadaById(1L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.criar(voado(7L)))
         .isInstanceOf(VooInvalidoException.class)
@@ -162,23 +170,34 @@ class VooServiceTest {
   }
 
   @Test
-  @DisplayName("relançar o mesmo trecho do mesmo voo é recusado: contaria outro pouso")
-  void recusaTrechoRepetido() {
-    Trecho existente = salvo(voado(7L));
-    when(trechos.findByAeronaveIdAndRelatorioDeVooIgnoreCaseAndNumeroDoTrecho(1L, "RV-2026-041", 1))
-        .thenReturn(List.of(existente));
+  @DisplayName("relançar o mesmo trecho do mesmo voo não é bloqueado: duplicidade não barra (D7)")
+  void relancarNaoEhBloqueado() {
+    service.criar(voado(7L));
+    service.criar(voado(7L));
 
-    assertThatThrownBy(() -> service.criar(voado(7L))).isInstanceOf(TrechoRepetidoException.class);
-    verify(trechos, never()).save(any());
+    assertThat(aeronave.getContadores().ciclos()).isEqualTo(2);
   }
 
   @Test
-  @DisplayName("corrigir estorna o velho e aplica o novo — e o próprio trecho não é repetido")
+  @DisplayName("o hoje da janela de data é o do Brasil, não o do relógio em UTC do servidor")
+  void hojeNoFusoDaOperacao() {
+    // 01:00 em UTC de 08/10 ainda é 22:00 de 07/10 em São Paulo: o mesmo hoje do painel.
+    VooService aNoite = servicoEm(Instant.parse("2026-10-08T01:00:00Z"));
+    TrechoRequest realizadoAmanha =
+        request("2026-10-08", "2026-10-08T00:00:00Z", "2026-10-08T00:30:00Z", true, 7L);
+
+    assertThat(aNoite.criar(planejadoEm("2025-10-07")).data())
+        .isEqualTo(LocalDate.parse("2025-10-07"));
+    assertThatThrownBy(() -> aNoite.criar(realizadoAmanha))
+        .isInstanceOf(VooInvalidoException.class)
+        .hasMessage("Use uma data de 01/01/2000 a 07/10/2026.");
+  }
+
+  @Test
+  @DisplayName("corrigir estorna o velho e aplica o novo")
   void corrigirEstornaEReaplica() {
     service.criar(voado(7L));
-    Trecho existente = salvo(voado(7L));
-    when(trechos.findByAeronaveIdAndRelatorioDeVooIgnoreCaseAndNumeroDoTrecho(1L, "RV-2026-041", 1))
-        .thenReturn(List.of(existente));
+    salvo(voado(7L));
 
     service.atualizar(
         5L, request("2026-09-08", "2026-09-08T09:00:00Z", "2026-09-08T11:40:00Z", true, 7L));
@@ -233,15 +252,12 @@ class VooServiceTest {
   @Test
   @DisplayName("a data de um planejado antigo só é julgada quando a correção a muda")
   void dataSoEhJulgadaQuandoMuda() {
-    TrechoRequest antigo =
-        request("2024-03-01", "2024-03-01T12:00:00Z", "2024-03-01T13:00:00Z", false, 7L);
+    TrechoRequest antigo = planejadoEm("2024-03-01");
     salvo(antigo);
 
     service.atualizar(5L, antigo);
 
-    TrechoRequest outraDataAntiga =
-        request("2024-03-02", "2024-03-02T12:00:00Z", "2024-03-02T13:00:00Z", false, 7L);
-    assertThatThrownBy(() -> service.atualizar(5L, outraDataAntiga))
+    assertThatThrownBy(() -> service.atualizar(5L, planejadoEm("2024-03-02")))
         .isInstanceOf(VooInvalidoException.class)
         .extracting(excecao -> ((ExcecaoDeDominio) excecao).getCampo())
         .isEqualTo(Optional.of("data"));
@@ -252,12 +268,7 @@ class VooServiceTest {
   void totaisDoRealizado() {
     Trecho voadoComDono = new Trecho(1L, dadosDe(voado(7L)), AGORA);
     Trecho voadoDeManutencao = new Trecho(1L, dadosDe(voado(null)), AGORA);
-    Trecho planejado =
-        new Trecho(
-            1L,
-            dadosDe(
-                request("2026-09-20", "2026-09-20T12:00:00Z", "2026-09-20T13:00:00Z", false, 7L)),
-            AGORA);
+    Trecho planejado = new Trecho(1L, dadosDe(planejadoEm("2026-09-20")), AGORA);
     when(trechos.findByAeronaveIdAndDataBetweenOrderByDataDescRelatorioDeVooDescNumeroDoTrechoDesc(
             1L, LocalDate.parse("2026-09-01"), LocalDate.parse("2026-09-30")))
         .thenReturn(List.of(voadoComDono, voadoDeManutencao, planejado));

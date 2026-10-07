@@ -12,7 +12,6 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +32,6 @@ class ValidacaoDoTrechoTest {
   private static final Instant AGORA = Instant.parse("2026-09-10T12:00:00Z");
   private static final LocalDate HOJE = LocalDate.parse("2026-09-10");
 
-  @Mock private TrechoRepository trechos;
   @Mock private ProprietarioRepository proprietarios;
   @Mock private ParticipantesDoVoo participantes;
   @Mock private ContextoDaRequisicao contexto;
@@ -44,7 +41,7 @@ class ValidacaoDoTrechoTest {
 
   @BeforeEach
   void montar() {
-    validacao = new ValidacaoDoTrecho(trechos, proprietarios, participantes, contexto);
+    validacao = new ValidacaoDoTrecho(proprietarios, participantes, contexto);
     ricardo = new Proprietario("Ricardo", null, null, null, CorDeIdentificacao.PETROLEO, AGORA);
     ReflectionTestUtils.setField(ricardo, "id", 7L);
     when(proprietarios.findById(7L)).thenReturn(Optional.of(ricardo));
@@ -183,24 +180,5 @@ class ValidacaoDoTrechoTest {
     ricardo.desativar(AGORA);
     recusaNoCampo(() -> validacao.exigirAtribuicaoValida(1L, 7L), "proprietarioId", "inativo");
     assertThatCode(() -> validacao.exigirAtribuicaoValida(1L, null)).doesNotThrowAnyException();
-  }
-
-  @Test
-  @DisplayName("o mesmo trecho do mesmo Rel. Voo, sem diferenciar caixa, é 409 no nº do trecho")
-  void trechoRepetido() {
-    Trecho existente = trecho(null, null, null, null);
-    ReflectionTestUtils.setField(existente, "id", 5L);
-    when(trechos.findByAeronaveIdAndRelatorioDeVooIgnoreCaseAndNumeroDoTrecho(1L, "RV-2026-041", 1))
-        .thenReturn(List.of(existente));
-    DadosDoTrecho mesmo = dados("2026-09-08", null, null, null, null);
-
-    recusaNoCampo(
-        () -> validacao.exigirTrechoInedito(1L, mesmo, null),
-        "numeroDoTrecho",
-        "O trecho 1 do RV-2026-041 já foi lançado");
-    assertThatThrownBy(() -> validacao.exigirTrechoInedito(1L, mesmo, null))
-        .extracting(excecao -> ((ExcecaoDeDominio) excecao).getStatus())
-        .isEqualTo(HttpStatus.CONFLICT);
-    assertThatCode(() -> validacao.exigirTrechoInedito(1L, mesmo, 5L)).doesNotThrowAnyException();
   }
 }

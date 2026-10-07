@@ -14,8 +14,9 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Uma perna voada. Trechos com o mesmo relatório de voo formam o voo completo — todas as pernas
- * voadas enquanto a aeronave esteve com o proprietário. Cada trecho conta um pouso e alimenta o
+ * Uma perna do diário, planejada ou já voada. Trechos com o mesmo relatório de voo formam o voo
+ * completo — todas as pernas voadas enquanto a aeronave esteve com o proprietário. Só o trecho
+ * realizado conta um pouso e soma horas e km nos contadores; planejado ou realizado, ele alimenta o
  * percentual de uso do rateio.
  */
 @Entity
@@ -90,7 +91,7 @@ public class Trecho {
 
   /**
    * O Rel. Voo agrupa os trechos por igualdade: "rv-2026-041" e "RV-2026-041" são o mesmo voo, no
-   * diário, na conferência de duplicidade e no casamento com o custo (decisão de produto D19).
+   * diário e no casamento com o custo (decisão de produto D19).
    */
   public static String normalizarRelatorio(String relatorioDeVoo) {
     return relatorioDeVoo == null ? null : relatorioDeVoo.trim().toUpperCase(Locale.ROOT);

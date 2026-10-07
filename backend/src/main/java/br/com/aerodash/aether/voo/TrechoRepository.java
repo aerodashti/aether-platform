@@ -32,11 +32,4 @@ public interface TrechoRepository extends JpaRepository<Trecho, Long> {
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   Optional<Trecho> findTravadoById(Long id);
-
-  /**
-   * Os lançamentos com o mesmo número no mesmo Rel. Voo da aeronave. Sem diferenciar caixa, para
-   * alcançar também o que foi gravado antes da normalização do Rel. Voo.
-   */
-  List<Trecho> findByAeronaveIdAndRelatorioDeVooIgnoreCaseAndNumeroDoTrecho(
-      Long aeronaveId, String relatorioDeVoo, int numeroDoTrecho);
 }

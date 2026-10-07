@@ -115,18 +115,25 @@ class VooIntegracaoTest {
   }
 
   @Test
-  @DisplayName("o mesmo trecho do mesmo voo, em outra caixa, é 409 no nº do trecho")
-  void trechoRepetidoEhRecusado() throws Exception {
+  @DisplayName(
+      "relançar o trecho de um voo do seed não é bloqueado, e o Rel. Voo vai em maiúsculas")
+  void trechoRepetidoNaoEhBloqueado() throws Exception {
     Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    Cookie sessao = entrar();
 
-    mockMvc
-        .perform(
-            post("/voos")
-                .cookie(entrar())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(voadoEm(psMep, "  rv-2026-041 "))))
-        .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.campos.numeroDoTrecho").exists());
+    MvcResult criado =
+        mockMvc
+            .perform(
+                post("/voos")
+                    .cookie(sessao)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(json.writeValueAsString(voadoEm(psMep, "  rv-2026-041 "))))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.relatorioDeVoo").value("RV-2026-041"))
+            .andReturn();
+
+    long id = json.readTree(criado.getResponse().getContentAsString()).get("id").asLong();
+    mockMvc.perform(delete("/voos/" + id).cookie(sessao)).andExpect(status().isNoContent());
   }
 
   /** Um trecho de 1 h e 10 km já voado, nº 1 do Rel. Voo dado. */
