@@ -441,6 +441,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/proprietarios/{proprietarioId}/saida": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redistribui a participação de quem sai e o desativa */
+        post: operations["sair"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/proprietarios/{id}/reativacao": {
         parameters: {
             query?: never;
@@ -919,7 +936,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Encerra a sessão corrente */
-        delete: operations["sair"];
+        delete: operations["sair_1"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1646,6 +1663,22 @@ export interface components {
              */
             ultimoAcesso?: string;
         };
+        /** @description O contrato novo de uma aeronave */
+        ContratoNovo: {
+            /** Format: int64 */
+            aeronaveId: number;
+            participacoes: components["schemas"]["ParticipacaoRequest"][];
+        };
+        /** @description A fatia de um proprietário */
+        ParticipacaoRequest: {
+            /** Format: int64 */
+            proprietarioId: number;
+            percentual: number;
+        };
+        /** @description Contratos que redistribuem a participação de quem sai */
+        SaidaDeProprietarioRequest: {
+            contratos: components["schemas"]["ContratoNovo"][];
+        };
         /** @description Troca da própria senha */
         TrocarSenhaRequest: {
             senhaAtual?: string;
@@ -1774,12 +1807,6 @@ export interface components {
         /** @description Definição de um novo contrato de participação */
         DefinirContratoRequest: {
             participacoes?: components["schemas"]["ParticipacaoRequest"][];
-        };
-        /** @description A fatia de um proprietário */
-        ParticipacaoRequest: {
-            /** Format: int64 */
-            proprietarioId: number;
-            percentual: number;
         };
         /** @description Um contrato de participação */
         ContratoResponse: {
@@ -3065,6 +3092,30 @@ export interface operations {
             };
         };
     };
+    sair: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proprietarioId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaidaDeProprietarioRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     reativar_1: {
         parameters: {
             query?: never;
@@ -3849,7 +3900,7 @@ export interface operations {
             };
         };
     };
-    sair: {
+    sair_1: {
         parameters: {
             query?: never;
             header?: never;

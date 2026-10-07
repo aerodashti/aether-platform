@@ -478,7 +478,11 @@ chegam, o cartão diz "sem vínculo", nunca fica em branco.
 
 O **saldo** ao lado de cada barra é a conta do proprietário no fundo daquela aeronave, do
 fechamento (`compartilhado/fundo`), em vermelho quando devedor. O "Excluir" do protótipo é "Desativar": excluir de verdade não existe
-neste domínio (glossário), e o inativo mostra a etiqueta e o "Reativar", como em Usuários.
+neste domínio (glossário), e o inativo mostra a etiqueta e o "Reativar", como em Usuários. Desativar abre o painel do
+protótipo ("Excluir proprietário"): sem participação vigente, só confirma; com participação, mostra
+cada aeronave dele com os demais na participação atual — e a opção de incluir outro proprietário —
+até a soma fechar em 100%, e a saída cria os contratos novos e desativa numa transação
+(`POST /proprietarios/{id}/saida`). O servidor recusa desativar direto quem está em contrato.
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
 bundle). O produto é entregue em português; inglês e espanhol não estão nesta fase.

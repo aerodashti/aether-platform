@@ -104,6 +104,90 @@ class ParticipacaoIntegracaoTest {
         .andExpect(jsonPath("$.title").value("Contrato de participação inválido"));
   }
 
+  @Test
+  @DisplayName("quem está em contrato só sai redistribuindo a fatia: tudo numa transação")
+  void saidaRedistribuiEDesativa() throws Exception {
+    // PT-XLB (sem contrato no seed) e um proprietário novo: o seed das outras aeronaves fica
+    // intocado.
+    Long psFum = aeronaves.findByMatricula("PT-XLB").orElseThrow().getId();
+    Cookie sessao = entrar();
+    long quemSai = criarProprietario(sessao, "Saída Teste");
+    long ricardo = idDoProprietario(sessao, "Ricardo Meirelles");
+    definirContrato(
+        sessao,
+        psFum,
+        "[{\"proprietarioId\":%d,\"percentual\":70.00},{\"proprietarioId\":%d,\"percentual\":30.00}]"
+            .formatted(ricardo, quemSai));
+
+    mockMvc
+        .perform(post("/proprietarios/" + quemSai + "/desativacao").cookie(sessao))
+        .andExpect(status().isConflict());
+
+    mockMvc
+        .perform(
+            post("/proprietarios/" + quemSai + "/saida")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"contratos":[{"aeronaveId":%d,
+                      "participacoes":[{"proprietarioId":%d,"percentual":100.00}]}]}
+                    """
+                        .formatted(psFum, ricardo)))
+        .andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(get("/aeronaves/" + psFum + "/contratos").cookie(sessao))
+        .andExpect(jsonPath("$.vigente.participacoes.length()").value(1));
+    mockMvc
+        .perform(get("/proprietarios").cookie(sessao))
+        .andExpect(
+            jsonPath("$[?(@.nome == 'Saída Teste')].situacao")
+                .value(org.hamcrest.Matchers.contains("INATIVO")));
+  }
+
+  private long criarProprietario(Cookie sessao, String nome) throws Exception {
+    MvcResult criado =
+        mockMvc
+            .perform(
+                post("/proprietarios")
+                    .cookie(sessao)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"nome\":\"%s\",\"corDeIdentificacao\":\"AZUL\"}".formatted(nome)))
+            .andExpect(status().isCreated())
+            .andReturn();
+    return new com.fasterxml.jackson.databind.ObjectMapper()
+        .readTree(criado.getResponse().getContentAsString())
+        .get("id")
+        .asLong();
+  }
+
+  private long idDoProprietario(Cookie sessao, String nome) throws Exception {
+    String json =
+        mockMvc
+            .perform(get("/proprietarios").cookie(sessao))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    for (var no : new com.fasterxml.jackson.databind.ObjectMapper().readTree(json)) {
+      if (nome.equals(no.get("nome").asText())) {
+        return no.get("id").asLong();
+      }
+    }
+    throw new IllegalStateException(nome);
+  }
+
+  private void definirContrato(Cookie sessao, Long aeronaveId, String participacoes)
+      throws Exception {
+    mockMvc
+        .perform(
+            post("/aeronaves/" + aeronaveId + "/contratos")
+                .cookie(sessao)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"participacoes\":" + participacoes + "}"))
+        .andExpect(status().isOk());
+  }
+
   /** Monta o corpo com os proprietários do seed, na ordem Ricardo, Vetor, Helena. */
   private String participacoesDoSeed(String ricardo, String vetor, String helena) throws Exception {
     MvcResult donos =

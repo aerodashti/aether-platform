@@ -202,4 +202,40 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();
     expect(screen.getByRole('button', { name: 'Cadastrar' })).toBeDisabled();
   });
+
+  it('desativar quem está em contrato pede a redistribuição e manda tudo numa saída só', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Ricardo Meirelles');
+    await userEvent.click(
+      within(cartaoDe('Ricardo Meirelles')).getByRole('button', { name: 'Desativar' }),
+    );
+    const painel = screen.getByRole('dialog', { name: 'Desativar Ricardo Meirelles' });
+    const confirmar = within(painel).getByRole('button', { name: 'Redistribuir e desativar' });
+    expect(confirmar).toBeDisabled();
+
+    // Ricardo era o único nas duas: a fatia inteira vai para quem entra no lugar.
+    for (const matricula of ['PS-AER', 'PR-HEL']) {
+      await userEvent.selectOptions(
+        within(painel).getByLabelText(`Incluir proprietário na ${matricula}`),
+        '3',
+      );
+      await userEvent.type(
+        within(painel).getByLabelText(`Participação de Helena Sarraf na ${matricula} em %`),
+        '100',
+      );
+    }
+    await userEvent.click(confirmar);
+
+    const saida = vi
+      .mocked(fetch)
+      .mock.calls.find(([entrada]) => String(entrada) === '/api/proprietarios/1/saida');
+    expect(JSON.parse(String(saida?.[1]?.body))).toEqual({
+      contratos: [
+        { aeronaveId: 7, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
+        { aeronaveId: 8, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
+      ],
+    });
+  });
 });

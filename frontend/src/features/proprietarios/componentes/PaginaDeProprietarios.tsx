@@ -21,6 +21,7 @@ import {
 
 import { CartaoDeProprietario } from './CartaoDeProprietario';
 import estilos from './PaginaDeProprietarios.module.css';
+import { PainelDeDesativacao } from './PainelDeDesativacao';
 import { OPCOES_DE_SITUACAO } from './rotulos';
 
 type Painel = { modo: 'novo' } | { modo: 'editar'; proprietario: ProprietarioResponse } | null;
@@ -35,6 +36,7 @@ export function PaginaDeProprietarios() {
   const [busca, setBusca] = useState('');
   const [situacao, setSituacao] = useState<SituacaoDoProprietario | ''>('');
   const [painel, setPainel] = useState<Painel>(null);
+  const [desativando, setDesativando] = useState<ProprietarioResponse | null>(null);
   const { usuario } = useSessao();
 
   // O recorte é local — a lista completa já está aqui —, mas digitar não pode travar a grade:
@@ -139,6 +141,7 @@ export function PaginaDeProprietarios() {
               saldos={saldos.data}
               podeGerir={podeGerir}
               aoEditar={(alvo) => setPainel({ modo: 'editar', proprietario: alvo })}
+              aoDesativar={setDesativando}
             />
           ))}
         </ul>
@@ -150,6 +153,15 @@ export function PaginaDeProprietarios() {
           key={painel.modo === 'editar' ? painel.proprietario.id : 'novo'}
           proprietario={painel.modo === 'editar' ? painel.proprietario : undefined}
           aoFechar={() => setPainel(null)}
+        />
+      ) : null}
+      {desativando ? (
+        <PainelDeDesativacao
+          key={desativando.id}
+          proprietario={desativando}
+          vinculos={vinculos.data}
+          proprietarios={consulta.data ?? []}
+          aoFechar={() => setDesativando(null)}
         />
       ) : null}
     </div>

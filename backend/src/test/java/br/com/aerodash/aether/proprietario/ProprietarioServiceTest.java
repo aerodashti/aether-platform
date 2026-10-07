@@ -32,6 +32,7 @@ class ProprietarioServiceTest {
   private static final Instant AGORA = Instant.parse("2026-09-10T12:00:00Z");
 
   @Mock private ProprietarioRepository proprietarios;
+  @Mock private ParticipacoesVigentes participacoes;
   @Mock private ContextoDaRequisicao contexto;
 
   private ProprietarioService service;
@@ -43,7 +44,7 @@ class ProprietarioServiceTest {
     ProprietarioMapper mapper = new ProprietarioMapperImpl();
     service =
         new ProprietarioService(
-            proprietarios, mapper, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
+            proprietarios, mapper, participacoes, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
     when(proprietarios.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
   }
 
@@ -97,6 +98,18 @@ class ProprietarioServiceTest {
     ProprietarioResponse response = service.atualizar(7L, request("529.982.247-25"));
 
     assertThat(response.cpfCnpj()).isEqualTo("52998224725");
+  }
+
+  @Test
+  @DisplayName("quem está em contrato vigente não é desativado sem redistribuir a participação")
+  void recusaQuemParticipa() {
+    Proprietario helena = comId(7L, "52998224725");
+    when(proprietarios.findById(7L)).thenReturn(Optional.of(helena));
+    when(participacoes.participaDeContratoVigente(7L)).thenReturn(true);
+
+    assertThatThrownBy(() -> service.desativar(7L))
+        .isInstanceOf(ProprietarioComParticipacaoException.class);
+    assertThat(helena.estaAtivo()).isTrue();
   }
 
   @Test

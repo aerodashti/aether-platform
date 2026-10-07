@@ -1,0 +1,44 @@
+.aeronave {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: var(--espaco-4) var(--espaco-5);
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}
+
+.cabecalho {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.matricula {
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.fatia {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.nome {
+  overflow: hidden;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.acoes {
+  display: flex;
+  gap: var(--espaco-3);
+  justify-content: flex-end;
+}
