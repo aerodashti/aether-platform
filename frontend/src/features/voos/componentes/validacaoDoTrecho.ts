@@ -1,5 +1,4 @@
 import { somarMeses } from '@/compartilhado/formatacao/datas';
-import { casasDecimais } from '@/compartilhado/formatacao/numero';
 import {
   dataEntre,
   numero,
@@ -68,9 +67,6 @@ const codigoIcao: Regra = (texto) =>
 
 const dataCompleta: Regra = (texto) =>
   texto === '' || DATA_COMPLETA.test(texto) ? undefined : 'Use uma data com o ano de 4 dígitos.';
-
-const umaCasaDecimal: Regra = (texto) =>
-  casasDecimais(texto) > 1 ? 'Use no máximo uma casa decimal.' : undefined;
 
 function regraDaJanela(rascunho: RascunhoDoTrecho, momento: MomentoDaValidacao): Regra {
   if (rascunho.data === momento.dataGravada) {
@@ -147,7 +143,6 @@ export function validarTrecho(
     km: primeiraFalha(
       rascunho.km,
       obrigatorio('Informe a distância.'),
-      umaCasaDecimal,
       numero({ maiorQue: 0, maximo: LIMITES_DO_TRECHO.kmMaximo, casas: 1 }),
     ),
     pousoPrevisto: mesmoHorario(rascunho.partidaPrevista, rascunho.pousoPrevisto),

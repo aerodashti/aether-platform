@@ -134,11 +134,8 @@ describe('PainelDeTrecho', () => {
     prepararFetch(() =>
       Promise.resolve(
         respostaDe(
-          {
-            title: 'Trecho repetido',
-            campos: { numeroDoTrecho: 'O trecho 1 do RV-2026-044 já foi lançado nesta aeronave.' },
-          },
-          409,
+          { title: 'Requisição inválida', campos: { numeroDoTrecho: 'O trecho começa em 1.' } },
+          400,
         ),
       ),
     );
@@ -148,7 +145,7 @@ describe('PainelDeTrecho', () => {
     await userEvent.click(within(painel).getByRole('button', { name: 'Registrar trecho' }));
 
     const numero = within(painel).getByLabelText('Nº do trecho');
-    expect(await within(painel).findByText(/já foi lançado nesta aeronave/)).toBeInTheDocument();
+    expect(await within(painel).findByText('O trecho começa em 1.')).toBeInTheDocument();
     expect(numero).toHaveAttribute('aria-invalid', 'true');
     expect(numero).toHaveFocus();
     expect(within(painel).getByRole('alert')).toHaveTextContent('Revise o campo Nº do trecho.');

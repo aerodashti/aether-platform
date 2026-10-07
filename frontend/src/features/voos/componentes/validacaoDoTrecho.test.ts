@@ -53,7 +53,8 @@ describe('validarTrecho', () => {
   it('lê a distância como se escreve no Brasil e diz o limite da coluna', () => {
     expect(errosDe({ km: '1.962' }).km).toBeUndefined();
     expect(errosDe({ km: '1.962,5' }).km).toBeUndefined();
-    expect(errosDe({ km: '12,34' }).km).toBe('Use no máximo uma casa decimal.');
+    // A mensagem é a da regra comum numero({ casas: 1 }), que a base passa a dizer no singular.
+    expect(errosDe({ km: '12,34' }).km).toMatch(/^Use no máximo 1 casa/);
     expect(errosDe({ km: '0' }).km).toBe('Informe um valor maior que 0.');
     expect(errosDe({ km: '10.000.000' }).km).toBe('O máximo é 9.999.999,9.');
     expect(errosDe({ km: 'dez' }).km).toBe('Use só números, com vírgula para as casas decimais.');
