@@ -60,7 +60,12 @@ class ProprietarioTest {
     void tiraInvisiveis() {
       Proprietario proprietario =
           new Proprietario(
-              " Ri​cardo Meirelles​ ", null, null, null, CorDeIdentificacao.AZUL, AGORA);
+              "\u00a0Ri\u200bcardo Meirelles\u200b ",
+              null,
+              null,
+              null,
+              CorDeIdentificacao.AZUL,
+              AGORA);
 
       assertThat(proprietario.getNome()).isEqualTo("Ricardo Meirelles");
     }
@@ -71,7 +76,7 @@ class ProprietarioTest {
       Proprietario proprietario = novo();
 
       proprietario.atualizarCadastro(
-          "​Helena Sarraf ", null, null, null, CorDeIdentificacao.VERDE, DEPOIS);
+          "\u200bHelena Sarraf\u00a0", null, null, null, CorDeIdentificacao.VERDE, DEPOIS);
 
       assertThat(proprietario.getNome()).isEqualTo("Helena Sarraf");
     }

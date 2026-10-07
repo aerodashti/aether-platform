@@ -20,7 +20,7 @@ class CpfCnpjTest {
     void tiraPontuacao() {
       assertThat(CpfCnpj.normalizar("529.982.247-25")).isEqualTo("52998224725");
       assertThat(CpfCnpj.normalizar("12.abc.345/01de-35")).isEqualTo("12ABC34501DE35");
-      assertThat(CpfCnpj.normalizar(" 529 982 247 25 ")).isEqualTo("52998224725");
+      assertThat(CpfCnpj.normalizar(" 529\u00a0982 247 25 ")).isEqualTo("52998224725");
     }
 
     @Test
