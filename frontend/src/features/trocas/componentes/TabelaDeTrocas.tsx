@@ -4,12 +4,7 @@ import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import {
-  useConcluirTroca,
-  useReabrirTroca,
-  type SituacaoDaTroca,
-  type TrocaResponse,
-} from '../api/useTrocas';
+import type { SituacaoDaTroca, TrocaResponse } from '../api/useTrocas';
 
 import { dataCurta, horasEmTexto, kmEmTexto, moedaEmTexto } from './rotulos';
 import estilos from './TabelaDeTrocas.module.css';
@@ -22,6 +17,9 @@ interface TabelaDeTrocasProps {
   filtrada: boolean;
   podeGerir: boolean;
   aoEditar: (troca: TrocaResponse) => void;
+  /** Concluir pede a data da devolução; reabrir pede confirmação. Os dois abrem um painel. */
+  aoConcluir: (troca: TrocaResponse) => void;
+  aoReabrir: (troca: TrocaResponse) => void;
   aoTentarDeNovo: () => void;
 }
 
@@ -48,11 +46,10 @@ export function TabelaDeTrocas({
   filtrada,
   podeGerir,
   aoEditar,
+  aoConcluir,
+  aoReabrir,
   aoTentarDeNovo,
 }: TabelaDeTrocasProps) {
-  const concluir = useConcluirTroca();
-  const reabrir = useReabrirTroca();
-
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
@@ -178,8 +175,7 @@ export function TabelaDeTrocas({
                         tom="positivo"
                         tamanho="pequeno"
                         rotuloAcessivel={`Concluir ${descricao}`}
-                        carregando={concluir.isPending && concluir.variables === id}
-                        aoClicar={() => concluir.mutate(id)}
+                        aoClicar={() => aoConcluir(troca)}
                       >
                         ✓ Concluir
                       </Botao>
@@ -188,8 +184,7 @@ export function TabelaDeTrocas({
                         variante="fantasma"
                         tamanho="pequeno"
                         rotuloAcessivel={`Reabrir ${descricao}`}
-                        carregando={reabrir.isPending && reabrir.variables === id}
-                        aoClicar={() => reabrir.mutate(id)}
+                        aoClicar={() => aoReabrir(troca)}
                       >
                         Reabrir
                       </Botao>

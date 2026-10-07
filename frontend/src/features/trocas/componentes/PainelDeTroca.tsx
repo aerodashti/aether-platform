@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
-import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
-import { useVinculosVigentes } from '@/compartilhado/participacoes/useVinculosVigentes';
-import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { AreaDeTexto } from '@/design-system/primitivos/AreaDeTexto';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
@@ -12,82 +11,81 @@ import { Selecao } from '@/design-system/primitivos/Selecao';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useCorrigirTroca, useRegistrarTroca, type TrocaResponse } from '../api/useTrocas';
+import { useListasDaTroca } from '../hooks/useListasDaTroca';
 
 import estilos from './PainelDeTroca.module.css';
-import { hoje, lerNumero, moedaEmTexto, numeroParaCampo } from './rotulos';
+import { corpoDaTroca, rascunhoInicial, type RascunhoDaTroca } from './rascunhoDaTroca';
+import { dataCompleta, moedaEmTexto } from './rotulos';
+import { totalDaTroca } from './totalDaTroca';
+import {
+  PRIMEIRA_DATA_DA_TROCA,
+  ROTULOS_DA_TROCA,
+  ultimaDataDaTroca,
+  validarTroca,
+} from './validacaoDaTroca';
 
 interface PainelDeTrocaProps {
   troca?: TrocaResponse;
   aoFechar: () => void;
 }
 
-function opcional(texto: string): number | undefined {
-  return texto.trim() === '' ? undefined : lerNumero(texto);
-}
+const SELECIONE = { valor: '', rotulo: 'Selecione…' };
 
 /**
- * Registrar e corrigir troca. Cedeu e Recebeu vêm do contrato vigente da aeronave — quem já saiu
- * do contrato ainda pode trocar pelo servidor, mas é exceção, e aparece aqui só ao corrigir.
+ * Registrar e corrigir troca. Cedeu e Recebeu vêm do contrato vigente da aeronave; as regras estão
+ * em `validarTroca`, e aqui só se ligam as peças.
  */
 export function PainelDeTroca({ troca, aoFechar }: PainelDeTrocaProps) {
   const editando = troca?.id != null;
-  const [aeronaveId, setAeronaveId] = useState(
-    troca?.aeronaveId != null ? String(troca.aeronaveId) : '',
-  );
-  const [data, setData] = useState(troca?.data ?? hoje());
-  const [cedenteId, setCedenteId] = useState(troca ? String(troca.cedenteId) : '');
-  const [recebedorId, setRecebedorId] = useState(troca ? String(troca.recebedorId) : '');
-  const [horas, setHoras] = useState(numeroParaCampo(troca?.horas));
-  const [km, setKm] = useState(numeroParaCampo(troca?.km));
-  const [valorPorHora, setValorPorHora] = useState(numeroParaCampo(troca?.valorPorHora));
-  const [relatorioDeVoo, setRelatorioDeVoo] = useState(troca?.relatorioDeVoo ?? '');
-  const [observacao, setObservacao] = useState(troca?.observacao ?? '');
+  const titulo = editando ? 'Editar troca de KM' : 'Nova troca de KM';
+  const idDoResumo = useId();
+  const hoje = hojeLocal();
+  const concluidaEm = troca?.concluidaEm ?? undefined;
+  const [rascunho, setRascunho] = useState(() => rascunhoInicial(troca, hoje));
 
-  const aeronaves = useAeronaves();
-  const vinculos = useVinculosVigentes();
-  const proprietarios = useProprietarios();
   const registrar = useRegistrarTroca();
   const corrigir = useCorrigirTroca();
   const mutacao = editando ? corrigir : registrar;
+  const listas = useListasDaTroca(troca, rascunho);
+  const { efetivo } = listas;
+  const erros = validarTroca(efetivo, {
+    hoje,
+    concluidaEm,
+    proprietariosDisponiveis: listas.proprietariosDisponiveis,
+    proprietarios: listas.proprietarios,
+  });
+  const validacao = useValidacao({
+    erros,
+    valores: efetivo,
+    rotulos: ROTULOS_DA_TROCA,
+    falha: mutacao.error,
+  });
+  const total =
+    erros.horas || erros.valorPorHora ? null : totalDaTroca(efetivo.horas, efetivo.valorPorHora);
 
-  const nomes = new Map((proprietarios.data ?? []).map((dono) => [dono.id, dono.nome ?? '']));
-  const doContrato = (vinculos.data ?? [])
-    .filter((vinculo) => String(vinculo.aeronaveId) === aeronaveId)
-    .map((vinculo) => ({
-      valor: String(vinculo.proprietarioId),
-      rotulo: nomes.get(vinculo.proprietarioId) ?? '',
-    }));
-  for (const [id, nome] of [
-    [troca?.cedenteId, troca?.nomeDoCedente],
-    [troca?.recebedorId, troca?.nomeDoRecebedor],
-  ] as const) {
-    if (editando && id != null && !doContrato.some((opcao) => opcao.valor === String(id))) {
-      doContrato.push({ valor: String(id), rotulo: nome ?? '' });
-    }
+  function alterar(campo: keyof RascunhoDaTroca) {
+    return (valor: string) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
   }
-  const vazio = {
-    valor: '',
-    rotulo: aeronaveId === '' ? 'Escolha a aeronave primeiro' : 'Selecione…',
-  };
 
-  const horasLidas = lerNumero(horas);
-  const total = Number.isFinite(horasLidas) ? horasLidas * lerNumero(valorPorHora) : Number.NaN;
-  const diferentes = cedenteId !== '' && recebedorId !== '' && cedenteId !== recebedorId;
-  const podeSalvar =
-    aeronaveId !== '' && data !== '' && diferentes && Number.isFinite(horasLidas) && horasLidas > 0;
+  function escolherAeronave(aeronaveId: string) {
+    // Os donos de uma aeronave não são os da outra.
+    setRascunho((atual) => ({ ...atual, aeronaveId, cedenteId: '', recebedorId: '' }));
+  }
+
+  function escolherCedente(cedenteId: string) {
+    // Quem passou a ceder não pode continuar como quem recebe.
+    setRascunho((atual) => ({
+      ...atual,
+      cedenteId,
+      recebedorId: atual.recebedorId === cedenteId ? '' : atual.recebedorId,
+    }));
+  }
 
   function salvar() {
-    const corpo = {
-      aeronaveId: Number(aeronaveId),
-      data,
-      cedenteId: Number(cedenteId),
-      recebedorId: Number(recebedorId),
-      horas: horasLidas,
-      km: opcional(km),
-      valorPorHora: opcional(valorPorHora),
-      relatorioDeVoo: relatorioDeVoo || undefined,
-      observacao: observacao || undefined,
-    };
+    const corpo = corpoDaTroca(efetivo);
+    if (corpo === undefined) {
+      return;
+    }
     if (troca?.id != null) {
       corrigir.mutate({ id: troca.id, troca: corpo }, { onSuccess: aoFechar });
     } else {
@@ -95,11 +93,8 @@ export function PainelDeTroca({ troca, aoFechar }: PainelDeTrocaProps) {
     }
   }
 
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
-  const titulo = editando ? 'Editar troca de KM' : 'Nova troca de KM';
-
   return (
-    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo}>
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
       <Texto variante="titulo" como="h2">
         {titulo}
       </Texto>
@@ -108,92 +103,126 @@ export function PainelDeTroca({ troca, aoFechar }: PainelDeTrocaProps) {
         fechamento não muda — o custo continua com quem voou.
       </Texto>
 
-      <div className={estilos.grade}>
-        <Selecao
-          rotulo="Aeronave"
-          valor={aeronaveId}
-          desabilitado={editando}
-          opcoes={[
-            { valor: '', rotulo: 'Selecione…' },
-            ...(aeronaves.data ?? []).map((aeronave) => ({
-              valor: String(aeronave.id),
-              rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
-            })),
-          ]}
-          aoMudar={(valor) => {
-            setAeronaveId(valor);
-            setCedenteId('');
-            setRecebedorId('');
-          }}
-        />
-        <CampoDeTexto rotulo="Data" tipo="data" valor={data} aoMudar={setData} />
-        <Selecao
-          rotulo="Cedeu"
-          valor={cedenteId}
-          desabilitado={aeronaveId === ''}
-          opcoes={[vazio, ...doContrato]}
-          aoMudar={setCedenteId}
-        />
-        <Selecao
-          rotulo="Recebeu"
-          valor={recebedorId}
-          desabilitado={aeronaveId === ''}
-          opcoes={[vazio, ...doContrato.filter((opcao) => opcao.valor !== cedenteId)]}
-          aoMudar={setRecebedorId}
-        />
-        <CampoDeTexto
-          rotulo="Horas voadas"
-          valor={horas}
-          aoMudar={setHoras}
-          inputMode="decimal"
-          alinhamento="direita"
-          exemplo="2,5"
-        />
-        <CampoDeTexto
-          rotulo="KM"
-          valor={km}
-          aoMudar={setKm}
-          inputMode="decimal"
-          alinhamento="direita"
-        />
-        <CampoDeTexto
-          rotulo="R$ / hora"
-          valor={valorPorHora}
-          aoMudar={setValorPorHora}
-          inputMode="decimal"
-          alinhamento="direita"
-          apoio={Number.isFinite(total) ? `Total da troca: ${moedaEmTexto(total)}` : 'Opcional.'}
-        />
-        <CampoDeTexto
-          rotulo="Rel. Voo (opcional)"
-          valor={relatorioDeVoo}
-          aoMudar={setRelatorioDeVoo}
-          maxLength={20}
-          exemplo="RV-1042"
-        />
-      </div>
-      <AreaDeTexto
-        rotulo="Observação"
-        valor={observacao}
-        aoMudar={setObservacao}
-        maxLength={300}
-        exemplo="Quem utilizou a aeronave, trecho, motivo da troca e condição de devolução."
-      />
-
-      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
+      {listas.falharam ? (
+        <div className={estilos.recado} role="alert">
           <Texto variante="apoio" tom="critico" como="p">
-            {erro}
+            Não foi possível carregar as aeronaves ou os proprietários do painel.
           </Texto>
+          <Botao variante="secundario" tamanho="pequeno" aoClicar={listas.recarregar}>
+            Tentar de novo
+          </Botao>
         </div>
       ) : null}
 
+      <div ref={validacao.refDoFormulario} className={estilos.campos}>
+        <div className={estilos.grade}>
+          <Selecao
+            rotulo="Aeronave"
+            obrigatorio
+            valor={efetivo.aeronaveId}
+            desabilitado={editando}
+            opcoes={[
+              listas.carregandoAeronaves ? { valor: '', rotulo: 'Carregando…' } : SELECIONE,
+              ...listas.opcoesDeAeronaves,
+            ]}
+            aoMudar={escolherAeronave}
+            apoio={
+              editando
+                ? 'A aeronave não muda na correção: para outra aeronave, registre uma troca nova.'
+                : undefined
+            }
+            erro={validacao.erroDe('aeronaveId')}
+          />
+          <CampoDeTexto
+            rotulo="Data"
+            tipo="data"
+            obrigatorio
+            valor={efetivo.data}
+            aoMudar={alterar('data')}
+            minimo={PRIMEIRA_DATA_DA_TROCA}
+            maximo={ultimaDataDaTroca(hoje, concluidaEm)}
+            apoio={concluidaEm ? `Devolvida em ${dataCompleta(concluidaEm)}.` : undefined}
+            erro={validacao.erroDe('data')}
+          />
+          <Selecao
+            rotulo="Cedeu"
+            obrigatorio
+            valor={efetivo.cedenteId}
+            opcoes={[SELECIONE, ...listas.opcoesDeCedente]}
+            aoMudar={escolherCedente}
+            apoio={listas.apoioDosProprietarios}
+            erro={validacao.erroDe('cedenteId')}
+          />
+          <Selecao
+            rotulo="Recebeu"
+            obrigatorio
+            valor={efetivo.recebedorId}
+            opcoes={[SELECIONE, ...listas.opcoesDeRecebedor]}
+            aoMudar={alterar('recebedorId')}
+            erro={validacao.erroDe('recebedorId')}
+          />
+          <CampoDeTexto
+            rotulo="Horas voadas (h)"
+            obrigatorio
+            valor={efetivo.horas}
+            aoMudar={alterar('horas')}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="2,5"
+            apoio="Em horas decimais, uma casa: 2,5 = 2h30."
+            erro={validacao.erroDe('horas')}
+          />
+          <CampoDeTexto
+            rotulo="KM voados (opcional)"
+            valor={efetivo.km}
+            aoMudar={alterar('km')}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="1.320"
+            erro={validacao.erroDe('km')}
+          />
+          <CampoDeTexto
+            rotulo="R$ por hora (opcional)"
+            valor={efetivo.valorPorHora}
+            aoMudar={alterar('valorPorHora')}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="14.800,00"
+            apoio={
+              total === null
+                ? 'Valor combinado para acerto em dinheiro.'
+                : `Total da troca: ${moedaEmTexto(total)}.`
+            }
+            erro={validacao.erroDe('valorPorHora')}
+          />
+          <CampoDeTexto
+            rotulo="Rel. Voo (opcional)"
+            valor={efetivo.relatorioDeVoo}
+            aoMudar={alterar('relatorioDeVoo')}
+            exemplo="RV-1042"
+            erro={validacao.erroDe('relatorioDeVoo')}
+          />
+        </div>
+        <AreaDeTexto
+          rotulo="Observação (opcional)"
+          valor={efetivo.observacao}
+          aoMudar={alterar('observacao')}
+          maxLength={300}
+          exemplo="Quem utilizou a aeronave, trecho, motivo da troca e condição de devolução."
+          erro={validacao.erroDe('observacao')}
+        />
+      </div>
+
+      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
       <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
+        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
           Cancelar
         </Botao>
-        <Botao aoClicar={salvar} desabilitado={!podeSalvar} carregando={mutacao.isPending}>
+        <Botao
+          aoClicar={() => validacao.enviar(salvar)}
+          carregando={mutacao.isPending}
+          descritoPor={idDoResumo}
+        >
           {editando ? 'Salvar correção' : 'Registrar troca'}
         </Botao>
       </div>
