@@ -65,4 +65,8 @@ describe('validarTrocaDeSenha', () => {
     expect(errosCom({ codigo: '42' }).codigo).toBe('O código tem seis dígitos.');
     expect(errosCom({ codigo: '04291a' }).codigo).toBe('O código tem seis dígitos.');
   });
+
+  it('o código colado com espaço nas pontas passa', () => {
+    expect(errosCom({ codigo: ' 042917 ' }).codigo).toBeUndefined();
+  });
 });

@@ -262,6 +262,30 @@ describe('PaginaDeConfiguracoes', () => {
       ).toBeInTheDocument();
       expect(screen.getByLabelText('E-mail')).not.toHaveAttribute('aria-invalid');
     });
+
+    it('a recusa sem campo some quando a pessoa volta a editar', async () => {
+      const usuario = userEvent.setup();
+      servidor({
+        papel: 'ADMINISTRADOR',
+        alterarEmpresa: () =>
+          respostaDe(
+            { title: 'Acesso restrito', detail: 'Esta área é exclusiva de administradores.' },
+            403,
+          ),
+      });
+      envolver(<PaginaDeConfiguracoes />);
+
+      const razao = await screen.findByLabelText('Razão social');
+      await usuario.type(razao, ' S.A.');
+      await usuario.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+      await screen.findByText('Esta área é exclusiva de administradores.');
+
+      await usuario.type(razao, 'x');
+
+      expect(
+        screen.queryByText('Esta área é exclusiva de administradores.'),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('Alertas de vencimento', () => {
@@ -363,6 +387,27 @@ describe('PaginaDeConfiguracoes', () => {
       ).toBeInTheDocument();
       expect(screen.getByLabelText('Senha atual')).toHaveValue('');
       expect(screen.getByLabelText('Senha atual')).not.toHaveAttribute('aria-invalid');
+    });
+
+    it('o código colado com espaços nas pontas chega inteiro e sem eles', async () => {
+      const usuario = userEvent.setup();
+      servidor({ papel: 'GESTOR' });
+      envolver(<PaginaDeConfiguracoes />);
+
+      await usuario.type(await screen.findByLabelText('Senha atual'), 'a-senha-atual');
+      await usuario.type(screen.getByLabelText('Nova senha'), 'a-nova-senha');
+      await usuario.type(screen.getByLabelText('Confirmar nova senha'), 'a-nova-senha');
+      await usuario.click(screen.getByLabelText('Código de confirmação'));
+      await usuario.paste(' 042917 ');
+      await usuario.click(screen.getByRole('button', { name: 'Alterar senha' }));
+
+      expect(chamadasA('POST', '/api/autenticacao/senha')[0]?.[1]?.body).toBe(
+        JSON.stringify({
+          senhaAtual: 'a-senha-atual',
+          novaSenha: 'a-nova-senha',
+          codigo: '042917',
+        }),
+      );
     });
 
     it('o código recusado é apontado no campo do código, e não na senha atual', async () => {

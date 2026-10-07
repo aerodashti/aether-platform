@@ -76,7 +76,7 @@ export function FormularioDaSenha({ trocar, aoTrocar, espera }: FormularioDaSenh
 
   function trocarSenha() {
     const { senhaAtual, novaSenha, codigo } = rascunho;
-    trocar.mutate({ senhaAtual, novaSenha, codigo }, { onSuccess: aoTrocar });
+    trocar.mutate({ senhaAtual, novaSenha, codigo: codigo.trim() }, { onSuccess: aoTrocar });
   }
 
   const esperando = espera.restante > 0;
@@ -124,7 +124,6 @@ export function FormularioDaSenha({ trocar, aoTrocar, espera }: FormularioDaSenh
           inputMode="numeric"
           alinhamento="centro"
           espacado
-          maxLength={6}
           autoComplete="one-time-code"
           apoio={`Peça o código pelo botão abaixo: ele chega ao e-mail cadastrado e vale ${VALIDADE_DO_CODIGO_EM_MINUTOS} minutos.`}
           erro={validacao.erroDe('codigo')}

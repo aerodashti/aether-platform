@@ -28,8 +28,9 @@ const cabeNoBcrypt: Regra = (texto) =>
     ? 'A senha passa do limite: letras com acento e emojis contam como mais de um caractere.'
     : undefined;
 
+/** O código colado do e-mail costuma vir com espaço nas pontas; ele sai antes do envio. */
 const codigoDeSeisDigitos: Regra = (texto) =>
-  /^\d{6}$/.test(texto) ? undefined : 'O código tem seis dígitos.';
+  /^\d{6}$/.test(texto.trim()) ? undefined : 'O código tem seis dígitos.';
 
 function diferenteDaAtual(senhaAtual: string): Regra {
   return (texto) =>
