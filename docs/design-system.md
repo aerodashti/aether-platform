@@ -46,17 +46,17 @@ design-system/tokens/tokens.json   ← a fonte. É o único arquivo que se edita
 
 ## Categorias
 
-| Categoria | Prefixo no CSS | Exemplo |
-| --- | --- | --- |
-| Cores | `--cor-` | `--cor-acento`, `--cor-texto-suave`, `--cor-critico` |
-| Tipografia | `--fonte-`, `--tamanho-`, `--altura-`, `--peso-`, `--rastreio-` | `--tamanho-gg`, `--altura-gg` |
-| Espaçamento | `--espaco-` | `--espaco-4` (escala de 1 a 10) |
-| Raio | `--raio-` | `--raio-m`, `--raio-redondo` |
-| Elevação | `--elevacao-` | `--elevacao-1` |
-| Movimento | `--duracao-`, `--curva-` | `--duracao-rapida`, `--curva-padrao` |
-| Controle | `--controle-altura-` | `--controle-altura-p` (32px), `-toque` (44px) |
-| Armadura | `--armadura-` | `--armadura-estado`, `--armadura-gap` |
-| Camada | `--camada-` | `--camada-sticky` |
+| Categoria   | Prefixo no CSS                                                  | Exemplo                                              |
+| ----------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| Cores       | `--cor-`                                                        | `--cor-acento`, `--cor-texto-suave`, `--cor-critico` |
+| Tipografia  | `--fonte-`, `--tamanho-`, `--altura-`, `--peso-`, `--rastreio-` | `--tamanho-gg`, `--altura-gg`                        |
+| Espaçamento | `--espaco-`                                                     | `--espaco-4` (escala de 1 a 10)                      |
+| Raio        | `--raio-`                                                       | `--raio-m`, `--raio-redondo`                         |
+| Elevação    | `--elevacao-`                                                   | `--elevacao-1`                                       |
+| Movimento   | `--duracao-`, `--curva-`                                        | `--duracao-rapida`, `--curva-padrao`                 |
+| Controle    | `--controle-altura-`                                            | `--controle-altura-p` (32px), `-toque` (44px)        |
+| Armadura    | `--armadura-`                                                   | `--armadura-estado`, `--armadura-gap`                |
+| Camada      | `--camada-`                                                     | `--camada-sticky`                                    |
 
 ### A armadura de trilhas é a assinatura
 
@@ -64,17 +64,17 @@ Uma largura por **tipo de dado**, no produto inteiro: coluna do mesmo tipo tem a
 toda tela. É o que faz duas grades diferentes lerem como o mesmo instrumento, e vem do DD-P15 do
 handoff. Só entram aqui as trilhas que alguma tela já consome — a régua completa tem mais.
 
-| Token | Valor | Tipo de dado |
-| --- | --- | --- |
-| `--armadura-gap` | 8px | Respiro entre trilhas. Mudar isto desalinha todas as grades |
-| `--armadura-id` | 80px | Identificador em monoespaçada: matrícula, rel. de voo, nota fiscal |
-| `--armadura-rotulo` | `minmax(120px, 1.5fr)` | Nome, modelo, descrição, atribuição |
-| `--armadura-lockup` | 160px | Lockup de duas partes em nowrap: grandeza + qualificador (DD-P16) |
-| `--armadura-rotulo-longo` | `minmax(248px, 2fr)` | Texto livre longo: nome + e-mail, descrição |
-| `--armadura-estado` | 112px | Etiqueta categórica: papel, situação, status |
-| `--armadura-data` | 96px | `dd/mm/aa` e competência |
-| `--armadura-numero` | 96px | Numérico curto alinhado à direita: horas, km, quantidade, % |
-| `--armadura-acao-texto` | 160px | Duas ações rotuladas na mesma linha |
+| Token                     | Valor                  | Tipo de dado                                                       |
+| ------------------------- | ---------------------- | ------------------------------------------------------------------ |
+| `--armadura-gap`          | 8px                    | Respiro entre trilhas. Mudar isto desalinha todas as grades        |
+| `--armadura-id`           | 80px                   | Identificador em monoespaçada: matrícula, rel. de voo, nota fiscal |
+| `--armadura-rotulo`       | `minmax(120px, 1.5fr)` | Nome, modelo, descrição, atribuição                                |
+| `--armadura-lockup`       | 160px                  | Lockup de duas partes em nowrap: grandeza + qualificador (DD-P16)  |
+| `--armadura-rotulo-longo` | `minmax(248px, 2fr)`   | Texto livre longo: nome + e-mail, descrição                        |
+| `--armadura-estado`       | 112px                  | Etiqueta categórica: papel, situação, status                       |
+| `--armadura-data`         | 96px                   | `dd/mm/aa` e competência                                           |
+| `--armadura-numero`       | 96px                   | Numérico curto alinhado à direita: horas, km, quantidade, %        |
+| `--armadura-acao-texto`   | 160px                  | Duas ações rotuladas na mesma linha                                |
 
 ### Alturas de controle
 
@@ -87,14 +87,14 @@ já foi dimensionada a partir desse número.
 Cada degrau de `--tamanho-` tem o `--altura-` de mesmo sufixo, e os dois andam juntos: `--tamanho-g`
 com `--altura-g`. Misturar degraus é o que produz linha apertada em texto corrido e frouxa em título.
 
-| Degrau | Tamanho | Altura | Onde |
-| --- | --- | --- | --- |
-| `xs` | 11px | 1.45 | Rodapé, assinatura da marca, metadado |
-| `s` | 12px | 1.40 | Rótulo de campo, cabeçalho de tabela, texto de apoio |
-| `m` | 13px | 1.45 | Corpo de tabela e listas densas, botão, título de cartão de seção (forte) |
-| `g` | 14px | 1.50 | Texto de interface — o padrão do `body` |
-| `gg` | 18px | 1.30 | Título de tela secundário e identificador no cabeçalho de entidade |
-| `ggg` | 26px | 1.12 | Título de tela e valor de KPI |
+| Degrau | Tamanho | Altura | Onde                                                                      |
+| ------ | ------- | ------ | ------------------------------------------------------------------------- |
+| `xs`   | 11px    | 1.45   | Rodapé, assinatura da marca, metadado                                     |
+| `s`    | 12px    | 1.40   | Rótulo de campo, cabeçalho de tabela, texto de apoio                      |
+| `m`    | 13px    | 1.45   | Corpo de tabela e listas densas, botão, título de cartão de seção (forte) |
+| `g`    | 14px    | 1.50   | Texto de interface — o padrão do `body`                                   |
+| `gg`   | 18px    | 1.30   | Título de tela secundário e identificador no cabeçalho de entidade        |
+| `ggg`  | 26px    | 1.12   | Título de tela e valor de KPI                                             |
 
 O peso `--peso-maximo` (700) existe **só** no degrau `ggg`.
 
@@ -130,12 +130,12 @@ Duas diferenças deliberadas em relação ao protótipo, as duas por regra do pr
 
 - **"Situação", não "Status".** O glossário proíbe o anglicismo.
 - **Existe um bloco de Próximo vencimento**, que o protótipo não tem. O brief é explícito:
-  *"Estado sem consequência é proibido: ATENÇÃO sozinho não informa. Forma correta: Seguro RETA ·
-  vence em 12 dias."* O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave
+  _"Estado sem consequência é proibido: ATENÇÃO sozinho não informa. Forma correta: Seguro RETA ·
+  vence em 12 dias."_ O prazo em palavras só aparece em `ATENCAO` e `VENCIDO` — numa aeronave
   saudável, "em 241 dias" é número sem pergunta.
 
 O seletor **"Estado"** do protótipo não foi implementado: o próprio `AETHER_PATTERNS.md` o registra
-como *"andaime de protótipo em Aeronaves e Custos"*, uma dívida declarada para demonstrar os cinco
+como _"andaime de protótipo em Aeronaves e Custos"_, uma dívida declarada para demonstrar os cinco
 estados de tela.
 
 ### Lançamentos e Manutenção seguem o Projeto final, sem a visão em cartões e sem o formulário embutido
@@ -189,24 +189,24 @@ Não crie primitivo por antecipação. Elemento HTML interativo cru (`<button>`,
 `<select>`, `<textarea>`) só existe dentro de `design-system/` — é assim que foco, estados e
 acessibilidade ficam em um lugar só.
 
-| Primitivo | Arquivo | Variantes | Observações |
-| --- | --- | --- | --- |
-| `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
-| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (36px), `grande` (40px) — os `btn-sm`, `btn-md` e `btn-lg` do protótipo | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco; `tom="positivo"` pinta o primário de verde (`--cor-positivo-solido`, o mesmo nos dois temas), o "✓ Concluir" de manutenção e trocas |
-| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required` |
-| `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
-| `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
-| `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
-| `GrupoDeOpcoes` | `primitivos/GrupoDeOpcoes.tsx` | `marcador`, `larguraIgual`; variante `cartoes`, `segmentado` (Mensal \| Período), `trilho` (escopo de Lançamentos) | Escolha única com todas as opções à vista. É `radiogroup` de verdade (`role="radio"` + `aria-checked`), não fileira de botões que parecem escolhidos. Passando de cinco opções, use `Selecao` |
-| `PainelModal` | `primitivos/PainelModal.tsx` | — | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal |
-| `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
-| `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
-| `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
-| `Abas` | `primitivos/Abas.tsx` | `contagem` por aba; variante `sublinhado`, `trilho` (Trocas, Central), `contorno` (Aportes · Rendimentos), `fichas` (categorias de Lançamentos) | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
-| `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
-| `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando` | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo, preenchido no petróleo como no protótipo. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo |
-| `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo`, `icone` + `contagem` (o sino), `vazio`, `rodape` | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
-| `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
+| Primitivo           | Arquivo                            | Variantes                                                                                                                                                    | Observações                                                                                                                                                                                                                                                                                                                                       |
+| ------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Texto`             | `primitivos/Texto.tsx`             | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico`                                                 | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio`                                                                                                                                                                          |
+| `Botao`             | `primitivos/Botao.tsx`             | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (36px), `grande` (40px) — os `btn-sm`, `btn-md` e `btn-lg` do protótipo | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco; `tom="positivo"` pinta o primário de verde (`--cor-positivo-solido`, o mesmo nos dois temas), o "✓ Concluir" de manutenção e trocas |
+| `CampoDeTexto`      | `primitivos/CampoDeTexto.tsx`      | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio`                                           | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required`                                                                                                  |
+| `BotaoDeLink`       | `primitivos/BotaoDeLink.tsx`       | alinhamento `esquerda`, `centro`                                                                                                                             | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo                                                                                                                                                                                                                                                                              |
+| `Selecao`           | `primitivos/Selecao.tsx`           | `rotuloOculto`                                                                                                                                               | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça                                                                                                                                                                                                                        |
+| `LinkDeNavegacao`   | `primitivos/LinkDeNavegacao.tsx`   | `exata`                                                                                                                                                      | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve                                                                                                                                                                                                                 |
+| `GrupoDeOpcoes`     | `primitivos/GrupoDeOpcoes.tsx`     | `marcador`, `larguraIgual`; variante `cartoes`, `segmentado` (Mensal \| Período), `trilho` (escopo de Lançamentos)                                           | Escolha única com todas as opções à vista. É `radiogroup` de verdade (`role="radio"` + `aria-checked`), não fileira de botões que parecem escolhidos. Passando de cinco opções, use `Selecao`                                                                                                                                                     |
+| `PainelModal`       | `primitivos/PainelModal.tsx`       | —                                                                                                                                                            | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal                                                                                                                                       |
+| `Esqueleto`         | `primitivos/Esqueleto.tsx`         | —                                                                                                                                                            | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade                                                                                                                                                               |
+| `SeletorDeCor`      | `primitivos/SeletorDeCor.tsx`      | —                                                                                                                                                            | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação                                                                                                         |
+| `LinkDeTexto`       | `primitivos/LinkDeTexto.tsx`       | `mono`                                                                                                                                                       | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação)                                                                                                                     |
+| `Abas`              | `primitivos/Abas.tsx`              | `contagem` por aba; variante `sublinhado`, `trilho` (Trocas, Central), `contorno` (Aportes · Rendimentos), `fichas` (categorias de Lançamentos)              | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco                                                                                                                                                                                |
+| `Avatar`            | `primitivos/Avatar.tsx`            | `medio`, `grande`; `escuro`, `suave`                                                                                                                         | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário                                                                                                                                                                                                                                                                           |
+| `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando`                                                                                                                           | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo, preenchido no petróleo como no protótipo. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo                                                      |
+| `MenuSuspenso`      | `primitivos/MenuSuspenso.tsx`      | `titulo`, `icone` + `contagem` (o sino), `vazio`, `rodape`                                                                                                   | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão _disclosure_ (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha                                      |
+| `AreaDeTexto`       | `primitivos/AreaDeTexto.tsx`       | —                                                                                                                                                            | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho                                                                                                                                                                                                                   |
 
 ### A variante `contorno` do `Botao`
 
@@ -224,34 +224,34 @@ foram unificados; onde divergiam no escuro, foram mantidos separados.
 
 ### Cores
 
-| Token do bundle | Token aqui | Papel |
-| --- | --- | --- |
-| `--cor-fundo` | `--cor-fundo` | Fundo da aplicação |
-| `--cor-superficie` | `--cor-superficie` | Card, painel, campo |
-| `--cor-superficie-2` | `--cor-superficie-sutil` | Faixa recuada, painel da arte |
-| `--cor-borda` | `--cor-borda` | Divisor padrão |
-| `--cor-borda-forte` | `--cor-borda-forte` | Borda de campo |
-| `--cor-borda-suave` | `--cor-borda-suave` | Divisor entre linhas, fundo de recado |
-| `--cor-superficie-3` | `--cor-superficie-recuada` | Barra lateral, faixa recuada |
-| `--cor-hover` | `--cor-hover` | Hover de controle |
-| `--cor-linha-hover` | `--cor-linha-hover` | Hover de linha de grade. **Opaco de propósito**: translúcido vaza sob coluna congelada |
-| `--cor-overlay` | `--cor-overlay` | Scrim atrás do modal |
-| `--cor-texto` | `--cor-texto` | Texto principal |
-| `--cor-texto-sec` **e** `--cor-texto-ter` | `--cor-texto-suave` | Unificados: no bundle atual `--cor-texto-ter` já é alias de `--cor-texto-sec` nos dois temas |
-| `--cor-acao` | `--cor-acento` | Acento: traço, anel de foco, gráfico |
-| `--cor-acao-escura` | `--cor-acento-escuro` | Título de destaque, hover de link |
-| `--cor-acao-clara` | `--cor-acento-claro` | Pontos do globo |
-| `--cor-acao-texto` | `--cor-acento-texto` | Link — clareia no escuro, por isso não é o mesmo que `escuro` |
-| `--cor-acao-fill` | `--cor-acento-solido` | Fundo de botão primário |
-| `--cor-acao-fill-hover` | `--cor-acento-solido-hover` | Idem, no hover |
-| `--cor-acao-wash-2` | `--cor-acento-vestigio` | Anéis decorativos, borda de recado |
-| `--cor-inverso` | `--cor-acento-contraste` | Texto sobre preenchimento escuro |
-| `--cor-estado-positivo` | `--cor-positivo` | Situação favorável |
-| `--cor-atencao-texto` | `--cor-atencao` | Âmbar **de texto** — o `--cor-atencao` do bundle é só fundo e traço, e não tem contraste para texto |
-| `--cor-negativo` | `--cor-critico` | Erro, borda de campo inválido |
-| — (do protótipo, sem token no bundle) | `--cor-positivo-solido` | Fundo do primário positivo ("✓ Concluir"): `#0f766e` nos dois temas, onde o branco tem contraste |
-| — (`#ececef` do protótipo) | `--cor-trilho` | Trilho do segmentado de Lançamentos e da barra de % de uso |
-| — (`rgba(89,128,166,0.05)` do protótipo) | `--cor-acento-trilho` | Trilho azulado das abas de Trocas e da Central de avisos |
+| Token do bundle                           | Token aqui                  | Papel                                                                                               |
+| ----------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------- |
+| `--cor-fundo`                             | `--cor-fundo`               | Fundo da aplicação                                                                                  |
+| `--cor-superficie`                        | `--cor-superficie`          | Card, painel, campo                                                                                 |
+| `--cor-superficie-2`                      | `--cor-superficie-sutil`    | Faixa recuada, painel da arte                                                                       |
+| `--cor-borda`                             | `--cor-borda`               | Divisor padrão                                                                                      |
+| `--cor-borda-forte`                       | `--cor-borda-forte`         | Borda de campo                                                                                      |
+| `--cor-borda-suave`                       | `--cor-borda-suave`         | Divisor entre linhas, fundo de recado                                                               |
+| `--cor-superficie-3`                      | `--cor-superficie-recuada`  | Barra lateral, faixa recuada                                                                        |
+| `--cor-hover`                             | `--cor-hover`               | Hover de controle                                                                                   |
+| `--cor-linha-hover`                       | `--cor-linha-hover`         | Hover de linha de grade. **Opaco de propósito**: translúcido vaza sob coluna congelada              |
+| `--cor-overlay`                           | `--cor-overlay`             | Scrim atrás do modal                                                                                |
+| `--cor-texto`                             | `--cor-texto`               | Texto principal                                                                                     |
+| `--cor-texto-sec` **e** `--cor-texto-ter` | `--cor-texto-suave`         | Unificados: no bundle atual `--cor-texto-ter` já é alias de `--cor-texto-sec` nos dois temas        |
+| `--cor-acao`                              | `--cor-acento`              | Acento: traço, anel de foco, gráfico                                                                |
+| `--cor-acao-escura`                       | `--cor-acento-escuro`       | Título de destaque, hover de link                                                                   |
+| `--cor-acao-clara`                        | `--cor-acento-claro`        | Pontos do globo                                                                                     |
+| `--cor-acao-texto`                        | `--cor-acento-texto`        | Link — clareia no escuro, por isso não é o mesmo que `escuro`                                       |
+| `--cor-acao-fill`                         | `--cor-acento-solido`       | Fundo de botão primário                                                                             |
+| `--cor-acao-fill-hover`                   | `--cor-acento-solido-hover` | Idem, no hover                                                                                      |
+| `--cor-acao-wash-2`                       | `--cor-acento-vestigio`     | Anéis decorativos, borda de recado                                                                  |
+| `--cor-inverso`                           | `--cor-acento-contraste`    | Texto sobre preenchimento escuro                                                                    |
+| `--cor-estado-positivo`                   | `--cor-positivo`            | Situação favorável                                                                                  |
+| `--cor-atencao-texto`                     | `--cor-atencao`             | Âmbar **de texto** — o `--cor-atencao` do bundle é só fundo e traço, e não tem contraste para texto |
+| `--cor-negativo`                          | `--cor-critico`             | Erro, borda de campo inválido                                                                       |
+| — (do protótipo, sem token no bundle)     | `--cor-positivo-solido`     | Fundo do primário positivo ("✓ Concluir"): `#0f766e` nos dois temas, onde o branco tem contraste    |
+| — (`#ececef` do protótipo)                | `--cor-trilho`              | Trilho do segmentado de Lançamentos e da barra de % de uso                                          |
+| — (`rgba(89,128,166,0.05)` do protótipo)  | `--cor-acento-trilho`       | Trilho azulado das abas de Trocas e da Central de avisos                                            |
 
 Não foram trazidos, porque nenhuma tela os consome ainda: os `-tint`, `-forte` e `-clara` dos
 estados, a superfície 4, `--cor-neutro-medio`, as réguas compostas `--cols-*`, o restante da
@@ -262,49 +262,50 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 
 ### Tipografia, espaço, raio, movimento
 
-| Do bundle | Aqui |
-| --- | --- |
-| `--font-body` e `--font-heading` (ambos Inter) | `--fonte-base` — unificados, o bundle usa a mesma família nos dois |
-| `--font-mono` (JetBrains Mono) | `--fonte-mono` |
-| `--fs-micro` / `caption` / `dados` / `corpo` / `titulo` / `kpi` | `--tamanho-xs` / `s` / `m` / `g` / `gg` / `ggg` |
-| `--lh-*` correspondentes | `--altura-xs` … `--altura-ggg` |
-| `--fw-corpo` / `medio` / `enfase` / `forte` | `--peso-normal` / `medio` / `forte` / `maximo` |
-| `--ls-titulo` e os `letter-spacing` inline da tela | `--rastreio-titulo`, `-legenda`, `-marca`, `-etiqueta`, `-codigo` |
-| Escala `{2…48}` | `--espaco-1` … `--espaco-10` |
-| `--raio`, `--raio-sm`, `--raio-lg`, `--raio-xl` (todos 0) | `--raio-s`, `--raio-m`, `--raio-g` |
-| `--shadow-sm` / `md` / `lg` | `--elevacao-1` / `2` / `3` |
-| `--dur-rapido` / `medio` / `lento` | `--duracao-rapida` / `normal` / `lenta` |
+| Do bundle                                                       | Aqui                                                               |
+| --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `--font-body` e `--font-heading` (ambos Inter)                  | `--fonte-base` — unificados, o bundle usa a mesma família nos dois |
+| `--font-mono` (JetBrains Mono)                                  | `--fonte-mono`                                                     |
+| `--fs-micro` / `caption` / `dados` / `corpo` / `titulo` / `kpi` | `--tamanho-xs` / `s` / `m` / `g` / `gg` / `ggg`                    |
+| `--lh-*` correspondentes                                        | `--altura-xs` … `--altura-ggg`                                     |
+| `--fw-corpo` / `medio` / `enfase` / `forte`                     | `--peso-normal` / `medio` / `forte` / `maximo`                     |
+| `--ls-titulo` e os `letter-spacing` inline da tela              | `--rastreio-titulo`, `-legenda`, `-marca`, `-etiqueta`, `-codigo`  |
+| Escala `{2…48}`                                                 | `--espaco-1` … `--espaco-10`                                       |
+| `--raio`, `--raio-sm`, `--raio-lg`, `--raio-xl` (todos 0)       | `--raio-s`, `--raio-m`, `--raio-g`                                 |
+| `--shadow-sm` / `md` / `lg`                                     | `--elevacao-1` / `2` / `3`                                         |
+| `--dur-rapido` / `medio` / `lento`                              | `--duracao-rapida` / `normal` / `lenta`                            |
 
 ## Componentes do bundle: o que está implementado
 
-| Componente do bundle | Situação |
-| --- | --- |
-| Tela de entrada (split-screen, 4 passos) | **Implementada** — `features/autenticacao` |
-| Botão `.ihb` (contorno que preenche) | **Implementado** — `Botao` variante `contorno` |
-| Campo de formulário com rótulo e erro | **Implementado** — `CampoDeTexto` |
-| `.link-acao` | **Implementado** — `BotaoDeLink` |
-| Globo pontilhado (`dotted-globe.js`) | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só |
-| Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
-| Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
-| Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
-| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
-| Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima), o "+ Registrar" com o Registro rápido (cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela) e o sino, com os cinco avisos não lidos mais urgentes e a porta da Central. Sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
-| Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
-| Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
-| Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
-| Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
-| Tela de Detalhe da aeronave | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora |
-| Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
-| Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
-| Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
-| Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
-| Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Legenda dos proprietários do mês e da manutenção, dias em blocos (os do mês vizinho em branco), trecho com a régua na cor de quem voou e as iniciais. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo; a cor na legenda só se lê — muda-se no cadastro do proprietário |
-| Tela de Central de avisos (indicadores, chips, lista) e o sino da casca | **Implementada** — `features/avisos` e `app/LayoutDaAplicacao`, do Projeto final. Ver a nota abaixo |
-| Tela de Documentos (resumo, envio de vários, grade, remoção) | **Implementada** — `features/documentos`, do Projeto final. Ver a nota abaixo |
-| Tela de Trocas de KM (filtro por proprietário, abas, grade, painel) | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo |
-| Tela de Fechamento (mensal, período, extrato do proprietário) | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo |
-| Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo |
-| Avatar de iniciais | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa |
+| Componente do bundle                                                                           | Situação                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tela de entrada (split-screen, 4 passos)                                                       | **Implementada** — `features/autenticacao`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Botão `.ihb` (contorno que preenche)                                                           | **Implementado** — `Botao` variante `contorno`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Campo de formulário com rótulo e erro                                                          | **Implementado** — `CampoDeTexto`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `.link-acao`                                                                                   | **Implementado** — `BotaoDeLink`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Globo pontilhado (`dotted-globe.js`)                                                           | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só                                                                                                                                                                                                                                                                                                                                                               |
+| Toast de feedback                                                                              | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar                                                                                                                                                                                                                                                                                                                                                                                           |
+| Tela de Usuários (grade densa, filtros, paginação)                                             | **Implementada** — `features/usuarios`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Tela de Aeronaves (lista de cartões da frota)                                                  | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Tela de Configurações (4 seções)                                                               | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema`                                                                                                                                        |
+| Barra lateral de navegação e cabeçalho de aplicação                                            | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima), o "+ Registrar" com o Registro rápido (cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela) e o sino, com os cinco avisos não lidos mais urgentes e a porta da Central. Sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
+| Tabela densa                                                                                   | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento                                                                                                                                                                                                                                                                                                                             |
+| Modal                                                                                          | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Tela de Proprietários (cartões, filtros, painel de cadastro)                                   | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Paleta de cor de identificação                                                                 | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes                                                                                                                                                                                                                                                                                                                                                                                                |
+| Tela de Detalhe da aeronave                                                                    | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora                                                                                                                                                                                                                                                                                                                                                                                   |
+| Tela de Nova aeronave (wizard em seções)                                                       | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Tela de Diário de voos (grade, filtros, painel de trecho)                                      | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas)                                                                                                                                                                                                                                                                                                                                                                        |
+| Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais)                        | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros)    | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Tela de Calendário (mês com trechos e manutenções)                                             | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Legenda dos proprietários do mês e da manutenção, dias em blocos (os do mês vizinho em branco), trecho com a régua na cor de quem voou e as iniciais. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo; a cor na legenda só se lê — muda-se no cadastro do proprietário                                                                                            |
+| Tela de Central de avisos (indicadores, chips, lista) e o sino da casca                        | **Implementada** — `features/avisos` e `app/LayoutDaAplicacao`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Tela de Documentos (resumo, envio de vários, grade, remoção)                                   | **Implementada** — `features/documentos`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Tela de Trocas de KM (filtro por proprietário, abas, grade, painel)                            | **Implementada** — `features/trocas`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Tela de Fechamento (mensal, período, extrato do proprietário)                                  | **Implementada** — `features/fechamento`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Tela de Visão geral (indicadores, frota gerenciada, comparativo)                               | **Implementada** — `features/visaogeral`, do Projeto final, na rota `/` (a Saúde saiu do menu e segue em `/saude`). Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Tela de Aportes (recorte, indicadores, abas Aportes · Rendimentos, grade, painel e formulário) | **Implementada** — `features/aportes`, do Projeto final. Ver a nota abaixo                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Avatar de iniciais                                                                             | **Implementado na feature** — círculo permitido pelo DD-002. Uma tela só o usa                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ### Ainda não implementados
 
@@ -446,6 +447,21 @@ linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×"
 **De fora:** a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
 **atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
 meses e os campos De/Até fazem o resto.
+
+### A Visão geral é a porta de entrada
+
+Os quatro indicadores do protótipo — saldo consolidado dos fundos, custos do mês, horas voadas e
+alertas ativos —, a "Frota gerenciada" com as três aeronaves que mais pedem atenção (situação, fundo
+descoberto, menor cobertura, mais avisos) e o "Comparativo da frota" com três gráficos de barras:
+maiores custos (fixo e variável), custo por hora voada e horas voadas, as seis primeiras e a média.
+O dinheiro vem de `GET /fechamentos/frota`, que apura cada aeronave como o fechamento; a situação,
+da frota; os km, do diário; os alertas, da Central. As barras são CSS — seis linhas e uma marca de
+média não pedem biblioteca de gráficos.
+
+**Decisões nossas:** a **cobertura do fundo** (glossário) foi definida aqui — saldo sobre a média de
+custo das três competências anteriores —, porque o protótipo só mostra o número; a matrícula em
+mono, como em toda a casa; o `EtiquetaDeSituacao` subiu para `compartilhado/aeronaves`, porque a
+segunda feature passou a usá-lo.
 
 ### A Nova aeronave tem quatro seções, não cinco
 

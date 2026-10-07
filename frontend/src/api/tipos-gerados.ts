@@ -907,6 +907,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fechamentos/frota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resumo de cada aeronave numa competência, para a Visão geral */
+        get: operations["frota"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/avisos": {
         parameters: {
             query?: never;
@@ -2094,6 +2111,22 @@ export interface components {
             saldoAnterior?: number;
             /** @description Positivo é crédito; negativo, dívida */
             saldoAcumulado?: number;
+        };
+        /** @description Resumo de uma aeronave numa competência, para a Visão geral */
+        ResumoDaAeronaveResponse: {
+            /** Format: int64 */
+            aeronaveId?: number;
+            matricula?: string;
+            /** @example 2026-10 */
+            competencia?: string;
+            /** @description Saldo do fundo no fim da competência */
+            saldoDoFundo?: number;
+            custosFixos?: number;
+            custosVariaveis?: number;
+            /** @description Horas voadas na competência, manutenção incluída */
+            horas?: number;
+            /** @description Meses que o saldo paga, pela média de custo das três competências anteriores; nula sem custo para medir */
+            coberturaEmMeses?: number;
         };
         /** @description Lançamentos de custo de um recorte */
         LancamentosResponse: {
@@ -3854,6 +3887,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FechamentoMensalResponse"];
+                };
+            };
+        };
+    };
+    frota: {
+        parameters: {
+            query?: {
+                competencia?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResumoDaAeronaveResponse"][];
                 };
             };
         };

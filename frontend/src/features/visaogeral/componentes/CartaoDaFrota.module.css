@@ -1,0 +1,167 @@
+.cartao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+  transition-property: box-shadow;
+  transition-duration: var(--duracao-rapida);
+  transition-timing-function: var(--curva-padrao);
+}
+
+.cartao:hover {
+  box-shadow: var(--elevacao-2);
+}
+
+/* O cartão inteiro abre o detalhe: o link da matrícula se estende sobre ele, e continua sendo um
+   link de verdade. */
+.matricula a::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
+.topo {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.identidade {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.matricula {
+  font-size: var(--tamanho-g);
+  line-height: var(--altura-g);
+}
+
+.modelo {
+  overflow: hidden;
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.saldo {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: baseline;
+}
+
+.valorDoSaldo {
+  font-size: var(--tamanho-ggg);
+  font-weight: var(--peso-maximo);
+  line-height: var(--altura-ggg);
+  letter-spacing: var(--rastreio-titulo);
+  font-variant-numeric: tabular-nums;
+}
+
+.devedor {
+  color: var(--cor-critico);
+}
+
+.apoio {
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.cobertura {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+}
+
+.trilho {
+  height: 6px;
+  overflow: hidden;
+  background: var(--cor-trilho);
+  border-radius: var(--raio-m);
+}
+
+.barra {
+  height: 100%;
+  border-radius: var(--raio-m);
+}
+
+.barra.critica {
+  background: var(--cor-critico);
+}
+
+.barra.atencao {
+  background: var(--cor-atencao);
+}
+
+.barra.folgada {
+  background: var(--cor-positivo);
+}
+
+.textoDaCobertura {
+  font-weight: var(--peso-forte);
+}
+
+.textoDaCobertura.critica {
+  color: var(--cor-critico);
+}
+
+.textoDaCobertura.atencao {
+  color: var(--cor-atencao);
+}
+
+.textoDaCobertura.folgada {
+  color: var(--cor-positivo);
+}
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espaco-4);
+  padding-top: var(--espaco-4);
+  margin: 0;
+  border-top: 1px solid var(--cor-borda-suave);
+}
+
+.numeros dd {
+  margin: var(--espaco-1) 0 0;
+  font-size: var(--tamanho-m);
+  line-height: var(--altura-m);
+  font-variant-numeric: tabular-nums;
+}
+
+.avisos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.aviso {
+  padding: var(--espaco-1) var(--espaco-3);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+  background: var(--cor-superficie-recuada);
+  border-radius: var(--raio-m);
+}
+
+.avisoVencido {
+  color: var(--cor-critico);
+  background: var(--cor-critico-vestigio);
+}
+
+.avisoProximo {
+  color: var(--cor-atencao);
+  background: var(--cor-atencao-vestigio);
+}

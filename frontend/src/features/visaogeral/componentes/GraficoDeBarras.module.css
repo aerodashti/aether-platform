@@ -1,0 +1,133 @@
+.grafico {
+  padding: var(--espaco-6);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+  box-shadow: var(--elevacao-1);
+}
+
+.titulo {
+  margin: 0 0 var(--espaco-5);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.barras {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.linha,
+.media {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.rotulo {
+  flex: none;
+  width: 64px;
+  overflow: hidden;
+  font-family: var(--fonte-mono);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.trilho {
+  display: flex;
+  flex: 1;
+  height: 15px;
+  overflow: hidden;
+  background: var(--cor-trilho);
+  border-radius: var(--raio-m);
+}
+
+.serie1 {
+  background: var(--cor-acento);
+}
+
+.serie2 {
+  background: var(--cor-acento-claro);
+}
+
+.valor,
+.valorDaMedia {
+  flex: none;
+  width: 92px;
+  font-size: var(--tamanho-s);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-s);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.media {
+  padding-top: var(--espaco-3);
+  margin-top: var(--espaco-3);
+  color: var(--cor-texto-suave);
+  border-top: 1px dashed var(--cor-borda);
+}
+
+.media .rotulo {
+  font-family: var(--fonte-base);
+}
+
+.valorDaMedia {
+  font-weight: var(--peso-normal);
+}
+
+.regua {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  background: var(--cor-trilho);
+}
+
+.marca {
+  position: absolute;
+  top: calc(var(--espaco-2) * -1);
+  width: 2px;
+  height: 10px;
+  background: var(--cor-atencao);
+}
+
+.mais {
+  display: block;
+  margin-top: var(--espaco-3);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+}
+
+.legenda {
+  display: flex;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-4);
+  font-size: var(--tamanho-s);
+  line-height: var(--altura-s);
+  color: var(--cor-texto-suave);
+}
+
+.itemDaLegenda {
+  display: flex;
+  gap: var(--espaco-2);
+  align-items: center;
+}
+
+.amostra {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--raio-m);
+}
+
+.vazio {
+  margin: 0;
+  font-size: var(--tamanho-s);
+  color: var(--cor-texto-suave);
+}

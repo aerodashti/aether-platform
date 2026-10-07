@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { EtiquetaDeSituacao } from '@/compartilhado/aeronaves/EtiquetaDeSituacao';
 import { useDocumentos } from '@/compartilhado/documentos/useDocumentos';
 import { saldoDaAeronave, useSaldosDoFundo } from '@/compartilhado/fundo/useSaldosDoFundo';
 import { useSessao } from '@/compartilhado/sessao/sessao';
@@ -14,7 +15,6 @@ import { useDetalheDaAeronave } from '../api/useDetalheDaAeronave';
 
 import { CartaoDeFichaTecnica } from './CartaoDeFichaTecnica';
 import { CartaoFinanceiro } from './CartaoFinanceiro';
-import { EtiquetaDeSituacao } from './EtiquetaDeSituacao';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
