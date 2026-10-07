@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -88,12 +88,61 @@ class VooServiceTest {
         "sbsp",
         "sbrj",
         new BigDecimal("365.0"),
-        LocalTime.parse("08:30"),
-        LocalTime.parse("09:30"),
-        null,
-        null,
+        OffsetDateTime.parse("2026-09-08T08:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T09:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T08:30:00Z"),
+        OffsetDateTime.parse("2026-09-08T09:30:00Z"),
         proprietarioId,
         null);
+  }
+
+  @Test
+  @DisplayName("trecho só previsto não mexe nos contadores: o voo ainda não aconteceu")
+  void previstoNaoContaNosContadores() {
+    TrechoRequest planejado =
+        new TrechoRequest(
+            1L,
+            "RV-2026-050",
+            1,
+            LocalDate.parse("2026-09-20"),
+            "SBSP",
+            "SBRJ",
+            new BigDecimal("365.0"),
+            OffsetDateTime.parse("2026-09-20T12:00:00Z"),
+            OffsetDateTime.parse("2026-09-20T13:00:00Z"),
+            null,
+            null,
+            7L,
+            null);
+
+    service.criar(planejado);
+
+    assertThat(aeronave.getContadores().ciclos()).isZero();
+    assertThat(aeronave.getContadores().kmVoados()).isEqualByComparingTo("0");
+  }
+
+  @Test
+  @DisplayName("pouso antes da partida é recusado antes de salvar")
+  void recusaPousoAntesDaPartida() {
+    TrechoRequest invertido =
+        new TrechoRequest(
+            1L,
+            "RV-2026-051",
+            1,
+            LocalDate.parse("2026-09-20"),
+            "SBSP",
+            "SBGR",
+            new BigDecimal("120.0"),
+            null,
+            null,
+            OffsetDateTime.parse("2026-09-20T13:45:00Z"),
+            OffsetDateTime.parse("2026-09-20T13:00:00Z"),
+            7L,
+            null);
+
+    assertThatThrownBy(() -> service.criar(invertido))
+        .isInstanceOf(VooInvalidoException.class)
+        .hasMessage("O pouso precisa ser depois da partida.");
   }
 
   @Test
@@ -135,10 +184,10 @@ class VooServiceTest {
             "SBSP",
             "SBSV",
             new BigDecimal("1962.0"),
-            LocalTime.parse("09:00"),
-            LocalTime.parse("11:40"),
-            null,
-            null,
+            OffsetDateTime.parse("2026-09-08T09:00:00Z"),
+            OffsetDateTime.parse("2026-09-08T11:40:00Z"),
+            OffsetDateTime.parse("2026-09-08T09:00:00Z"),
+            OffsetDateTime.parse("2026-09-08T11:40:00Z"),
             7L,
             null);
     service.atualizar(criado.id(), maisLongo);
@@ -224,10 +273,10 @@ class VooServiceTest {
         request.origem(),
         request.destino(),
         request.km(),
-        request.partidaPrevista(),
-        request.pousoPrevisto(),
-        request.partidaRealizada(),
-        request.pousoRealizado(),
+        request.partidaPrevista().toInstant(),
+        request.pousoPrevisto().toInstant(),
+        request.partidaRealizada().toInstant(),
+        request.pousoRealizado().toInstant(),
         request.proprietarioId(),
         request.observacoes());
   }

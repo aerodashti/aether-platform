@@ -60,6 +60,7 @@
 | Tripulante | `tripulante` | Tripulante | `piloto`, `crew` | Piloto ou comissário associado à operação. |
 | Voo | `voo` | Voo | `flight` | O conjunto de trechos com o mesmo relatório de voo — todas as pernas voadas enquanto a aeronave esteve com o proprietário. A perna individual é o **Trecho**. |
 | Trecho | `trecho` | Trecho | `perna`, `leg`, `etapa` | Uma perna voada: origem → destino, com data, km e horários. Cada trecho conta um pouso e alimenta os contadores da aeronave e o % de uso do rateio. |
+| Trecho realizado | `estaRealizado` | — ("Horários realizados" no painel) | `concluido`, `voado` | Trecho com o par de horários realizados completo. **Só ele soma nos contadores da aeronave** (horas, ciclos, km) — o planejado não gastou nada (decisão de produto, 2026-10-07). No rateio, o trecho ainda sem realizado pesa pelo previsto. Os horários são instantes em UTC, mostrados no fuso de quem olha (ADR-0021). |
 | Relatório de voo | `relatorioDeVoo` | Rel. Voo | `numeroDoVoo`, `flightReport` | Identificador que agrupa os trechos de um voo (`RV-2026-041`). Livre — cada operador numera do seu jeito — e **sempre em monoespaçada na interface**, como a matrícula. |
 | Atribuição | `proprietarioId` (no trecho) | Atribuição | `dono do voo`, `usuario` | Quem usou a aeronave no trecho. Nula é voo de manutenção, que o rateio divide entre todos os proprietários. |
 | Base | `base` | Base | `hangar`, `home base` | Aeródromo onde a aeronave fica normalmente, em código ICAO de quatro letras (`SBSP`). |

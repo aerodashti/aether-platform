@@ -996,13 +996,17 @@ export interface components {
             origem?: string;
             destino?: string;
             km: number;
-            /** @example 14:30:00 */
+            /**
+             * Format: date-time
+             * @description Instante com fuso, em ISO 8601
+             * @example 2026-09-01T11:30:00Z
+             */
             partidaPrevista?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoPrevisto?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             partidaRealizada?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoRealizado?: string;
             /**
              * Format: int64
@@ -1032,13 +1036,17 @@ export interface components {
             /** @description Duração em horas, uma casa; nula sem par de horários */
             horas?: number;
             km?: number;
-            /** @example 14:30:00 */
+            /**
+             * Format: date-time
+             * @description Instante com fuso, em ISO 8601
+             * @example 2026-09-01T11:30:00Z
+             */
             partidaPrevista?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoPrevisto?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             partidaRealizada?: string;
-            /** @example 14:30:00 */
+            /** Format: date-time */
             pousoRealizado?: string;
             /** Format: int64 */
             proprietarioId?: number;

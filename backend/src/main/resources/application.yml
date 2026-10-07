@@ -19,6 +19,10 @@ spring:
     # e a validação recusa a subida. Sem isto, toda feature nova exigiria apagar o banco local.
     # Em produção `db/seed` não existe e este relaxamento é desligado — veja application-prod.yml.
     out-of-order: true
+    # Migration que precisa se comportar diferente com e sem os dados de desenvolvimento (a V19,
+    # por exemplo) pergunta a este placeholder; produção o troca para "nao".
+    placeholders:
+      dadosDeDesenvolvimento: sim
   threads:
     virtual:
       enabled: true

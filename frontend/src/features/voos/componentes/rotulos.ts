@@ -20,14 +20,6 @@ export function dataCurta(iso: string | undefined): string {
   return iso ? DATA.format(new Date(`${iso}T00:00:00`)) : '—';
 }
 
-/** "HH:MM–HH:MM" quando o par existe; travessão quando não. */
-export function janela(partida: string | undefined, pouso: string | undefined): string {
-  if (!partida || !pouso) {
-    return '—';
-  }
-  return `${partida.slice(0, 5)}–${pouso.slice(0, 5)}`;
-}
-
 /** A competência corrente no formato do input month: "2026-09". */
 export function competenciaAtual(): string {
   // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,

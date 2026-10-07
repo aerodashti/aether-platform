@@ -176,6 +176,7 @@ describe('PaginaDeVoos', () => {
 
     // Virada de meia-noite: 1,5 h, não negativo.
     expect(screen.getByText(/Duração \(automática\): 1,5 h/)).toBeInTheDocument();
+    expect(screen.getByText(/Pouso no dia seguinte/)).toBeInTheDocument();
   });
   it('a recusa do servidor aparece junto do botão, dizendo qual campo falhou', async () => {
     prepararFetch(PILOTO);

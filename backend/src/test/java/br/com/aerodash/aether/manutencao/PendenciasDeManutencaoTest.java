@@ -29,32 +29,21 @@ class PendenciasDeManutencaoTest {
   @Mock private ParametroDeControleRepository parametros;
   @Mock private ManutencaoRepository manutencoes;
 
+  private static ParametroDeControle parametroDeData(String nome, LocalDate limite) {
+    return new ParametroDeControle(
+        1L,
+        new DadosDoParametro(nome, TipoDeParametro.DATA, null, limite, BigDecimal.valueOf(30)),
+        AGORA);
+  }
+
   @Test
   @DisplayName("estourado e atrasada impedem o voo; perto do limite só pede atenção")
   void classifica() {
     Aeronave aeronave =
         new Aeronave("PS-MEP", "Citation", "SBSP", HOJE.plusYears(1), HOJE.plusYears(1), AGORA);
     ReflectionTestUtils.setField(aeronave, "id", 1L);
-    ParametroDeControle pesagem =
-        new ParametroDeControle(
-            1L,
-            new DadosDoParametro(
-                "Pesagem regulamentar",
-                TipoDeParametro.DATA,
-                null,
-                HOJE.minusDays(46),
-                BigDecimal.valueOf(30)),
-            AGORA);
-    ParametroDeControle inspecao =
-        new ParametroDeControle(
-            1L,
-            new DadosDoParametro(
-                "Inspeção anual",
-                TipoDeParametro.DATA,
-                null,
-                HOJE.plusDays(10),
-                BigDecimal.valueOf(30)),
-            AGORA);
+    ParametroDeControle pesagem = parametroDeData("Pesagem regulamentar", HOJE.minusDays(46));
+    ParametroDeControle inspecao = parametroDeData("Inspeção anual", HOJE.plusDays(10));
     when(parametros.findAll()).thenReturn(List.of(pesagem, inspecao));
     when(manutencoes.findByStatusAndDataBeforeOrderByDataAsc(
             eq(StatusDaManutencao.PROGRAMADA), any()))

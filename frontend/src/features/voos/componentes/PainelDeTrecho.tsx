@@ -16,6 +16,7 @@ import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useCorrigirTrecho, useRegistrarTrecho, type TrechoResponse } from '../api/useVoos';
 
+import { horaLocal, instanteDe, pousoNoDiaSeguinte } from './horarios';
 import estilos from './PainelDeTrecho.module.css';
 import { ATRIBUICAO_DE_MANUTENCAO } from './rotulos';
 
@@ -61,10 +62,11 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
   const [origem, setOrigem] = useState(trecho?.origem ?? '');
   const [destino, setDestino] = useState(trecho?.destino ?? '');
   const [km, setKm] = useState(trecho?.km === undefined ? '' : String(trecho.km));
-  const [depPrev, setDepPrev] = useState(trecho?.partidaPrevista?.slice(0, 5) ?? '');
-  const [arrPrev, setArrPrev] = useState(trecho?.pousoPrevisto?.slice(0, 5) ?? '');
-  const [depReal, setDepReal] = useState(trecho?.partidaRealizada?.slice(0, 5) ?? '');
-  const [arrReal, setArrReal] = useState(trecho?.pousoRealizado?.slice(0, 5) ?? '');
+  // O servidor guarda instantes em UTC; o painel mostra e pede a hora no fuso de quem olha.
+  const [depPrev, setDepPrev] = useState(horaLocal(trecho?.partidaPrevista));
+  const [arrPrev, setArrPrev] = useState(horaLocal(trecho?.pousoPrevisto));
+  const [depReal, setDepReal] = useState(horaLocal(trecho?.partidaRealizada));
+  const [arrReal, setArrReal] = useState(horaLocal(trecho?.pousoRealizado));
   const [atribuicao, setAtribuicao] = useState(
     trecho?.proprietarioId != null ? String(trecho.proprietarioId) : '',
   );
@@ -92,10 +94,10 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
       origem,
       destino,
       km: Number(km.trim().replace(',', '.')),
-      partidaPrevista: depPrev || undefined,
-      pousoPrevisto: arrPrev || undefined,
-      partidaRealizada: depReal || undefined,
-      pousoRealizado: arrReal || undefined,
+      partidaPrevista: instanteDe(data, depPrev),
+      pousoPrevisto: instanteDe(data, arrPrev, depPrev),
+      partidaRealizada: instanteDe(data, depReal),
+      pousoRealizado: instanteDe(data, arrReal, depReal),
       proprietarioId: atribuicao === '' ? undefined : Number(atribuicao),
       observacoes,
     };
@@ -199,6 +201,14 @@ export function PainelDeTrecho({ trecho, aeronaveInicial, aoFechar }: PainelDeTr
       </div>
       <Texto variante="corpo" como="p">
         Duração (automática): {duracaoAoVivo(depPrev, arrPrev, depReal, arrReal)}
+      </Texto>
+      {pousoNoDiaSeguinte(depPrev, arrPrev) || pousoNoDiaSeguinte(depReal, arrReal) ? (
+        <Texto variante="apoio" tom="atencao" como="p">
+          Pouso no dia seguinte ao da partida (+1 dia).
+        </Texto>
+      ) : null}
+      <Texto variante="apoio" tom="suave" como="p">
+        Os contadores da aeronave só recebem o trecho quando os horários realizados estão completos.
       </Texto>
 
       <Selecao

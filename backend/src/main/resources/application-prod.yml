@@ -14,6 +14,8 @@ spring:
     # resolvido ou de deploy pulado, e tem que travar a subida em vez de ser aplicada em silêncio.
     # O relaxamento do perfil padrão existe só por causa da faixa V900+ do seed local.
     out-of-order: false
+    placeholders:
+      dadosDeDesenvolvimento: nao
 
 springdoc:
   swagger-ui:
