@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.erro.ExcecaoDeDominio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.participacao.DefinirContratoRequest.ParticipacaoRequest;
@@ -40,6 +41,7 @@ class ParticipacaoServiceTest {
 
   private static final Instant AGORA = Instant.parse("2026-09-10T12:00:00Z");
   private static final Long AERONAVE = 1L;
+  private static final Long VIGENTE = 10L;
 
   @Mock private ContratoDeParticipacaoRepository contratos;
   @Mock private AeronaveRepository aeronaves;
@@ -53,7 +55,7 @@ class ParticipacaoServiceTest {
     service =
         new ParticipacaoService(
             contratos, aeronaves, proprietarios, Clock.fixed(AGORA, ZoneOffset.UTC), contexto);
-    when(aeronaves.existsById(AERONAVE)).thenReturn(true);
+    when(aeronaves.findById(AERONAVE)).thenReturn(Optional.of(aeronave(AERONAVE, "PS-MEP")));
     when(contratos.findByAeronaveIdAndFimDaVigenciaIsNotNullOrderByFimDaVigenciaDesc(AERONAVE))
         .thenReturn(List.of());
     when(contratos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
@@ -69,12 +71,37 @@ class ParticipacaoServiceTest {
     return proprietario;
   }
 
+  private static Aeronave aeronave(Long id, String matricula) {
+    Aeronave aeronave =
+        new Aeronave(
+            matricula, "AW109", "SBSP", LocalDate.of(2027, 1, 1), LocalDate.of(2027, 1, 1), AGORA);
+    ReflectionTestUtils.setField(aeronave, "id", id);
+    return aeronave;
+  }
+
+  /** O pedido de quem abriu a edição sem contrato vigente. */
   private DefinirContratoRequest pedido(Object... pares) {
+    return pedidoSobre(null, pares);
+  }
+
+  /** O pedido de quem abriu a edição com o vigente {@code contratoVigenteId} à vista. */
+  private DefinirContratoRequest pedidoSobre(Long contratoVigenteId, Object... pares) {
     var lista = new java.util.ArrayList<ParticipacaoRequest>();
     for (int i = 0; i < pares.length; i += 2) {
       lista.add(new ParticipacaoRequest((Long) pares[i], new BigDecimal((String) pares[i + 1])));
     }
-    return new DefinirContratoRequest(lista);
+    return new DefinirContratoRequest(lista, contratoVigenteId);
+  }
+
+  private ContratoDeParticipacao vigenteSoDoRicardo() {
+    ContratoDeParticipacao vigente = new ContratoDeParticipacao(AERONAVE, "L", AGORA);
+    ReflectionTestUtils.setField(vigente, "id", VIGENTE);
+    vigente.adicionarParticipacao(1L, new BigDecimal("100.00"));
+    return vigente;
+  }
+
+  private static Optional<String> campoDe(Throwable excecao) {
+    return ((ExcecaoDeDominio) excecao).getCampo();
   }
 
   @Test
@@ -90,44 +117,62 @@ class ParticipacaoServiceTest {
   }
 
   @Test
-  @DisplayName("soma diferente de 100 é recusada antes de tocar o banco")
+  @DisplayName("soma diferente de 100 é recusada antes de tocar o banco, com a soma em pt-BR")
   void recusaSomaErrada() {
     when(proprietarios.findAllById(List.of(1L, 2L)))
         .thenReturn(List.of(dono(1L, "Ricardo", true), dono(2L, "Vetor", true)));
 
     assertThatThrownBy(() -> service.definir(AERONAVE, pedido(1L, "60.00", 2L, "39.99"), "L"))
         .isInstanceOf(ContratoInvalidoException.class)
-        .hasMessageContaining("99.99");
+        .hasMessage("Ajuste os percentuais para somar 100% — a soma atual é 99,99%.")
+        .satisfies(excecao -> assertThat(campoDe(excecao)).contains("participacoes"));
     verify(contratos, never()).save(any());
   }
 
   @Test
-  @DisplayName("proprietário repetido, inativo ou desconhecido não entra")
+  @DisplayName("proprietário repetido, inativo ou desconhecido é recusado no campo da linha")
   void recusaProprietarioInvalido() {
-    when(proprietarios.findAllById(List.of(1L, 1L))).thenReturn(List.of(dono(1L, "R", true)));
     assertThatThrownBy(() -> service.definir(AERONAVE, pedido(1L, "50.00", 1L, "50.00"), "L"))
-        .isInstanceOf(ContratoInvalidoException.class);
+        .isInstanceOf(ContratoInvalidoException.class)
+        .satisfies(
+            excecao -> assertThat(campoDe(excecao)).contains("participacoes[1].proprietarioId"));
 
     when(proprietarios.findAllById(List.of(3L))).thenReturn(List.of(dono(3L, "Otávio", false)));
     assertThatThrownBy(() -> service.definir(AERONAVE, pedido(3L, "100.00"), "L"))
         .isInstanceOf(ContratoInvalidoException.class)
-        .hasMessageContaining("Otávio");
+        .hasMessageContaining("Otávio")
+        .satisfies(
+            excecao -> assertThat(campoDe(excecao)).contains("participacoes[0].proprietarioId"));
 
-    when(proprietarios.findAllById(List.of(9L))).thenReturn(List.of());
-    assertThatThrownBy(() -> service.definir(AERONAVE, pedido(9L, "100.00"), "L"))
-        .isInstanceOf(RecursoNaoEncontradoException.class);
+    // O id veio no corpo: é campo errado do pedido (400), não recurso da URL que falta (404).
+    when(proprietarios.findAllById(List.of(1L, 9L))).thenReturn(List.of(dono(1L, "R", true)));
+    assertThatThrownBy(() -> service.definir(AERONAVE, pedido(1L, "50.00", 9L, "50.00"), "L"))
+        .isInstanceOf(ContratoInvalidoException.class)
+        .hasMessage("Proprietário não encontrado.")
+        .satisfies(
+            excecao -> assertThat(campoDe(excecao)).contains("participacoes[1].proprietarioId"));
+  }
+
+  @Test
+  @DisplayName("na saída, a recusa aponta o campo dentro do contrato da aeronave")
+  void recusaComPrefixoDaSaida() {
+    assertThatThrownBy(
+            () -> service.definir(AERONAVE, pedido(1L, "50.00", 1L, "50.00"), "L", "contratos[2]."))
+        .satisfies(
+            excecao ->
+                assertThat(campoDe(excecao))
+                    .contains("contratos[2].participacoes[1].proprietarioId"));
   }
 
   @Test
   @DisplayName("contrato idêntico ao vigente não arquiva nada")
   void contratoIgualNaoArquiva() {
-    ContratoDeParticipacao vigente = new ContratoDeParticipacao(AERONAVE, "L", AGORA);
-    vigente.adicionarParticipacao(1L, new BigDecimal("100.00"));
+    ContratoDeParticipacao vigente = vigenteSoDoRicardo();
     when(contratos.findByAeronaveIdAndFimDaVigenciaIsNull(AERONAVE))
         .thenReturn(Optional.of(vigente));
     when(proprietarios.findAllById(List.of(1L))).thenReturn(List.of(dono(1L, "Ricardo", true)));
 
-    service.definir(AERONAVE, pedido(1L, "100.00"), "L");
+    service.definir(AERONAVE, pedidoSobre(VIGENTE, 1L, "100.00"), "L");
 
     assertThat(vigente.estaVigente()).isTrue();
     verify(contratos, never()).save(any());
@@ -136,14 +181,13 @@ class ParticipacaoServiceTest {
   @Test
   @DisplayName("contrato diferente arquiva o vigente no mesmo instante")
   void contratoNovoArquivaOVigente() {
-    ContratoDeParticipacao vigente = new ContratoDeParticipacao(AERONAVE, "L", AGORA);
-    vigente.adicionarParticipacao(1L, new BigDecimal("100.00"));
+    ContratoDeParticipacao vigente = vigenteSoDoRicardo();
     when(contratos.findByAeronaveIdAndFimDaVigenciaIsNull(AERONAVE))
         .thenReturn(Optional.of(vigente));
     when(proprietarios.findAllById(List.of(1L, 2L)))
         .thenReturn(List.of(dono(1L, "Ricardo", true), dono(2L, "Vetor", true)));
 
-    service.definir(AERONAVE, pedido(1L, "60.00", 2L, "40.00"), "L");
+    service.definir(AERONAVE, pedidoSobre(VIGENTE, 1L, "60.00", 2L, "40.00"), "L");
 
     assertThat(vigente.estaVigente()).isFalse();
     assertThat(vigente.getFimDaVigencia()).isEqualTo(AGORA);
@@ -151,9 +195,29 @@ class ParticipacaoServiceTest {
   }
 
   @Test
+  @DisplayName("se outro contrato entrou em vigor desde que a edição abriu, nada é arquivado")
+  void recusaEdicaoDesatualizada() {
+    ContratoDeParticipacao vigente = vigenteSoDoRicardo();
+    when(contratos.findByAeronaveIdAndFimDaVigenciaIsNull(AERONAVE))
+        .thenReturn(Optional.of(vigente));
+    when(proprietarios.findAllById(List.of(1L, 2L)))
+        .thenReturn(List.of(dono(1L, "Ricardo", true), dono(2L, "Vetor", true)));
+
+    // A edição viu o contrato 9, ou nenhum: o 10 entrou no meio do caminho.
+    for (Long visto : new Long[] {9L, null}) {
+      assertThatThrownBy(
+              () -> service.definir(AERONAVE, pedidoSobre(visto, 1L, "60.00", 2L, "40.00"), "L"))
+          .isInstanceOf(ContratoDesatualizadoException.class)
+          .hasMessageContaining("PS-MEP");
+    }
+    assertThat(vigente.estaVigente()).isTrue();
+    verify(contratos, never()).save(any());
+  }
+
+  @Test
   @DisplayName("aeronave desconhecida é 404")
   void aeronaveDesconhecida() {
-    when(aeronaves.existsById(99L)).thenReturn(false);
+    when(aeronaves.findById(99L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> service.consultar(99L))
         .isInstanceOf(RecursoNaoEncontradoException.class);

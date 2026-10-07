@@ -11,6 +11,12 @@ import java.math.BigDecimal;
 public record VinculoVigenteResponse(
     @Schema(description = "Identificador do proprietário", example = "1") Long proprietarioId,
     @Schema(description = "Identificador da aeronave", example = "3") Long aeronaveId,
+    @Schema(
+            description =
+                "O contrato vigente de onde vem o vínculo: a saída do proprietário o devolve para"
+                    + " provar que partiu dele",
+            example = "10")
+        Long contratoId,
     @Schema(description = "Matrícula da aeronave", example = "PS-AER") String matricula,
     @Schema(description = "Modelo da aeronave", example = "Phenom 300E") String modelo,
     @Schema(description = "Percentual de propriedade, duas casas", example = "33.34")

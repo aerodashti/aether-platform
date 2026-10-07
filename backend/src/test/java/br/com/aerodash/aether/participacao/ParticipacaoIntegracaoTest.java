@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.participacao;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -73,22 +74,45 @@ class ParticipacaoIntegracaoTest {
             post("/aeronaves/" + aeronaveId + "/contratos")
                 .cookie(sessao)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(participacoesDoSeed("100.00", null, null)))
+                .content(participacoesDoSeed(null, "100.00", null, null)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.vigente.participacoes.length()").value(1))
         .andExpect(jsonPath("$.historico.length()").value(0));
+    long idDoPrimeiro = idDoVigente(aeronaveId);
 
     mockMvc
         .perform(
             post("/aeronaves/" + aeronaveId + "/contratos")
                 .cookie(sessao)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(participacoesDoSeed("60.00", "40.00", null)))
+                .content(participacoesDoSeed(idDoPrimeiro, "60.00", "40.00", null)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.vigente.participacoes.length()").value(2))
         .andExpect(jsonPath("$.historico.length()").value(1));
 
     assertThat(contratos.findByAeronaveIdAndFimDaVigenciaIsNull(aeronaveId)).isPresent();
+  }
+
+  @Test
+  @DisplayName("quem editou sobre um contrato que já foi trocado recebe 409, e nada é arquivado")
+  void edicaoDesatualizadaNaoSobrescreve() throws Exception {
+    Long aeronaveId = psMep();
+    Cookie sessao = entrar();
+    long vigenteDoSeed = idDoVigente(aeronaveId);
+
+    // Sem dizer sobre qual vigente montou o pedido, ou apontando um que não vale mais: 409.
+    for (Long visto : new Long[] {null, vigenteDoSeed - 1}) {
+      mockMvc
+          .perform(
+              post("/aeronaves/" + aeronaveId + "/contratos")
+                  .cookie(sessao)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(participacoesDoSeed(visto, "50.00", "50.00", null)))
+          .andExpect(status().isConflict())
+          .andExpect(jsonPath("$.title").value("Contrato desatualizado"));
+    }
+
+    assertThat(idDoVigente(aeronaveId)).isEqualTo(vigenteDoSeed);
   }
 
   @Test
@@ -99,9 +123,10 @@ class ParticipacaoIntegracaoTest {
             post("/aeronaves/" + psMep() + "/contratos")
                 .cookie(entrar())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(participacoesDoSeed("60.00", "39.99", null)))
+                .content(participacoesDoSeed(null, "60.00", "39.99", null)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.title").value("Contrato de participação inválido"));
+        .andExpect(jsonPath("$.title").value("Contrato de participação inválido"))
+        .andExpect(jsonPath("$.campos.participacoes").value(containsString("99,99%")));
   }
 
   @Test
@@ -130,10 +155,10 @@ class ParticipacaoIntegracaoTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"contratos":[{"aeronaveId":%d,
+                    {"contratos":[{"aeronaveId":%d,"contratoVigenteId":%d,
                       "participacoes":[{"proprietarioId":%d,"percentual":100.00}]}]}
                     """
-                        .formatted(psFum, ricardo)))
+                        .formatted(psFum, idDoVigente(psFum), ricardo)))
         .andExpect(status().isNoContent());
 
     mockMvc
@@ -188,8 +213,16 @@ class ParticipacaoIntegracaoTest {
         .andExpect(status().isOk());
   }
 
-  /** Monta o corpo com os proprietários do seed, na ordem Ricardo, Vetor, Helena. */
-  private String participacoesDoSeed(String ricardo, String vetor, String helena) throws Exception {
+  private long idDoVigente(Long aeronaveId) {
+    return contratos.findByAeronaveIdAndFimDaVigenciaIsNull(aeronaveId).orElseThrow().getId();
+  }
+
+  /**
+   * Monta o corpo com os proprietários do seed, na ordem Ricardo, Vetor, Helena, sobre o vigente
+   * {@code contratoVigenteId} (nulo: a aeronave não tinha contrato).
+   */
+  private String participacoesDoSeed(
+      Long contratoVigenteId, String ricardo, String vetor, String helena) throws Exception {
     MvcResult donos =
         mockMvc
             .perform(get("/proprietarios").cookie(entrar()))
@@ -222,7 +255,11 @@ class ParticipacaoIntegracaoTest {
           .append('}');
       primeiro = false;
     }
-    return corpo.append("]}").toString();
+    return corpo
+        .append("],\"contratoVigenteId\":")
+        .append(contratoVigenteId)
+        .append('}')
+        .toString();
   }
 
   private Cookie entrar() throws Exception {
