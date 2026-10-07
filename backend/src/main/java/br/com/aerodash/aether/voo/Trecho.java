@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public class Trecho {
 
   /** A primeira data aceita para um trecho realizado (decisão de produto D1). */
-  public static final LocalDate PRIMEIRA_DATA = LocalDate.of(2000, 1, 1);
+  private static final LocalDate PRIMEIRA_DATA = LocalDate.of(2000, 1, 1);
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

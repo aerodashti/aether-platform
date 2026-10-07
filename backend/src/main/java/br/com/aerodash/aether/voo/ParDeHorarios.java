@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 public record ParDeHorarios(Instant partida, Instant pouso) {
 
   /** O teto de um trecho (decisão de produto D6): acima disso é data errada, não um voo. */
-  public static final Duration DURACAO_MAXIMA = Duration.ofHours(24);
+  private static final Duration DURACAO_MAXIMA = Duration.ofHours(24);
 
   /**
    * Quanto a partida pode se afastar da data do trecho (decisão D18). A data é a do fuso de quem
