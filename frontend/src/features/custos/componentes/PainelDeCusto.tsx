@@ -1,12 +1,8 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
-import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
-import {
-  podeReceberAtribuicao,
-  useVinculosVigentes,
-} from '@/compartilhado/participacoes/useVinculosVigentes';
-import { useProprietarios } from '@/compartilhado/proprietarios/useProprietarios';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { GrupoDeOpcoes } from '@/design-system/primitivos/GrupoDeOpcoes';
@@ -22,9 +18,19 @@ import {
   type MoedaDoCusto,
   type TipoDeCusto,
 } from '../api/useCustos';
+import { useListasDoCusto } from '../hooks/useListasDoCusto';
 
+import { apoioDoRelatorioDeVoo } from './apoiosDoCusto';
+import { emReais } from './conversaoEmReais';
 import estilos from './PainelDeCusto.module.css';
-import { ATRIBUICAO_RATEADA, CATEGORIAS, categoriasDoTipo, moedaEmTexto } from './rotulos';
+import { corpoDoCusto, rascunhoInicial, type RascunhoDoCusto } from './rascunhoDoCusto';
+import { CATEGORIAS, categoriasDoTipo, moedaEmTexto } from './rotulos';
+import {
+  PRIMEIRA_DATA_DO_CUSTO,
+  ROTULOS_DO_CUSTO,
+  ultimaDataDoCusto,
+  validarCusto,
+} from './validacaoDoCusto';
 
 interface PainelDeCustoProps {
   custo?: CustoResponse;
@@ -32,68 +38,57 @@ interface PainelDeCustoProps {
   aoFechar: () => void;
 }
 
-function numero(texto: string): number {
-  return Number(texto.trim().replace(',', '.'));
-}
-
 /**
  * Registrar e corrigir lançamento, nas seções do protótipo: classificação, atribuição, valor e
- * documento. A categoria é filha do tipo — trocar o tipo zera a categoria — e em USD a conversão
- * aparece ao vivo, mas quem grava o BRL é o servidor, uma vez.
+ * documento. A categoria é filha do tipo, e em USD a conversão aparece ao vivo, mas quem grava o
+ * BRL é o servidor, uma vez. As regras estão em `validarCusto`; aqui só se ligam as peças.
  */
 export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCustoProps) {
   const editando = custo?.id != null;
-  const [aeronaveId, setAeronaveId] = useState(
-    custo?.aeronaveId != null ? String(custo.aeronaveId) : (aeronaveInicial ?? ''),
-  );
+  const titulo = editando ? 'Corrigir custo' : 'Registrar custo';
+  const idDoResumo = useId();
+  const [rascunho, setRascunho] = useState(() => rascunhoInicial(custo, aeronaveInicial));
   const [tipo, setTipo] = useState<TipoDeCusto>(custo?.tipo ?? 'VARIAVEL');
-  const [categoria, setCategoria] = useState<CategoriaDeCusto | ''>(custo?.categoria ?? '');
-  const [data, setData] = useState(custo?.data ?? '');
-  const [descricao, setDescricao] = useState(custo?.descricao ?? '');
-  const [relatorioDeVoo, setRelatorioDeVoo] = useState(custo?.relatorioDeVoo ?? '');
-  const [atribuicao, setAtribuicao] = useState(
-    custo?.proprietarioId != null ? String(custo.proprietarioId) : '',
-  );
-  const [notaFiscal, setNotaFiscal] = useState(custo?.notaFiscal ?? '');
-  const [moeda, setMoeda] = useState<MoedaDoCusto>(custo?.moeda ?? 'BRL');
-  const [valor, setValor] = useState(
-    custo?.moeda === 'USD'
-      ? String(custo?.valorOriginal ?? '')
-      : custo?.valor === undefined
-        ? ''
-        : String(custo.valor),
-  );
-  const [cambio, setCambio] = useState(custo?.cambio === undefined ? '' : String(custo.cambio));
 
-  const aeronaves = useAeronaves();
-  const proprietarios = useProprietarios();
-  const vinculos = useVinculosVigentes();
-  // Só quem é dono da aeronave recebe custo ou voo: o fechamento não tem conta para os outros.
-  const podeReceber = podeReceberAtribuicao(
-    vinculos.data,
-    aeronaveId,
-    custo?.proprietarioId != null ? String(custo.proprietarioId) : '',
-  );
   const registrar = useRegistrarCusto();
   const corrigir = useCorrigirCusto();
   const mutacao = editando ? corrigir : registrar;
+  const listas = useListasDoCusto(custo, rascunho);
+  const { efetivo } = listas;
+  const hoje = hojeLocal();
+  const erros = validarCusto(efetivo, { hoje, donos: listas.donos });
+  const validacao = useValidacao({
+    erros,
+    valores: efetivo,
+    rotulos: ROTULOS_DO_CUSTO,
+    falha: mutacao.error,
+  });
+  const conversao = erros.valor || erros.cambio ? null : emReais(efetivo.valor, efetivo.cambio);
+
+  function alterar<C extends keyof RascunhoDoCusto>(campo: C) {
+    return (valor: RascunhoDoCusto[C]) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
+  }
+
+  function escolherAeronave(escolhida: string) {
+    // O dono de uma aeronave não é dono da outra.
+    setRascunho((atual) => ({ ...atual, aeronaveId: escolhida, proprietarioId: '' }));
+  }
+
+  function escolherTipo(escolhido: TipoDeCusto) {
+    setTipo(escolhido);
+    // A categoria é filha do tipo: só sai se não for do tipo novo.
+    setRascunho((atual) =>
+      atual.categoria !== '' && CATEGORIAS[atual.categoria].tipo !== escolhido
+        ? { ...atual, categoria: '' }
+        : atual,
+    );
+  }
 
   function salvar() {
-    if (categoria === '') {
+    const corpo = corpoDoCusto(efetivo);
+    if (corpo === undefined) {
       return;
     }
-    const corpo = {
-      aeronaveId: Number(aeronaveId),
-      categoria,
-      data,
-      descricao,
-      relatorioDeVoo: relatorioDeVoo || undefined,
-      proprietarioId: atribuicao === '' ? undefined : Number(atribuicao),
-      notaFiscal: notaFiscal || undefined,
-      moeda,
-      valor: numero(valor),
-      cambio: moeda === 'BRL' || cambio === '' ? undefined : numero(cambio),
-    };
     if (custo?.id != null) {
       corrigir.mutate({ id: custo.id, custo: corpo }, { onSuccess: aoFechar });
     } else {
@@ -101,172 +96,174 @@ export function PainelDeCusto({ custo, aeronaveInicial, aoFechar }: PainelDeCust
     }
   }
 
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
-  const conversao =
-    moeda === 'USD' && valor.trim() !== '' && cambio.trim() !== ''
-      ? moedaEmTexto(Math.round(numero(valor) * numero(cambio) * 100) / 100)
-      : null;
-  const podeSalvar =
-    aeronaveId !== '' &&
-    categoria !== '' &&
-    data !== '' &&
-    descricao.trim() !== '' &&
-    valor.trim() !== '' &&
-    (moeda === 'BRL' || cambio.trim() !== '');
-
   return (
-    <PainelModal
-      aberto
-      aoFechar={aoFechar}
-      rotulo={editando ? 'Corrigir custo' : 'Registrar custo'}
-    >
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
       <Texto variante="titulo" como="h2">
-        {editando ? 'Corrigir custo' : 'Registrar custo'}
+        {titulo}
       </Texto>
 
-      <Texto variante="legenda" tom="suave" como="h3">
-        Classificação
-      </Texto>
-      <Selecao
-        rotulo="Aeronave"
-        valor={aeronaveId}
-        desabilitado={editando}
-        opcoes={[
-          { valor: '', rotulo: 'Selecione…' },
-          ...(aeronaves.data ?? []).map((aeronave) => ({
-            valor: String(aeronave.id),
-            rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
-          })),
-        ]}
-        aoMudar={(escolhida) => {
-          setAeronaveId(escolhida);
-          // O dono de uma aeronave não é dono da outra.
-          setAtribuicao('');
-        }}
-      />
-      <GrupoDeOpcoes
-        rotulo="Tipo"
-        valor={tipo}
-        opcoes={[
-          { valor: 'FIXO', rotulo: 'Custo Fixo' },
-          { valor: 'VARIAVEL', rotulo: 'Custo Variável' },
-        ]}
-        aoEscolher={(escolhido) => {
-          setTipo(escolhido as TipoDeCusto);
-          // A categoria é filha do tipo: trocar o pai zera a filha.
-          setCategoria('');
-        }}
-        marcador
-        larguraIgual
-      />
-      <div className={estilos.grade}>
-        <Selecao
-          rotulo="Categoria"
-          valor={categoria}
-          opcoes={[
-            { valor: '', rotulo: 'Selecione…' },
-            ...categoriasDoTipo(tipo).map((cada) => ({
-              valor: cada,
-              rotulo: CATEGORIAS[cada].rotulo,
-            })),
-          ]}
-          aoMudar={(escolhida) => setCategoria(escolhida as CategoriaDeCusto | '')}
-        />
-        <CampoDeTexto rotulo="Data do custo" tipo="data" valor={data} aoMudar={setData} />
-      </div>
-
-      <Texto variante="legenda" tom="suave" como="h3">
-        Atribuição
-      </Texto>
-      <div className={estilos.grade}>
-        <Selecao
-          rotulo="Atribuição"
-          valor={atribuicao}
-          opcoes={[
-            { valor: '', rotulo: ATRIBUICAO_RATEADA },
-            ...(proprietarios.data ?? [])
-              .filter((dono) => dono.situacao === 'ATIVO' && podeReceber(dono.id))
-              .map((dono) => ({ valor: String(dono.id), rotulo: dono.nome ?? '' })),
-          ]}
-          aoMudar={setAtribuicao}
-        />
-        <CampoDeTexto
-          rotulo="Rel-voo (opcional)"
-          valor={relatorioDeVoo}
-          aoMudar={setRelatorioDeVoo}
-          exemplo="RV-2026-041"
-          maxLength={20}
-        />
-      </div>
-
-      <Texto variante="legenda" tom="suave" como="h3">
-        Valor
-      </Texto>
-      <GrupoDeOpcoes
-        rotulo="Moeda"
-        valor={moeda}
-        opcoes={[
-          { valor: 'BRL', rotulo: 'BRL' },
-          { valor: 'USD', rotulo: 'USD' },
-        ]}
-        aoEscolher={(escolhida) => setMoeda(escolhida as MoedaDoCusto)}
-        marcador
-        larguraIgual
-      />
-      <div className={estilos.grade}>
-        <CampoDeTexto
-          rotulo={moeda === 'BRL' ? 'Valor (R$)' : 'Valor (US$)'}
-          valor={valor}
-          aoMudar={setValor}
-          inputMode="numeric"
-        />
-        {moeda === 'USD' ? (
-          <CampoDeTexto
-            rotulo="Câmbio do dia"
-            valor={cambio}
-            aoMudar={setCambio}
-            inputMode="numeric"
-            exemplo="4,9223"
-          />
-        ) : null}
-      </div>
-      {conversao ? (
-        <Texto variante="apoio" tom="suave" como="p">
-          = {conversao} — o servidor grava a conversão uma única vez, no ato.
-        </Texto>
-      ) : null}
-
-      <Texto variante="legenda" tom="suave" como="h3">
-        Documento
-      </Texto>
-      <CampoDeTexto
-        rotulo="Descrição"
-        valor={descricao}
-        aoMudar={setDescricao}
-        maxLength={200}
-        exemplo="Jet A-1 — 1.850 L — SBRJ"
-      />
-      <CampoDeTexto
-        rotulo="N. Fiscal / Invoice"
-        valor={notaFiscal}
-        aoMudar={setNotaFiscal}
-        maxLength={40}
-      />
-
-      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
+      {listas.falharam ? (
+        <div className={estilos.recado} role="alert">
           <Texto variante="apoio" tom="critico" como="p">
-            {erro}
+            Não foi possível carregar as aeronaves ou os proprietários do painel.
           </Texto>
+          <Botao variante="secundario" tamanho="pequeno" aoClicar={listas.recarregar}>
+            Tentar de novo
+          </Botao>
         </div>
       ) : null}
 
+      <div ref={validacao.refDoFormulario} className={estilos.campos}>
+        <Texto variante="legenda" tom="suave" como="h3">
+          Classificação
+        </Texto>
+        <Selecao
+          rotulo="Aeronave"
+          obrigatorio
+          valor={efetivo.aeronaveId}
+          desabilitado={editando}
+          opcoes={listas.opcoesDeAeronaves}
+          aoMudar={escolherAeronave}
+          erro={validacao.erroDe('aeronaveId')}
+        />
+        <GrupoDeOpcoes
+          rotulo="Tipo"
+          valor={tipo}
+          opcoes={[
+            { valor: 'FIXO', rotulo: 'Custo Fixo' },
+            { valor: 'VARIAVEL', rotulo: 'Custo Variável' },
+          ]}
+          aoEscolher={(escolhido) => escolherTipo(escolhido as TipoDeCusto)}
+          marcador
+          larguraIgual
+        />
+        <div className={estilos.grade}>
+          <Selecao
+            rotulo="Categoria"
+            obrigatorio
+            valor={efetivo.categoria}
+            opcoes={[
+              { valor: '', rotulo: 'Selecione…' },
+              ...categoriasDoTipo(tipo).map((cada) => ({
+                valor: cada,
+                rotulo: CATEGORIAS[cada].rotulo,
+              })),
+            ]}
+            aoMudar={(escolhida) => alterar('categoria')(escolhida as CategoriaDeCusto | '')}
+            erro={validacao.erroDe('categoria')}
+          />
+          <CampoDeTexto
+            rotulo="Data do custo"
+            tipo="data"
+            obrigatorio
+            valor={efetivo.data}
+            aoMudar={alterar('data')}
+            minimo={PRIMEIRA_DATA_DO_CUSTO}
+            maximo={ultimaDataDoCusto(hoje)}
+            erro={validacao.erroDe('data')}
+          />
+        </div>
+
+        <Texto variante="legenda" tom="suave" como="h3">
+          Atribuição
+        </Texto>
+        <div className={estilos.grade}>
+          <Selecao
+            rotulo="Atribuição"
+            valor={efetivo.proprietarioId}
+            opcoes={listas.opcoesDeDonos}
+            aoMudar={alterar('proprietarioId')}
+            apoio={listas.apoioDaAtribuicao}
+            erro={validacao.erroDe('proprietarioId')}
+          />
+          <CampoDeTexto
+            rotulo="Rel-voo (opcional)"
+            valor={efetivo.relatorioDeVoo}
+            aoMudar={alterar('relatorioDeVoo')}
+            exemplo="RV-2026-041"
+            apoio={apoioDoRelatorioDeVoo(tipo)}
+            erro={validacao.erroDe('relatorioDeVoo')}
+          />
+        </div>
+
+        <Texto variante="legenda" tom="suave" como="h3">
+          Valor
+        </Texto>
+        <GrupoDeOpcoes
+          rotulo="Moeda"
+          obrigatorio
+          valor={efetivo.moeda}
+          opcoes={[
+            { valor: 'BRL', rotulo: 'BRL' },
+            { valor: 'USD', rotulo: 'USD' },
+          ]}
+          aoEscolher={(escolhida) => alterar('moeda')(escolhida as MoedaDoCusto)}
+          marcador
+          larguraIgual
+          erro={validacao.erroDe('moeda')}
+        />
+        <div className={estilos.grade}>
+          <CampoDeTexto
+            rotulo={efetivo.moeda === 'BRL' ? 'Valor (R$)' : 'Valor (US$)'}
+            obrigatorio
+            valor={efetivo.valor}
+            aoMudar={alterar('valor')}
+            inputMode="decimal"
+            exemplo="15.725,00"
+            erro={validacao.erroDe('valor')}
+          />
+          {efetivo.moeda === 'USD' ? (
+            <CampoDeTexto
+              rotulo="Câmbio do dia (R$ por US$ 1)"
+              obrigatorio
+              valor={efetivo.cambio}
+              aoMudar={alterar('cambio')}
+              inputMode="decimal"
+              exemplo="4,9223"
+              apoio="Até 4 casas decimais."
+              erro={validacao.erroDe('cambio')}
+            />
+          ) : null}
+        </div>
+        {efetivo.moeda === 'USD' ? (
+          <div aria-live="polite">
+            {conversao === null ? null : (
+              <Texto variante="apoio" tom="suave" como="p">
+                = {moedaEmTexto(conversao)} — o servidor grava a conversão uma única vez, no ato.
+              </Texto>
+            )}
+          </div>
+        ) : null}
+
+        <Texto variante="legenda" tom="suave" como="h3">
+          Documento
+        </Texto>
+        <CampoDeTexto
+          rotulo="Descrição"
+          obrigatorio
+          valor={efetivo.descricao}
+          aoMudar={alterar('descricao')}
+          exemplo="Jet A-1 — 1.850 L — SBRJ"
+          erro={validacao.erroDe('descricao')}
+        />
+        <CampoDeTexto
+          rotulo="N. Fiscal / Invoice (opcional)"
+          valor={efetivo.notaFiscal}
+          aoMudar={alterar('notaFiscal')}
+          erro={validacao.erroDe('notaFiscal')}
+        />
+      </div>
+
+      <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
       <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
+        <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
           Cancelar
         </Botao>
-        <Botao aoClicar={salvar} desabilitado={!podeSalvar} carregando={mutacao.isPending}>
+        <Botao
+          aoClicar={() => validacao.enviar(salvar)}
+          carregando={mutacao.isPending}
+          descritoPor={idDoResumo}
+        >
           {editando ? 'Salvar correção' : 'Registrar custo'}
         </Botao>
       </div>

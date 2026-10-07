@@ -22,7 +22,8 @@ public record CustoResponse(
     boolean rateado,
     String notaFiscal,
     MoedaDoCusto moeda,
-    @Schema(description = "Valor original na moeda estrangeira; nulo em BRL")
+    @Schema(description = "Valor original na moeda estrangeira; nulo em BRL", nullable = true)
         BigDecimal valorOriginal,
-    BigDecimal cambio,
+    @Schema(description = "Reais por dólar do dia do lançamento; nulo em BRL", nullable = true)
+        BigDecimal cambio,
     @Schema(description = "Valor em BRL, o que o rateio consome") BigDecimal valor) {}

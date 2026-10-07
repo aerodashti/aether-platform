@@ -9,7 +9,9 @@ import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -21,6 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 /** Os lançamentos de custo: o que a aeronave gastou, classificado para o rateio e as análises. */
 @Service
 public class CustoService {
+
+  private static final String CAMPO_AERONAVE = "aeronaveId";
+  private static final String CAMPO_CAMBIO = "cambio";
+  private static final String CAMPO_PROPRIETARIO = "proprietarioId";
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private final CustoRepository custos;
   private final AeronaveRepository aeronaves;
@@ -57,9 +64,11 @@ public class CustoService {
   @Transactional
   public CustoResponse criar(CustoRequest request) {
     exigirAeronave(request.aeronaveId());
-    validar(request);
+    validarCambio(request);
+    validarAtribuicao(request);
 
     Custo custo = new Custo(request.aeronaveId(), dadosDe(request), Instant.now(relogio));
+    exigirCoerencia(custo);
     custo = custos.save(custo);
 
     contexto.registrar("custo.id", custo.getId());
@@ -75,11 +84,20 @@ public class CustoService {
     contexto.decisao("custo.trocaDeAeronave", trocaDeAeronave);
     if (trocaDeAeronave) {
       throw new CustoInvalidoException(
-          "A aeronave do lançamento não muda: exclua e relance na aeronave certa.");
+          "A aeronave do lançamento não muda: exclua e relance na aeronave certa.", CAMPO_AERONAVE);
     }
-    validar(request);
+    validarCambio(request);
+    // Quem saiu da aeronave fica inativo, e os custos dele seguem corrigíveis sem trocar de dono:
+    // trocar falsearia o histórico e o rateio dos meses passados.
+    boolean atribuicaoMudou = !custo.estaAtribuidoA(request.proprietarioId());
+    contexto.decisao("custo.atribuicaoMudou", atribuicaoMudou);
+    if (atribuicaoMudou) {
+      validarAtribuicao(request);
+    }
 
     custo.atualizar(dadosDe(request), Instant.now(relogio));
+    // A recusa desfaz a transação: nada da correção chega ao banco.
+    exigirCoerencia(custo);
     return paraLinhas(List.of(custo)).get(0);
   }
 
@@ -90,35 +108,71 @@ public class CustoService {
     contexto.registrar("custo.excluido", id);
   }
 
-  private void validar(CustoRequest request) {
+  private void validarCambio(CustoRequest request) {
     boolean cambioObrigatorio = request.moeda() != MoedaDoCusto.BRL;
     contexto.decisao("custo.moedaEstrangeira", cambioObrigatorio);
     if (cambioObrigatorio && request.cambio() == null) {
-      throw new CustoInvalidoException("Lançamento em moeda estrangeira exige o câmbio do dia.");
+      throw new CustoInvalidoException(
+          "Lançamento em moeda estrangeira exige o câmbio do dia.", CAMPO_CAMBIO);
     }
     if (!cambioObrigatorio && request.cambio() != null) {
-      throw new CustoInvalidoException("Lançamento em BRL não carrega câmbio.");
+      throw new CustoInvalidoException("Lançamento em BRL não carrega câmbio.", CAMPO_CAMBIO);
     }
-    if (request.proprietarioId() != null) {
-      Proprietario dono =
-          proprietarios
-              .findById(request.proprietarioId())
-              .orElseThrow(() -> new RecursoNaoEncontradoException("Proprietário não encontrado."));
-      contexto.decisao("custo.proprietarioAtivo", dono.estaAtivo());
-      if (!dono.estaAtivo()) {
-        throw new CustoInvalidoException(
-            "Proprietário inativo não recebe atribuição de custo: reative "
-                + dono.getNome()
-                + " antes.");
-      }
-      boolean participa =
-          participantes.participaOuParticipou(request.aeronaveId(), request.proprietarioId());
-      contexto.decisao("custo.proprietarioParticipa", participa);
-      if (!participa) {
-        throw new CustoInvalidoException(
-            dono.getNome()
-                + " nunca participou desta aeronave: inclua-o no contrato ou rateie o custo.");
-      }
+  }
+
+  private void validarAtribuicao(CustoRequest request) {
+    boolean atribuido = request.proprietarioId() != null;
+    contexto.decisao("custo.atribuido", atribuido);
+    if (!atribuido) {
+      return;
+    }
+    Proprietario dono =
+        proprietarios
+            .findById(request.proprietarioId())
+            .orElseThrow(
+                () ->
+                    new CustoInvalidoException("Proprietário não encontrado.", CAMPO_PROPRIETARIO));
+    contexto.decisao("custo.proprietarioAtivo", dono.estaAtivo());
+    if (!dono.estaAtivo()) {
+      throw new CustoInvalidoException(
+          "Proprietário inativo não recebe atribuição de custo: reative "
+              + dono.getNome()
+              + " antes.",
+          CAMPO_PROPRIETARIO);
+    }
+    boolean participa =
+        participantes.participaOuParticipou(request.aeronaveId(), request.proprietarioId());
+    contexto.decisao("custo.proprietarioParticipa", participa);
+    if (!participa) {
+      throw new CustoInvalidoException(
+          dono.getNome()
+              + " nunca participou desta aeronave: inclua no contrato quem vai pagar ou rateie o"
+              + " custo.",
+          CAMPO_PROPRIETARIO);
+    }
+  }
+
+  /** O que só o lançamento montado sabe: a data contra hoje e o BRL que o câmbio derivou. */
+  private void exigirCoerencia(Custo custo) {
+    LocalDate hoje = LocalDate.now(relogio);
+    boolean dataAceitavel = custo.possuiDataAceitavel(hoje);
+    contexto.decisao("custo.dataAceitavel", dataAceitavel);
+    if (!dataAceitavel) {
+      throw new CustoInvalidoException(
+          "Use uma data entre "
+              + DATA.format(Custo.PRIMEIRA_DATA_ACEITA)
+              + " e "
+              + DATA.format(Custo.ultimaDataAceita(hoje))
+              + ", até "
+              + Custo.DIAS_DE_ANTECEDENCIA
+              + " dias à frente de hoje.",
+          "data");
+    }
+    boolean valorDentroDoLimite = custo.possuiValorDentroDoLimite();
+    contexto.decisao("custo.valorDentroDoLimite", valorDentroDoLimite);
+    if (!valorDentroDoLimite) {
+      throw new CustoInvalidoException(
+          "Convertido para reais, o lançamento passa de R$ 999.999.999.999,99.", "valor");
     }
   }
 
@@ -150,11 +204,14 @@ public class CustoService {
         request.cambio());
   }
 
-  private Aeronave exigirAeronave(Long aeronaveId) {
+  /** A aeronave vem no corpo: inexistente é recusa do campo, não um endereço que não existe. */
+  private void exigirAeronave(Long aeronaveId) {
     contexto.registrar("aeronave.id", aeronaveId);
-    return aeronaves
-        .findById(aeronaveId)
-        .orElseThrow(() -> new RecursoNaoEncontradoException("Aeronave não encontrada."));
+    boolean existe = aeronaves.existsById(aeronaveId);
+    contexto.decisao("custo.aeronaveExiste", existe);
+    if (!existe) {
+      throw new CustoInvalidoException("Aeronave não encontrada.", CAMPO_AERONAVE);
+    }
   }
 
   private Custo exigirCusto(Long id) {

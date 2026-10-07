@@ -1,3 +1,5 @@
+import { numeroParaCampo } from '@/compartilhado/formatacao/numero';
+
 import type { CategoriaDeCusto, CustoResponse, TipoDeCusto } from '../api/useCustos';
 
 export const ROTULO_DO_TIPO: Record<TipoDeCusto, string> = {
@@ -45,14 +47,19 @@ export function dataCurta(iso: string | undefined): string {
   return iso ? DATA.format(new Date(`${iso}T00:00:00`)) : '—';
 }
 
-export function competenciaAtual(): string {
-  // No fuso de quem usa: toISOString é UTC e, no último dia do mês depois das 21h em Brasília,
-  // já estaria no mês seguinte.
-  const agora = new Date();
-  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}`;
-}
-
 export const ATRIBUICAO_RATEADA = 'Rateio entre os proprietários';
+
+/** Começo que o Excel lê como fórmula: "=HYPERLINK(...)" numa descrição viraria um link. */
+const INICIO_DE_FORMULA = /^[=+\-@\t\r]/;
+
+/**
+ * Uma célula do CSV: sempre entre aspas, porque um ";" numa nota fiscal deslocaria as colunas, e
+ * com apóstrofo à frente do que começaria uma fórmula.
+ */
+function celulaDoCsv(texto: string): string {
+  const seguro = INICIO_DE_FORMULA.test(texto) ? `'${texto}` : texto;
+  return `"${seguro.replaceAll('"', '""')}"`;
+}
 
 /**
  * O CSV do recorte, gerado aqui porque é o recorte da tela — o mesmo que os olhos estão vendo.
@@ -62,7 +69,7 @@ export function csvDosLancamentos(custos: CustoResponse[]): string {
   const cabecalho = 'Descrição;Data;Rel-voo;Tipo;Categoria;Atribuição;NF;Moeda;Valor (BRL)';
   const linhas = custos.map((custo) =>
     [
-      `"${(custo.descricao ?? '').replaceAll('"', '""')}"`,
+      custo.descricao ?? '',
       custo.data ?? '',
       custo.relatorioDeVoo ?? '',
       custo.tipo ? ROTULO_DO_TIPO[custo.tipo] : '',
@@ -70,8 +77,10 @@ export function csvDosLancamentos(custos: CustoResponse[]): string {
       custo.rateado ? ATRIBUICAO_RATEADA : (custo.nomeDoProprietario ?? ''),
       custo.notaFiscal ?? '',
       custo.moeda ?? '',
-      String(custo.valor ?? '').replace('.', ','),
-    ].join(';'),
+      numeroParaCampo(custo.valor),
+    ]
+      .map(celulaDoCsv)
+      .join(';'),
   );
   return [cabecalho, ...linhas].join('\n');
 }

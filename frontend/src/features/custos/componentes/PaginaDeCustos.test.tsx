@@ -215,7 +215,7 @@ describe('PaginaDeCustos', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'USD' }));
 
     await userEvent.type(screen.getByLabelText('Valor (US$)'), '1200');
-    await userEvent.type(screen.getByLabelText('Câmbio do dia'), '4,9223');
+    await userEvent.type(screen.getByLabelText('Câmbio do dia (R$ por US$ 1)'), '4,9223');
 
     expect(screen.getByText(/= R\$\s*5\.906,76/)).toBeInTheDocument();
   });
