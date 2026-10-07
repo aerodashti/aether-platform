@@ -10,14 +10,10 @@ import { Selecao } from '@/design-system/primitivos/Selecao';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useConvidarUsuario, type UsuarioResponse } from '../api/useUsuarios';
+import { HORAS_DE_VALIDADE_DO_CONVITE } from '../mensagens';
 
 import estilos from './Painel.module.css';
-import {
-  DESCRICAO_DO_PAPEL,
-  HORAS_DE_VALIDADE_DO_CONVITE,
-  PAPEIS,
-  ROTULO_DO_PAPEL,
-} from './rotulos';
+import { DESCRICAO_DO_PAPEL, PAPEIS, ROTULO_DO_PAPEL } from './rotulos';
 import {
   ROTULOS_DO_CONVITE,
   validarConvite,

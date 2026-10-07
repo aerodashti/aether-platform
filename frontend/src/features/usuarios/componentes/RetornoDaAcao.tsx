@@ -1,11 +1,8 @@
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import estilos from './RetornoDaAcao.module.css';
+import type { Retorno } from '../mensagens';
 
-export interface Retorno {
-  tom: 'positivo' | 'critico';
-  mensagem: string;
-}
+import estilos from './RetornoDaAcao.module.css';
 
 /**
  * Como terminou a última ação sobre um usuário — convidar, reenviar, desativar, reativar —, numa

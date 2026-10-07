@@ -1,6 +1,5 @@
 import { useReativarUsuario, useReenviarConvite, type UsuarioResponse } from '../api/useUsuarios';
-import type { Retorno } from '../componentes/RetornoDaAcao';
-import { acessoReativado, conviteReenviado } from '../componentes/rotulos';
+import { acessoReativado, conviteReenviado, type Retorno } from '../mensagens';
 
 /**
  * Reenviar e reativar: as ações que a grade executa direto na linha, sem confirmação, porque

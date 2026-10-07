@@ -15,12 +15,13 @@ import {
   type UsuarioResponse,
 } from '../api/useUsuarios';
 import { useAcoesNaLinha } from '../hooks/useAcoesNaLinha';
+import { acessoDesativado, conviteEnviado, type Retorno } from '../mensagens';
 
 import { ConfirmacaoDeDesativacao } from './ConfirmacaoDeDesativacao';
 import estilos from './PaginaDeUsuarios.module.css';
 import { PainelDeConvite } from './PainelDeConvite';
-import { RetornoDaAcao, type Retorno } from './RetornoDaAcao';
-import { acessoDesativado, conviteEnviado, OPCOES_DE_PAPEL, OPCOES_DE_SITUACAO } from './rotulos';
+import { RetornoDaAcao } from './RetornoDaAcao';
+import { OPCOES_DE_PAPEL, OPCOES_DE_SITUACAO } from './rotulos';
 import { TabelaDeUsuarios } from './TabelaDeUsuarios';
 
 const FILTRO_INICIAL: FiltroDeUsuarios = { busca: '', papel: '', situacao: '', pagina: 0 };
