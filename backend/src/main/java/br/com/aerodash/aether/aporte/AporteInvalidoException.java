@@ -12,6 +12,10 @@ public class AporteInvalidoException extends ExcecaoDeDominio {
     super(titulo, detalhe);
   }
 
+  public AporteInvalidoException(String titulo, String detalhe, String campo) {
+    super(titulo, detalhe, campo);
+  }
+
   @Override
   public HttpStatus getStatus() {
     return HttpStatus.BAD_REQUEST;

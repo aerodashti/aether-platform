@@ -47,9 +47,9 @@ public class AporteService {
 
   @Transactional(readOnly = true)
   public AportesResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
-    PeriodoDeCompetencias periodo = PeriodoDeCompetencias.entre(de, ate);
-    exigirPeriodoEmOrdem(periodo);
-    contexto.decisao("aportes.filtroPorAeronave", aeronaveId != null);
+    PeriodoDeCompetencias periodo =
+        RecorteDoFundo.exigirPeriodo("aportes", de, ate, YearMonth.now(relogio), contexto);
+    RecorteDoFundo.exigirAeronave("aportes", aeronaveId, aeronaves::existsById, contexto);
     List<Aporte> recorte =
         aeronaveId == null
             ? aportes.findByCompetenciaBetweenOrderByDataDescIdDesc(periodo.de(), periodo.ate())
@@ -131,15 +131,6 @@ public class AporteService {
       throw new AporteInvalidoException(
           "Aporte inválido",
           "O aporte é registrado como recebido: registre depois que a transferência cair.");
-    }
-  }
-
-  private void exigirPeriodoEmOrdem(PeriodoDeCompetencias periodo) {
-    boolean invertido = periodo.estaInvertido();
-    contexto.decisao("aportes.periodoInvertido", invertido);
-    if (invertido) {
-      throw new AporteInvalidoException(
-          "Período inválido", "A competência inicial vem depois da final.");
     }
   }
 

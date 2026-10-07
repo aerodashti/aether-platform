@@ -39,14 +39,9 @@ public class RendimentoService {
 
   @Transactional(readOnly = true)
   public RendimentosResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
-    PeriodoDeCompetencias periodo = PeriodoDeCompetencias.entre(de, ate);
-    boolean invertido = periodo.estaInvertido();
-    contexto.decisao("rendimentos.periodoInvertido", invertido);
-    if (invertido) {
-      throw new AporteInvalidoException(
-          "Período inválido", "A competência inicial vem depois da final.");
-    }
-    contexto.decisao("rendimentos.filtroPorAeronave", aeronaveId != null);
+    PeriodoDeCompetencias periodo =
+        RecorteDoFundo.exigirPeriodo("rendimentos", de, ate, YearMonth.now(relogio), contexto);
+    RecorteDoFundo.exigirAeronave("rendimentos", aeronaveId, aeronaves::existsById, contexto);
     List<Rendimento> recorte =
         aeronaveId == null
             ? rendimentos.findByDataBetweenOrderByDataDescIdDesc(
