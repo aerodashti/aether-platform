@@ -77,7 +77,7 @@ class DocumentoIntegracaoTest {
         .perform(get("/aeronaves/%d/documentos".formatted(psMep)).cookie(sessao))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.documentos.length()").value(2))
-        .andExpect(jsonPath("$.tamanhoTotal").value(pdf.length + 1));
+        .andExpect(jsonPath("$.tamanhoTotal").value(pdf.length + 3));
 
     MvcResult baixado =
         mockMvc
@@ -110,7 +110,8 @@ class DocumentoIntegracaoTest {
                         new MockMultipartFile(
                             "arquivos", "Apólice RETA.pdf", "application/pdf", pdf))
                     .file(
-                        new MockMultipartFile("arquivos", "foto.jpg", "image/jpeg", new byte[] {1}))
+                        new MockMultipartFile(
+                            "arquivos", "foto.jpg", "image/jpeg", new byte[] {-1, -40, -1}))
                     .cookie(sessao))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.length()").value(2))
@@ -122,6 +123,28 @@ class DocumentoIntegracaoTest {
     try (var arquivos = Files.list(pasta)) {
       return arquivos.filter(Files::isRegularFile).count();
     }
+  }
+
+  @Test
+  @DisplayName("onze arquivos num envio: 400 dizendo o limite, e nada vai para o disco")
+  void limiteDeArquivos() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    long antes = arquivosNoDisco();
+    var envio = multipart("/aeronaves/%d/documentos".formatted(psMep));
+    for (int n = 1; n <= 11; n++) {
+      envio.file(
+          new MockMultipartFile(
+              "arquivos",
+              "laudo-%d.pdf".formatted(n),
+              "application/pdf",
+              "%PDF-1.7".getBytes(StandardCharsets.US_ASCII)));
+    }
+
+    mockMvc
+        .perform(envio.cookie(entrar()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.arquivos").value("Envie até 10 arquivos por vez."));
+    assertThat(arquivosNoDisco()).isEqualTo(antes);
   }
 
   @Test

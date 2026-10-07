@@ -10,10 +10,13 @@ import static org.mockito.Mockito.when;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,8 +52,59 @@ class DocumentoServiceTest {
     when(documentos.save(any())).thenAnswer(chamada -> chamada.getArgument(0));
   }
 
+  /** Um arquivo com conteúdo de PDF, qualquer que seja o nome: o tipo é conferido pelo nome. */
   private static ArquivoEnviado arquivo(String nome, long tamanho) {
-    return new ArquivoEnviado(nome, tamanho, () -> new ByteArrayInputStream(new byte[] {1, 2, 3}));
+    return arquivo(nome, tamanho, "%PDF-1.7");
+  }
+
+  private static ArquivoEnviado arquivo(String nome, long tamanho, String conteudo) {
+    byte[] bytes = conteudo.getBytes(StandardCharsets.US_ASCII);
+    return new ArquivoEnviado(nome, tamanho, () -> new ByteArrayInputStream(bytes));
+  }
+
+  @Test
+  @DisplayName("mais de dez arquivos num envio são recusados dizendo o limite, no campo arquivos")
+  void limiteDeArquivos() throws Exception {
+    List<ArquivoEnviado> onze =
+        IntStream.rangeClosed(1, 11).mapToObj(n -> arquivo(n + ".pdf", 3)).toList();
+
+    assertThatThrownBy(() -> service.enviar(1L, onze, "Patrícia"))
+        .isInstanceOf(DocumentoInvalidoException.class)
+        .hasMessage("Envie até 10 arquivos por vez.")
+        .extracting(falha -> ((DocumentoInvalidoException) falha).getCampo())
+        .isEqualTo(Optional.of("arquivos"));
+    verify(contexto).decisao("documentos.passaDoLimiteDoEnvio", true);
+    verify(armazenamento, never()).guardar(any(), any());
+
+    assertThat(
+            service.enviar(
+                1L,
+                IntStream.rangeClosed(1, 10).mapToObj(n -> arquivo(n + ".pdf", 3)).toList(),
+                "Patrícia"))
+        .hasSize(10);
+  }
+
+  @Test
+  @DisplayName("nome só com a extensão é recusado antes de gravar")
+  void nomeSemBase() throws Exception {
+    assertThatThrownBy(() -> service.enviar(1L, List.of(arquivo("   .pdf", 3)), "Patrícia"))
+        .isInstanceOf(DocumentoInvalidoException.class)
+        .hasMessage("O arquivo \".pdf\" precisa de um nome antes da extensão.");
+    verify(contexto).decisao("documento.possuiNome", false);
+    verify(armazenamento, never()).guardar(any(), any());
+  }
+
+  @Test
+  @DisplayName("um HTML renomeado para .pdf é recusado pelo conteúdo")
+  void conteudoDisfarcado() throws Exception {
+    assertThatThrownBy(
+            () ->
+                service.enviar(
+                    1L, List.of(arquivo("apolice.pdf", 3, "<html><script>")), "Patrícia"))
+        .isInstanceOf(DocumentoInvalidoException.class)
+        .hasMessageContaining("não é de um arquivo PDF");
+    verify(contexto).decisao("documento.conteudoConfere", false);
+    verify(armazenamento, never()).guardar(any(), any());
   }
 
   @Test
