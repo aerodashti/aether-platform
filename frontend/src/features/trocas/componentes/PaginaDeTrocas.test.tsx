@@ -163,6 +163,15 @@ describe('PaginaDeTrocas', () => {
     expect(chamadas()).toContain('/api/trocas?situacao=PENDENTE&proprietario=1');
   });
 
+  it('o proprietário do filtro vem do link, e recarregar não o perde', async () => {
+    montar(GESTORA, '/trocas?proprietario=1');
+
+    expect(
+      await screen.findByText('Ricardo Meirelles tem 2,5 h a receber de volta.'),
+    ).toBeInTheDocument();
+    expect(chamadas()).toContain('/api/trocas?situacao=PENDENTE&proprietario=1');
+  });
+
   it('concluir pede a data da devolução, envia e anuncia para onde a troca foi', async () => {
     montar(GESTORA);
 

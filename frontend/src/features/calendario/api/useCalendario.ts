@@ -14,16 +14,17 @@ export type ManutencaoDoCalendario = components['schemas']['ManutencaoResponse']
  * leitura composta, e as duas consultas ficam em cache separado, invalidadas pelas telas donas.
  */
 export function useCalendario(aeronaveId: string, competencia: string) {
+  const doMes = new URLSearchParams({ aeronave: aeronaveId, competencia });
+  const daAeronave = new URLSearchParams({ aeronave: aeronaveId });
   const voos = useQuery({
     queryKey: ['voos', { aeronaveId, competencia }],
-    queryFn: () =>
-      buscar<DiarioDeVoosResponse>(`/voos?aeronave=${aeronaveId}&competencia=${competencia}`),
+    queryFn: () => buscar<DiarioDeVoosResponse>(`/voos?${doMes.toString()}`),
     enabled: aeronaveId !== '',
     placeholderData: (anterior) => anterior,
   });
   const manutencao = useQuery({
     queryKey: ['manutencao', aeronaveId],
-    queryFn: () => buscar<PainelDeManutencaoResponse>(`/manutencoes?aeronave=${aeronaveId}`),
+    queryFn: () => buscar<PainelDeManutencaoResponse>(`/manutencoes?${daAeronave.toString()}`),
     enabled: aeronaveId !== '',
     placeholderData: (anterior) => anterior,
   });
@@ -48,7 +49,8 @@ export function useCalendario(aeronaveId: string, competencia: string) {
   return {
     trechosPorDia,
     manutencoesPorDia,
-    isError: voos.isError || manutencao.isError,
+    /** A primeira falha das duas consultas, ou `null`. */
+    erro: voos.error ?? manutencao.error,
     refetch: async () => {
       await Promise.all([voos.refetch(), manutencao.refetch()]);
     },

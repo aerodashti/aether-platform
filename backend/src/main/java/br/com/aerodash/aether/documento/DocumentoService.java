@@ -25,6 +25,12 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Service
 public class DocumentoService {
 
+  /**
+   * Quantos arquivos cabem num envio. O Tomcat aceita mais partes que isto ({@code
+   * server.tomcat.max-part-count}) para que o envio que passa do limite chegue aqui e ouça qual é.
+   */
+  public static final int ARQUIVOS_POR_ENVIO = 10;
+
   private static final Logger log = LoggerFactory.getLogger(DocumentoService.class);
 
   private final DocumentoRepository documentos;
@@ -65,6 +71,12 @@ public class DocumentoService {
     contexto.registrar("documentos.enviados", arquivos.size());
     if (arquivos.isEmpty()) {
       throw new DocumentoInvalidoException("Escolha ao menos um arquivo.");
+    }
+    boolean demais = arquivos.size() > ARQUIVOS_POR_ENVIO;
+    contexto.decisao("documentos.passaDoLimiteDoEnvio", demais);
+    if (demais) {
+      throw new DocumentoInvalidoException(
+          "Envie até " + ARQUIVOS_POR_ENVIO + " arquivos por vez.");
     }
     // Confere todos antes de gravar o primeiro: um envio de cinco com um recusado não pela metade.
     List<TipoDeArquivo> tipos = arquivos.stream().map(this::conferir).toList();
@@ -125,25 +137,68 @@ public class DocumentoService {
     contexto.registrar("documento.removido", id);
   }
 
+  /** Na ordem do mais barato ao mais caro: o conteúdo só é lido se o resto já passou. */
   private TipoDeArquivo conferir(ArquivoEnviado arquivo) {
-    boolean cabe = Documento.cabeNoLimite(arquivo.tamanho());
+    String nome = Documento.nomeLimpo(arquivo.nome());
+    exigirTamanho(arquivo.tamanho(), nome);
+    exigirNome(nome);
+    TipoDeArquivo tipo = exigirTipo(nome);
+    exigirConteudo(arquivo, nome, tipo);
+    return tipo;
+  }
+
+  private void exigirTamanho(long tamanho, String nome) {
+    boolean cabe = Documento.cabeNoLimite(tamanho);
     contexto.decisao("documento.cabeNoLimite", cabe);
     if (!cabe) {
       throw new DocumentoInvalidoException(
-          arquivo.tamanho() <= 0
-              ? "O arquivo \"" + Documento.nomeLimpo(arquivo.nome()) + "\" está vazio."
-              : "O arquivo \"" + Documento.nomeLimpo(arquivo.nome()) + "\" passa de 20 MB.");
+          tamanho <= 0
+              ? "O arquivo \"" + nome + "\" está vazio."
+              : "O arquivo \"" + nome + "\" passa de 20 MB.");
     }
-    var tipo = TipoDeArquivo.doNome(Documento.nomeLimpo(arquivo.nome()));
+  }
+
+  private void exigirNome(String nome) {
+    boolean possuiNome = Documento.possuiNome(nome);
+    contexto.decisao("documento.possuiNome", possuiNome);
+    if (!possuiNome) {
+      throw new DocumentoInvalidoException(
+          "O arquivo \"" + nome + "\" precisa de um nome antes da extensão.");
+    }
+  }
+
+  private TipoDeArquivo exigirTipo(String nome) {
+    var tipo = TipoDeArquivo.doNome(nome);
     contexto.decisao("documento.tipoAceito", tipo.isPresent());
     return tipo.orElseThrow(
         () ->
             new DocumentoInvalidoException(
                 "O tipo de \""
-                    + Documento.nomeLimpo(arquivo.nome())
+                    + nome
                     + "\" não é aceito. Aceitos: "
                     + TipoDeArquivo.aceitos()
                     + "."));
+  }
+
+  private void exigirConteudo(ArquivoEnviado arquivo, String nome, TipoDeArquivo tipo) {
+    boolean confere = tipo.reconhece(inicioDe(arquivo));
+    contexto.decisao("documento.conteudoConfere", confere);
+    if (!confere) {
+      throw new DocumentoInvalidoException(
+          "O conteúdo de \""
+              + nome
+              + "\" não é de um arquivo "
+              + tipo.getNome()
+              + ": confira se ele abre antes de enviar.");
+    }
+  }
+
+  private static byte[] inicioDe(ArquivoEnviado arquivo) {
+    try (InputStream conteudo = arquivo.conteudo().abrir()) {
+      return conteudo.readNBytes(AssinaturaDoConteudo.BYTES_LIDOS);
+    } catch (IOException falha) {
+      throw new UncheckedIOException(falha);
+    }
   }
 
   private void apagarSemFalhar(List<String> chaves) {

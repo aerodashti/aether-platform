@@ -27,7 +27,8 @@ export interface FiltroDoDiario {
 
 const CHAVE = ['voos'] as const;
 
-export function useVoos(filtro: FiltroDoDiario) {
+/** Com `habilitado` falso (recorte inválido), não consulta nem mantém o recorte anterior na tela. */
+export function useVoos(filtro: FiltroDoDiario, habilitado = true) {
   const parametros = new URLSearchParams();
   if (filtro.aeronaveId) {
     parametros.set('aeronave', filtro.aeronaveId);
@@ -38,9 +39,10 @@ export function useVoos(filtro: FiltroDoDiario) {
   return useQuery({
     queryKey: [...CHAVE, filtro],
     queryFn: () => buscar<DiarioDeVoosResponse>(`/voos?${parametros.toString()}`),
+    enabled: habilitado,
     // Mantém o recorte anterior visível enquanto o novo chega: sem isto, trocar o filtro faz a
     // grade piscar para vazio.
-    placeholderData: (anterior) => anterior,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 

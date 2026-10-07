@@ -37,19 +37,22 @@ function parametrosDe(filtro: FiltroDoFundo): string {
   return parametros.toString();
 }
 
-export function useAportes(filtro: FiltroDoFundo) {
+/** Com `habilitado` falso (recorte inválido), não consulta nem mantém o recorte anterior na tela. */
+export function useAportes(filtro: FiltroDoFundo, habilitado = true) {
   return useQuery({
     queryKey: [...CHAVE_DE_APORTES, filtro],
     queryFn: () => buscar<AportesResponse>(`/aportes?${parametrosDe(filtro)}`),
-    placeholderData: (anterior) => anterior,
+    enabled: habilitado,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 
-export function useRendimentos(filtro: FiltroDoFundo) {
+export function useRendimentos(filtro: FiltroDoFundo, habilitado = true) {
   return useQuery({
     queryKey: [...CHAVE_DE_RENDIMENTOS, filtro],
     queryFn: () => buscar<RendimentosResponse>(`/rendimentos?${parametrosDe(filtro)}`),
-    placeholderData: (anterior) => anterior,
+    enabled: habilitado,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 

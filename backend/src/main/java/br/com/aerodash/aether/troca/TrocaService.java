@@ -2,6 +2,7 @@ package br.com.aerodash.aether.troca;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -61,8 +62,9 @@ public class TrocaService {
 
   @Transactional(readOnly = true)
   public TrocasResponse listar(Long aeronaveId, Long proprietarioId, SituacaoDaTroca situacao) {
-    contexto.decisao("trocas.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("trocas.filtroPorProprietario", proprietarioId != null);
+    FiltroPorAeronave.exigirExistente("trocas", aeronaveId, aeronaves::existsById, contexto);
+    exigirProprietarioDoFiltro(proprietarioId);
     List<TrocaDeKm> recorte =
         trocas.findAllByOrderByDataDescIdDesc().stream()
             .filter(troca -> aeronaveId == null || troca.getAeronaveId().equals(aeronaveId))
@@ -79,6 +81,15 @@ public class TrocaService {
         recorte.size() - concluidas,
         concluidas,
         proprietarioId == null ? null : saldoDe(proprietarioId, recorte));
+  }
+
+  /** Filtro por quem não existe é 404: senão a tela mostraria um saldo de 0 h para ninguém. */
+  private void exigirProprietarioDoFiltro(Long proprietarioId) {
+    boolean proprietarioExiste = proprietarioId == null || proprietarios.existsById(proprietarioId);
+    contexto.decisao("trocas.proprietarioDoFiltroExiste", proprietarioExiste);
+    if (!proprietarioExiste) {
+      throw new RecursoNaoEncontradoException("Proprietário não encontrado.");
+    }
   }
 
   @Transactional

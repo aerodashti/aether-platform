@@ -12,8 +12,13 @@ interface SeletorDeArquivosProps {
   aceita?: string;
   /** Inerte e anunciado como ocupado, durante o envio. */
   carregando?: boolean;
-  /** `id` do texto com os tipos e o tamanho aceitos, para o leitor de tela ouvir antes de escolher. */
+  /**
+   * `id`s (separados por espaço) do que o leitor de tela ouve com o controle: os tipos e limites
+   * aceitos e, depois de uma escolha recusada, o motivo.
+   */
   descritoPor?: string;
+  /** A última escolha foi recusada: anuncia o controle como inválido, como um campo com erro. */
+  invalido?: boolean;
 }
 
 /**
@@ -30,6 +35,7 @@ export function SeletorDeArquivos({
   aceita,
   carregando = false,
   descritoPor,
+  invalido = false,
 }: SeletorDeArquivosProps) {
   const id = useId();
   const entrada = useRef<HTMLInputElement>(null);
@@ -58,6 +64,7 @@ export function SeletorDeArquivos({
         aria-disabled={carregando || undefined}
         aria-busy={carregando || undefined}
         aria-describedby={descritoPor}
+        aria-invalid={invalido || undefined}
         onClick={(evento) => {
           if (carregando) {
             evento.preventDefault();

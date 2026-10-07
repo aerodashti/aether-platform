@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { RascunhoDoAporte } from './rascunhoDoAporte';
-import { ultimaCompetencia, validarAporte, type ContextoDoAporte } from './validacaoDoAporte';
+import { janelaDoAporte, validarAporte, type ContextoDoAporte } from './validacaoDoAporte';
 
 const CONTEXTO: ContextoDoAporte = { hoje: '2026-10-07', donos: 'pronta' };
 
@@ -68,7 +68,7 @@ describe('validarAporte', () => {
   });
 
   it('a competência vai de 01/2000 até um ano depois da corrente, no formato AAAA-MM', () => {
-    expect(ultimaCompetencia('2026-10-07')).toBe('2027-10');
+    expect(janelaDoAporte('2026-10-07')).toEqual({ primeira: '2000-01', ultima: '2027-10' });
     expect(errosDe({ competencia: '2027-10' }).competencia).toBeUndefined();
     expect(errosDe({ competencia: '2027-11' }).competencia).toBe(
       'Use uma competência de 01/2000 até 10/2027.',
@@ -77,13 +77,13 @@ describe('validarAporte', () => {
       'Use uma competência de 01/2000 até 10/2027.',
     );
     expect(errosDe({ competencia: '09/2026' }).competencia).toBe(
-      'Use o formato AAAA-MM, como 2026-09.',
+      'Use o formato AAAA-MM, como 2026-10.',
     );
     expect(errosDe({ competencia: '20266-09' }).competencia).toBe(
-      'Use o formato AAAA-MM, como 2026-09.',
+      'Use o formato AAAA-MM, como 2026-10.',
     );
     expect(errosDe({ competencia: '2026-13' }).competencia).toBe(
-      'Use o formato AAAA-MM, como 2026-09.',
+      'Use o formato AAAA-MM, como 2026-10.',
     );
   });
 });

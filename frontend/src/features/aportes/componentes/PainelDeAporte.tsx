@@ -23,12 +23,7 @@ import {
   type RascunhoDoAporte,
 } from './rascunhoDoAporte';
 import { PRIMEIRA_DATA } from './regrasDoFundo';
-import {
-  PRIMEIRA_COMPETENCIA,
-  ROTULOS_DO_APORTE,
-  ultimaCompetencia,
-  validarAporte,
-} from './validacaoDoAporte';
+import { ROTULOS_DO_APORTE, janelaDoAporte, validarAporte } from './validacaoDoAporte';
 
 interface PainelDeAporteProps {
   aporte?: AporteResponse;
@@ -184,8 +179,8 @@ export function PainelDeAporte({
           obrigatorio
           valor={rascunho.competencia}
           aoMudar={mudarCompetencia}
-          minimo={PRIMEIRA_COMPETENCIA}
-          maximo={ultimaCompetencia(hoje)}
+          minimo={janelaDoAporte(hoje).primeira}
+          maximo={janelaDoAporte(hoje).ultima}
           exemplo="AAAA-MM"
           apoio="O mês a que o aporte se refere — em geral o anterior ao do crédito: o aporte de setembro cai em outubro."
           erro={validacao.erroDe('competencia')}

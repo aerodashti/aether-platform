@@ -272,6 +272,7 @@ class VooServiceTest {
     when(trechos.findByAeronaveIdAndDataBetweenOrderByDataDescRelatorioDeVooDescNumeroDoTrechoDesc(
             1L, LocalDate.parse("2026-09-01"), LocalDate.parse("2026-09-30")))
         .thenReturn(List.of(voadoComDono, voadoDeManutencao, planejado));
+    when(aeronaves.existsById(1L)).thenReturn(true);
 
     DiarioDeVoosResponse diario = service.listar(1L, YearMonth.parse("2026-09"));
 

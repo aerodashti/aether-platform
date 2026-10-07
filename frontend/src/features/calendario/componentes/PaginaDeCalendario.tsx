@@ -1,4 +1,11 @@
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import {
+  competenciaLocal,
+  hojeLocal,
+  somarMesesNaCompetencia,
+} from '@/compartilhado/formatacao/datas';
+import { ehCompetencia } from '@/compartilhado/recorte/competencia';
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { juntarClasses } from '@/design-system/classes';
 import { iniciaisDe } from '@/design-system/primitivos/Avatar';
@@ -11,14 +18,7 @@ import { Texto } from '@/design-system/primitivos/Texto';
 import { useCalendario } from '../api/useCalendario';
 
 import estilos from './PaginaDeCalendario.module.css';
-import {
-  competenciaAtual,
-  DIAS_DA_SEMANA,
-  hoje as diaDeHoje,
-  semanasDaCompetencia,
-  somarMeses,
-  tituloDaCompetencia,
-} from './rotulos';
+import { DIAS_DA_SEMANA, semanasDaCompetencia, tituloDaCompetencia } from './rotulos';
 
 /**
  * O mês de uma aeronave: trechos pintados com a cor do proprietário e manutenções programadas.
@@ -32,16 +32,17 @@ import {
 export function PaginaDeCalendario() {
   const aeronaves = useAeronaves();
   const primeira = aeronaves.data?.[0]?.id;
-  const recorte = useRecorteDaUrl(competenciaAtual());
+  const recorte = useRecorteDaUrl(competenciaLocal());
 
   const aeronaveId = recorte.aeronaveId || (primeira != null ? String(primeira) : '');
-  // Sem competência na URL (ou vazia, que aqui não tem sentido de "histórico"), o mês corrente.
-  const competencia = recorte.competencia || competenciaAtual();
-  const setCompetencia = (mudanca: (atual: string) => string) =>
-    recorte.setCompetencia(mudanca(competencia));
+  // Sem competência na URL, vazia (que aqui não tem sentido de "histórico") ou fora do formato
+  // (um link editado à mão), o mês corrente: um "2026-13" viraria "Janeiro de 2027" sem dias.
+  const competencia = ehCompetencia(recorte.competencia) ? recorte.competencia : competenciaLocal();
+  const irPara = (meses: number) =>
+    recorte.setCompetencia(somarMesesNaCompetencia(competencia, meses));
   const calendario = useCalendario(aeronaveId, competencia);
 
-  const hoje = diaDeHoje();
+  const hoje = hojeLocal();
   const semanas = semanasDaCompetencia(competencia);
   const donosDoMes = [
     ...new Map(
@@ -70,13 +71,14 @@ export function PaginaDeCalendario() {
             rotulo: `${aeronave.matricula} — ${aeronave.modelo}`,
           }))}
           aoMudar={recorte.setAeronaveId}
+          apoio={recorte.avisoDaAeronave}
         />
         <div className={estilos.navegacaoDoMes}>
           <Botao
             variante="fantasma"
             tamanho="pequeno"
             rotuloAcessivel="Mês anterior"
-            aoClicar={() => setCompetencia((atual) => somarMeses(atual, -1))}
+            aoClicar={() => irPara(-1)}
           >
             ←
           </Botao>
@@ -87,21 +89,21 @@ export function PaginaDeCalendario() {
             variante="fantasma"
             tamanho="pequeno"
             rotuloAcessivel="Próximo mês"
-            aoClicar={() => setCompetencia((atual) => somarMeses(atual, 1))}
+            aoClicar={() => irPara(1)}
           >
             →
           </Botao>
         </div>
       </div>
 
-      {calendario.isError ? (
+      {calendario.erro ? (
         <div className={estilos.recado} role="alert">
-          <Texto variante="corpo" como="p">
-            Não foi possível carregar o calendário.
-          </Texto>
-          <Botao variante="secundario" tamanho="pequeno" aoClicar={() => void calendario.refetch()}>
-            Tentar de novo
-          </Botao>
+          <FalhaDaConsulta
+            falha={calendario.erro}
+            generica="Não foi possível carregar o calendário."
+            aoTentarDeNovo={() => void calendario.refetch()}
+            aoLimpar={recorte.limpar}
+          />
         </div>
       ) : (
         <div className={estilos.painel}>

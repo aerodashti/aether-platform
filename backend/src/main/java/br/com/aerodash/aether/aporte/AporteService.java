@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aporte;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -30,7 +31,6 @@ public class AporteService {
   private static final String CAMPO_DATA = "data";
   private static final String CAMPO_COMPETENCIA = "competencia";
   private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-  private static final DateTimeFormatter COMPETENCIA = DateTimeFormatter.ofPattern("MM/yyyy");
 
   private final AporteRepository aportes;
   private final AeronaveRepository aeronaves;
@@ -56,9 +56,9 @@ public class AporteService {
 
   @Transactional(readOnly = true)
   public AportesResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
-    PeriodoDeCompetencias periodo = PeriodoDeCompetencias.entre(de, ate);
-    exigirPeriodoEmOrdem(periodo);
-    contexto.decisao("aportes.filtroPorAeronave", aeronaveId != null);
+    PeriodoDeCompetencias periodo =
+        RecorteDoFundo.exigirPeriodo("aportes", de, ate, YearMonth.now(relogio), contexto);
+    FiltroPorAeronave.exigirExistente("aportes", aeronaveId, aeronaves::existsById, contexto);
     List<Aporte> recorte =
         aeronaveId == null
             ? aportes.findByCompetenciaBetweenOrderByDataDescIdDesc(periodo.de(), periodo.ate())
@@ -170,22 +170,7 @@ public class AporteService {
     contexto.decisao("aporte.competenciaAceitavel", aceitavel);
     if (!aceitavel) {
       throw new AporteInvalidoException(
-          APORTE_INVALIDO,
-          "Use uma competência de "
-              + Aporte.PRIMEIRA_COMPETENCIA.format(COMPETENCIA)
-              + " até "
-              + Aporte.ultimaCompetencia(corrente).format(COMPETENCIA)
-              + ".",
-          CAMPO_COMPETENCIA);
-    }
-  }
-
-  private void exigirPeriodoEmOrdem(PeriodoDeCompetencias periodo) {
-    boolean invertido = periodo.estaInvertido();
-    contexto.decisao("aportes.periodoInvertido", invertido);
-    if (invertido) {
-      throw new AporteInvalidoException(
-          "Período inválido", "A competência inicial vem depois da final.");
+          APORTE_INVALIDO, JanelaDeCompetencias.aPartirDa(corrente).recusa(), CAMPO_COMPETENCIA);
     }
   }
 

@@ -16,7 +16,7 @@ final class CalendarioDoFundo {
   static final ZoneId FUSO_DA_OPERACAO = ZoneId.of("America/Sao_Paulo");
 
   /** Antes disso é ano digitado errado: o registro cairia numa competência que ninguém consulta. */
-  static final LocalDate PRIMEIRA_DATA = LocalDate.of(2000, 1, 1);
+  static final LocalDate PRIMEIRA_DATA = JanelaDeCompetencias.PRIMEIRA.atDay(1);
 
   private CalendarioDoFundo() {}
 

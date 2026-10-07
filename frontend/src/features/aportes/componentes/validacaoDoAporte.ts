@@ -1,6 +1,10 @@
-import { somarMesesNaCompetencia } from '@/compartilhado/formatacao/datas';
-import { obrigatorio, primeiraFalha, type Regra } from '@/compartilhado/formulario/regras';
+import { obrigatorio, primeiraFalha } from '@/compartilhado/formulario/regras';
 import type { Erros } from '@/compartilhado/formulario/useValidacao';
+import {
+  competenciaEntre,
+  janelaDeCompetencias,
+  type JanelaDeCompetencias,
+} from '@/compartilhado/recorte/competencia';
 
 import type { SituacaoDosDonos } from './donosDoAporte';
 import type { RascunhoDoAporte } from './rascunhoDoAporte';
@@ -17,14 +21,12 @@ export const ROTULOS_DO_APORTE: Record<CampoDoAporte, string> = {
   valor: 'Valor (R$)',
 };
 
-/** Antes disso é ano digitado errado — o `Aporte.PRIMEIRA_COMPETENCIA` do servidor. */
-export const PRIMEIRA_COMPETENCIA = '2000-01';
-
-/** O aporte anual antecipado chega a um ano à frente da competência corrente; além disso, não. */
-const MESES_DE_ANTECEDENCIA = 12;
-
-export function ultimaCompetencia(hoje: string): string {
-  return somarMesesNaCompetencia(hoje.slice(0, 7), MESES_DE_ANTECEDENCIA);
+/**
+ * As competências que o aporte aceita: a mesma janela dos recortes do fundo, de 01/2000 até um ano
+ * à frente da corrente — o aporte anual antecipado.
+ */
+export function janelaDoAporte(hoje: string): JanelaDeCompetencias {
+  return janelaDeCompetencias(hoje.slice(0, 7));
 }
 
 export interface ContextoDoAporte {
@@ -39,31 +41,6 @@ const FALTA_DO_PROPRIETARIO: Record<SituacaoDosDonos, string> = {
   semContrato: 'A aeronave não tem contrato vigente: cadastre o contrato antes do aporte.',
   pronta: 'Escolha o proprietário.',
 };
-
-/** "AAAA-MM", com mês de 01 a 12 — onde o campo de mês não existe, ele é texto livre. */
-const FORMATO_DE_COMPETENCIA = /^\d{4}-(0[1-9]|1[0-2])$/;
-
-/** "2026-10" → "10/2026", como a pessoa lê o mês. */
-function mesEmTexto(competencia: string): string {
-  const [ano, mes] = competencia.split('-');
-  return `${mes}/${ano}`;
-}
-
-/** Competência no formato do campo e dentro da faixa — as competências se comparam como texto. */
-function competenciaEntre(minimo: string, maximo: string): Regra {
-  return (texto) => {
-    const competencia = texto.trim();
-    if (competencia === '') {
-      return undefined;
-    }
-    if (!FORMATO_DE_COMPETENCIA.test(competencia)) {
-      return 'Use o formato AAAA-MM, como 2026-09.';
-    }
-    return competencia < minimo || competencia > maximo
-      ? `Use uma competência de ${mesEmTexto(minimo)} até ${mesEmTexto(maximo)}.`
-      : undefined;
-  };
-}
 
 /** Os limites do `AporteRequest`, das colunas e da entidade, ditos no campo antes do servidor. */
 export function validarAporte(
@@ -85,7 +62,7 @@ export function validarAporte(
     competencia: primeiraFalha(
       rascunho.competencia,
       obrigatorio('Informe a competência.'),
-      competenciaEntre(PRIMEIRA_COMPETENCIA, ultimaCompetencia(hoje)),
+      competenciaEntre(janelaDoAporte(hoje)),
     ),
     valor: primeiraFalha(rascunho.valor, obrigatorio('Informe o valor.'), valorEmReais),
   };

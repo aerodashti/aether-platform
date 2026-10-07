@@ -47,6 +47,11 @@ server:
   port: 8080
   error:
     include-message: never
+  tomcat:
+    # O limite de documentos por envio é 10 (DocumentoService.ARQUIVOS_POR_ENVIO). Com o padrão do
+    # Tomcat, também 10, o 11.º arquivo era barrado antes do controller, sem dizer o limite; com
+    # folga, o envio chega ao serviço e ouve "Envie até 10 arquivos por vez.".
+    max-part-count: 50
 
 springdoc:
   swagger-ui:

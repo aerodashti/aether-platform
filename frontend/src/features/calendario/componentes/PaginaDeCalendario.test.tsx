@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
+
 import { PaginaDeCalendario } from './PaginaDeCalendario';
-import { competenciaAtual } from './rotulos';
 
 function OndeEstou() {
   const local = useLocation();
@@ -108,11 +109,40 @@ describe('PaginaDeCalendario', () => {
     expect(await screen.findByText('SBSP→SBRJ')).toBeInTheDocument();
     expect(screen.getByText('Inspeção de 100 h — célula')).toBeInTheDocument();
     // O mês corrente por extenso no cabeçalho.
-    const [ano, mes] = competenciaAtual().split('-');
+    const [ano, mes] = competenciaLocal().split('-');
     expect(ano && mes).toBeTruthy();
     expect(
       screen.getByRole('link', { name: /Abrir o diário no trecho RV-2026-041/ }),
     ).toBeInTheDocument();
+  });
+
+  it('competência fora do formato no link cai no mês corrente', async () => {
+    prepararFetch();
+    envolver(<PaginaDeCalendario />, '/calendario?competencia=2026-13');
+
+    expect(await screen.findByText('SBSP→SBRJ')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Janeiro de 2027' })).toBeNull();
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas).toContain(`/api/voos?aeronave=1&competencia=${competenciaLocal()}`);
+  });
+
+  it('a recusa do servidor aparece como veio, com Limpar filtros', async () => {
+    prepararFetch();
+    const padrao = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((entrada, opcoes) =>
+      String(entrada).startsWith('/api/manutencoes')
+        ? Promise.resolve({
+            ...respostaDe({ detail: 'Aeronave não encontrada.' }),
+            ok: false,
+            status: 404,
+          } as Response)
+        : (padrao?.(entrada, opcoes) as Promise<Response>),
+    );
+    envolver(<PaginaDeCalendario />);
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('Aeronave não encontrada.');
+    expect(within(alerta).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument();
   });
 
   it('chega na aeronave da URL e o trecho abre o diário no mesmo recorte', async () => {
@@ -126,7 +156,7 @@ describe('PaginaDeCalendario', () => {
     );
 
     expect(
-      await screen.findByText(`em /voos?aeronave=2&competencia=${competenciaAtual()}`),
+      await screen.findByText(`em /voos?aeronave=2&competencia=${competenciaLocal()}`),
     ).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
-import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { Texto } from '@/design-system/primitivos/Texto';
 
@@ -20,13 +20,15 @@ import { competenciaEmTexto, dataCurta, moedaEmTexto, taxaEmTexto } from './rotu
 interface TabelaDeRendimentosProps {
   resposta: RendimentosResponse | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   mostraAeronave: boolean;
   podeGerir: boolean;
   aoCorrigir: (rendimento: RendimentoResponse) => void;
   /** Para a página fechar a correção de um rendimento que acabou de sair. */
   aoExcluir: (id: number) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 /** Os rendimentos do recorte. Saldo aplicado e taxa são o extrato; o que conta é o rendimento. */
@@ -39,6 +41,7 @@ export function TabelaDeRendimentos({
   aoCorrigir,
   aoExcluir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeRendimentosProps) {
   const exclusao = useExclusaoNaGrade(useExcluirRendimento(), aoExcluir);
   const linha = juntarClasses(estilos.rendimentos, mostraAeronave && estilos.comAeronave);
@@ -54,12 +57,12 @@ export function TabelaDeRendimentos({
   if (erro) {
     return comFalha(
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar os rendimentos.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar os rendimentos."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>,
     );
   }

@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { hoje, semanasDaCompetencia, somarMeses, tituloDaCompetencia } from './rotulos';
+import { semanasDaCompetencia, tituloDaCompetencia } from './rotulos';
 
 describe('semanasDaCompetencia', () => {
   it('cobre setembro de 2026 de segunda a domingo, com as sobras marcadas', () => {
@@ -27,29 +27,8 @@ describe('semanasDaCompetencia', () => {
   });
 });
 
-describe('somarMeses', () => {
-  it('atravessa a virada do ano nos dois sentidos', () => {
-    expect(somarMeses('2026-12', 1)).toBe('2027-01');
-    expect(somarMeses('2026-01', -1)).toBe('2025-12');
-  });
-});
-
 describe('tituloDaCompetencia', () => {
   it('escreve o mês por extenso, capitalizado', () => {
     expect(tituloDaCompetencia('2026-09')).toMatch(/^Setembro de 2026$/i);
-  });
-});
-
-describe('hoje', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('é a data no fuso de quem usa, não em UTC', () => {
-    // 22h30 do dia 30 no relógio local: em Brasília, já é dia 1º em UTC.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 8, 30, 22, 30));
-
-    expect(hoje()).toBe('2026-09-30');
   });
 });

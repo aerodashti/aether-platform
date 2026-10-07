@@ -165,16 +165,21 @@ export async function enviarArquivos<T>(
   return conferir<T>(caminho, resposta);
 }
 
-/** O endereço de um recurso para o navegador abrir ou baixar, com o mesmo prefixo das chamadas. */
-export function enderecoDaApi(caminho: string): string {
-  return `${BASE}${caminho}`;
+/**
+ * Baixa um arquivo como `Blob`, para a tela salvá-lo. A falha vira {@link ErroDeApi}, como nas
+ * outras chamadas: navegar até o endereço trocaria a tela pelo problem+json de um 404.
+ */
+export async function baixarArquivo(caminho: string): Promise<Blob> {
+  const resposta = await requisitar(caminho, {
+    headers: contexto.cabecalhosDeTrace(),
+    credentials: 'same-origin',
+  });
+  await exigirSucesso(caminho, resposta);
+  return resposta.blob();
 }
 
-/**
- * Registra a correlação, traduz o erro e devolve o corpo. O 204 do backend não tem corpo: tentar
- * lê-lo como JSON quebraria os passos da recuperação, que respondem exatamente isso.
- */
-async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
+/** Registra a correlação e, se a resposta é de erro, o traduz em {@link ErroDeApi}. */
+async function exigirSucesso(caminho: string, resposta: Response): Promise<void> {
   const requisicao = resposta.headers.get(HEADER_REQUISICAO);
 
   contexto.registrar('http.caminho', caminho);
@@ -186,7 +191,14 @@ async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
     contexto.erro('Falha na requisição à API');
     throw new ErroDeApi(mensagem, resposta.status, requisicao, campos, titulo);
   }
+}
 
+/**
+ * Confere a resposta e devolve o corpo. O 204 do backend não tem corpo: tentar lê-lo como JSON
+ * quebraria os passos da recuperação, que respondem exatamente isso.
+ */
+async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
+  await exigirSucesso(caminho, resposta);
   if (resposta.status === 204 || resposta.headers.get('Content-Length') === '0') {
     return undefined as T;
   }

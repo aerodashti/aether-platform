@@ -7,7 +7,8 @@ import java.util.Optional;
 /**
  * Os tipos que a aeronave guarda: documento escaneado, foto, planilha, texto. Fechado de propósito
  * — HTML, SVG e executáveis não entram — e o tipo de conteúdo servido no download vem daqui, da
- * extensão, nunca do que o navegador declarou no envio.
+ * extensão, nunca do que o navegador declarou no envio. A extensão só vale se o conteúdo traz a
+ * assinatura do formato: um arquivo que não abre não entra no acervo regulatório.
  */
 public enum TipoDeArquivo {
   PDF("pdf", "application/pdf"),
@@ -41,8 +42,31 @@ public enum TipoDeArquivo {
   }
 
   public static String aceitos() {
-    return String.join(
-        ", ", Arrays.stream(values()).map(tipo -> tipo.extensao.toUpperCase(Locale.ROOT)).toList());
+    return String.join(", ", Arrays.stream(values()).map(TipoDeArquivo::getNome).toList());
+  }
+
+  /** Se o começo do arquivo é mesmo deste formato — veja {@link AssinaturaDoConteudo}. */
+  public boolean reconhece(byte[] inicio) {
+    return assinatura().reconhece(inicio);
+  }
+
+  private AssinaturaDoConteudo assinatura() {
+    return switch (this) {
+      case PDF -> AssinaturaDoConteudo.PDF;
+      case PNG -> AssinaturaDoConteudo.PNG;
+      case JPG, JPEG -> AssinaturaDoConteudo.JPEG;
+      case WEBP -> AssinaturaDoConteudo.WEBP;
+      case HEIC -> AssinaturaDoConteudo.HEIC;
+      case DOC -> AssinaturaDoConteudo.OLE2.ou(AssinaturaDoConteudo.RTF);
+      case DOCX, XLSX -> AssinaturaDoConteudo.ZIP;
+      case XLS -> AssinaturaDoConteudo.OLE2;
+      case CSV, TXT -> AssinaturaDoConteudo.QUALQUER;
+    };
+  }
+
+  /** "PDF", "JPG": o formato como a mensagem de recusa o nomeia. */
+  public String getNome() {
+    return extensao.toUpperCase(Locale.ROOT);
   }
 
   public String getTipoDeConteudo() {

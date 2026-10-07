@@ -206,6 +206,7 @@ class AporteServiceTest {
                     YearMonth.of(2026, 8),
                     new BigDecimal("15000.50"),
                     AGORA)));
+    when(aeronaves.existsById(1L)).thenReturn(true);
 
     AportesResponse resposta = service.listar(1L, YearMonth.of(2026, 8), YearMonth.of(2026, 9));
 

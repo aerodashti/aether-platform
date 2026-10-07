@@ -16,4 +16,23 @@ describe('SeletorDeArquivos', () => {
     expect(aoEscolher).toHaveBeenCalledWith([pdf]);
     expect(entrada.value).toBe('');
   });
+
+  it('liga a orientação e a recusa ao controle, e o anuncia inválido', () => {
+    render(
+      <>
+        <p id="limites">Até 20 MB cada.</p>
+        <p id="recusa">Envie até 10 arquivos por vez.</p>
+        <SeletorDeArquivos
+          rotulo="+ Adicionar documentos"
+          aoEscolher={vi.fn()}
+          descritoPor="recusa limites"
+          invalido
+        />
+      </>,
+    );
+
+    const entrada = screen.getByLabelText('+ Adicionar documentos');
+    expect(entrada).toHaveAccessibleDescription('Envie até 10 arquivos por vez. Até 20 MB cada.');
+    expect(entrada).toBeInvalid();
+  });
 });

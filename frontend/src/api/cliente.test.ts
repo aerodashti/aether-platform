@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buscar, enviar, ErroDeApi, SEM_CONEXAO } from './cliente';
+import { baixarArquivo, buscar, enviar, ErroDeApi, SEM_CONEXAO } from './cliente';
 
 function respostaDe(corpo: unknown, status: number) {
   return {
@@ -54,6 +54,27 @@ describe('cliente da API', () => {
 
     expect((erro as ErroDeApi).message).toBe('Aeronave não encontrada.');
     expect((erro as ErroDeApi).campos).toEqual({});
+  });
+
+  it('baixar devolve o conteúdo, e a falha vira ErroDeApi em vez de trocar a página', async () => {
+    const conteudo = new Blob(['%PDF-1.7']);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((caminho: string) =>
+        Promise.resolve(
+          caminho.endsWith('/7/conteudo')
+            ? ({ ...respostaDe(undefined, 200), blob: () => Promise.resolve(conteudo) } as Response)
+            : respostaDe({ detail: 'Documento não encontrado.' }, 404),
+        ),
+      ),
+    );
+
+    expect(await baixarArquivo('/aeronaves/1/documentos/7/conteudo')).toBe(conteudo);
+    const erro = await baixarArquivo('/aeronaves/1/documentos/8/conteudo').catch(
+      (falha: unknown) => falha,
+    );
+    expect(erro).toBeInstanceOf(ErroDeApi);
+    expect((erro as ErroDeApi).message).toBe('Documento não encontrado.');
   });
 
   it('sem rede, o erro é um ErroDeApi com mensagem em português, e não um TypeError', async () => {

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.ProprietarioRepository;
 import java.math.BigDecimal;
@@ -219,6 +220,21 @@ class TrocaServiceTest {
     assertThat(resposta.concluidas()).isEqualTo(1);
     // Ricardo cedeu 2,5 e recebeu 1,0: tem 1,5 a receber de volta.
     assertThat(resposta.saldo().horasADevolver()).isEqualByComparingTo("-1.5");
+  }
+
+  @Test
+  @DisplayName("filtrar por aeronave ou proprietário que não existe é 404, não um saldo de 0 h")
+  void filtroInexistente() {
+    when(proprietarios.existsById(99L)).thenReturn(false);
+
+    assertThatThrownBy(() -> service.listar(99L, null, null))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("Aeronave não encontrada.");
+    assertThatThrownBy(() -> service.listar(null, 99L, null))
+        .isInstanceOf(RecursoNaoEncontradoException.class)
+        .hasMessage("Proprietário não encontrado.");
+    verify(contexto).decisao("trocas.proprietarioDoFiltroExiste", false);
+    verify(trocas, never()).findAllByOrderByDataDescIdDesc();
   }
 
   private static DadosDaTroca dados(Long cedente, Long recebedor, String horas, String data) {

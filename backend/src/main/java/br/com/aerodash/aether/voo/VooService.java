@@ -2,6 +2,7 @@ package br.com.aerodash.aether.voo;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -64,8 +65,8 @@ public class VooService {
 
   @Transactional(readOnly = true)
   public DiarioDeVoosResponse listar(Long aeronaveId, YearMonth competencia) {
-    contexto.decisao("voos.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("voos.filtroPorCompetencia", competencia != null);
+    FiltroPorAeronave.exigirExistente("voos", aeronaveId, aeronaves::existsById, contexto);
     List<Trecho> recorte = recorteDe(aeronaveId, competencia);
 
     contexto.registrar("voos.trechos", recorte.size());

@@ -22,15 +22,6 @@ import java.time.YearMonth;
 @Table(name = "aporte")
 public class Aporte {
 
-  public static final YearMonth PRIMEIRA_COMPETENCIA =
-      YearMonth.from(CalendarioDoFundo.PRIMEIRA_DATA);
-
-  /**
-   * Quanto a competência pode estar à frente da corrente: o aporte anual antecipado chega a um ano.
-   * Além disso é ano digitado errado, e o aporte sumiria de todo recorte que alguém consulta.
-   */
-  public static final int MESES_DE_ANTECEDENCIA_DA_COMPETENCIA = 12;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -94,14 +85,12 @@ public class Aporte {
     return data.isBefore(CalendarioDoFundo.PRIMEIRA_DATA);
   }
 
-  /** A última competência aceita quando a corrente é {@code corrente}. */
-  public static YearMonth ultimaCompetencia(YearMonth corrente) {
-    return corrente.plusMonths(MESES_DE_ANTECEDENCIA_DA_COMPETENCIA);
-  }
-
+  /**
+   * A competência cabe na mesma janela dos recortes do fundo: o aporte anual antecipado chega a um
+   * ano à frente, e fora dela o aporte sumiria de todo recorte que alguém consulta.
+   */
   public boolean possuiCompetenciaAceitavel(YearMonth corrente) {
-    return !competencia.isBefore(PRIMEIRA_COMPETENCIA)
-        && !competencia.isAfter(ultimaCompetencia(corrente));
+    return JanelaDeCompetencias.aPartirDa(corrente).aceita(competencia);
   }
 
   public Long getId() {
