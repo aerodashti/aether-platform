@@ -1,6 +1,6 @@
--- Termina, nos dados de desenvolvimento, a V20: dá o dia da conclusão às concluídas que o seed V907
--- gravou sem ele (num banco novo ele roda depois da V20) e só então cria a regra que a V20 cria
--- direto fora do desenvolvimento. Em banco que já tinha as manutenções, a V20 preencheu tudo e a
+-- Termina, nos dados de desenvolvimento, a V21: dá o dia da conclusão às concluídas que o seed V907
+-- gravou sem ele (num banco novo ele roda depois da V21) e só então cria a regra que a V21 cria
+-- direto fora do desenvolvimento. Em banco que já tinha as manutenções, a V21 preencheu tudo e a
 -- cópia aqui não acha nada a fazer.
 
 UPDATE manutencao
