@@ -127,14 +127,28 @@ class SaidaDeProprietarioServiceTest {
   }
 
   @Test
-  @DisplayName("faltar uma aeronave de quem sai é recusado antes de qualquer contrato novo")
-  void recusaAeronaveQueFalta() {
+  @DisplayName("aeronave de quem sai que falta no pedido é contrato desatualizado")
+  void aeronaveQueFaltaEhContratoDesatualizado() {
     var pedido = new SaidaDeProprietarioRequest(List.of(novo(JATO, RICARDO)));
 
     assertThatThrownBy(() -> service.sair(HELENA, pedido, "Leonardo"))
-        .isInstanceOf(ContratoInvalidoException.class)
-        .hasMessageContaining("cada aeronave em que Helena Sarraf participa");
+        .isInstanceOf(ContratoDesatualizadoException.class)
+        .hasMessageContaining("aeronaves em que Helena Sarraf participa mudaram");
     verify(participacoes, never()).definir(anyLong(), any(), anyString(), anyString());
+    verify(contexto).decisao("saida.cobreTodasAsAeronaves", false);
+  }
+
+  @Test
+  @DisplayName("aeronave em que quem sai já não está é contrato desatualizado")
+  void aeronaveAMaisEhContratoDesatualizado() {
+    when(contratos.findByFimDaVigenciaIsNullAndParticipacoesProprietarioId(HELENA))
+        .thenReturn(List.of(contratoDe(JATO)));
+    var pedido =
+        new SaidaDeProprietarioRequest(List.of(novo(JATO, RICARDO), novo(HELICOPTERO, RICARDO)));
+
+    assertThatThrownBy(() -> service.sair(HELENA, pedido, "Leonardo"))
+        .isInstanceOf(ContratoDesatualizadoException.class);
+    assertThat(helena.estaAtivo()).isTrue();
   }
 
   @Test

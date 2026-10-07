@@ -9,7 +9,9 @@ public class ProprietarioJaInativoException extends ExcecaoDeDominio {
   private static final long serialVersionUID = 1L;
 
   public ProprietarioJaInativoException(String nome) {
-    super("Proprietário já inativo", nome + " já está inativo: não há saída a registrar.");
+    super(
+        "Proprietário já inativo",
+        "O cadastro de " + nome + " já está inativo: não há saída a registrar.");
   }
 
   @Override

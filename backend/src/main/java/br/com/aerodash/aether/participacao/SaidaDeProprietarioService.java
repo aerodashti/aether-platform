@@ -68,7 +68,11 @@ public class SaidaDeProprietarioService {
     contexto.registrar("saida.contratosRedistribuidos", novos.size());
   }
 
-  /** Um contrato novo por aeronave de quem sai: nem aeronave a mais, nem a menos, nem repetida. */
+  /**
+   * Um contrato novo por aeronave de quem sai: nem repetida, nem a mais, nem a menos. Aeronave a
+   * mais ou a menos quer dizer que os contratos mudaram desde que a tela os carregou — alguém
+   * incluiu ou tirou quem sai de um deles —, e a tela recomeça das aeronaves atuais.
+   */
   private void exigirUmContratoPorAeronave(Proprietario quemSai, List<ContratoNovo> novos) {
     Set<Long> pedidas = new HashSet<>();
     for (int indice = 0; indice < novos.size(); indice++) {
@@ -87,10 +91,7 @@ public class SaidaDeProprietarioService {
     boolean cobreTodas = pedidas.equals(aeronavesDele);
     contexto.decisao("saida.cobreTodasAsAeronaves", cobreTodas);
     if (!cobreTodas) {
-      throw new ContratoInvalidoException(
-          "Informe um contrato novo para cada aeronave em que "
-              + quemSai.getNome()
-              + " participa.");
+      throw ContratoDesatualizadoException.daSaida(quemSai.getNome());
     }
   }
 

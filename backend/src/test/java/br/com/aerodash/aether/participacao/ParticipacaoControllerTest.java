@@ -1,7 +1,8 @@
 package br.com.aerodash.aether.participacao;
 
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -179,7 +180,7 @@ class ParticipacaoControllerTest {
   }
 
   @Test
-  @DisplayName("participação acima de 100 diz o limite, não as casas decimais")
+  @DisplayName("participação acima de 100 diz que vai até 100%, venha do @DecimalMax ou do @Digits")
   void percentualAcimaDeCemDizOLimite() throws Exception {
     definir(
             """
@@ -188,7 +189,10 @@ class ParticipacaoControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.campos['participacoes[0].percentual']")
-                .value(startsWith("A participação vai até 100%")));
+                .value(
+                    anyOf(
+                        is("A participação vai até 100%."),
+                        is("A participação vai até 100%, com no máximo duas casas decimais."))));
   }
 
   @Test
@@ -209,7 +213,7 @@ class ParticipacaoControllerTest {
   @DisplayName("a edição que perdeu a corrida para outro contrato recebe 409")
   void edicaoDesatualizadaEh409() throws Exception {
     when(participacoes.definir(eq(1L), any(), eq("Patrícia")))
-        .thenThrow(new ContratoDesatualizadoException("PS-MEP"));
+        .thenThrow(ContratoDesatualizadoException.daAeronave("PS-MEP"));
 
     definir(
             """

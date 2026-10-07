@@ -209,7 +209,7 @@ public class ParticipacaoService {
     boolean desatualizado = !Objects.equals(idDoVigente, contratoVigenteId);
     contexto.decisao("participacao.contratoDesatualizado", desatualizado);
     if (desatualizado) {
-      throw new ContratoDesatualizadoException(aeronave.getMatricula());
+      throw ContratoDesatualizadoException.daAeronave(aeronave.getMatricula());
     }
   }
 
