@@ -24,8 +24,10 @@ interface TabelaDeTrechosProps {
 const LINHAS_DO_ESQUELETO = 4;
 
 /**
- * A grade do diário, com a linha de TOTAIS somada no servidor. A exclusão pede confirmação na
- * própria linha — "Excluir?" — como no protótipo: modal para isso seria cerimônia.
+ * A grade do diário, com a linha de totais do realizado, como os contadores da aeronave — somada
+ * no servidor, ou por `diarioDoVoo` no filtro por voo, com o mesmo critério; a linha de um trecho
+ * planejado mostra as horas previstas, mas ele não entra nos totais. A exclusão pede
+ * confirmação na própria linha — "Excluir?" — como no protótipo: modal para isso seria cerimônia.
  */
 export function TabelaDeTrechos({
   diario,
@@ -197,7 +199,7 @@ export function TabelaDeTrechos({
       <tfoot role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={estilos.totais}>
           <td role="cell" className={estilos.celula}>
-            TOTAIS · {diario?.totais?.pousos ?? 0}{' '}
+            TOTAIS REALIZADOS · {diario?.totais?.pousos ?? 0}{' '}
             {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
           </td>
           <td role="cell" className={estilos.celula} />

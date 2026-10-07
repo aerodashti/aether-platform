@@ -40,17 +40,28 @@ export function usoPorProprietario(trechos: TrechoResponse[]): UsoDoProprietario
     .sort((a, b) => b.horas - a.horas);
 }
 
+/**
+ * O voo a que o trecho pertence. Aparado e em maiúsculas, como a entidade grava (decisão D19): uma
+ * linha antiga em "rv-2026-041" é o mesmo voo que "RV-2026-041".
+ */
+function vooDe(trecho: TrechoResponse): string {
+  return (trecho.relatorioDeVoo ?? '').trim().toUpperCase();
+}
+
+/** Com os dois horários realizados, o trecho voou: só ele conta pouso, horas e km, como no servidor. */
+function foiRealizado(trecho: TrechoResponse): boolean {
+  return Boolean(trecho.partidaRealizada) && Boolean(trecho.pousoRealizado);
+}
+
 /** Os Rel. Voo do recorte, do mais recente ao mais antigo — as opções do filtro por voo. */
 export function relatoriosDoRecorte(trechos: TrechoResponse[]): string[] {
-  return [...new Set(trechos.map((trecho) => trecho.relatorioDeVoo ?? ''))]
-    .filter(Boolean)
-    .sort()
-    .reverse();
+  return [...new Set(trechos.map(vooDe))].filter(Boolean).sort().reverse();
 }
 
 /**
  * O diário de um voo só. Os totais do servidor são do recorte inteiro; filtrado por voo, a linha de
- * TOTAIS soma só os trechos à vista — senão ela diria horas que a grade não mostra.
+ * TOTAIS soma só os trechos à vista, pelo critério do servidor: só o realizado conta pouso, horas
+ * e km — o planejado ainda não voou.
  */
 export function diarioDoVoo(
   diario: DiarioDeVoosResponse | undefined,
@@ -59,15 +70,14 @@ export function diarioDoVoo(
   if (!diario || relatorioDeVoo === '') {
     return diario;
   }
-  const trechos = (diario.trechos ?? []).filter(
-    (trecho) => trecho.relatorioDeVoo === relatorioDeVoo,
-  );
+  const trechos = (diario.trechos ?? []).filter((trecho) => vooDe(trecho) === relatorioDeVoo);
+  const realizados = trechos.filter(foiRealizado);
   return {
     trechos,
     totais: {
-      horas: trechos.reduce((soma, trecho) => soma + (trecho.horas ?? 0), 0),
-      km: trechos.reduce((soma, trecho) => soma + (trecho.km ?? 0), 0),
-      pousos: trechos.length,
+      horas: realizados.reduce((soma, trecho) => soma + (trecho.horas ?? 0), 0),
+      km: realizados.reduce((soma, trecho) => soma + (trecho.km ?? 0), 0),
+      pousos: realizados.length,
     },
   };
 }

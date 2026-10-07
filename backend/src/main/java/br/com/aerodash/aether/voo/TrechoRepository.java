@@ -1,8 +1,11 @@
 package br.com.aerodash.aether.voo;
 
+import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 
 /**
  * Sem paginação de propósito — o recorte natural é uma competência de uma aeronave, poucas dezenas
@@ -22,4 +25,11 @@ public interface TrechoRepository extends JpaRepository<Trecho, Long> {
       LocalDate inicio, LocalDate fim);
 
   List<Trecho> findAllByOrderByDataDescRelatorioDeVooDescNumeroDoTrechoDesc();
+
+  /**
+   * O trecho com a linha travada, para a correção e a exclusão estornarem o que está gravado — e
+   * não o que uma correção simultânea acabou de substituir.
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  Optional<Trecho> findTravadoById(Long id);
 }

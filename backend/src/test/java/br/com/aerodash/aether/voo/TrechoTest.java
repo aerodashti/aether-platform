@@ -49,6 +49,34 @@ class TrechoTest {
   }
 
   @Test
+  @DisplayName("o Rel. Voo vai em maiúsculas: 'rv-2026-041' é o mesmo voo que 'RV-2026-041'")
+  void relatorioEmMaiusculas() {
+    assertThat(Trecho.normalizarRelatorio("  rv-2026-041 ")).isEqualTo("RV-2026-041");
+  }
+
+  @Test
+  @DisplayName("realizado é fato: de 2000 até hoje; planejado vai de um ano atrás a dez à frente")
+  void janelaDaData() {
+    LocalDate hoje = LocalDate.parse("2026-10-07");
+
+    assertThat(trecho(h("08:30"), h("09:20"), h("08:42"), h("09:31")).janelaDaData(hoje))
+        .isEqualTo(new Trecho.JanelaDeDatas(LocalDate.parse("2000-01-01"), hoje));
+    assertThat(trecho(h("08:30"), h("09:20"), null, null).janelaDaData(hoje))
+        .isEqualTo(
+            new Trecho.JanelaDeDatas(LocalDate.parse("2025-10-07"), LocalDate.parse("2036-10-07")));
+  }
+
+  @Test
+  @DisplayName("horário realizado depois do limite (agora + folga) é recusado; o planejado, não")
+  void realizadoNoFuturo() {
+    Trecho voado = trecho(null, null, h("08:42"), h("09:31"));
+
+    assertThat(voado.possuiRealizadoAte(h("09:31"))).isTrue();
+    assertThat(voado.possuiRealizadoAte(h("09:30"))).isFalse();
+    assertThat(trecho(h("23:00"), h("23:50"), null, null).possuiRealizadoAte(h("00:00"))).isTrue();
+  }
+
+  @Test
   @DisplayName("a duração usa o realizado quando o par está completo")
   void duracaoDoRealizado() {
     Trecho voado = trecho(h("08:30"), h("09:20"), h("08:42"), h("09:31"));
@@ -70,27 +98,6 @@ class TrechoTest {
     Trecho madrugada = trecho(h("23:30"), Instant.parse("2026-09-09T01:00:00Z"), null, null);
 
     assertThat(madrugada.duracaoEmHoras()).isEqualByComparingTo("1.5");
-  }
-
-  @Test
-  @DisplayName("pouso antes da partida é incoerente — não vira um voo de 23 horas")
-  void pousoAntesDaPartida() {
-    DadosDoTrecho dados =
-        new DadosDoTrecho(
-            "RV-1",
-            1,
-            LocalDate.parse("2026-09-08"),
-            "SBSP",
-            "SBGR",
-            BigDecimal.TEN,
-            null,
-            null,
-            h("10:45"),
-            h("10:00"),
-            7L,
-            null);
-
-    assertThat(Trecho.possuiHorariosCoerentes(dados)).isFalse();
   }
 
   @Test

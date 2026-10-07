@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -12,7 +13,6 @@ import { useVoos, type TrechoResponse } from '../api/useVoos';
 
 import estilos from './PaginaDeVoos.module.css';
 import { PainelDeTrecho } from './PainelDeTrecho';
-import { competenciaAtual } from './rotulos';
 import { TabelaDeTrechos } from './TabelaDeTrechos';
 import { diarioDoVoo, relatoriosDoRecorte, usoPorProprietario } from './usoDoRecorte';
 import { UsoPorProprietario } from './UsoPorProprietario';
@@ -31,7 +31,7 @@ export function PaginaDeVoos() {
     usuario?.papel === 'PILOTO';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
   const { aeronaveId, competencia, setAeronaveId, setCompetencia } = useRecorteDaUrl(
-    competenciaAtual(),
+    competenciaLocal(),
     { podeRegistrar: podeLancar, aoPedir: () => setPainel({ modo: 'novo' }) },
   );
   const consulta = useVoos({ aeronaveId, competencia });

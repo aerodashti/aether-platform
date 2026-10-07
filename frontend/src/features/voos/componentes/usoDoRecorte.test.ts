@@ -4,6 +4,12 @@ import type { TrechoResponse } from '../api/useVoos';
 
 import { diarioDoVoo, relatoriosDoRecorte, usoPorProprietario } from './usoDoRecorte';
 
+/** O par realizado de um trecho que já voou; sem ele, o trecho é só planejado. */
+const VOADO = {
+  partidaRealizada: '2026-09-08T11:30:00Z',
+  pousoRealizado: '2026-09-08T12:20:00Z',
+};
+
 const TRECHOS: TrechoResponse[] = [
   {
     id: 1,
@@ -13,6 +19,7 @@ const TRECHOS: TrechoResponse[] = [
     proprietarioId: 1,
     nomeDoProprietario: 'Ricardo',
     vooDeManutencao: false,
+    ...VOADO,
   },
   {
     id: 2,
@@ -22,6 +29,7 @@ const TRECHOS: TrechoResponse[] = [
     proprietarioId: 1,
     nomeDoProprietario: 'Ricardo',
     vooDeManutencao: false,
+    ...VOADO,
   },
   {
     id: 3,
@@ -31,8 +39,9 @@ const TRECHOS: TrechoResponse[] = [
     proprietarioId: 2,
     nomeDoProprietario: 'Vetor',
     vooDeManutencao: false,
+    ...VOADO,
   },
-  { id: 4, relatorioDeVoo: 'RV-043', horas: 0.4, km: 58, vooDeManutencao: true },
+  { id: 4, relatorioDeVoo: 'RV-043', horas: 0.4, km: 58, vooDeManutencao: true, ...VOADO },
 ];
 
 describe('uso do recorte', () => {
@@ -57,5 +66,38 @@ describe('uso do recorte', () => {
     expect(voo?.totais?.horas).toBeCloseTo(1.7);
     expect(voo?.totais?.km).toBe(730);
     expect(voo?.totais?.pousos).toBe(2);
+  });
+
+  it('nos totais do voo, o trecho só planejado aparece na grade mas não conta', () => {
+    const planejado: TrechoResponse = {
+      id: 5,
+      relatorioDeVoo: 'RV-041',
+      numeroDoTrecho: 3,
+      horas: 1.5,
+      km: 900,
+      vooDeManutencao: true,
+    };
+
+    const voo = diarioDoVoo({ trechos: [...TRECHOS, planejado] }, 'RV-041');
+
+    expect(voo?.trechos).toHaveLength(3);
+    expect(voo?.totais?.pousos).toBe(2);
+    expect(voo?.totais?.horas).toBeCloseTo(1.7);
+    expect(voo?.totais?.km).toBe(730);
+  });
+
+  it('o Rel. Voo gravado em minúsculas antes da normalização é o mesmo voo', () => {
+    const antigo: TrechoResponse = {
+      id: 6,
+      relatorioDeVoo: ' rv-041',
+      horas: 1,
+      km: 100,
+      vooDeManutencao: true,
+      ...VOADO,
+    };
+    const trechos = [...TRECHOS, antigo];
+
+    expect(relatoriosDoRecorte(trechos)).toEqual(['RV-043', 'RV-042', 'RV-041']);
+    expect(diarioDoVoo({ trechos }, 'RV-041')?.totais?.pousos).toBe(3);
   });
 });
