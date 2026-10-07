@@ -390,7 +390,8 @@ describe('PaginaDeConfiguracoes', () => {
 
     it('o bloqueio por tentativas aparece junto do botão, com o tempo que falta', async () => {
       const usuario = userEvent.setup();
-      const detalhe = 'Tentativas demais com a senha atual. Tente de novo em 15 minutos.';
+      const detalhe =
+        'A conta está bloqueada por tentativas erradas de senha. Tente de novo em 15 minutos.';
       servidor({
         papel: 'GESTOR',
         trocarSenha: () => respostaDe({ title: 'Troca de senha bloqueada', detail: detalhe }, 429),

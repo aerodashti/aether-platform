@@ -137,7 +137,8 @@ class TrocaDeSenhaServiceTest {
 
     assertThatThrownBy(() -> service.trocar(ID, SESSAO, "errada", "a-nova-senha", "042917"))
         .isInstanceOf(TrocaDeSenhaBloqueadaException.class)
-        .hasMessage("Tentativas demais com a senha atual. Tente de novo em 15 minutos.");
+        .hasMessage(
+            "A conta está bloqueada por tentativas erradas de senha. Tente de novo em 15 minutos.");
 
     assertThat(usuario.estaBloqueado(AGORA)).isTrue();
   }

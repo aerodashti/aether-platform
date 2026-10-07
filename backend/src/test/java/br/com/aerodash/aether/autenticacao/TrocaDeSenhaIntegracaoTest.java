@@ -81,7 +81,8 @@ class TrocaDeSenhaIntegracaoTest {
         .andExpect(status().isTooManyRequests())
         .andExpect(
             jsonPath("$.detail")
-                .value("Tentativas demais com a senha atual. Tente de novo em 15 minutos."));
+                .value(
+                    "A conta está bloqueada por tentativas erradas de senha. Tente de novo em 15 minutos."));
 
     mockMvc
         .perform(

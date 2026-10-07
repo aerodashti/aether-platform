@@ -17,7 +17,8 @@ public class TrocaDeSenhaBloqueadaException extends ExcecaoDeDominio {
   public TrocaDeSenhaBloqueadaException(Duration restante) {
     super(
         "Troca de senha bloqueada",
-        "Tentativas demais com a senha atual. Tente de novo em %s.".formatted(emMinutos(restante)));
+        "A conta está bloqueada por tentativas erradas de senha. Tente de novo em %s."
+            .formatted(emMinutos(restante)));
   }
 
   /** Arredonda para cima: "em 0 minutos" diria que já pode, e ainda não pode. */
