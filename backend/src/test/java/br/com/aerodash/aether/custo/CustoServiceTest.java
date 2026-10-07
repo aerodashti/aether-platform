@@ -138,6 +138,9 @@ class CustoServiceTest {
         () -> service.criar(request(MoedaDoCusto.BRL, valor, null, null, "1999-12-31")), "data");
     recusadoNoCampo(
         () -> service.criar(request(MoedaDoCusto.BRL, valor, null, null, "2026-10-12")), "data");
+    assertThatThrownBy(
+            () -> service.criar(request(MoedaDoCusto.BRL, valor, null, null, "2026-10-12")))
+        .hasMessage("Use uma data entre 01/01/2000 e 11/10/2026, até 31 dias à frente de hoje.");
     verify(custos, never()).save(any());
 
     CustoResponse noLimite =

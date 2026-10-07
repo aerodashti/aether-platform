@@ -159,7 +159,9 @@ public class CustoService {
     contexto.decisao("custo.dataAceitavel", dataAceitavel);
     if (!dataAceitavel) {
       throw new CustoInvalidoException(
-          "Use uma data entre 01/01/2000 e "
+          "Use uma data entre "
+              + DATA.format(Custo.PRIMEIRA_DATA_ACEITA)
+              + " e "
               + DATA.format(Custo.ultimaDataAceita(hoje))
               + ", até "
               + Custo.DIAS_DE_ANTECEDENCIA
