@@ -10,6 +10,15 @@
   }
 }
 
+/* O porquê de a seleção do proprietário estar vazia, ocupando a linha inteira da grade. */
+.recado {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
 .acoes {
   display: flex;
   gap: var(--espaco-4);

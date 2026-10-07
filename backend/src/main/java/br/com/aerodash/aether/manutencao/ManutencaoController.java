@@ -48,9 +48,10 @@ public class ManutencaoController {
   }
 
   @PostMapping("/{id}/conclusao")
-  @Operation(summary = "Conclui: sai das programadas e entra no histórico permanente")
-  public ManutencaoResponse concluir(@PathVariable Long id) {
-    return manutencoes.concluir(id);
+  @Operation(summary = "Conclui no dia em que foi feita: sai das programadas e entra no histórico")
+  public ManutencaoResponse concluir(
+      @PathVariable Long id, @Valid @RequestBody ConclusaoRequest request) {
+    return manutencoes.concluir(id, request);
   }
 
   @PostMapping("/{id}/reabertura")

@@ -79,7 +79,18 @@ public class Documento {
     }
     int ponto = limpo.lastIndexOf('.');
     String extensao = ponto > 0 && limpo.length() - ponto <= 10 ? limpo.substring(ponto) : "";
-    return limpo.substring(0, NOME_MAXIMO - extensao.length()) + extensao;
+    int corte = NOME_MAXIMO - extensao.length();
+    // Cortar entre as duas metades de um emoji deixaria meio caractere, que o banco grava como "?".
+    if (Character.isHighSurrogate(limpo.charAt(corte - 1))) {
+      corte--;
+    }
+    return limpo.substring(0, corte) + extensao;
+  }
+
+  /** ".pdf" sozinho não é nome: a grade mostraria só a extensão, sem dizer de que é o documento. */
+  public static boolean possuiNome(String nomeLimpo) {
+    int ponto = nomeLimpo.lastIndexOf('.');
+    return !(ponto < 0 ? nomeLimpo : nomeLimpo.substring(0, ponto)).isBlank();
   }
 
   public static boolean cabeNoLimite(long tamanho) {

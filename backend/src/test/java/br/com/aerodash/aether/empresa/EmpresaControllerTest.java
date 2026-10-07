@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.empresa;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(EmpresaController.class)
 @DisplayName("EmpresaController")
@@ -123,6 +125,75 @@ class EmpresaControllerTest {
   }
 
   @Test
+  @DisplayName("telefone sem formato e e-mail sem domínio completo voltam cada um no seu campo")
+  void telefoneEEmailForaDoFormato() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+
+    alterarDados(
+            """
+            {"nomeFantasia":"Administra Air","razaoSocial":"Administra Air LTDA",
+             "email":"contato@exemplo","telefone":"abc"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.email").value("Informe um e-mail válido, como nome@empresa.com.br."))
+        .andExpect(
+            jsonPath("$.campos.telefone")
+                .value(
+                    "Use só números, com +, espaço, parênteses ou hífen, como +55 11 98888-0000."));
+
+    verify(empresa, never()).alterarDados(any());
+  }
+
+  @Test
+  @DisplayName(
+      "nome feito de caractere invisível é recusado, e o resto chega sem espaços nas pontas")
+  void textosChegamLimpos() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+    when(empresa.alterarDados(any())).thenReturn(EMPRESA);
+
+    alterarDados(
+            """
+            {"nomeFantasia":"\\u200b","razaoSocial":"X LTDA",
+             "email":"x@x.com.br","telefone":"+55 11 3000-0000"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.nomeFantasia")
+                .value("Use letras ou números, e não só espaços ou sinais."));
+
+    alterarDados(
+            """
+            {"nomeFantasia":"  Administra Air ","razaoSocial":" Administra Air LTDA",
+             "email":" contato@administraair.com.br ","telefone":" +55 11 3000-0000 "}
+            """)
+        .andExpect(status().isOk());
+
+    verify(empresa)
+        .alterarDados(
+            new AlterarEmpresaRequest(
+                "Administra Air",
+                "Administra Air LTDA",
+                "contato@administraair.com.br",
+                "+55 11 3000-0000"));
+  }
+
+  @Test
+  @DisplayName("aviso ausente pede a antecedência, em vez de dizer \"pelo menos 1 dia\"")
+  void avisoAusentePedeAAntecedencia() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
+
+    alterarAviso("{}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.diasDeAviso").value("Informe a antecedência, em dias."));
+    alterarAviso("{\"diasDeAviso\":30.9}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.diasDeAviso").value("Informe um número inteiro."));
+
+    verify(empresa, never()).alterarAviso(anyInt());
+  }
+
+  @Test
   @DisplayName("aviso fora da faixa é barrado pela validação, antes do service")
   void avisoForaDaFaixaEhBarrado() throws Exception {
     when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(ADMINISTRADOR));
@@ -140,5 +211,21 @@ class EmpresaControllerTest {
         .andExpect(jsonPath("$.campos.diasDeAviso").exists());
 
     verify(empresa, never()).alterarAviso(0);
+  }
+
+  private ResultActions alterarDados(String corpo) throws Exception {
+    return mockMvc.perform(
+        put("/empresa")
+            .cookie(new Cookie("aether_sessao", TOKEN))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
+  }
+
+  private ResultActions alterarAviso(String corpo) throws Exception {
+    return mockMvc.perform(
+        put("/empresa/aviso-de-vencimento")
+            .cookie(new Cookie("aether_sessao", TOKEN))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
   }
 }

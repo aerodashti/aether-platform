@@ -19,7 +19,8 @@ export interface FiltroDeCustos {
 
 const CHAVE = ['custos'] as const;
 
-export function useCustos(filtro: FiltroDeCustos) {
+/** Com `habilitado` falso (recorte inválido), não consulta nem mantém o recorte anterior na tela. */
+export function useCustos(filtro: FiltroDeCustos, habilitado = true) {
   const parametros = new URLSearchParams();
   if (filtro.aeronaveId) {
     parametros.set('aeronave', filtro.aeronaveId);
@@ -30,7 +31,8 @@ export function useCustos(filtro: FiltroDeCustos) {
   return useQuery({
     queryKey: [...CHAVE, filtro],
     queryFn: () => buscar<LancamentosResponse>(`/custos?${parametros.toString()}`),
-    placeholderData: (anterior) => anterior,
+    enabled: habilitado,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 

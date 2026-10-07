@@ -2,6 +2,7 @@ package br.com.aerodash.aether.autenticacao;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 /**
  * A troca da própria senha, pela borda HTTP.
@@ -80,6 +82,10 @@ class TrocaDeSenhaControllerTest {
   /** Dependências do controller que esta classe não exercita; têm teste próprio. */
   @SuppressWarnings("UnusedVariable")
   @MockitoBean
+  private SolicitacaoDeCodigoService solicitacaoDeCodigo;
+
+  @SuppressWarnings("UnusedVariable")
+  @MockitoBean
   private RecuperacaoDeSenhaService recuperacao;
 
   @SuppressWarnings("UnusedVariable")
@@ -101,11 +107,12 @@ class TrocaDeSenhaControllerTest {
                     """))
         .andExpect(status().isUnauthorized());
 
-    verify(trocaDeSenha, never()).trocar(anyLong(), anyString(), anyString(), anyString());
+    verify(trocaDeSenha, never())
+        .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
   }
 
   @Test
-  @DisplayName("com sessão, a troca leva o id de quem pediu — nunca um id do corpo")
+  @DisplayName("com sessão, a troca leva o id e a sessão de quem pediu — nunca um id do corpo")
   void trocarSenhaLevaOIdDaSessao() throws Exception {
     when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
 
@@ -120,7 +127,7 @@ class TrocaDeSenhaControllerTest {
                     """))
         .andExpect(status().isNoContent());
 
-    verify(trocaDeSenha).trocar(7L, "a-atual", "a-nova-senha", "042917");
+    verify(trocaDeSenha).trocar(7L, TOKEN_DE_SESSAO, "a-atual", "a-nova-senha", "042917");
   }
 
   @Test
@@ -140,6 +147,85 @@ class TrocaDeSenhaControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.codigo").value("O código tem seis dígitos."));
 
-    verify(trocaDeSenha, never()).trocar(anyLong(), anyString(), anyString(), anyString());
+    verify(trocaDeSenha, never())
+        .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("senha com mais de 72 bytes é recusada no campo, e não vira 500 no BCrypt")
+  void senhaAcimaDoLimiteDoBcryptEhRecusada() throws Exception {
+    when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
+    String quarentaCedilhas = "ç".repeat(40);
+
+    trocar(
+            """
+            {"senhaAtual":"a-atual","novaSenha":"%s","codigo":"042917"}
+            """
+                .formatted(quarentaCedilhas))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.novaSenha")
+                .value(
+                    "A senha passa do limite de 72 caracteres"
+                        + " (letras acentuadas e símbolos contam como dois ou mais)."));
+
+    verify(trocaDeSenha, never())
+        .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("nova senha só de espaços é recusada como falta, no campo novaSenha")
+  void novaSenhaSoDeEspacos() throws Exception {
+    when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
+
+    trocar(
+            """
+            {"senhaAtual":"a-atual","novaSenha":"          ","codigo":"042917"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.novaSenha").value("Informe a nova senha."));
+  }
+
+  @Test
+  @DisplayName("senha atual errada volta em campos.senhaAtual, e não numa frase solta")
+  void senhaAtualErradaVoltaNoCampo() throws Exception {
+    when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
+    doThrow(new SenhaAtualIncorretaException())
+        .when(trocaDeSenha)
+        .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
+
+    trocar(
+            """
+            {"senhaAtual":"errada","novaSenha":"a-nova-senha","codigo":"042917"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.senhaAtual").value("A senha atual não confere."));
+  }
+
+  @Test
+  @DisplayName("troca bloqueada responde 429 com o tempo que falta")
+  void trocaBloqueadaResponde429() throws Exception {
+    when(autenticacao.autenticar(TOKEN_DE_SESSAO)).thenReturn(Optional.of(LOGADO));
+    doThrow(new TrocaDeSenhaBloqueadaException(15))
+        .when(trocaDeSenha)
+        .trocar(anyLong(), anyString(), anyString(), anyString(), anyString());
+
+    trocar(
+            """
+            {"senhaAtual":"errada","novaSenha":"a-nova-senha","codigo":"042917"}
+            """)
+        .andExpect(status().isTooManyRequests())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "A conta está bloqueada por tentativas erradas de senha. Tente de novo em 15 minutos."));
+  }
+
+  private ResultActions trocar(String corpo) throws Exception {
+    return mockMvc.perform(
+        post("/autenticacao/senha")
+            .cookie(new Cookie("aether_sessao", TOKEN_DE_SESSAO))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
   }
 }

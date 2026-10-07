@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Entrada, consulta e encerramento de sessão.
  *
  * <p>Todas as recusas de entrada saem como a mesma {@link CredenciaisInvalidasException}: e-mail
- * desconhecido, senha errada, conta inativa e convite pendente respondem igual, porque a diferença
- * entre elas é justamente o que revelaria quem tem conta na plataforma.
+ * desconhecido, senha errada, conta inativa e convite pendente respondem igual — na mensagem e no
+ * tempo —, porque a diferença entre elas é justamente o que revelaria quem tem conta na plataforma.
  */
 @Service
 public class AutenticacaoService {
@@ -104,7 +104,7 @@ public class AutenticacaoService {
     boolean usuarioExiste = encontrado.isPresent();
     contexto.decisao("autenticacao.usuario_existe", usuarioExiste);
     if (!usuarioExiste) {
-      cofre.gastarTempoDeCodificacao(senha);
+      cofre.gastarTempoDeConferencia();
       throw new CredenciaisInvalidasException();
     }
 
@@ -113,16 +113,21 @@ public class AutenticacaoService {
     return exigirUsuarioApto(usuario, senha, agora);
   }
 
+  /**
+   * A conta inativa ou pendente gasta o tempo de uma conferência antes de recusar: responder na
+   * hora, enquanto a senha errada leva um BCrypt, entregaria pela latência quem tem conta.
+   */
   private Usuario exigirUsuarioApto(Usuario usuario, String senha, Instant agora) {
     boolean bloqueado = usuario.estaBloqueado(agora);
     contexto.decisao("autenticacao.bloqueado", bloqueado);
     if (bloqueado) {
-      throw new AcessoBloqueadoException();
+      throw new AcessoBloqueadoException(usuario.minutosAteODesbloqueio(agora));
     }
 
     boolean podeEntrar = usuario.podeEntrar(agora);
     contexto.decisao("autenticacao.pode_entrar", podeEntrar);
     if (!podeEntrar) {
+      cofre.gastarTempoDeConferencia();
       throw new CredenciaisInvalidasException();
     }
 

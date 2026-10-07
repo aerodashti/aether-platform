@@ -2,6 +2,7 @@ package br.com.aerodash.aether.fechamento;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aporte.JanelaDeCompetencias;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.fechamento.FechamentoDoPeriodoResponse.Competencia;
@@ -52,6 +53,7 @@ public class FechamentoService {
 
   @Transactional(readOnly = true)
   public FechamentoMensalResponse mensal(Long aeronaveId, YearMonth competencia) {
+    exigirNaJanela(competencia, "competencia");
     Aeronave aeronave = exigirAeronave(aeronaveId);
     List<ApuracaoDaCompetencia> apuracoes = apurarAte(aeronave, competencia);
     ApuracaoDaCompetencia mes = apuracoes.get(apuracoes.size() - 1);
@@ -84,15 +86,17 @@ public class FechamentoService {
 
   @Transactional(readOnly = true)
   public FechamentoDoPeriodoResponse periodo(Long aeronaveId, YearMonth de, YearMonth ate) {
+    exigirNaJanela(de, "de");
+    exigirNaJanela(ate, "ate");
     boolean invertido = de.isAfter(ate);
     contexto.decisao("fechamento.periodoInvertido", invertido);
     if (invertido) {
-      throw new FechamentoInvalidoException("A competência inicial vem depois da final.");
+      throw new FechamentoInvalidoException("A competência inicial vem depois da final.", "de");
     }
     boolean longoDemais = ChronoUnit.MONTHS.between(de, ate) >= MESES_NO_PERIODO;
     contexto.decisao("fechamento.periodoLongoDemais", longoDemais);
     if (longoDemais) {
-      throw new FechamentoInvalidoException("O período vai até dez anos.");
+      throw new FechamentoInvalidoException("O período vai até dez anos.", "ate");
     }
     Aeronave aeronave = exigirAeronave(aeronaveId);
     List<Competencia> competencias =
@@ -144,6 +148,16 @@ public class FechamentoService {
                             ? null
                             : percentualDe(entrada.getValue().totalDoMes(), custo)))
             .toList());
+  }
+
+  /** A apuração percorre mês a mês até a competência pedida: o ano 9999 prenderia o servidor. */
+  private void exigirNaJanela(YearMonth competencia, String parametro) {
+    JanelaDeCompetencias janela = JanelaDeCompetencias.aPartirDa(YearMonth.now(relogio));
+    boolean aceita = janela.aceita(competencia);
+    contexto.decisao("fechamento." + parametro + "NaJanela", aceita);
+    if (!aceita) {
+      throw new FechamentoInvalidoException(janela.recusa(), parametro);
+    }
   }
 
   private List<ApuracaoDaCompetencia> apurarAte(Aeronave aeronave, YearMonth ate) {

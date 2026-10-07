@@ -81,6 +81,18 @@ public class Aporte {
     return data.isAfter(hoje);
   }
 
+  public boolean estaAntesDaPrimeiraData() {
+    return data.isBefore(CalendarioDoFundo.PRIMEIRA_DATA);
+  }
+
+  /**
+   * A competência cabe na mesma janela dos recortes do fundo: o aporte anual antecipado chega a um
+   * ano à frente, e fora dela o aporte sumiria de todo recorte que alguém consulta.
+   */
+  public boolean possuiCompetenciaAceitavel(YearMonth corrente) {
+    return JanelaDeCompetencias.aPartirDa(corrente).aceita(competencia);
+  }
+
   public Long getId() {
     return id;
   }

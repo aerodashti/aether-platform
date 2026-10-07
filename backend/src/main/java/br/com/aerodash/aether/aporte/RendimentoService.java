@@ -2,13 +2,15 @@ package br.com.aerodash.aether.aporte;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 /** Os rendimentos: o que a aplicação do saldo do fundo de cada aeronave rendeu. */
 @Service
 public class RendimentoService {
+
+  private static final String RENDIMENTO_INVALIDO = "Rendimento inválido";
+  private static final String CAMPO_AERONAVE = "aeronaveId";
+  private static final String CAMPO_DATA = "data";
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private final RendimentoRepository rendimentos;
   private final AeronaveRepository aeronaves;
@@ -39,14 +46,9 @@ public class RendimentoService {
 
   @Transactional(readOnly = true)
   public RendimentosResponse listar(Long aeronaveId, YearMonth de, YearMonth ate) {
-    PeriodoDeCompetencias periodo = PeriodoDeCompetencias.entre(de, ate);
-    boolean invertido = periodo.estaInvertido();
-    contexto.decisao("rendimentos.periodoInvertido", invertido);
-    if (invertido) {
-      throw new AporteInvalidoException(
-          "Período inválido", "A competência inicial vem depois da final.");
-    }
-    contexto.decisao("rendimentos.filtroPorAeronave", aeronaveId != null);
+    PeriodoDeCompetencias periodo =
+        RecorteDoFundo.exigirPeriodo("rendimentos", de, ate, YearMonth.now(relogio), contexto);
+    FiltroPorAeronave.exigirExistente("rendimentos", aeronaveId, aeronaves::existsById, contexto);
     List<Rendimento> recorte =
         aeronaveId == null
             ? rendimentos.findByDataBetweenOrderByDataDescIdDesc(
@@ -62,10 +64,7 @@ public class RendimentoService {
 
   @Transactional
   public RendimentoResponse criar(RendimentoRequest request) {
-    contexto.registrar("aeronave.id", request.aeronaveId());
-    if (!aeronaves.existsById(request.aeronaveId())) {
-      throw new RecursoNaoEncontradoException("Aeronave não encontrada.");
-    }
+    exigirAeronave(request.aeronaveId());
 
     Rendimento rendimento =
         new Rendimento(request.aeronaveId(), dadosDe(request), Instant.now(relogio));
@@ -82,8 +81,9 @@ public class RendimentoService {
     contexto.decisao("rendimento.trocaDeAeronave", trocaDeAeronave);
     if (trocaDeAeronave) {
       throw new AporteInvalidoException(
-          "Rendimento inválido",
-          "A aeronave do rendimento não muda: exclua e registre na aeronave certa.");
+          RENDIMENTO_INVALIDO,
+          "A aeronave do rendimento não muda: exclua e registre na aeronave certa.",
+          CAMPO_AERONAVE);
     }
 
     rendimento.atualizar(dadosDe(request), Instant.now(relogio));
@@ -98,12 +98,34 @@ public class RendimentoService {
     contexto.registrar("rendimento.excluido", id);
   }
 
+  /** A aeronave vem no corpo: inexistente é erro do campo, não recurso da URL que falta. */
+  private void exigirAeronave(Long aeronaveId) {
+    contexto.registrar("aeronave.id", aeronaveId);
+    boolean existe = aeronaves.existsById(aeronaveId);
+    contexto.decisao("rendimento.aeronaveExiste", existe);
+    if (!existe) {
+      throw new AporteInvalidoException(
+          RENDIMENTO_INVALIDO, "Aeronave não encontrada.", CAMPO_AERONAVE);
+    }
+  }
+
+  /** Hoje é o de Brasília: em UTC, depois das 21h, o crédito de amanhã passaria. */
   private void exigirCreditado(Rendimento rendimento) {
-    boolean noFuturo = rendimento.estaNoFuturo(LocalDate.now(relogio));
+    boolean noFuturo = rendimento.estaNoFuturo(FusoDoNegocio.hoje(relogio));
     contexto.decisao("rendimento.dataNoFuturo", noFuturo);
     if (noFuturo) {
       throw new AporteInvalidoException(
-          "Rendimento inválido", "Registre o rendimento depois que o crédito cair na conta.");
+          RENDIMENTO_INVALIDO,
+          "Registre o rendimento depois que o crédito cair na conta.",
+          CAMPO_DATA);
+    }
+    boolean antigaDemais = rendimento.estaAntesDaPrimeiraData();
+    contexto.decisao("rendimento.dataAntesDaPrimeira", antigaDemais);
+    if (antigaDemais) {
+      throw new AporteInvalidoException(
+          RENDIMENTO_INVALIDO,
+          "Use uma data a partir de " + CalendarioDoFundo.PRIMEIRA_DATA.format(DATA) + ".",
+          CAMPO_DATA);
     }
   }
 

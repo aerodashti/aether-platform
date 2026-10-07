@@ -40,6 +40,17 @@ metadados, e cada arquivo é endereçado por uma chave UUID gerada pelo Aether.
   no log — ocupa espaço, não quebra nada.
 - Remover apaga de verdade (decisão de produto, 2026-10-06); a tela avisa que não pode ser
   desfeito.
+- **Até 10 arquivos por envio** (`DocumentoService.ARQUIVOS_POR_ENVIO`), conferidos na tela e no
+  servidor (400 em `campos.arquivos`). O Tomcat aceita até 50 partes (`server.tomcat.max-part-count`)
+  só para o excesso chegar ao serviço e ouvir qual é o limite; acima disso, o tratador responde 400
+  pedindo menos arquivos. Um teste de integração com `RANDOM_PORT` passa pelo Tomcat de verdade e
+  trava esse arranjo.
+- O nome sem parte-base é recusado, e o conteúdo é conferido pela **assinatura do conteúdo**
+  (`AssinaturaDoConteudo`), não só pela extensão.
+- No front, a soma do envio fica 1 MB abaixo do `max-request-size`, pela folga dos cabeçalhos do
+  multipart. O download é por `fetch` e `Blob` (`compartilhado/arquivos/salvarArquivo.ts`, também
+  usado pelo CSV de custos): a âncora vai ao `body` e o endereço só é revogado 40 s depois, para o
+  navegador terminar de ler o arquivo.
 
 ## Quando revisitar
 

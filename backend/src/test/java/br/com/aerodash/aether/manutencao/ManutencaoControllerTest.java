@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 @WebMvcTest(ManutencaoController.class)
 @DisplayName("ManutencaoController")
@@ -126,7 +127,8 @@ class ManutencaoControllerTest {
                 null,
                 "Inspeção de 100 h",
                 null,
-                StatusDaManutencao.PROGRAMADA));
+                StatusDaManutencao.PROGRAMADA,
+                null));
 
     mockMvc
         .perform(
@@ -158,5 +160,113 @@ class ManutencaoControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.campos.data").exists())
         .andExpect(jsonPath("$.campos.descricao").exists());
+  }
+
+  private ResultActions postar(String caminho, String corpo) throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    return mockMvc.perform(
+        post(caminho)
+            .cookie(new Cookie("aether_sessao", TOKEN))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(corpo));
+  }
+
+  @Test
+  @DisplayName("valor com casa a mais ou maior que a coluna é 400 no campo, não 500")
+  void valorForaDaColuna() throws Exception {
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-09-22","descricao":"Inspeção","valor":0.001}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.valor").value(ManutencaoRequest.MENSAGEM_DO_VALOR));
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-09-22","descricao":"Inspeção","valor":10000000000000}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.valor").exists());
+    verify(manutencoes, never()).agendar(any());
+  }
+
+  @Test
+  @DisplayName("descrição só de espaço não separável é recusada como vazia")
+  void descricaoEmBranco() throws Exception {
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-09-22","descricao":"\u00a0\u00a0"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.descricao").value("Informe a descrição."));
+  }
+
+  @Test
+  @DisplayName("limite e aviso fora de NUMERIC(10,1) são 400 no campo")
+  void limiteEAvisoForaDaColuna() throws Exception {
+    postar(
+            "/manutencoes/parametros",
+            """
+            {"aeronaveId":1,"nome":"Célula","tipo":"HORAS","limite":0.01,"aviso":10000000000}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.limite").value(ParametroRequest.MENSAGEM_DO_LIMITE))
+        .andExpect(jsonPath("$.campos.aviso").value(ParametroRequest.MENSAGEM_DO_AVISO));
+    verify(manutencoes, never()).criarParametro(any());
+  }
+
+  @Test
+  @DisplayName(
+      "data, hora ou régua que não convertem voltam no próprio campo, não como corpo ilegível")
+  void corpoQueNaoConverte() throws Exception {
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-02-30","descricao":"Inspeção"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.data").exists());
+    postar(
+            "/manutencoes",
+            """
+            {"aeronaveId":1,"data":"2026-09-22","hora":"25:00","descricao":"Inspeção"}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.hora").exists());
+    postar(
+            "/manutencoes/parametros",
+            """
+            {"aeronaveId":1,"nome":"Célula","tipo":"XYZ","limite":4000,"aviso":100}
+            """)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.tipo").exists());
+    verify(manutencoes, never()).agendar(any());
+    verify(manutencoes, never()).criarParametro(any());
+  }
+
+  @Test
+  @DisplayName("concluir exige o dia da conclusão")
+  void conclusaoSemData() throws Exception {
+    postar("/manutencoes/5/conclusao", "{}")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.concluidaEm").value("Informe a data da conclusão."));
+  }
+
+  @Test
+  @DisplayName("o nome repetido volta 409 com o campo nome")
+  void nomeRepetido() throws Exception {
+    when(manutencoes.criarParametro(any())).thenThrow(new ParametroDuplicadoException());
+
+    postar(
+            "/manutencoes/parametros",
+            """
+            {"aeronaveId":1,"nome":"Célula","tipo":"HORAS","limite":4000,"aviso":100}
+            """)
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.campos.nome")
+                .value("Já existe um parâmetro com este nome nesta aeronave."));
   }
 }

@@ -1,15 +1,11 @@
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
-import {
-  useConcluirTroca,
-  useReabrirTroca,
-  type SituacaoDaTroca,
-  type TrocaResponse,
-} from '../api/useTrocas';
+import type { SituacaoDaTroca, TrocaResponse } from '../api/useTrocas';
 
 import { dataCurta, horasEmTexto, kmEmTexto, moedaEmTexto } from './rotulos';
 import estilos from './TabelaDeTrocas.module.css';
@@ -18,11 +14,16 @@ interface TabelaDeTrocasProps {
   trocas: TrocaResponse[] | undefined;
   situacao: SituacaoDaTroca;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta: a recusa do filtro é dita como veio, com "Limpar filtros". */
+  erro: Error | null;
   filtrada: boolean;
   podeGerir: boolean;
   aoEditar: (troca: TrocaResponse) => void;
+  /** Concluir pede a data da devolução; reabrir pede confirmação. Os dois abrem um painel. */
+  aoConcluir: (troca: TrocaResponse) => void;
+  aoReabrir: (troca: TrocaResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 function Dono({ nome, cor }: { nome: string | undefined; cor: string | undefined }) {
@@ -48,20 +49,20 @@ export function TabelaDeTrocas({
   filtrada,
   podeGerir,
   aoEditar,
+  aoConcluir,
+  aoReabrir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeTrocasProps) {
-  const concluir = useConcluirTroca();
-  const reabrir = useReabrirTroca();
-
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar as trocas.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar as trocas."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }
@@ -178,8 +179,7 @@ export function TabelaDeTrocas({
                         tom="positivo"
                         tamanho="pequeno"
                         rotuloAcessivel={`Concluir ${descricao}`}
-                        carregando={concluir.isPending && concluir.variables === id}
-                        aoClicar={() => concluir.mutate(id)}
+                        aoClicar={() => aoConcluir(troca)}
                       >
                         ✓ Concluir
                       </Botao>
@@ -188,8 +188,7 @@ export function TabelaDeTrocas({
                         variante="fantasma"
                         tamanho="pequeno"
                         rotuloAcessivel={`Reabrir ${descricao}`}
-                        carregando={reabrir.isPending && reabrir.variables === id}
-                        aoClicar={() => reabrir.mutate(id)}
+                        aoClicar={() => aoReabrir(troca)}
                       >
                         Reabrir
                       </Botao>

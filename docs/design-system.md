@@ -159,6 +159,13 @@ agenda (o painel modal existente cobre todos os campos) e o botão de **document
 manutenção (feature por vir). A etiqueta "Atrasada" na agenda é derivação de tela: programada com
 data anterior a hoje.
 
+Desde a correção dos formulários (2026-10-07), a coluna **Conclusão** do histórico mostra a data
+em que a manutenção foi feita (`concluidaEm`), com "programada para …" embaixo quando ela difere.
+"Concluir" abre um painel que pede essa data (padrão hoje); "Excluir" confirma num painel que nomeia
+o item e diz o que se perde — na concluída, sugere reabrir. As datas das tabelas têm o ano com
+quatro dígitos, e o resultado das ações da linha sai em `role="status"` (ou `alert`), com o foco no
+título da seção.
+
 O primitivo `Abas` nasceu aqui — Lançamentos e Manutenção o consomem — com `tablist`/`tab` e o
 sublinhado de 3px do protótipo.
 
@@ -178,6 +185,22 @@ handoff chegou à mesma conclusão e a registrou no próprio CSS, em `.acao-dest
   `@media` não lê `var()`.
 - Não há tokens de **ícone**. Os três glifos da tela de entrada são SVG inline na feature, herdando
   `currentColor`. Viram primitivo quando a segunda tela precisar dos mesmos.
+- O `CampoDeTexto` não tem modo **somente leitura** (`somenteLeitura` → `readOnly`); o passo de
+  nova senha contorna com uma ref. O `PainelModal` não tem `focoInicial` nem `descritoPor`: o
+  painel de desativação de proprietário foca o título à mão, e o parágrafo explicativo do painel
+  de troca não está ligado ao diálogo.
+- O `ResumoDoFormulario` é uma região viva sempre montada, então um `gap` no contêiner vale também
+  com ele vazio. A tela de entrada põe resumo e botão num invólucro sem `gap`. Uma prop de
+  espaçamento no primitivo resolveria.
+- Há três regiões de resultado montadas à mão: `configuracoes/ResultadoDoEnvio`,
+  `usuarios/RetornoDaAcao` e o próprio `ResumoDoFormulario`. Candidatas a um primitivo
+  `MensagemDeResultado`, junto do toast.
+- **Contraste e forma dos controles** (WCAG 1.4.1 e 1.4.11): a borda dos campos e o círculo do
+  marcador não escolhido ficam abaixo de 3:1, a opção escolhida do trilho depende só de cor, e no
+  `SeletorDeCor` a amostra escolhida e a focada diferem só pelo tom do contorno. Pede um token de
+  borda de controle e uma marca não cromática de seleção.
+- O foco do `CampoDeTexto` e da `AreaDeTexto` é um contorno de 1px colado na borda (2px vermelho no
+  campo inválido), diferente do anel de 2px com afastamento dos outros primitivos.
 - A regra do Stylelint cobre as propriedades listadas em `.stylelintrc.json`. O atalho `border` não
   está na lista, então `border: 1px solid var(--cor-borda)` passa: **a cor sempre em token**, por
   convenção, não por lint. `light`, `dark` e `0.01ms` estão na lista de exceções — são,
@@ -192,21 +215,57 @@ acessibilidade ficam em um lugar só.
 | Primitivo | Arquivo | Variantes | Observações |
 | --- | --- | --- | --- |
 | `Texto` | `primitivos/Texto.tsx` | `titulo`, `subtitulo`, `corpo`, `apoio`, `legenda` × tom `padrao`, `suave`, `positivo`, `atencao`, `critico` | `como` troca só o elemento renderizado. **`legenda` é RÓTULO** — micro-caps com rastreio; usá-la em frase transforma a frase em placa. Para frase pequena existe `apoio` |
-| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (36px), `grande` (40px) — os `btn-sm`, `btn-md` e `btn-lg` do protótipo | `carregando` desabilita e marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco; `tom="positivo"` pinta o primário de verde (`--cor-positivo-solido`, o mesmo nos dois temas), o "✓ Concluir" de manutenção e trocas |
-| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio` | Rótulo ligado por `useId`; `aria-invalid` e `aria-describedby` cobrindo apoio e erro juntos. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required` |
+| `Botao` | `primitivos/Botao.tsx` | `primario`, `secundario`, `contorno`, `fantasma` × tamanho `pequeno` (32px), `medio` (36px), `grande` (40px) — os `btn-sm`, `btn-md` e `btn-lg` do protótipo | `desabilitado` e `carregando` usam `aria-disabled`, não `disabled`: o botão continua no Tab e o foco não cai no `<body>` no meio do envio; `descritoPor` liga o motivo. `carregando` marca `aria-busy`. `contorno` traz a micro-interação de preenchimento. `fantasma` é a ação de linha da grade; `tom="critico"` pinta o rótulo de vermelho **só** no hover e no foco; `tom="positivo"` pinta o primário de verde (`--cor-positivo-solido`, o mesmo nos dois temas), o "✓ Concluir" de manutenção e trocas |
+| `CampoDeTexto` | `primitivos/CampoDeTexto.tsx` | tipo `texto`, `email`, `senha`, `data`, `hora`, `mes`, `telefone`; alinhamento `esquerda`, `centro`; `espacado`; `obrigatorio`; `minimo`/`maximo` | Rótulo, apoio e erro pela `MolduraDeCampo`. Data, hora ou mês digitados pela metade (`value` vazio) se acusam sozinhos ("Data incompleta ou inexistente."). Onde o navegador não tem `type="month"` (Safari no macOS, Firefox), o `mes` vira texto `AAAA-MM`, conferido pela regra `competencia()`. `telefone` abre o teclado de telefone. 40px de altura mínima, a da `Selecao`. `obrigatorio` põe o asterisco do protótipo só na tela (fora do nome acessível) e anuncia por `aria-required` |
 | `BotaoDeLink` | `primitivos/BotaoDeLink.tsx` | alinhamento `esquerda`, `centro` | É `button`, não `a`: a ação não navega. Traz o reset do cromo nativo |
-| `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça |
+| `Selecao` | `primitivos/Selecao.tsx` | `rotuloOculto`, `obrigatorio`, `apoio`, `erro` | `select` nativo com o cromo do produto. Nativo de propósito: teclado, busca por digitação e a roda do celular vêm de graça. Quando o valor sai da lista (o proprietário que ficou inativo), mostra "Opção indisponível — escolha outra" em vez de exibir a primeira opção enquanto guarda outra |
 | `LinkDeNavegacao` | `primitivos/LinkDeNavegacao.tsx` | `exata` | `NavLink`, não botão que troca estado: cada tela tem endereço. O estado ativo sai do `aria-current` que o próprio NavLink escreve |
-| `GrupoDeOpcoes` | `primitivos/GrupoDeOpcoes.tsx` | `marcador`, `larguraIgual`; variante `cartoes`, `segmentado` (Mensal \| Período), `trilho` (escopo de Lançamentos) | Escolha única com todas as opções à vista. É `radiogroup` de verdade (`role="radio"` + `aria-checked`), não fileira de botões que parecem escolhidos. Passando de cinco opções, use `Selecao` |
-| `PainelModal` | `primitivos/PainelModal.tsx` | — | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal |
+| `GrupoDeOpcoes` | `primitivos/GrupoDeOpcoes.tsx` | `marcador`, `larguraIgual`; variante `cartoes`, `segmentado` (Mensal \| Período), `trilho` (escopo de Lançamentos); `rotuloOculto`, `obrigatorio`, `apoio`, `erro` | Escolha única com todas as opções à vista. É `radiogroup` de verdade (`role="radio"` + `aria-checked`), com legenda visível (oculta só em recorte de grade) e o teclado do papel: uma parada de Tab, setas, Home e End (`useGrupoDeRadio`). Passando de cinco opções, use `Selecao` |
+| `PainelModal` | `primitivos/PainelModal.tsx` | `podeFechar` | `<dialog>` nativo aberto por `showModal()`: armadilha de foco, Esc e inércia do fundo vêm do navegador. Desmontado ainda aberto, devolve o foco a quem o abriu; `podeFechar={false}` segura o Esc durante o envio. Nasceu em `usuarios/PainelDeConvite` e foi promovido quando Proprietários precisou do segundo modal |
 | `Esqueleto` | `primitivos/Esqueleto.tsx` | — | Barra de carregamento de célula, com o brilho do `.skel` do handoff e `prefers-reduced-motion` respeitado. Sempre `aria-hidden`: quem anuncia a espera é o `role="status"` da grade |
-| `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | — | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
+| `SeletorDeCor` | `primitivos/SeletorDeCor.tsx` | `apoio`, `erro` | Paleta fechada da cor de identificação (6 cores, todas de tokens existentes — nenhum hex novo). `radiogroup` com amostras nomeadas; exporta `PontoDeCor` para o ponto nas grades, círculo permitido pela mesma licença do dot de situação |
 | `LinkDeTexto` | `primitivos/LinkDeTexto.tsx` | `mono` | Link de conteúdo (a matrícula que abre a aeronave). É `Link` do router de verdade — nova aba, copiar endereço e histórico vêm de graça. Distinto do `LinkDeNavegacao` (barra lateral) e do `BotaoDeLink` (ação sem navegação) |
 | `Abas` | `primitivos/Abas.tsx` | `contagem` por aba; variante `sublinhado`, `trilho` (Trocas, Central), `contorno` (Aportes · Rendimentos), `fichas` (categorias de Lançamentos) | `tablist`/`tab` com o sublinhado de 3px do protótipo; quem escolhe a aba decide o que renderizar. Nasceu quando Manutenção e Lançamentos precisaram do mesmo risco |
 | `Avatar` | `primitivos/Avatar.tsx` | `medio`, `grande`; `escuro`, `suave` | Círculo de iniciais, decorativo. Barra do topo e cartão de proprietário |
-| `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando` | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo, preenchido no petróleo como no protótipo. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo |
+| `SeletorDeArquivos` | `primitivos/SeletorDeArquivos.tsx` | `multiplo`, `aceita`, `carregando`, `descritoPor`, `invalido` | O "+ Adicionar documentos": um `<input type="file">` de verdade, escondido só visualmente dentro do rótulo, preenchido no petróleo como no protótipo. O anel de foco é do rótulo (`:focus-within`); o valor é limpo depois de cada escolha, para o mesmo arquivo poder ser escolhido de novo. Inerte por `aria-disabled` durante o envio, sem derrubar o foco; `descritoPor` liga os tipos e limites, e `invalido` anuncia a escolha recusada |
 | `MenuSuspenso` | `primitivos/MenuSuspenso.tsx` | `titulo`, `icone` + `contagem` (o sino), `vazio`, `rodape` | Botão que abre uma lista curta de ações com rótulo e apoio — o "+ Registrar" da casca. Padrão *disclosure* (`aria-expanded` + `aria-controls`), não `role="menu"`: quatro botões ganham mais com o Tab do que com setas e foco itinerante. Esc fecha e devolve o foco ao gatilho; clicar ou focar fora fecha |
-| `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | — | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Nasceu com as observações do trecho |
+| `AreaDeTexto` | `primitivos/AreaDeTexto.tsx` | `obrigatorio`, `apoio`, `erro`, `desabilitado` | O irmão de várias linhas do `CampoDeTexto`: mesmo rótulo, mesmo cromo, mesma régua de foco. Com `maxLength`, mostra quanto já foi usado — o corte do navegador é silencioso. Nasceu com as observações do trecho |
+| `MolduraDeCampo` | `primitivos/MolduraDeCampo.tsx` | `como` `controle` ou `grupo` | A régua comum de rótulo, asterisco, apoio, erro e `aria-*` dos campos. Não é usada pelas telas: é o que os primitivos de formulário compartilham |
+
+### Formulários: o que falta aparece ao tentar salvar
+
+A receita está no [ADR-0022](adr/0022-validacao-de-formularios.md):
+- a função `validar…` é pura e testada;
+- `useValidacao` decide quando mostrar cada erro;
+- o `Formulario` de `compartilhado/formulario` é o `<form>` do painel: Enter num campo envia, e a
+  validação nativa fica desligada (quem valida é o `useValidacao`);
+- o botão principal é `tipo="submit"` e está sempre clicável; com `carregando`, o `aria-disabled`
+  segura também o envio pelo Enter;
+- cada campo recebe `erro={validacao.erroDe(...)}`;
+- o `ResumoDoFormulario` fica junto dos botões;
+- a legenda "Os campos marcados com * são obrigatórios." fica no topo.
+
+Antes da primeira tentativa, nada fica vermelho. Na tentativa, o foco vai ao primeiro campo inválido
+e o resumo diz quais faltam. O erro que o servidor devolve em `campos` cai no campo de mesmo nome.
+
+Todos os painéis e os passos da tela de entrada enviam pelo `Formulario`. Duas exceções de
+montagem: no cadastro de aeronave, os painéis do conversor e do proprietário ficam fora dele,
+porque `<form>` não se aninha; na edição do contrato, o `Formulario` envolve o cartão inteiro, para
+o "Salvar" do cabeçalho ser o submit.
+
+Outros padrões que os formulários adotaram:
+
+- **Escolher e incluir em dois passos** (`compartilhado/participacoes/IncluirProprietario`): a
+  `Selecao` não age no `onChange`; escolhe-se e clica-se "Incluir" (ou "Vincular"), e o foco vai ao
+  percentual. Com as setas mudando o `select` fechado (Windows, Firefox), agir na mudança incluiria
+  quem só passou pela opção.
+- **Ação destrutiva confirma nomeando o item** (desativar usuário, excluir manutenção ou parâmetro,
+  reabrir troca), com o botão em `carregando` e o Cancelar e o Esc inertes durante a ação.
+- **O resultado de uma ação de linha** sai numa região `role="status"` (ou `alert`, na falha) e
+  diz o que aconteceu ("X saiu do contrato novo da PS-MEP."); quando a linha some da lista
+  (concluir ou reabrir uma troca), o foco vai para a lista ou para o título da seção.
+- **Cancelar com dados preenchidos pede confirmação** no cadastro de aeronave, e fechar ou
+  recarregar a aba dispara o aviso do navegador.
 
 ### A variante `contorno` do `Botao`
 
@@ -279,23 +338,23 @@ Os `--z-*` viraram `--camada-*` e vieram só nos dois degraus em uso: `sticky` e
 
 | Componente do bundle | Situação |
 | --- | --- |
-| Tela de entrada (split-screen, 4 passos) | **Implementada** — `features/autenticacao` |
+| Tela de entrada (split-screen, 5 passos: entrada, e-mail, código, nova senha e "Crie sua senha" do convite) | **Implementada** — `features/autenticacao`. O link do convite (`/entrar?convite=<token>`) abre o passo "Crie sua senha", com Nova senha e Confirmar na mesma regra da recuperação; depois, o token sai da URL e a tela volta ao login com o aviso de entrar com o e-mail do convite |
 | Botão `.ihb` (contorno que preenche) | **Implementado** — `Botao` variante `contorno` |
 | Campo de formulário com rótulo e erro | **Implementado** — `CampoDeTexto` |
 | `.link-acao` | **Implementado** — `BotaoDeLink` |
 | Globo pontilhado (`dotted-globe.js`) | **Implementado** — `features/autenticacao/componentes/GloboPontilhado.tsx`, portado para React com `d3-geo`. Virou asset da feature, e não primitivo: é ilustração de uma tela só |
-| Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria. Não virou primitivo porque só existe aqui; vira quando a segunda tela precisar |
-| Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios` |
+| Toast de feedback | **Parcial** — a tela de entrada tem uma faixa `role="status"` própria, e Configurações (`ResultadoDoEnvio`) e Usuários (`RetornoDaAcao`) têm as suas. Com três telas, é candidato a primitivo (ver Lacunas conhecidas) |
+| Tela de Usuários (grade densa, filtros, paginação) | **Implementada** — `features/usuarios`. Desativar abre um painel de confirmação que nomeia a pessoa e diz a consequência; o resultado das ações da linha sai numa faixa `role="status"`; cada botão de linha tem nome acessível com o nome da pessoa ("Desativar Ana Lima"); o painel de convite diz o alcance de cada papel e valida ao enviar |
 | Tela de Aeronaves (lista de cartões da frota) | **Implementada** — `features/aeronaves`, do Projeto final. Ver a nota abaixo sobre os números ausentes |
-| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema` |
+| Tela de Configurações (4 seções) | **Implementada** — `features/configuracoes`, do Projeto final: cartões com título de 14px, caixa de CNPJ bloqueada, "Personalizado:" em linha e botões primários grandes. O tema mantém a opção "Do sistema" e é por navegador, não "para toda a conta" como diz o protótipo — a preferência é de quem olha a tela. "Token" do protótipo é "código" (glossário). Seletor de tema em `compartilhado/tema`. Cada cartão envia pelo `Formulario` e valida ao salvar; sem mudança, diz "Nenhuma alteração para salvar."; a recusa geral some ao editar. O "Personalizado (dias)" tem rótulo visível. O código de confirmação tem rótulo visível, apoio com a validade, reenvio com contagem regressiva de 60 s e não tem `maxLength` (aceita o código colado com espaços) |
 | Barra lateral de navegação e cabeçalho de aplicação | **Parcial** — `app/LayoutDaAplicacao`. Tem o "←" das telas internas (volta no histórico; quem chegou por link vai à tela de cima), o "+ Registrar" com o Registro rápido (cada item leva à tela dona com `?registrar=1`, que abre o formulário de lá, e dentro de uma aeronave o registro já nasce nela) e o sino, com os cinco avisos não lidos mais urgentes e a porta da Central. Sem busca global, sem seletor de tema, sem navegação em grupos e sem gaveta com scrim em mobile: abaixo de 700px a navegação vira faixa horizontal rolável |
 | Tabela densa | **Implementada sem colunas fixas nem linha de totais** — nenhuma coluna da tela de Usuários é congelada e não há total a somar. A régua já sai da armadura, então a grade das telas financeiras herda o alinhamento |
 | Modal | **Implementado** — primitivo `PainelModal`, promovido de `PainelDeConvite` quando Proprietários precisou do segundo modal |
 | Tela de Proprietários (cartões, filtros, painel de cadastro) | **Implementada** — `features/proprietarios`, do Projeto final. Ver a nota abaixo sobre o saldo ausente |
-| Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes |
+| Paleta de cor de identificação | **Implementada** — primitivo `SeletorDeCor`. O protótipo tem 8 amostras apontando para tokens semânticos; aqui são 6, todas de tokens existentes. No tema escuro, Azul e Celeste eram o mesmo hex até 2026-10-07; o `--cor-acento-claro` do escuro passou a `#a9c8e6`. Falta a marca não cromática da escolhida (ver Lacunas conhecidas) |
 | Tela de Detalhe da aeronave | **Implementada** — `features/aeronaves/componentes/PaginaDeDetalheDaAeronave`, do Projeto final, em duas colunas. Ver a nota abaixo sobre o que ficou de fora |
 | Tela de Nova aeronave (wizard em seções) | **Parcial** — `features/aeronaves/componentes/PaginaDeNovaAeronave`, com o conversor NM→km. Ver a nota abaixo sobre as seções ausentes |
-| Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha de TOTAIS somada no servidor; sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas) |
+| Tela de Diário de voos (grade, filtros, painel de trecho) | **Parcial** — `features/voos`. Linha "TOTAIS REALIZADOS" somada no servidor, só com os trechos realizados (também com o filtro por voo); sem paginação nem seletor de densidade (o recorte natural — uma competência — é de dezenas de linhas). O painel diz o fuso dos horários ("Horários no fuso deste dispositivo — America/Sao_Paulo"), avisa quando a partida realizada cai noutro dia e rotula "Distância (km)" e "Nº do trecho" |
 | Tela de Lançamentos (filtros, escopo, abas de categoria, grade, totais) | **Implementada** — `features/custos`, do Projeto final. Ver a nota abaixo |
 | Tela de Manutenção (chips de referência, indicadores, abas Agenda · Histórico · Parâmetros) | **Implementada** — `features/manutencao`, do Projeto final. Ver a nota abaixo |
 | Tela de Calendário (mês com trechos e manutenções) | **Parcial** — `features/calendario`, leitura composta sobre os endpoints de voos e manutenção — nenhum endpoint próprio. Legenda dos proprietários do mês e da manutenção, dias em blocos (os do mês vizinho em branco), trecho com a régua na cor de quem voou e as iniciais. Clicar num trecho abre o diário (a tela dona da edição), em vez de editar no lugar como no protótipo; a cor na legenda só se lê — muda-se no cadastro do proprietário |
@@ -388,8 +447,8 @@ com nome, data de adição e tamanho. O nome baixa o arquivo.
 **Decisões nossas:** o "← PS-MEP" do protótipo é o voltar da casca, com a matrícula no resumo;
 "enviado por" embaixo do nome; o "×" é **Remover** com texto e confirmação na linha que diz "Não
 pode ser desfeito" (decisão de produto: remover apaga de verdade); arquivo acima de 20 MB é
-recusado antes de sair do navegador. O armazenamento é o disco do servidor, atrás de uma porta
-(ADR-0020).
+recusado antes de sair do navegador, assim como mais de 10 arquivos num envio; o apoio do botão
+diz os tipos e os limites. O armazenamento é o disco do servidor, atrás de uma porta (ADR-0020).
 
 **De fora:** a seção de documentos do cadastro de aeronave (anexa-se depois de criar, pelo
 detalhe) e a pré-visualização do arquivo na tela — o download é sempre como anexo, por
@@ -407,6 +466,14 @@ protótipo. Com proprietário no filtro, a frase do saldo de horas ("tem 1,3 h a
 continua com quem voou, e a tela diz isso; o Rel. Voo é opcional e aparece na observação; a data
 da devolução aparece na linha da realizada ("↩"); "Recebeu" não oferece quem já está em "Cedeu".
 A grade sai da armadura nas colunas de proprietário e R$/hora, que precisam de mais largura.
+
+"Concluir" abre um painel com a **Data da devolução** (padrão hoje); "Reabrir" pede confirmação num
+painel que diz qual data de devolução será descartada. Depois de concluir ou reabrir, um aviso em
+`role="status"` diz para qual aba a troca foi, e o foco vai para a lista. Os rótulos dizem a unidade
+e o opcional: "Horas voadas (h)" (apoio "2,5 = 2h30"), "KM voados (opcional)", "R$ por hora
+(opcional)", "Rel. Voo (opcional)", "Observação (opcional)". "Cedeu" e "Recebeu" não ficam
+desabilitados: o apoio de "Cedeu" explica quando a aeronave não tem dois proprietários no contrato
+vigente.
 
 **De fora:** a observação editável direto na linha (o Editar cobre), a paginação (trocas são
 dezenas por ano) e a "Permuta" das strings do protótipo, que ajustaria as horas do rateio — o
@@ -440,9 +507,11 @@ Período, abas com contagem, as colunas das duas grades e o formulário de rendi
 abaixo da grade.
 
 **Decisões nossas:** a competência tem **campo próprio** no aporte, separada da data do crédito —
-o aporte de setembro cai em outubro; o proprietário vem do **contrato vigente** da aeronave (o
-servidor também aceita quem já participou, para quitar o que devia); a exclusão confirma **na
-linha** ("Excluir?"), como no diário, e as ações têm texto, não glifo ("×").
+o aporte de setembro cai em outubro, e o campo propõe o mês anterior ao do crédito, com o apoio
+explicando a relação; o proprietário vem do **contrato vigente** da aeronave (o servidor também
+aceita quem já participou, para quitar o que devia); a exclusão confirma **na linha** ("Excluir?"),
+como no diário, e as ações têm texto, não glifo ("×"). Em aeronave sem contrato vigente, o painel
+avisa que o lançamento não será rateado.
 
 **De fora:** a **paginação** (o recorte cabe numa grade, como em Lançamentos); os
 **atalhos de período** do seletor ("Últimos 12 meses") — o modo Período abre com os últimos 12
@@ -466,8 +535,30 @@ segunda feature passou a usá-lo.
 ### A Nova aeronave tem quatro seções, não cinco
 
 As seções seguem o cartão do protótipo — número num círculo, título de 14px, grade de quantas
-colunas de 190px couberem — e os obrigatórios levam o asterisco. Com o botão desabilitado, a barra
-diz por quê ("Preencha os campos marcados com *" ou a soma das participações).
+colunas de 190px couberem — e os obrigatórios levam o asterisco. O botão fica sempre clicável: ao
+tentar salvar, o resumo junto dos botões diz o que falta, e o foco vai ao primeiro campo (ADR-0022).
+
+Adaptações ao protótipo feitas na correção dos formulários (2026-10-07):
+
+- **"Ciclos (pousos)"**, obrigatório, inteiro ≥ 0, na seção 2. O protótipo não tem o campo e o
+  cadastro mandava sempre zero: uma aeronave com milhares de pousos entrava zerada, e os parâmetros
+  de manutenção por ciclos a mostravam longe do limite. As horas de cada motor escolhido também são
+  obrigatórias (0 se novo).
+- **"Valor de cada aporte (R$)"** só aparece com o modelo FIXO.
+- **"Dia de fechamento da fatura"** é uma lista de 1 a 28.
+- O **saldo** usa teclado de texto (`inputMode="text"`), para o sinal de menos existir no iPhone.
+- **Vincular proprietário** pede escolher e clicar "Vincular" (a seleção não age no `onChange`), e
+  o foco vai ao percentual.
+- A legenda **"Os campos marcados com * são obrigatórios."** fica no topo, e o resumo junto dos
+  botões.
+- **Cancelar com dados pede confirmação** ("Descartar o cadastro?"), e fechar ou recarregar a aba
+  dispara o aviso do navegador. Sair pelo menu lateral ainda não avisa (decisão pendente).
+- Se o **contrato for recusado** depois de a aeronave ser criada, as seções 1 a 3 travam e o botão
+  vira "Salvar participações".
+- **Rótulos com unidade**: "Horas de célula (h)", "Quilômetros voados (km)", "Horas de APU (h)",
+  "Participação de X (%)".
+- Quem não gere a frota (piloto, proprietário) vê "Seu perfil não cadastra aeronaves…" em vez do
+  formulário.
 
 Do protótipo ficou de fora a seção de **documentos**: os arquivos se anexam depois de criar, pela
 tela de Documentos da aeronave — anexar antes de a aeronave existir pediria um armazenamento
@@ -502,6 +593,12 @@ protótipo ("Excluir proprietário"): sem participação vigente, só confirma; 
 cada aeronave dele com os demais na participação atual — e a opção de incluir outro proprietário —
 até a soma fechar em 100%, e a saída cria os contratos novos e desativa numa transação
 (`POST /proprietarios/{id}/saida`). O servidor recusa desativar direto quem está em contrato.
+
+No painel de desativação, quem foi incluído pelo painel pode ser retirado (o foco volta à escolha,
+e a retirada é anunciada); os sócios atuais não (decisão pendente). Ao abrir, o foco vai ao título
+e à instrução, não ao primeiro percentual. Quando ninguém pode assumir a aeronave de quem sai, o
+painel diz o caminho: cancelar e cadastrar ou reativar alguém. Se outro contrato entrou em vigor
+no meio, o painel recomeça do atual (ADR-0025).
 
 **Fora de escopo por decisão de produto:** a infraestrutura de i18n (`i18n-en.js`, `i18n-es.js` do
 bundle). O produto é entregue em português; inglês e espanhol não estão nesta fase.

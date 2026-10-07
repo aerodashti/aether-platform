@@ -5,6 +5,18 @@
   max-width: 1280px;
 }
 
+/* Agrupa as três primeiras seções para travá-las juntas depois que a aeronave foi criada; o
+   reset tira o cromo nativo do fieldset e mantém o ritmo da tela. */
+.conjunto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
 .secao {
   padding: var(--espaco-6) var(--espaco-7);
   background: var(--cor-superficie);
@@ -77,61 +89,23 @@
   margin-top: var(--espaco-4);
 }
 
-.vinculos {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.vinculo {
-  display: flex;
-  gap: var(--espaco-4);
-  align-items: center;
-  padding: var(--espaco-2) 0;
-  border-bottom: 1px solid var(--cor-borda-suave);
-}
-
-.dono {
-  display: flex;
-  flex: 1;
-  gap: var(--espaco-3);
-  align-items: center;
-  min-width: 0;
-  font-size: var(--tamanho-m);
-  font-weight: var(--peso-forte);
-  line-height: var(--altura-m);
-}
-
-.trunca {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.campoDePercentual {
-  width: 112px;
-}
-
-.adicionar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espaco-3);
-  max-width: 320px;
-  margin-top: var(--espaco-4);
-}
-
-.somaLinha {
-  display: flex;
-  gap: var(--espaco-4);
-  align-items: center;
-  justify-content: space-between;
-  white-space: nowrap;
-}
-
 .acoes {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--espaco-4);
   align-items: center;
   justify-content: flex-end;
+}
+
+/* O resumo do que falta ocupa o espaço à esquerda dos botões e quebra a linha se precisar. */
+.resumo {
+  flex: 1;
+  min-width: 240px;
+}
+
+.acoesDoPainel {
+  display: flex;
+  gap: var(--espaco-4);
+  justify-content: flex-end;
+  margin-top: var(--espaco-2);
 }

@@ -29,6 +29,13 @@ public record ConfiguracaoFinanceira(
   /** As periodicidades que existem no produto; qualquer outra é erro de entrada. */
   public static final Set<Integer> PERIODICIDADES_VALIDAS = Set.of(1, 2, 3, 4, 6, 12);
 
+  /** No aporte proporcional ao uso não há valor combinado: o que viesse seria um número sem uso. */
+  public ConfiguracaoFinanceira {
+    if (modeloDeAporte == ModeloDeAporte.PROPORCIONAL_AO_USO) {
+      valorDoAporte = null;
+    }
+  }
+
   /** O padrão de quem ainda não configurou: rateio por uso, aporte fixo mensal, fatura no dia 1. */
   public static ConfiguracaoFinanceira padrao() {
     return new ConfiguracaoFinanceira(
@@ -37,6 +44,12 @@ public record ConfiguracaoFinanceira(
 
   public boolean possuiPeriodicidadeValida() {
     return PERIODICIDADES_VALIDAS.contains(periodicidadeDoAporteMeses);
+  }
+
+  /** O aporte fixo é cobrado pelo valor combinado: sem ele, ou com zero, não há o que cobrar. */
+  public boolean possuiValorDoAporteCoerente() {
+    return modeloDeAporte != ModeloDeAporte.FIXO
+        || (valorDoAporte != null && valorDoAporte.signum() > 0);
   }
 
   /** Até 28 para o dia existir em todo mês: fevereiro decide o teto. */

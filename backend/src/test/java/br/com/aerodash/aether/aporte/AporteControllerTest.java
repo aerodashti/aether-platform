@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,9 +25,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -150,5 +154,108 @@ class AporteControllerTest {
                     """))
         .andExpect(status().isBadRequest());
     verify(aportes, never()).criar(any());
+  }
+
+  @ParameterizedTest(name = "valor {0} é recusado no campo, sem chegar ao banco")
+  @CsvSource({"0.001", "100.999", "1000000000000000", "1e20"})
+  @DisplayName("valor do aporte com casas demais ou maior que a coluna: 400 em campos.valor")
+  void valorForaDaColuna(String valor) throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+
+    mockMvc
+        .perform(
+            post("/aportes")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"proprietarioId":7,"data":"2026-10-03",
+                     "competencia":"2026-09","valor":%s}
+                    """
+                        .formatted(valor)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.valor").value(AporteRequest.MENSAGEM_DO_VALOR));
+    verify(aportes, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("competência fora do formato AAAA-MM é recusada no próprio campo")
+  void competenciaIlegivel() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+
+    mockMvc
+        .perform(
+            post("/aportes")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"proprietarioId":7,"data":"2026-10-03",
+                     "competencia":"09/2026","valor":10}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.competencia").value("Informe a competência no formato AAAA-MM."));
+  }
+
+  @Test
+  @DisplayName("a recusa de domínio de um campo volta em campos, com o nome do JSON")
+  void recusaDeDominioNoCampo() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    when(aportes.atualizar(eq(5L), any()))
+        .thenThrow(
+            new AporteInvalidoException(
+                "Aporte inválido", "Use uma competência de 01/2000 até 10/2027.", "competencia"));
+
+    mockMvc
+        .perform(
+            put("/aportes/5")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"proprietarioId":7,"data":"2026-10-03",
+                     "competencia":"2027-11","valor":10}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.competencia").value("Use uma competência de 01/2000 até 10/2027."));
+  }
+
+  private static final Map<String, String> MENSAGENS_DO_RENDIMENTO =
+      Map.of(
+          "taxa", RendimentoRequest.MENSAGEM_DA_TAXA,
+          "saldoAplicado", RendimentoRequest.MENSAGEM_DO_SALDO,
+          "valor", RendimentoRequest.MENSAGEM_DO_VALOR);
+
+  @ParameterizedTest(name = "{0} = {1} é recusado em campos.{0}")
+  @CsvSource({
+    "taxa, 1000",
+    "taxa, 10.5",
+    "taxa, 0.00001",
+    "saldoAplicado, 100.555",
+    "saldoAplicado, 1000000000000000",
+    "valor, 1.239",
+    "valor, 1000000000000000"
+  })
+  @DisplayName("rendimento com número fora da coluna ou taxa acima de 10%: 400 no campo")
+  void rendimentoForaDosLimites(String campo, String numero) throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    String corpo =
+        """
+        {"aeronaveId":1,"data":"2026-10-03","aplicacao":"CDB DI",
+         "saldoAplicado":104200,"taxa":0.91,"valor":948.22}
+        """
+            .replaceFirst("\"" + campo + "\":[0-9.]+", "\"" + campo + "\":" + numero);
+
+    mockMvc
+        .perform(
+            post("/rendimentos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(corpo))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos." + campo).value(MENSAGENS_DO_RENDIMENTO.get(campo)));
+    verify(rendimentos, never()).criar(any());
   }
 }

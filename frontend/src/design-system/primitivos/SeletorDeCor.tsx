@@ -1,6 +1,8 @@
 import { juntarClasses } from '@/design-system/classes';
 
+import { MolduraDeCampo } from './MolduraDeCampo';
 import estilos from './SeletorDeCor.module.css';
+import { useGrupoDeRadio } from './useGrupoDeRadio';
 
 /**
  * A paleta fechada de cores de identificação, na ordem em que a tela as oferece.
@@ -34,7 +36,12 @@ interface SeletorDeCorProps {
   rotulo: string;
   valor: CorDeIdentificacao;
   aoEscolher: (valor: CorDeIdentificacao) => void;
+  /** Para que serve a cor — ligado ao grupo, e não um parágrafo solto ao lado. */
+  apoio?: string;
+  erro?: string;
 }
+
+const VALORES_DAS_CORES = CORES_DE_IDENTIFICACAO.map((cor) => cor.valor);
 
 /**
  * Escolha única de cor de identificação, todas as amostras à vista.
@@ -43,26 +50,33 @@ interface SeletorDeCorProps {
  * `aria-checked`, e o nome acessível é o nome da cor — a amostra sozinha não diz nada a quem não
  * a vê.
  */
-export function SeletorDeCor({ rotulo, valor, aoEscolher }: SeletorDeCorProps) {
+export function SeletorDeCor({ rotulo, valor, aoEscolher, apoio, erro }: SeletorDeCorProps) {
+  const atributosDaOpcao = useGrupoDeRadio(VALORES_DAS_CORES, valor, aoEscolher);
+
   return (
-    <div className={estilos.grupo} role="radiogroup" aria-label={rotulo}>
-      {CORES_DE_IDENTIFICACAO.map((cor) => (
-        <button
-          key={cor.valor}
-          type="button"
-          role="radio"
-          aria-checked={cor.valor === valor}
-          aria-label={cor.rotulo}
-          title={cor.rotulo}
-          className={juntarClasses(
-            estilos.amostra,
-            CLASSE_DA_COR[cor.valor],
-            cor.valor === valor && estilos.escolhida,
-          )}
-          onClick={() => aoEscolher(cor.valor)}
-        />
-      ))}
-    </div>
+    <MolduraDeCampo como="grupo" rotulo={rotulo} apoio={apoio} erro={erro}>
+      {(atributos) => (
+        <div {...atributos} className={estilos.grupo} role="radiogroup">
+          {CORES_DE_IDENTIFICACAO.map((cor, indice) => (
+            <button
+              key={cor.valor}
+              {...atributosDaOpcao(indice)}
+              type="button"
+              role="radio"
+              aria-checked={cor.valor === valor}
+              aria-label={cor.rotulo}
+              title={cor.rotulo}
+              className={juntarClasses(
+                estilos.amostra,
+                CLASSE_DA_COR[cor.valor],
+                cor.valor === valor && estilos.escolhida,
+              )}
+              onClick={() => aoEscolher(cor.valor)}
+            />
+          ))}
+        </div>
+      )}
+    </MolduraDeCampo>
   );
 }
 

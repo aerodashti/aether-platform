@@ -13,9 +13,18 @@ interface BotaoProps {
   variante?: VarianteDeBotao;
   tamanho?: TamanhoDeBotao;
   tipo?: 'button' | 'submit';
+  /**
+   * Inerte, mas ainda focável e na ordem de Tab: com `disabled` nativo o botão some do teclado, e
+   * quem navega por Tab nem descobre que o "Salvar" existe. O motivo vai em `descritoPor`.
+   */
   desabilitado?: boolean;
-  /** Mantém o botão inerte e anuncia a espera para leitores de tela. */
+  /**
+   * Inerte enquanto a ação corre, sem perder o foco: um `disabled` no botão focado manda o foco
+   * para o `<body>` no meio do envio.
+   */
   carregando?: boolean;
+  /** `id` do texto que explica o estado do botão — o que falta para salvar, por exemplo. */
+  descritoPor?: string;
   /** Ornamento ao fim do rótulo. Decorativo: não substitui o texto do botão. */
   iconeAoFim?: ReactNode;
   /** Ocupa toda a largura disponível, para formulário em coluna. */
@@ -43,8 +52,11 @@ export function Botao({
   largura = 'natural',
   rotuloAcessivel,
   tom = 'padrao',
+  descritoPor,
   ref,
 }: BotaoProps) {
+  const inerte = desabilitado || carregando;
+
   return (
     <button
       ref={ref}
@@ -58,9 +70,17 @@ export function Botao({
         tom === 'positivo' && variante === 'primario' && estilos.positivo,
       )}
       aria-label={rotuloAcessivel}
-      onClick={aoClicar}
-      disabled={desabilitado || carregando}
-      aria-busy={carregando}
+      aria-describedby={descritoPor}
+      onClick={(evento) => {
+        // O `preventDefault` segura também o envio implícito do formulário pelo Enter.
+        if (inerte) {
+          evento.preventDefault();
+          return;
+        }
+        aoClicar?.();
+      }}
+      aria-disabled={inerte || undefined}
+      aria-busy={carregando || undefined}
     >
       {variante === 'contorno' ? (
         <>

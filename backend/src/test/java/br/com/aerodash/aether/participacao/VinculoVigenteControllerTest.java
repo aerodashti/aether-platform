@@ -65,12 +65,13 @@ class VinculoVigenteControllerTest {
         .thenReturn(
             List.of(
                 new VinculoVigenteResponse(
-                    1L, 3L, "PS-AER", "Phenom 300E", new BigDecimal("60.00"))));
+                    1L, 3L, 10L, "PS-AER", "Phenom 300E", new BigDecimal("60.00"))));
 
     mockMvc
         .perform(get("/participacoes/vigentes").cookie(new Cookie("aether_sessao", TOKEN)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].matricula").value("PS-AER"))
+        .andExpect(jsonPath("$[0].contratoId").value(10))
         .andExpect(jsonPath("$[0].percentual").value(60.00));
   }
 

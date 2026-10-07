@@ -73,6 +73,21 @@ class ConviteServiceTest {
   }
 
   @Test
+  @DisplayName("revogar mata o convite vigente sem emitir outro")
+  void revogarMataOVigenteSemEmitir() {
+    Usuario convidado = convidado();
+    Convite vigente = new Convite(convidado, "hash-do-token", AGORA, VALIDADE);
+    when(convites.findFirstByUsuarioOrderByCriadoEmDesc(convidado))
+        .thenReturn(Optional.of(vigente));
+
+    service.revogar(convidado, AGORA.plusSeconds(60));
+
+    assertThat(vigente.estaVigente(AGORA.plusSeconds(61))).isFalse();
+    verify(convites, never()).save(any());
+    verify(enviador, never()).enviar(any(), any());
+  }
+
+  @Test
   @DisplayName("concluir define a senha da própria pessoa, ativa a conta e gasta o link")
   void concluirAtivaAConta() {
     Usuario convidado = convidado();
@@ -99,6 +114,22 @@ class ConviteServiceTest {
         .isInstanceOf(ConviteInvalidoException.class);
 
     assertThat(convidado.possuiSenha()).isFalse();
+    verify(cofre, never()).codificar(any());
+  }
+
+  @Test
+  @DisplayName("convite de quem foi desativado é recusado e a conta continua inativa")
+  void conviteDeDesativadoEhRecusado() {
+    Usuario convidado = convidado();
+    Convite convite = new Convite(convidado, "hash-do-token", AGORA, VALIDADE);
+    convidado.desativar(AGORA);
+    when(convites.findByToken("hash-do-token")).thenReturn(Optional.of(convite));
+
+    assertThatThrownBy(() -> service.concluir(TOKEN, "minha-senha-nova"))
+        .isInstanceOf(ConviteInvalidoException.class);
+
+    assertThat(convidado.getSituacao()).isEqualTo(SituacaoDoUsuario.INATIVO);
+    assertThat(convite.foiUsado()).isFalse();
     verify(cofre, never()).codificar(any());
   }
 

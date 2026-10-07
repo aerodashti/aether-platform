@@ -1,8 +1,19 @@
-/* Os quatro passos compartilham a mesma coluna: mudar de passo não pode deslocar o formulário. */
-.passo {
+/* Os cinco passos são um Formulario, com o ritmo dele; os campos repetem esse ritmo em grupo. */
+.campos {
   display: flex;
   flex-direction: column;
   gap: var(--espaco-5);
+}
+
+/* O resumo do formulário fica colado ao botão. Ele existe sempre — região viva precisa existir
+   antes do texto —, então o espaço vem da frase, e não de um gap que valeria também vazio. */
+.envio {
+  display: flex;
+  flex-direction: column;
+}
+
+.envio > [role='alert'] > p {
+  margin-bottom: var(--espaco-3);
 }
 
 .cabecalho {

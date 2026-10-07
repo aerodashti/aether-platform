@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
@@ -14,18 +15,22 @@ import estilos from './TabelaDeTrechos.module.css';
 interface TabelaDeTrechosProps {
   diario: DiarioDeVoosResponse | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   mostraAeronave: boolean;
   podeLancar: boolean;
   aoCorrigir: (trecho: TrechoResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 const LINHAS_DO_ESQUELETO = 4;
 
 /**
- * A grade do diário, com a linha de TOTAIS somada no servidor. A exclusão pede confirmação na
- * própria linha — "Excluir?" — como no protótipo: modal para isso seria cerimônia.
+ * A grade do diário, com a linha de totais do realizado, como os contadores da aeronave — somada
+ * no servidor, ou por `diarioDoVoo` no filtro por voo, com o mesmo critério; a linha de um trecho
+ * planejado mostra as horas previstas, mas ele não entra nos totais. A exclusão pede
+ * confirmação na própria linha — "Excluir?" — como no protótipo: modal para isso seria cerimônia.
  */
 export function TabelaDeTrechos({
   diario,
@@ -35,6 +40,7 @@ export function TabelaDeTrechos({
   podeLancar,
   aoCorrigir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeTrechosProps) {
   const excluir = useExcluirTrecho();
   const [confirmando, setConfirmando] = useState<number | null>(null);
@@ -42,12 +48,12 @@ export function TabelaDeTrechos({
   if (erro) {
     return (
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar o diário.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar o diário."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
       </div>
     );
   }
@@ -197,7 +203,7 @@ export function TabelaDeTrechos({
       <tfoot role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={estilos.totais}>
           <td role="cell" className={estilos.celula}>
-            TOTAIS · {diario?.totais?.pousos ?? 0}{' '}
+            TOTAIS REALIZADOS · {diario?.totais?.pousos ?? 0}{' '}
             {(diario?.totais?.pousos ?? 0) === 1 ? 'pouso' : 'pousos'}
           </td>
           <td role="cell" className={estilos.celula} />

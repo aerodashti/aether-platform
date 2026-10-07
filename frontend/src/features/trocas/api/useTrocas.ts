@@ -9,6 +9,14 @@ export type TrocaResponse = components['schemas']['TrocaResponse'];
 export type TrocaRequest = components['schemas']['TrocaRequest'];
 export type SituacaoDaTroca = NonNullable<TrocaResponse['situacao']>;
 
+/**
+ * A devolução com a data em que aconteceu. Declarado aqui até a próxima geração de
+ * `tipos-gerados.ts`, que traz o `ConclusaoDaTrocaRequest` do backend.
+ */
+export interface ConclusaoDaTrocaRequest {
+  concluidaEm: string;
+}
+
 const CHAVE = ['trocas'] as const;
 
 export function useTrocas(proprietarioId: string, situacao: SituacaoDaTroca) {
@@ -45,8 +53,9 @@ export function useCorrigirTroca() {
 }
 
 export function useConcluirTroca() {
-  return useAcaoSobreTrocas<number>('concluir-troca', (id) =>
-    enviar<TrocaResponse>(`/trocas/${id}/conclusao`, undefined),
+  return useAcaoSobreTrocas<{ id: number; conclusao: ConclusaoDaTrocaRequest }>(
+    'concluir-troca',
+    ({ id, conclusao }) => enviar<TrocaResponse>(`/trocas/${id}/conclusao`, conclusao),
   );
 }
 

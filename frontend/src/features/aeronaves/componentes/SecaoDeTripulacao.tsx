@@ -34,6 +34,18 @@ function contagemDeTripulantes(total: number): string {
 export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoProps) {
   const consulta = useTripulantes(aeronaveId);
   const [painel, setPainel] = useState<Painel>(null);
+  // O painel some ao salvar: a confirmação fica aqui, numa região que o leitor de tela anuncia.
+  const [confirmacao, setConfirmacao] = useState('');
+
+  function abrir(novo: Painel) {
+    setConfirmacao('');
+    setPainel(novo);
+  }
+
+  function concluir(nome: string) {
+    setConfirmacao(`Tripulação atualizada: ${nome}.`);
+    setPainel(null);
+  }
 
   const itens = consulta.data ?? [];
   const contagem = consulta.isSuccess ? `${contagemDeTripulantes(itens.length)} · ` : '';
@@ -44,7 +56,7 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
       apoio={`${contagem}validades de CMA e habilitação (CHT)`}
       acao={
         podeGerir ? (
-          <Botao variante="contorno" tamanho="medio" aoClicar={() => setPainel({ modo: 'novo' })}>
+          <Botao variante="contorno" tamanho="medio" aoClicar={() => abrir({ modo: 'novo' })}>
             Adicionar tripulante
           </Botao>
         ) : null
@@ -138,7 +150,8 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
                         <Botao
                           variante="fantasma"
                           tamanho="pequeno"
-                          aoClicar={() => setPainel({ modo: 'editar', tripulante })}
+                          rotuloAcessivel={`Editar ${tripulante.nome ?? 'tripulante'}`}
+                          aoClicar={() => abrir({ modo: 'editar', tripulante })}
                         >
                           Editar
                         </Botao>
@@ -152,11 +165,16 @@ export function SecaoDeTripulacao({ aeronaveId, podeGerir }: SecaoDeTripulacaoPr
         </div>
       )}
 
+      <div role="status" className={estilos.apenasLeitor}>
+        {confirmacao}
+      </div>
+
       {painel ? (
         <PainelDeTripulante
           key={painel.modo === 'editar' ? painel.tripulante.id : 'novo'}
           aeronaveId={aeronaveId}
           tripulante={painel.modo === 'editar' ? painel.tripulante : undefined}
+          aoSalvar={concluir}
           aoFechar={() => setPainel(null)}
         />
       ) : null}

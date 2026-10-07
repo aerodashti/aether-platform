@@ -57,6 +57,17 @@ class CodigoDeRecuperacaoTest {
   }
 
   @Test
+  @DisplayName("revogado deixa de valer, mas não conta como usado")
+  void revogadoNaoContaComoUsado() {
+    CodigoDeRecuperacao codigo = novo();
+
+    codigo.revogar(AGORA.plusSeconds(30));
+
+    assertThat(codigo.estaVigente(AGORA.plusSeconds(30), LIMITE)).isFalse();
+    assertThat(codigo.foiUsado()).isFalse();
+  }
+
+  @Test
   @DisplayName("segura o reenvio até o intervalo mínimo passar")
   void seguraOReenvio() {
     CodigoDeRecuperacao codigo = novo();

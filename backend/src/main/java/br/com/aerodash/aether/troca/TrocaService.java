@@ -2,6 +2,8 @@ package br.com.aerodash.aether.troca;
 
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
+import br.com.aerodash.aether.aeronave.FiltroPorAeronave;
+import br.com.aerodash.aether.comum.config.FusoDoNegocio;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import br.com.aerodash.aether.proprietario.Proprietario;
@@ -10,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,6 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 /** As trocas de KM: horas cedidas entre proprietários, a devolver. */
 @Service
 public class TrocaService {
+
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private static final String CAMPO_AERONAVE = "aeronaveId";
+  private static final String CAMPO_DATA = "data";
+  private static final String CAMPO_CEDENTE = "cedenteId";
+  private static final String CAMPO_RECEBEDOR = "recebedorId";
 
   private final TrocaDeKmRepository trocas;
   private final AeronaveRepository aeronaves;
@@ -47,8 +56,9 @@ public class TrocaService {
 
   @Transactional(readOnly = true)
   public TrocasResponse listar(Long aeronaveId, Long proprietarioId, SituacaoDaTroca situacao) {
-    contexto.decisao("trocas.filtroPorAeronave", aeronaveId != null);
     contexto.decisao("trocas.filtroPorProprietario", proprietarioId != null);
+    FiltroPorAeronave.exigirExistente("trocas", aeronaveId, aeronaves::existsById, contexto);
+    exigirProprietarioDoFiltro(proprietarioId);
     List<TrocaDeKm> recorte =
         trocas.findAllByOrderByDataDescIdDesc().stream()
             .filter(troca -> aeronaveId == null || troca.getAeronaveId().equals(aeronaveId))
@@ -65,6 +75,15 @@ public class TrocaService {
         recorte.size() - concluidas,
         concluidas,
         proprietarioId == null ? null : saldoDe(proprietarioId, recorte));
+  }
+
+  /** Filtro por quem não existe é 404: senão a tela mostraria um saldo de 0 h para ninguém. */
+  private void exigirProprietarioDoFiltro(Long proprietarioId) {
+    boolean proprietarioExiste = proprietarioId == null || proprietarios.existsById(proprietarioId);
+    contexto.decisao("trocas.proprietarioDoFiltroExiste", proprietarioExiste);
+    if (!proprietarioExiste) {
+      throw new RecursoNaoEncontradoException("Proprietário não encontrado.");
+    }
   }
 
   @Transactional
@@ -84,7 +103,7 @@ public class TrocaService {
     contexto.decisao("troca.trocaDeAeronave", trocaDeAeronave);
     if (trocaDeAeronave) {
       throw new TrocaInvalidaException(
-          "A aeronave da troca não muda: registre uma nova na aeronave certa.");
+          "A aeronave da troca não muda: registre uma nova na aeronave certa.", CAMPO_AERONAVE);
     }
     troca.atualizar(dadosDe(request), Instant.now(relogio));
     // Recusar depois de alterar é seguro: a exceção desfaz a transação antes do flush.
@@ -93,10 +112,24 @@ public class TrocaService {
   }
 
   @Transactional
-  public TrocaResponse concluir(Long id) {
+  public TrocaResponse concluir(Long id, ConclusaoDaTrocaRequest request) {
     TrocaDeKm troca = exigirTroca(id);
-    contexto.decisao("troca.jaConcluida", troca.estaConcluida());
-    troca.concluir(LocalDate.now(relogio), Instant.now(relogio));
+    boolean jaConcluida = troca.estaConcluida();
+    contexto.decisao("troca.jaConcluida", jaConcluida);
+    if (jaConcluida) {
+      // Concluir de novo não muda a data da primeira devolução: para corrigi-la, reabre-se.
+      return paraLinhas(List.of(troca)).get(0);
+    }
+    LocalDate hoje = hoje();
+    boolean devolucaoAceitavel = troca.podeSerDevolvidaEm(request.concluidaEm(), hoje);
+    contexto.decisao("troca.devolucaoAceitavel", devolucaoAceitavel);
+    if (!devolucaoAceitavel) {
+      throw new TrocaInvalidaException(
+          "A devolução fica entre a data da troca (%s) e hoje (%s)."
+              .formatted(DATA.format(troca.getData()), DATA.format(hoje)),
+          "concluidaEm");
+    }
+    troca.concluir(request.concluidaEm(), Instant.now(relogio));
     return paraLinhas(List.of(troca)).get(0);
   }
 
@@ -107,29 +140,55 @@ public class TrocaService {
     return paraLinhas(List.of(troca)).get(0);
   }
 
+  /** Uma troca de amanhã não pode passar por "não futura" depois das 21h em Brasília. */
+  private LocalDate hoje() {
+    return FusoDoNegocio.hoje(relogio);
+  }
+
   private void validar(TrocaDeKm troca) {
     boolean diferentes = troca.ehEntreProprietariosDiferentes();
     contexto.decisao("troca.entreProprietariosDiferentes", diferentes);
     if (!diferentes) {
       throw new TrocaInvalidaException(
-          "Quem cede e quem recebe precisam ser proprietários diferentes.");
+          "Quem cede e quem recebe precisam ser proprietários diferentes.", CAMPO_RECEBEDOR);
     }
-    boolean noFuturo = troca.estaNoFuturo(LocalDate.now(relogio));
-    contexto.decisao("troca.dataNoFuturo", noFuturo);
-    if (noFuturo) {
+    validarDatas(troca);
+    exigirParticipante(troca.getAeronaveId(), troca.getCedenteId(), CAMPO_CEDENTE);
+    exigirParticipante(troca.getAeronaveId(), troca.getRecebedorId(), CAMPO_RECEBEDOR);
+  }
+
+  private void validarDatas(TrocaDeKm troca) {
+    LocalDate hoje = hoje();
+    boolean dataAceitavel = troca.possuiDataAceitavel(hoje);
+    contexto.decisao("troca.dataAceitavel", dataAceitavel);
+    if (!dataAceitavel) {
       throw new TrocaInvalidaException(
-          "A troca registra horas já voadas: a data não pode ser futura.");
+          "A troca registra horas já voadas: use uma data entre 01/01/2000 e hoje (%s)."
+              .formatted(DATA.format(hoje)),
+          CAMPO_DATA);
     }
-    for (Long dono : List.of(troca.getCedenteId(), troca.getRecebedorId())) {
-      if (!proprietarios.existsById(dono)) {
-        throw new RecursoNaoEncontradoException("Proprietário não encontrado.");
-      }
-      boolean participa = participantes.participaOuParticipou(troca.getAeronaveId(), dono);
-      contexto.decisao("troca.proprietarioParticipa", participa);
-      if (!participa) {
-        throw new TrocaInvalidaException(
-            "Só troca horas quem participa ou participou do contrato desta aeronave.");
-      }
+    boolean devolucaoCoerente = troca.possuiDevolucaoCoerente();
+    contexto.decisao("troca.devolucaoCoerente", devolucaoCoerente);
+    if (!devolucaoCoerente) {
+      throw new TrocaInvalidaException(
+          "A devolução foi registrada em %s: a troca não pode ser depois dela."
+              .formatted(DATA.format(troca.getConcluidaEm())),
+          CAMPO_DATA);
+    }
+  }
+
+  /** O proprietário vem no corpo: inexistente é recusa do campo, não endereço que não existe. */
+  private void exigirParticipante(Long aeronaveId, Long proprietarioId, String campo) {
+    boolean existe = proprietarios.existsById(proprietarioId);
+    contexto.decisao("troca.proprietarioExiste", existe);
+    if (!existe) {
+      throw new TrocaInvalidaException("Proprietário não encontrado.", campo);
+    }
+    boolean participa = participantes.participaOuParticipou(aeronaveId, proprietarioId);
+    contexto.decisao("troca.proprietarioParticipa", participa);
+    if (!participa) {
+      throw new TrocaInvalidaException(
+          "Só troca horas quem participa ou participou do contrato desta aeronave.", campo);
     }
   }
 
@@ -153,11 +212,14 @@ public class TrocaService {
         request.observacao());
   }
 
-  private Aeronave exigirAeronave(Long aeronaveId) {
+  /** A aeronave vem no corpo: inexistente é recusa do campo, não endereço que não existe. */
+  private void exigirAeronave(Long aeronaveId) {
     contexto.registrar("aeronave.id", aeronaveId);
-    return aeronaves
-        .findById(aeronaveId)
-        .orElseThrow(() -> new RecursoNaoEncontradoException("Aeronave não encontrada."));
+    boolean existe = aeronaves.existsById(aeronaveId);
+    contexto.decisao("troca.aeronaveExiste", existe);
+    if (!existe) {
+      throw new TrocaInvalidaException("Aeronave não encontrada.", CAMPO_AERONAVE);
+    }
   }
 
   private TrocaDeKm exigirTroca(Long id) {

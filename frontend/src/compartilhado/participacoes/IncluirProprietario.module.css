@@ -1,0 +1,12 @@
+/* A escolha e o botão lado a lado; o erro da escolha cresce para baixo sem empurrar o botão. */
+.inclusao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+}
+
+.escolha {
+  flex: 1;
+  min-width: 190px;
+}

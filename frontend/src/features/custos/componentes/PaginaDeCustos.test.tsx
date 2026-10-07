@@ -174,6 +174,49 @@ describe('PaginaDeCustos', () => {
     expect(chamadas).toContain('/api/custos?aeronave=1&competencia=2026-08');
   });
 
+  it('competência fora do formato na URL: o campo diz o formato e a grade nem consulta', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />, '/custos?competencia=2026-13');
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('Use o formato AAAA-MM, como 2026-10.');
+    expect(screen.getByLabelText('Competência')).toHaveAccessibleDescription(
+      /Use o formato AAAA-MM/,
+    );
+    const chamadas = () => vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas().some((url) => url.startsWith('/api/custos'))).toBe(false);
+
+    await userEvent.click(within(alerta).getByRole('button', { name: 'Limpar filtros' }));
+    expect(await screen.findByText('Jet A-1 — 1.850 L — SBRJ')).toBeInTheDocument();
+    expect(chamadas()).toContain('/api/custos?');
+  });
+
+  it('a aeronave do link fora da frota volta a todas, e o filtro avisa', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeCustos />, '/custos?aeronave=9999&competencia=2026-08');
+
+    expect(await screen.findByText('A aeronave do link não foi encontrada.')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Filtrar por aeronave' })).toHaveValue('');
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas).toContain('/api/custos?competencia=2026-08');
+  });
+
+  it('a recusa do recorte pelo servidor aparece como veio, com Limpar filtros', async () => {
+    prepararFetch(GESTORA);
+    const padrao = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((entrada, opcoes) =>
+      String(entrada).startsWith('/api/custos')
+        ? Promise.resolve(respostaDe({ detail: 'O período vai até dez anos.' }, 400))
+        : (padrao?.(entrada, opcoes) as Promise<Response>),
+    );
+    envolver(<PaginaDeCustos />);
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('O período vai até dez anos.');
+    expect(within(alerta).getByRole('button', { name: 'Limpar filtros' })).toBeInTheDocument();
+    expect(within(alerta).queryByRole('button', { name: 'Tentar de novo' })).toBeNull();
+  });
+
   it('?registrar=1 abre o painel de novo lançamento, como pede o "+ Registrar" da casca', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeCustos />, '/custos?registrar=1');
@@ -215,7 +258,7 @@ describe('PaginaDeCustos', () => {
     await userEvent.click(screen.getByRole('radio', { name: 'USD' }));
 
     await userEvent.type(screen.getByLabelText('Valor (US$)'), '1200');
-    await userEvent.type(screen.getByLabelText('Câmbio do dia'), '4,9223');
+    await userEvent.type(screen.getByLabelText('Câmbio do dia (R$ por US$ 1)'), '4,9223');
 
     expect(screen.getByText(/= R\$\s*5\.906,76/)).toBeInTheDocument();
   });

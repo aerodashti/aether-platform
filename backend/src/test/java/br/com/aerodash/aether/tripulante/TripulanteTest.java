@@ -82,4 +82,15 @@ class TripulanteTest {
     assertThat(tripulante.getTelefone()).isNull();
     assertThat(tripulante.getFuncao()).isEqualTo(FuncaoDoTripulante.INSTRUTOR);
   }
+
+  @Test
+  @DisplayName("a validade cabe de 01/01/2000 a cinco anos à frente; vencida e nula passam")
+  void janelaDaValidade() {
+    assertThat(Tripulante.aceitaValidade(null, HOJE)).isTrue();
+    assertThat(Tripulante.aceitaValidade(HOJE.minusYears(3), HOJE)).isTrue();
+    assertThat(Tripulante.aceitaValidade(LocalDate.parse("2000-01-01"), HOJE)).isTrue();
+    assertThat(Tripulante.aceitaValidade(LocalDate.parse("1999-12-31"), HOJE)).isFalse();
+    assertThat(Tripulante.aceitaValidade(LocalDate.parse("2031-09-10"), HOJE)).isTrue();
+    assertThat(Tripulante.aceitaValidade(LocalDate.parse("2031-09-11"), HOJE)).isFalse();
+  }
 }

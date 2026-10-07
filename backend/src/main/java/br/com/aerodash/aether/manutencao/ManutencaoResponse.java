@@ -14,4 +14,6 @@ public record ManutencaoResponse(
     String responsavel,
     String descricao,
     BigDecimal valor,
-    StatusDaManutencao status) {}
+    StatusDaManutencao status,
+    @Schema(description = "O dia em que foi feita; nulo enquanto programada")
+        LocalDate concluidaEm) {}

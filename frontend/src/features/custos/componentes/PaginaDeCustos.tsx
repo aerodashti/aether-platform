@@ -1,7 +1,11 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { salvarArquivo } from '@/compartilhado/arquivos/salvarArquivo';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
+import { competenciaEntre } from '@/compartilhado/recorte/competencia';
+import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Abas } from '@/design-system/primitivos/Abas';
@@ -20,12 +24,15 @@ import {
 
 import estilos from './PaginaDeCustos.module.css';
 import { PainelDeCusto } from './PainelDeCusto';
-import { CATEGORIAS, competenciaAtual, csvDosLancamentos } from './rotulos';
+import { CATEGORIAS, csvDosLancamentos } from './rotulos';
 import { TabelaDeCustos } from './TabelaDeCustos';
 
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; custo: CustoResponse } | null;
 type Escopo = TipoDeCusto | 'TODOS';
 type Categoria = CategoriaDeCusto | 'TODAS';
+
+/** O filtro só confere o formato: qualquer mês existe, e o vazio é todo o histórico. */
+const COMPETENCIA = competenciaEntre();
 
 const ESCOPOS: Array<{ valor: Escopo; rotulo: string }> = [
   { valor: 'TODOS', rotulo: 'Todos' },
@@ -49,12 +56,14 @@ export function PaginaDeCustos() {
   const { usuario } = useSessao();
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  const { aeronaveId, competencia, setAeronaveId, setCompetencia, limpar } = useRecorteDaUrl(
-    competenciaAtual(),
-    { podeRegistrar: podeGerir, aoPedir: () => setPainel({ modo: 'novo' }) },
-  );
+  const { aeronaveId, avisoDaAeronave, competencia, setAeronaveId, setCompetencia, limpar } =
+    useRecorteDaUrl(competenciaLocal(), {
+      podeRegistrar: podeGerir,
+      aoPedir: () => setPainel({ modo: 'novo' }),
+    });
   const aeronaves = useAeronaves();
-  const consulta = useCustos({ aeronaveId, competencia });
+  const erroDaCompetencia = COMPETENCIA(competencia);
+  const consulta = useCustos({ aeronaveId, competencia }, erroDaCompetencia === undefined);
 
   const doRecorte = consulta.data?.custos ?? [];
   // O filtro por voo, como o escopo e as abas, é local: recorta o que o servidor já mandou.
@@ -85,13 +94,10 @@ export function PaginaDeCustos() {
 
   function exportarCsv() {
     void contexto.interacao('exportar-csv-de-custos', () => {
-      const csv = csvDosLancamentos(visiveis);
-      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-      const ancora = document.createElement('a');
-      ancora.href = url;
-      ancora.download = `custos-${competencia || 'todos'}.csv`;
-      ancora.click();
-      URL.revokeObjectURL(url);
+      salvarArquivo(
+        new Blob([csvDosLancamentos(visiveis)], { type: 'text/csv;charset=utf-8' }),
+        `custos-${competencia || 'todos'}.csv`,
+      );
       return Promise.resolve();
     });
   }
@@ -122,6 +128,7 @@ export function PaginaDeCustos() {
             })),
           ]}
           aoMudar={setAeronaveId}
+          apoio={avisoDaAeronave}
         />
         <div className={estilos.competencia}>
           <CampoDeTexto
@@ -130,6 +137,7 @@ export function PaginaDeCustos() {
             tipo="mes"
             valor={competencia}
             aoMudar={setCompetencia}
+            erro={erroDaCompetencia}
             apoio="Vazio mostra todo o histórico."
           />
         </div>
@@ -145,6 +153,7 @@ export function PaginaDeCustos() {
         />
         <GrupoDeOpcoes
           rotulo="Escopo"
+          rotuloOculto
           variante="trilho"
           valor={escopo}
           opcoes={ESCOPOS}
@@ -172,7 +181,7 @@ export function PaginaDeCustos() {
           custos={visiveis}
           totais={consulta.data?.totais}
           carregando={consulta.isPending}
-          erro={consulta.isError}
+          erro={erroDaCompetencia ? new RecorteInvalido(erroDaCompetencia) : consulta.error}
           podeGerir={podeGerir}
           aoCorrigir={(custo) => setPainel({ modo: 'corrigir', custo })}
           aoTentarDeNovo={() => void consulta.refetch()}

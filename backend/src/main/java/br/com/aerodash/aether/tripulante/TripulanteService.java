@@ -6,6 +6,7 @@ import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 /** A tripulação de cada aeronave e as validades que decidem se ela voa tripulada. */
 @Service
 public class TripulanteService {
+
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private final TripulanteRepository tripulantes;
   private final AeronaveRepository aeronaves;
@@ -52,11 +55,13 @@ public class TripulanteService {
   @Transactional
   public TripulanteResponse criar(Long aeronaveId, TripulanteRequest request) {
     exigirAeronave(aeronaveId);
+    LocalDate hoje = LocalDate.now(relogio);
+    exigirValidadesPlausiveis(request, hoje);
     Tripulante tripulante = new Tripulante(aeronaveId, dadosDe(request), Instant.now(relogio));
     tripulante = tripulantes.save(tripulante);
 
     contexto.registrar("tripulante.id", tripulante.getId());
-    return mapper.paraResponse(tripulante, LocalDate.now(relogio));
+    return mapper.paraResponse(tripulante, hoje);
   }
 
   @Transactional
@@ -69,8 +74,29 @@ public class TripulanteService {
             .filter(existente -> existente.getAeronaveId().equals(aeronaveId))
             .orElseThrow(() -> new RecursoNaoEncontradoException("Tripulante não encontrado."));
 
+    LocalDate hoje = LocalDate.now(relogio);
+    exigirValidadesPlausiveis(request, hoje);
     tripulante.atualizar(dadosDe(request), Instant.now(relogio));
-    return mapper.paraResponse(tripulante, LocalDate.now(relogio));
+    return mapper.paraResponse(tripulante, hoje);
+  }
+
+  private void exigirValidadesPlausiveis(TripulanteRequest request, LocalDate hoje) {
+    exigirValidadePlausivel("validadeCma", request.validadeCma(), hoje);
+    exigirValidadePlausivel("validadeCht", request.validadeCht(), hoje);
+  }
+
+  /** Recusa no campo do JSON, dizendo a janela: um ano digitado errado não vira piloto regular. */
+  private void exigirValidadePlausivel(String campo, LocalDate validade, LocalDate hoje) {
+    boolean plausivel = Tripulante.aceitaValidade(validade, hoje);
+    contexto.decisao("tripulante." + campo + "Plausivel", plausivel);
+    if (!plausivel) {
+      throw new TripulanteInvalidoException(
+          campo,
+          "Use uma data de %s a %s."
+              .formatted(
+                  DATA.format(Tripulante.PRIMEIRA_VALIDADE),
+                  DATA.format(Tripulante.ultimaValidade(hoje))));
+    }
   }
 
   private DadosDoTripulante dadosDe(TripulanteRequest request) {

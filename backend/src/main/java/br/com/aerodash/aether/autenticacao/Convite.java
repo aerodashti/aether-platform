@@ -67,6 +67,14 @@ public class Convite {
     return !foiUsado() && !estaExpirado(agora);
   }
 
+  /**
+   * O link só ativa quem ainda espera por ele. Desativar alguém não mata o convite, e sem esta
+   * conferência a pessoa desativada com o link na mão se reativaria sozinha ao criar a senha.
+   */
+  public boolean podeSerConcluido(Instant agora) {
+    return estaVigente(agora) && usuario.aguardaConvite();
+  }
+
   /** Reenviar não é gerar um segundo convite válido: o anterior morre quando o novo nasce. */
   public void invalidar(Instant momento) {
     marcarComoUsado(momento);

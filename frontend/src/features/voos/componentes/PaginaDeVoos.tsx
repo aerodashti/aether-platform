@@ -1,6 +1,9 @@
 import { useState } from 'react';
 
 import { useAeronaves } from '@/compartilhado/aeronaves/useAeronaves';
+import { competenciaLocal } from '@/compartilhado/formatacao/datas';
+import { competenciaEntre } from '@/compartilhado/recorte/competencia';
+import { RecorteInvalido } from '@/compartilhado/recorte/leituraDaFalha';
 import { useRecorteDaUrl } from '@/compartilhado/recorte/useRecorteDaUrl';
 import { useSessao } from '@/compartilhado/sessao/sessao';
 import { Botao } from '@/design-system/primitivos/Botao';
@@ -12,12 +15,14 @@ import { useVoos, type TrechoResponse } from '../api/useVoos';
 
 import estilos from './PaginaDeVoos.module.css';
 import { PainelDeTrecho } from './PainelDeTrecho';
-import { competenciaAtual } from './rotulos';
 import { TabelaDeTrechos } from './TabelaDeTrechos';
 import { diarioDoVoo, relatoriosDoRecorte, usoPorProprietario } from './usoDoRecorte';
 import { UsoPorProprietario } from './UsoPorProprietario';
 
 type Painel = { modo: 'novo' } | { modo: 'corrigir'; trecho: TrechoResponse } | null;
+
+/** O filtro só confere o formato: qualquer mês existe, e o vazio é todo o histórico. */
+const COMPETENCIA = competenciaEntre();
 
 export function PaginaDeVoos() {
   const [painel, setPainel] = useState<Painel>(null);
@@ -30,11 +35,13 @@ export function PaginaDeVoos() {
     usuario?.papel === 'GESTOR' ||
     usuario?.papel === 'PILOTO';
   // O "+ Registrar" da casca chega aqui por ?registrar=1.
-  const { aeronaveId, competencia, setAeronaveId, setCompetencia } = useRecorteDaUrl(
-    competenciaAtual(),
-    { podeRegistrar: podeLancar, aoPedir: () => setPainel({ modo: 'novo' }) },
-  );
-  const consulta = useVoos({ aeronaveId, competencia });
+  const { aeronaveId, avisoDaAeronave, competencia, setAeronaveId, setCompetencia, limpar } =
+    useRecorteDaUrl(competenciaLocal(), {
+      podeRegistrar: podeLancar,
+      aoPedir: () => setPainel({ modo: 'novo' }),
+    });
+  const erroDaCompetencia = COMPETENCIA(competencia);
+  const consulta = useVoos({ aeronaveId, competencia }, erroDaCompetencia === undefined);
   // O filtro por voo é local: recorta a grade do recorte que já chegou, sem ir ao servidor.
   const [voo, setVoo] = useState('');
   const trechosDoRecorte = consulta.data?.trechos ?? [];
@@ -66,6 +73,7 @@ export function PaginaDeVoos() {
             })),
           ]}
           aoMudar={setAeronaveId}
+          apoio={avisoDaAeronave}
         />
         <div className={estilos.competencia}>
           <CampoDeTexto
@@ -74,6 +82,7 @@ export function PaginaDeVoos() {
             tipo="mes"
             valor={competencia}
             aoMudar={setCompetencia}
+            erro={erroDaCompetencia}
             apoio="Vazio mostra todo o histórico."
           />
         </div>
@@ -99,11 +108,12 @@ export function PaginaDeVoos() {
         <TabelaDeTrechos
           diario={diarioDoVoo(consulta.data, vooEscolhido)}
           carregando={consulta.isPending}
-          erro={consulta.isError}
+          erro={erroDaCompetencia ? new RecorteInvalido(erroDaCompetencia) : consulta.error}
           mostraAeronave={aeronaveId === ''}
           podeLancar={podeLancar}
           aoCorrigir={(trecho) => setPainel({ modo: 'corrigir', trecho })}
           aoTentarDeNovo={() => void consulta.refetch()}
+          aoLimparFiltros={limpar}
         />
       </div>
 

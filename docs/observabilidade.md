@@ -132,6 +132,16 @@ o span com status `ERROR` e registra `erro.classe`. A linha canônica sai normal
 canônica já tem `erro=true` e `erro.classe`, e um `ERROR` com stack trace por 404 tornaria o nível
 `ERROR` inútil para alarme.
 
+**Violação de integridade do banco** (UNIQUE, CHECK, FK) responde 409 se é duplicidade e 400 se não
+é, com uma linha `WARN`: o banco recusou o que a validação deveria ter recusado antes, e isso pede
+alguém olhando. As recusas do próprio Spring MVC (404, 405, 415, corpo ilegível) são 4xx comuns,
+sem segunda linha.
+
+O PgJDBC põe os valores da linha recusada na mensagem da exceção (`Key (cpf_cnpj)=(…)`, `Failing row
+contains (…)`), e essa mensagem iria para o log sem passar pela lista de campos sensíveis. Por isso
+o `application.yml` liga `spring.datasource.hikari.data-source-properties.logServerErrorDetail:
+false`, para todas as features: o log diz qual restrição falhou, não com quais dados.
+
 ## O que sai no console de dev
 
 Um request com sucesso:

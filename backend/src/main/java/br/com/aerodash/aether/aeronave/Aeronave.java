@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Jato ou helicóptero sob gestão no Aether.
@@ -20,8 +21,8 @@ import java.util.Locale;
  * <p>A camada regulatória mora aqui, não no service: se um {@code if} olha só para os vencimentos
  * deste objeto, ele pertence a este objeto. Veja {@code docs/arquitetura.md}.
  *
- * <p>Além do cadastro e da conformidade, a aeronave carrega a ficha técnica (contadores declarados,
- * corrigidos só por administrador até o diário de voos alimentá-los) e a configuração financeira do
+ * <p>Além do cadastro e da conformidade, a aeronave carrega a ficha técnica (contadores alimentados
+ * pelo diário de voos e corrigidos à mão só por administrador) e a configuração financeira do
  * rateio. As participações de proprietários moram em {@code participacao}, com o contrato vigente e
  * o histórico.
  */
@@ -89,7 +90,7 @@ public class Aeronave {
       LocalDate vencimentoReta,
       Instant momento) {
     this.matricula = normalizarMatricula(matricula);
-    this.modelo = modelo;
+    this.modelo = normalizarModelo(modelo);
     this.base = normalizarBase(base);
     this.vencimentoCva = vencimentoCva;
     this.vencimentoReta = vencimentoReta;
@@ -106,6 +107,10 @@ public class Aeronave {
 
   public static String normalizarBase(String base) {
     return base == null ? null : base.trim().toUpperCase(Locale.ROOT);
+  }
+
+  public static String normalizarModelo(String modelo) {
+    return modelo == null ? null : modelo.trim();
   }
 
   /**
@@ -169,13 +174,23 @@ public class Aeronave {
     return pior;
   }
 
+  /** O primeiro vencimento implausível: um ano digitado errado esconderia o vencimento real. */
+  public Optional<DocumentoDaAeronave> documentoComVencimentoImplausivel(LocalDate hoje) {
+    if (!DocumentoDaAeronave.CVA.aceitaVencimento(vencimentoCva, hoje)) {
+      return Optional.of(DocumentoDaAeronave.CVA);
+    }
+    return DocumentoDaAeronave.RETA.aceitaVencimento(vencimentoReta, hoje)
+        ? Optional.empty()
+        : Optional.of(DocumentoDaAeronave.RETA);
+  }
+
   /** Voar exige documentos válidos e nenhuma pendência impeditiva. */
   public boolean podeVoar(LocalDate hoje, List<PendenciaOperacional> pendencias) {
     return podeVoar(hoje) && pendencias.stream().noneMatch(PendenciaOperacional::impedeVoo);
   }
 
   public void atualizarCadastro(String modelo, String base, Instant momento) {
-    this.modelo = modelo;
+    this.modelo = normalizarModelo(modelo);
     this.base = normalizarBase(base);
     this.atualizadoEm = momento;
   }
@@ -191,7 +206,7 @@ public class Aeronave {
     this.fabricante = ficha.fabricante();
     this.modelo = ficha.modelo();
     this.numeroDeSerie = ficha.numeroDeSerie();
-    this.base = normalizarBase(ficha.base());
+    this.base = ficha.base();
     this.hangar = ficha.hangar();
     this.apoliceDoSeguro = ficha.apoliceDoSeguro();
     this.pesoMaxDecolagemKg = ficha.pesoMaxDecolagemKg();
@@ -199,18 +214,7 @@ public class Aeronave {
     this.atualizadoEm = momento;
   }
 
-  /** Os campos editáveis da ficha, juntos: eles só andam juntos. */
-  public record FichaTecnica(
-      String fabricante,
-      String modelo,
-      String numeroDeSerie,
-      String base,
-      String hangar,
-      String apoliceDoSeguro,
-      Integer pesoMaxDecolagemKg,
-      Integer pesoMaxPousoKg) {}
-
-  /** Correção manual dos totais — rota de administrador enquanto o diário de voos não existe. */
+  /** Correção manual dos totais — rota de administrador; substitui o que os voos somaram. */
   public void corrigirContadores(ContadoresDaAeronave novosContadores, Instant momento) {
     this.contadores = novosContadores;
     this.atualizadoEm = momento;

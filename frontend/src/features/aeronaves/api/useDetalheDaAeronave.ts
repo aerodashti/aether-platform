@@ -8,6 +8,7 @@ export type DetalheDaAeronaveResponse = components['schemas']['DetalheDaAeronave
 export type FichaTecnicaRequest = components['schemas']['FichaTecnicaRequest'];
 export type ContadoresRequest = components['schemas']['ContadoresRequest'];
 export type ConfiguracaoFinanceiraRequest = components['schemas']['ConfiguracaoFinanceiraRequest'];
+
 export type BaseDoRateio = NonNullable<ConfiguracaoFinanceiraRequest['baseDoRateio']>;
 export type ModeloDeAporte = NonNullable<ConfiguracaoFinanceiraRequest['modeloDeAporte']>;
 

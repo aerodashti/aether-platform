@@ -18,6 +18,7 @@ import { CartaoFinanceiro } from './CartaoFinanceiro';
 import estilos from './PaginaDeDetalheDaAeronave.module.css';
 import { PainelDeFichaTecnica } from './PainelDeFichaTecnica';
 import { PainelFinanceiro } from './PainelFinanceiro';
+import { podeGerirFrota } from './permissoes';
 import {
   consequenciaDoVencimento,
   dataCurta,
@@ -49,7 +50,7 @@ export function PaginaDeDetalheDaAeronave() {
   const navegar = useNavigate();
   const saldo = saldoDaAeronave(saldos.data, aeronaveId);
 
-  const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
+  const podeGerir = podeGerirFrota(usuario?.papel);
   const detalhe = consulta.data;
 
   if (consulta.isError) {

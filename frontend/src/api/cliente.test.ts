@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { enviar, ErroDeApi } from './cliente';
+import { baixarArquivo, buscar, enviar, ErroDeApi, SEM_CONEXAO } from './cliente';
 
 function respostaDe(corpo: unknown, status: number) {
   return {
@@ -41,6 +41,7 @@ describe('cliente da API', () => {
     expect((erro as ErroDeApi).campos).toEqual({
       km: 'Os quilômetros precisam ser maiores que zero.',
     });
+    expect((erro as ErroDeApi).titulo).toBe('Dados inválidos');
   });
 
   it('sem campos, a mensagem é o detalhe do servidor', async () => {
@@ -53,5 +54,58 @@ describe('cliente da API', () => {
 
     expect((erro as ErroDeApi).message).toBe('Aeronave não encontrada.');
     expect((erro as ErroDeApi).campos).toEqual({});
+  });
+
+  it('baixar devolve o conteúdo, e a falha vira ErroDeApi em vez de trocar a página', async () => {
+    const conteudo = new Blob(['%PDF-1.7']);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((caminho: string) =>
+        Promise.resolve(
+          caminho.endsWith('/7/conteudo')
+            ? ({ ...respostaDe(undefined, 200), blob: () => Promise.resolve(conteudo) } as Response)
+            : respostaDe({ detail: 'Documento não encontrado.' }, 404),
+        ),
+      ),
+    );
+
+    expect(await baixarArquivo('/aeronaves/1/documentos/7/conteudo')).toBe(conteudo);
+    const erro = await baixarArquivo('/aeronaves/1/documentos/8/conteudo').catch(
+      (falha: unknown) => falha,
+    );
+    expect(erro).toBeInstanceOf(ErroDeApi);
+    expect((erro as ErroDeApi).message).toBe('Documento não encontrado.');
+  });
+
+  it('sem rede, o erro é um ErroDeApi com mensagem em português, e não um TypeError', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+    );
+
+    const erro = await buscar('/voos').catch((falha: unknown) => falha);
+
+    expect(erro).toBeInstanceOf(ErroDeApi);
+    expect((erro as ErroDeApi).status).toBe(SEM_CONEXAO);
+    expect((erro as ErroDeApi).message).toMatch(/Não foi possível falar com o servidor/);
+  });
+
+  it('resposta de erro que não é JSON vira mensagem pelo status, não o statusText em inglês', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ...respostaDe(null, 502),
+          statusText: 'Bad Gateway',
+          json: () => Promise.reject(new SyntaxError('Unexpected token <')),
+        } as unknown as Response),
+      ),
+    );
+
+    const erro = await enviar('/voos', {}).catch((falha: unknown) => falha);
+
+    expect((erro as ErroDeApi).message).toBe(
+      'O servidor não conseguiu responder agora. Tente de novo em instantes.',
+    );
   });
 });

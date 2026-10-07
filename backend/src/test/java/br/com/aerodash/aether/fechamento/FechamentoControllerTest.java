@@ -116,6 +116,24 @@ class FechamentoControllerTest {
   }
 
   @Test
+  @DisplayName("a competência fora da janela volta no campo do parâmetro")
+  void recusaNoParametro() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(PROPRIETARIO));
+    when(fechamentos.mensal(1L, YearMonth.of(9999, 12)))
+        .thenThrow(
+            new FechamentoInvalidoException(
+                "Use uma competência de 01/2000 até 10/2027.", "competencia"));
+
+    mockMvc
+        .perform(
+            get("/fechamentos/mensal?aeronave=1&competencia=9999-12")
+                .cookie(new Cookie("aether_sessao", TOKEN)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.competencia").value("Use uma competência de 01/2000 até 10/2027."));
+  }
+
+  @Test
   @DisplayName("sem sessão, 401; sem competência, 400 antes do service")
   void exigeSessaoECompetencia() throws Exception {
     mockMvc

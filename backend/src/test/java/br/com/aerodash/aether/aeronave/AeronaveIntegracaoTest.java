@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.Cookie;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -44,7 +47,9 @@ class AeronaveIntegracaoTest {
   private static final String SENHA = "aether-dev-2026";
 
   @Autowired private MockMvc mockMvc;
-  @Autowired private AeronaveRepository aeronaves;
+
+  /** Espião que repassa tudo ao repositório real — só a corrida da UNIQUE o manipula. */
+  @MockitoSpyBean private AeronaveRepository aeronaves;
 
   @Test
   @DisplayName("o seed cria os três estados da coluna Status")
@@ -163,7 +168,35 @@ class AeronaveIntegracaoTest {
                        "modeloDeAporte":"FIXO","periodicidadeDoAporteMeses":1,
                        "diaDeFechamento":1,"saldoDeAbertura":0}}
                     """))
-        .andExpect(status().isConflict());
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.campos.matricula").exists());
+  }
+
+  @Test
+  @DisplayName("a corrida de dois cadastros bate na UNIQUE e também é 409 no campo da matrícula")
+  void corridaNaUniqueEh409() throws Exception {
+    // O segundo de dois cadastros simultâneos: a busca não achou, porque o primeiro ainda não
+    // tinha gravado.
+    doReturn(Optional.empty()).when(aeronaves).findByMatricula("PS-MEP");
+
+    mockMvc
+        .perform(
+            post("/aeronaves")
+                .cookie(entrar())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"matricula":"ps-mep","modelo":"Citation XLS+","base":"SBSP",
+                     "vencimentoCva":"2027-06-01","vencimentoReta":"2027-08-01",
+                     "contadores":{"horasDeCelula":0,"ciclos":0,"kmVoados":0,"horasMotor1":0},
+                     "configuracaoFinanceira":{"baseDoRateio":"POR_USO",
+                       "modeloDeAporte":"PROPORCIONAL_AO_USO","periodicidadeDoAporteMeses":1,
+                       "diaDeFechamento":1,"saldoDeAbertura":0}}
+                    """))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.campos.matricula")
+                .value("Já existe uma aeronave com esta matrícula na frota."));
   }
 
   private Cookie entrar() throws Exception {

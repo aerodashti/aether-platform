@@ -3,13 +3,16 @@ package br.com.aerodash.aether.aeronave;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * Os totais acumulados da aeronave: célula, ciclos, quilômetros, motores e APU.
  *
- * <p>Hoje são valores declarados — informados no cadastro e corrigidos só por administrador. Quando
- * o diário de voos existir, é ele que os alimentará, e a correção manual vira exceção de auditoria,
- * não rotina.
+ * <p>Célula, ciclos e km são declarados no cadastro e alimentados pelo diário de voos; motores e
+ * APU seguem declarados. A correção manual, só de administrador, é exceção de auditoria, não
+ * rotina.
  *
  * <p>Motor 2 e APU são nulos quando o equipamento não os tem: monomotor não tem segundo motor, e "0
  * horas de APU" diria que existe um APU zerado, o que é outra afirmação.
@@ -44,6 +47,47 @@ public record ContadoresDaAeronave(
         horasMotor2,
         horasMotor3,
         horasApu);
+  }
+
+  /**
+   * O primeiro motor sem horas numa ficha que os declara em sequência: toda aeronave tem o motor 1,
+   * e o motor 3 sem o 2 é um buraco, não um trimotor. Vazio quando a sequência está completa.
+   */
+  public OptionalInt motorSemHoras() {
+    List<BigDecimal> motores = Arrays.asList(horasMotor1, horasMotor2, horasMotor3);
+    int ultimoDeclarado = 0;
+    for (int indice = 0; indice < motores.size(); indice++) {
+      if (motores.get(indice) != null) {
+        ultimoDeclarado = indice;
+      }
+    }
+    for (int indice = 0; indice <= ultimoDeclarado; indice++) {
+      if (motores.get(indice) == null) {
+        return OptionalInt.of(indice + 1);
+      }
+    }
+    return OptionalInt.empty();
+  }
+
+  /**
+   * Os mesmos totais, sem olhar a escala: 3412.5 e 3412.50 são as mesmas horas. É a pergunta da
+   * correção manual — os totais que a tela leu ainda são os de agora?
+   */
+  public boolean possuiOsMesmosTotaisDe(ContadoresDaAeronave outros) {
+    return mesmoValor(horasDeCelula, outros.horasDeCelula)
+        && ciclos == outros.ciclos
+        && mesmoValor(kmVoados, outros.kmVoados)
+        && mesmoValor(horasMotor1, outros.horasMotor1)
+        && mesmoValor(horasMotor2, outros.horasMotor2)
+        && mesmoValor(horasMotor3, outros.horasMotor3)
+        && mesmoValor(horasApu, outros.horasApu);
+  }
+
+  private static boolean mesmoValor(BigDecimal um, BigDecimal outro) {
+    if (um == null || outro == null) {
+      return um == null && outro == null;
+    }
+    return um.compareTo(outro) == 0;
   }
 
   public boolean possuiValoresNegativos() {

@@ -8,6 +8,16 @@ export type DiarioDeVoosResponse = components['schemas']['DiarioDeVoosResponse']
 export type TrechoResponse = components['schemas']['TrechoResponse'];
 export type TrechoRequest = components['schemas']['TrechoRequest'];
 
+/**
+ * O corpo que o painel envia. Os números saem do leitor brasileiro, que devolve `null` para o que
+ * não é número: `null` chega ao servidor como falta, nunca como um `NaN` que o JSON apagaria.
+ */
+export type CorpoDoTrecho = Omit<TrechoRequest, 'aeronaveId' | 'numeroDoTrecho' | 'km'> & {
+  aeronaveId: number | null;
+  numeroDoTrecho: number | null;
+  km: number | null;
+};
+
 export interface FiltroDoDiario {
   /** Vazio é a frota inteira. */
   aeronaveId: string;
@@ -17,7 +27,8 @@ export interface FiltroDoDiario {
 
 const CHAVE = ['voos'] as const;
 
-export function useVoos(filtro: FiltroDoDiario) {
+/** Com `habilitado` falso (recorte inválido), não consulta nem mantém o recorte anterior na tela. */
+export function useVoos(filtro: FiltroDoDiario, habilitado = true) {
   const parametros = new URLSearchParams();
   if (filtro.aeronaveId) {
     parametros.set('aeronave', filtro.aeronaveId);
@@ -28,9 +39,10 @@ export function useVoos(filtro: FiltroDoDiario) {
   return useQuery({
     queryKey: [...CHAVE, filtro],
     queryFn: () => buscar<DiarioDeVoosResponse>(`/voos?${parametros.toString()}`),
+    enabled: habilitado,
     // Mantém o recorte anterior visível enquanto o novo chega: sem isto, trocar o filtro faz a
     // grade piscar para vazio.
-    placeholderData: (anterior) => anterior,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 
@@ -51,13 +63,13 @@ function useAcaoSobreVoos<T>(nome: string, acao: (entrada: T) => Promise<unknown
 }
 
 export function useRegistrarTrecho() {
-  return useAcaoSobreVoos<TrechoRequest>('registrar-trecho', (trecho) =>
+  return useAcaoSobreVoos<CorpoDoTrecho>('registrar-trecho', (trecho) =>
     enviar<TrechoResponse>('/voos', trecho),
   );
 }
 
 export function useCorrigirTrecho() {
-  return useAcaoSobreVoos<{ id: number; trecho: TrechoRequest }>(
+  return useAcaoSobreVoos<{ id: number; trecho: CorpoDoTrecho }>(
     'corrigir-trecho',
     ({ id, trecho }) => enviar<TrechoResponse>(`/voos/${id}`, trecho, 'PUT'),
   );

@@ -105,9 +105,23 @@ class AutenticacaoServiceTest {
         .isInstanceOf(CredenciaisInvalidasException.class)
         .hasMessage("E-mail ou senha incorretos.");
 
-    // Sem esta codificação descartada, a resposta imediata denunciaria que o e-mail não existe.
-    verify(cofre).gastarTempoDeCodificacao(SENHA);
+    // Sem esta conferência descartada, a resposta imediata denunciaria que o e-mail não existe.
+    verify(cofre).gastarTempoDeConferencia();
     verify(sessoes, never()).save(any());
+  }
+
+  @Test
+  @DisplayName("conta pendente ou inativa gasta o mesmo tempo de uma conferência antes de recusar")
+  void contaQueNaoEntraGastaOTempoDaConferencia() {
+    Usuario inativo = ativo();
+    inativo.desativar(AGORA);
+    when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(inativo));
+
+    assertThatThrownBy(() -> service.entrar(EMAIL, SENHA))
+        .isInstanceOf(CredenciaisInvalidasException.class);
+
+    verify(cofre).gastarTempoDeConferencia();
+    verify(cofre, never()).confere(anyString(), anyString());
   }
 
   @Test
@@ -144,7 +158,8 @@ class AutenticacaoServiceTest {
     when(usuarios.findByEmail(EMAIL)).thenReturn(Optional.of(usuario));
 
     assertThatThrownBy(() -> service.entrar(EMAIL, SENHA))
-        .isInstanceOf(AcessoBloqueadoException.class);
+        .isInstanceOf(AcessoBloqueadoException.class)
+        .hasMessage("Tentativas demais em sequência. Tente de novo em 15 minutos.");
 
     verify(cofre, never()).confere(anyString(), anyString());
   }

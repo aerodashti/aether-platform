@@ -4,13 +4,31 @@ import { buscar, enviar } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 
-export type PainelDeManutencaoResponse = components['schemas']['PainelDeManutencaoResponse'];
-export type ManutencaoResponse = components['schemas']['ManutencaoResponse'];
+/**
+ * O evento como o servidor o devolve: um opcional ausente vem `null`, não omitido. O `concluidaEm`
+ * e o {@link ConclusaoRequest} são declarados aqui até a próxima geração de `tipos-gerados.ts`.
+ */
+export type ManutencaoResponse = components['schemas']['ManutencaoResponse'] & {
+  /** O dia em que foi feita; nulo enquanto programada. */
+  concluidaEm?: string | null;
+};
+export type PainelDeManutencaoResponse = Omit<
+  components['schemas']['PainelDeManutencaoResponse'],
+  'programadas' | 'historico'
+> & {
+  programadas?: ManutencaoResponse[];
+  historico?: ManutencaoResponse[];
+};
 export type ManutencaoRequest = components['schemas']['ManutencaoRequest'];
 export type ParametroResponse = components['schemas']['ParametroResponse'];
 export type ParametroRequest = components['schemas']['ParametroRequest'];
 export type TipoDeParametro = NonNullable<ParametroResponse['tipo']>;
 export type SituacaoDoParametro = NonNullable<ParametroResponse['situacao']>;
+
+/** A conclusão no dia em que a manutenção foi feita, que não é o dia do clique. */
+export interface ConclusaoRequest {
+  concluidaEm: string;
+}
 
 const CHAVE = ['manutencao'] as const;
 
@@ -45,8 +63,9 @@ export function useCorrigirManutencao() {
 }
 
 export function useConcluirManutencao() {
-  return useAcaoDeManutencao<number>('concluir-manutencao', (id) =>
-    enviar<ManutencaoResponse>(`/manutencoes/${id}/conclusao`),
+  return useAcaoDeManutencao<{ id: number; conclusao: ConclusaoRequest }>(
+    'concluir-manutencao',
+    ({ id, conclusao }) => enviar<ManutencaoResponse>(`/manutencoes/${id}/conclusao`, conclusao),
   );
 }
 

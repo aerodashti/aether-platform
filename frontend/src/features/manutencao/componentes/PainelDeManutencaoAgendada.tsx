@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useId, useRef, useState } from 'react';
 
-import { ErroDeApi } from '@/api/cliente';
+import { hojeLocal } from '@/compartilhado/formatacao/datas';
+import { Formulario } from '@/compartilhado/formulario/Formulario';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { PainelModal } from '@/design-system/primitivos/PainelModal';
@@ -12,7 +15,14 @@ import {
   type ManutencaoResponse,
 } from '../api/useManutencao';
 
-import estilos from './PainelDeManutencaoAgendada.module.css';
+import { primeiraDataProgramavel, ultimaDataProgramavel } from './datasDaManutencao';
+import estilos from './Painel.module.css';
+import {
+  corpoDaManutencao,
+  rascunhoInicial,
+  type RascunhoDaManutencao,
+} from './rascunhoDaManutencao';
+import { ROTULOS_DA_MANUTENCAO, validarManutencao } from './validacaoDaManutencao';
 
 interface PainelDeManutencaoAgendadaProps {
   aeronaveId: number;
@@ -20,9 +30,17 @@ interface PainelDeManutencaoAgendadaProps {
   aoFechar: () => void;
 }
 
+/** A data passada é aceita (registro tardio), mas a pessoa precisa saber o que ela causa (D2). */
+function apoioDaData(data: string, hoje: string): string | undefined {
+  return /^\d{4}-\d{2}-\d{2}$/.test(data) && data < hoje
+    ? 'Data passada: a manutenção nasce atrasada e a aeronave fica impedida de voar até ela ser concluída.'
+    : undefined;
+}
+
 /**
  * Agendar e corrigir manutenção. O protótipo edita a linha na própria grade; aqui a edição usa o
- * mesmo painel do agendamento — um formulário só, os mesmos campos, sem duplicar validação.
+ * mesmo painel do agendamento — um formulário só, os mesmos campos. As regras estão em
+ * `validarManutencao`, e aqui só se ligam as peças.
  */
 export function PainelDeManutencaoAgendada({
   aeronaveId,
@@ -30,28 +48,47 @@ export function PainelDeManutencaoAgendada({
   aoFechar,
 }: PainelDeManutencaoAgendadaProps) {
   const editando = manutencao?.id != null;
-  const [data, setData] = useState(manutencao?.data ?? '');
-  const [hora, setHora] = useState(manutencao?.hora?.slice(0, 5) ?? '');
-  const [responsavel, setResponsavel] = useState(manutencao?.responsavel ?? '');
-  const [descricao, setDescricao] = useState(manutencao?.descricao ?? '');
-  const [valor, setValor] = useState(
-    manutencao?.valor === undefined ? '' : String(manutencao.valor),
-  );
+  const titulo = editando ? 'Corrigir manutenção' : 'Nova manutenção programada';
+  const idDoResumo = useId();
+  const hoje = hojeLocal();
+  const refDaHora = useRef<HTMLInputElement>(null);
+  const [rascunho, setRascunho] = useState(() => rascunhoInicial(manutencao));
+  const [horaIncompleta, setHoraIncompleta] = useState(false);
 
   const agendar = useAgendarManutencao();
   const corrigir = useCorrigirManutencao();
   const mutacao = editando ? corrigir : agendar;
+  const validacao = useValidacao({
+    erros: validarManutencao(rascunho, { hoje, dataGravada: manutencao?.data, horaIncompleta }),
+    valores: rascunho,
+    rotulos: ROTULOS_DA_MANUTENCAO,
+    falha: mutacao.error,
+  });
+
+  function alterar(campo: keyof RascunhoDaManutencao) {
+    return (valor: string) => setRascunho((atual) => ({ ...atual, [campo]: valor }));
+  }
+
+  /**
+   * O horário digitado pela metade chega vazio, e salvar assim apagaria a hora gravada. Só o campo
+   * sabe (`validity.badInput`): relido ao mudar, ao sair dos campos e ao salvar.
+   */
+  function conferirHora(): boolean {
+    const incompleta = refDaHora.current?.validity.badInput ?? false;
+    setHoraIncompleta(incompleta);
+    return incompleta;
+  }
+
+  function alterarHora(hora: string) {
+    alterar('hora')(hora);
+    conferirHora();
+  }
 
   function salvar() {
-    const limpo = valor.trim().replace(',', '.');
-    const corpo = {
-      aeronaveId,
-      data,
-      hora: hora || undefined,
-      responsavel: responsavel || undefined,
-      descricao,
-      valor: limpo === '' ? undefined : Number(limpo),
-    };
+    const corpo = corpoDaManutencao(rascunho, aeronaveId);
+    if (corpo === undefined || conferirHora()) {
+      return;
+    }
     if (manutencao?.id != null) {
       corrigir.mutate({ id: manutencao.id, manutencao: corpo }, { onSuccess: aoFechar });
     } else {
@@ -59,65 +96,79 @@ export function PainelDeManutencaoAgendada({
     }
   }
 
-  const erro = mutacao.error instanceof ErroDeApi ? mutacao.error.message : undefined;
-  const podeSalvar = data !== '' && descricao.trim() !== '';
-
   return (
-    <PainelModal
-      aberto
-      aoFechar={aoFechar}
-      rotulo={editando ? 'Corrigir manutenção' : 'Nova manutenção programada'}
-    >
-      <Texto variante="titulo" como="h2">
-        {editando ? 'Corrigir manutenção' : 'Nova manutenção programada'}
-      </Texto>
-      <Texto variante="apoio" tom="suave" como="p">
-        Manutenções programadas aparecem no calendário de voos.
-      </Texto>
+    <PainelModal aberto aoFechar={aoFechar} rotulo={titulo} podeFechar={!mutacao.isPending}>
+      <Formulario referencia={validacao.refDoFormulario} aoEnviar={() => validacao.enviar(salvar)}>
+        <Texto variante="titulo" como="h2">
+          {titulo}
+        </Texto>
+        <Texto variante="apoio" tom="suave" como="p">
+          Manutenções programadas aparecem no calendário de voos.
+        </Texto>
 
-      <div className={estilos.grade}>
-        <CampoDeTexto rotulo="Data" tipo="data" valor={data} aoMudar={setData} />
-        <CampoDeTexto rotulo="Horário" tipo="hora" valor={hora} aoMudar={setHora} />
-      </div>
-      <CampoDeTexto
-        rotulo="Responsável"
-        valor={responsavel}
-        aoMudar={setResponsavel}
-        exemplo="Hangar Líder — SBSP"
-        maxLength={120}
-      />
-      <CampoDeTexto
-        rotulo="Descrição"
-        valor={descricao}
-        aoMudar={setDescricao}
-        exemplo="Inspeção de 100 h — célula"
-        maxLength={200}
-      />
-      <CampoDeTexto
-        rotulo="Valor (R$)"
-        valor={valor}
-        aoMudar={setValor}
-        inputMode="numeric"
-        apoio="Opcional — entra no histórico e, no futuro, nos custos."
-      />
-
-      {/* Junto dos botões, não num campo: a recusa do servidor pode ser de qualquer campo. */}
-      {erro ? (
-        <div role="alert">
-          <Texto variante="apoio" tom="critico" como="p">
-            {erro}
-          </Texto>
+        <div className={estilos.campos} onBlur={conferirHora}>
+          <div className={estilos.grade}>
+            <CampoDeTexto
+              rotulo="Data"
+              tipo="data"
+              obrigatorio
+              valor={rascunho.data}
+              aoMudar={alterar('data')}
+              minimo={primeiraDataProgramavel(hoje)}
+              maximo={ultimaDataProgramavel(hoje)}
+              apoio={apoioDaData(rascunho.data, hoje)}
+              erro={validacao.erroDe('data')}
+            />
+            <CampoDeTexto
+              ref={refDaHora}
+              rotulo="Horário"
+              tipo="hora"
+              valor={rascunho.hora}
+              aoMudar={alterarHora}
+              apoio="Opcional."
+              erro={validacao.erroDe('hora')}
+            />
+          </div>
+          <CampoDeTexto
+            rotulo="Responsável"
+            valor={rascunho.responsavel}
+            aoMudar={alterar('responsavel')}
+            exemplo="Hangar Líder — SBSP"
+            maxLength={120}
+            apoio="Opcional — a oficina ou o hangar."
+            erro={validacao.erroDe('responsavel')}
+          />
+          <CampoDeTexto
+            rotulo="Descrição"
+            obrigatorio
+            valor={rascunho.descricao}
+            aoMudar={alterar('descricao')}
+            exemplo="Inspeção de 100 h — célula"
+            maxLength={200}
+            erro={validacao.erroDe('descricao')}
+          />
+          <CampoDeTexto
+            rotulo="Valor (R$)"
+            valor={rascunho.valor}
+            aoMudar={alterar('valor')}
+            inputMode="decimal"
+            alinhamento="direita"
+            exemplo="48.000,00"
+            apoio="Opcional — entra no histórico e, no futuro, nos custos."
+            erro={validacao.erroDe('valor')}
+          />
         </div>
-      ) : null}
 
-      <div className={estilos.acoes}>
-        <Botao variante="secundario" aoClicar={aoFechar}>
-          Cancelar
-        </Botao>
-        <Botao aoClicar={salvar} desabilitado={!podeSalvar} carregando={mutacao.isPending}>
-          {editando ? 'Salvar' : 'Agendar'}
-        </Botao>
-      </div>
+        <ResumoDoFormulario resumo={validacao.resumo} id={idDoResumo} />
+        <div className={estilos.acoes}>
+          <Botao variante="secundario" aoClicar={aoFechar} desabilitado={mutacao.isPending}>
+            Cancelar
+          </Botao>
+          <Botao tipo="submit" carregando={mutacao.isPending} descritoPor={idDoResumo}>
+            {editando ? 'Salvar' : 'Agendar'}
+          </Botao>
+        </div>
+      </Formulario>
     </PainelModal>
   );
 }

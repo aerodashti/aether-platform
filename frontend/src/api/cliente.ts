@@ -11,18 +11,25 @@ export class ErroDeApi extends Error {
   readonly requisicao: string | null;
   /** A mensagem de cada campo recusado pela validação, pelo nome do campo no JSON. */
   readonly campos: Record<string, string>;
+  /**
+   * O `title` do Problem Details, que distingue recusas de mesmo status: dois 409 podem pedir
+   * reações diferentes da tela. Nulo quando a resposta não era Problem Details.
+   */
+  readonly titulo: string | null;
 
   constructor(
     mensagem: string,
     status: number,
     requisicao: string | null,
     campos: Record<string, string> = {},
+    titulo: string | null = null,
   ) {
     super(mensagem);
     this.name = 'ErroDeApi';
     this.status = status;
     this.requisicao = requisicao;
     this.campos = campos;
+    this.titulo = titulo;
   }
 }
 
@@ -39,7 +46,7 @@ interface ProblemDetail {
  */
 async function lerProblema(
   resposta: Response,
-): Promise<{ mensagem: string; campos: Record<string, string> }> {
+): Promise<{ mensagem: string; campos: Record<string, string>; titulo: string | null }> {
   try {
     const problema = (await resposta.json()) as ProblemDetail;
     const campos = problema.campos ?? {};
@@ -47,10 +54,54 @@ async function lerProblema(
     const mensagem =
       doCampo.length > 0
         ? doCampo.join(' ')
-        : (problema.detail ?? problema.title ?? resposta.statusText);
-    return { mensagem, campos };
+        : (problema.detail ?? problema.title ?? mensagemDoStatus(resposta.status));
+    return { mensagem, campos, titulo: problema.title ?? null };
   } catch {
-    return { mensagem: resposta.statusText, campos: {} };
+    return { mensagem: mensagemDoStatus(resposta.status), campos: {}, titulo: null };
+  }
+}
+
+/**
+ * Quando a resposta de erro não é Problem Details — um 502 do proxy, uma página do gateway —, o
+ * `statusText` seria a única pista, em inglês no HTTP/1.1 e vazio no HTTP/2.
+ */
+function mensagemDoStatus(status: number): string {
+  if (status === 401) {
+    return 'Sua sessão terminou. Entre de novo para continuar.';
+  }
+  if (status === 403) {
+    return 'Seu perfil não tem acesso a esta ação.';
+  }
+  if (status === 404) {
+    return 'Não encontramos o que você procurava.';
+  }
+  if (status === 413) {
+    return 'O envio é grande demais.';
+  }
+  if (status >= 500) {
+    return 'O servidor não conseguiu responder agora. Tente de novo em instantes.';
+  }
+  return 'Não foi possível concluir a operação.';
+}
+
+/** O `status` de um {@link ErroDeApi} que nem chegou ao servidor. */
+export const SEM_CONEXAO = 0;
+
+/**
+ * O `fetch` rejeita com `TypeError` quando não há rede ou o servidor está fora: sem esta tradução,
+ * nenhuma tela mostra nada — todas esperam um {@link ErroDeApi}.
+ */
+async function requisitar(caminho: string, opcoes: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${BASE}${caminho}`, opcoes);
+  } catch {
+    contexto.registrar('http.caminho', caminho);
+    contexto.erro('Falha de rede na requisição à API');
+    throw new ErroDeApi(
+      'Não foi possível falar com o servidor. Verifique a conexão e tente de novo.',
+      SEM_CONEXAO,
+      null,
+    );
   }
 }
 
@@ -61,7 +112,7 @@ async function lerProblema(
  * runtime, por decisão registrada em `docs/adr/0005-tipos-do-openapi.md`.
  */
 export async function buscar<T>(caminho: string): Promise<T> {
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     // O traceparent faz o span do backend nascer dentro do trace desta interação.
     headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
     // O cookie de sessão é HttpOnly: quem o anexa é o navegador, não este código.
@@ -79,7 +130,7 @@ export async function enviar<T>(
   corpo?: unknown,
   metodo: 'POST' | 'PUT' | 'DELETE' = 'POST',
 ): Promise<T> {
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     method: metodo,
     headers: {
       Accept: 'application/json',
@@ -105,7 +156,7 @@ export async function enviarArquivos<T>(
   for (const arquivo of arquivos) {
     formulario.append(campo, arquivo);
   }
-  const resposta = await fetch(`${BASE}${caminho}`, {
+  const resposta = await requisitar(caminho, {
     method: 'POST',
     headers: { Accept: 'application/json', ...contexto.cabecalhosDeTrace() },
     credentials: 'same-origin',
@@ -114,16 +165,21 @@ export async function enviarArquivos<T>(
   return conferir<T>(caminho, resposta);
 }
 
-/** O endereço de um recurso para o navegador abrir ou baixar, com o mesmo prefixo das chamadas. */
-export function enderecoDaApi(caminho: string): string {
-  return `${BASE}${caminho}`;
+/**
+ * Baixa um arquivo como `Blob`, para a tela salvá-lo. A falha vira {@link ErroDeApi}, como nas
+ * outras chamadas: navegar até o endereço trocaria a tela pelo problem+json de um 404.
+ */
+export async function baixarArquivo(caminho: string): Promise<Blob> {
+  const resposta = await requisitar(caminho, {
+    headers: contexto.cabecalhosDeTrace(),
+    credentials: 'same-origin',
+  });
+  await exigirSucesso(caminho, resposta);
+  return resposta.blob();
 }
 
-/**
- * Registra a correlação, traduz o erro e devolve o corpo. O 204 do backend não tem corpo: tentar
- * lê-lo como JSON quebraria os passos da recuperação, que respondem exatamente isso.
- */
-async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
+/** Registra a correlação e, se a resposta é de erro, o traduz em {@link ErroDeApi}. */
+async function exigirSucesso(caminho: string, resposta: Response): Promise<void> {
   const requisicao = resposta.headers.get(HEADER_REQUISICAO);
 
   contexto.registrar('http.caminho', caminho);
@@ -131,11 +187,18 @@ async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
   contexto.registrar('requisicao', requisicao ?? 'sem-identificador');
 
   if (!resposta.ok) {
-    const { mensagem, campos } = await lerProblema(resposta);
+    const { mensagem, campos, titulo } = await lerProblema(resposta);
     contexto.erro('Falha na requisição à API');
-    throw new ErroDeApi(mensagem, resposta.status, requisicao, campos);
+    throw new ErroDeApi(mensagem, resposta.status, requisicao, campos, titulo);
   }
+}
 
+/**
+ * Confere a resposta e devolve o corpo. O 204 do backend não tem corpo: tentar lê-lo como JSON
+ * quebraria os passos da recuperação, que respondem exatamente isso.
+ */
+async function conferir<T>(caminho: string, resposta: Response): Promise<T> {
+  await exigirSucesso(caminho, resposta);
   if (resposta.status === 204 || resposta.headers.get('Content-Length') === '0') {
     return undefined as T;
   }

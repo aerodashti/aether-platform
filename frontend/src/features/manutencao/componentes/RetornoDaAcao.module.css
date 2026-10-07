@@ -1,0 +1,7 @@
+.faixa {
+  padding: var(--espaco-3) var(--espaco-6);
+  margin-top: var(--espaco-4);
+  background: var(--cor-superficie-sutil);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-m);
+}

@@ -19,6 +19,7 @@ import {
   type SituacaoDoProprietario,
 } from '../api/useProprietarios';
 
+import { correspondeABusca } from './busca';
 import { CartaoDeProprietario } from './CartaoDeProprietario';
 import estilos from './PaginaDeProprietarios.module.css';
 import { PainelDeDesativacao } from './PainelDeDesativacao';
@@ -43,26 +44,21 @@ export function PaginaDeProprietarios() {
   // o valor adiado deixa o filtro correr quando a digitação dá trégua.
   const buscaAdiada = useDeferredValue(busca);
   const consulta = useProprietarios();
-  // Os vínculos chegam à parte e não seguram a grade: sem eles o cartão mostra "sem vínculo"
-  // por um instante, e com eles as barras aparecem — nunca um cartão em branco.
+  // Os vínculos chegam à parte e não seguram a grade. Até chegarem, o cartão não afirma "sem
+  // vínculo" — seria a mentira que leva a desativar como se não houvesse participação.
   const vinculos = useVinculosVigentes();
   const saldos = useSaldosDoFundo();
   const vinculosPorProprietario = agruparPorProprietario(vinculos.data);
+  const vinculosDe = (proprietario: ProprietarioResponse) =>
+    vinculos.data ? (vinculosPorProprietario.get(proprietario.id ?? 0) ?? []) : undefined;
 
   const podeGerir = usuario?.papel === 'ADMINISTRADOR' || usuario?.papel === 'GESTOR';
 
-  const termo = buscaAdiada.trim().toLowerCase();
-  const itens = (consulta.data ?? []).filter((proprietario) => {
-    if (situacao && proprietario.situacao !== situacao) {
-      return false;
-    }
-    if (!termo) {
-      return true;
-    }
-    return [proprietario.nome, proprietario.email, proprietario.cpfCnpj]
-      .filter(Boolean)
-      .some((campo) => String(campo).toLowerCase().includes(termo));
-  });
+  const itens = (consulta.data ?? []).filter(
+    (proprietario) =>
+      (!situacao || proprietario.situacao === situacao) &&
+      correspondeABusca(proprietario, buscaAdiada),
+  );
 
   return (
     <div className={estilos.tela}>
@@ -95,6 +91,20 @@ export function PaginaDeProprietarios() {
           aoMudar={(valor) => setSituacao(valor as SituacaoDoProprietario | '')}
         />
       </div>
+
+      {vinculos.isError ? (
+        <div className={estilos.recado} role="alert">
+          <Texto variante="corpo" como="p">
+            Não foi possível carregar as participações.
+          </Texto>
+          <Texto variante="apoio" tom="suave" como="p">
+            Até elas chegarem, os cartões ficam sem as aeronaves e desativar espera.
+          </Texto>
+          <Botao variante="secundario" tamanho="pequeno" aoClicar={() => void vinculos.refetch()}>
+            Tentar de novo
+          </Botao>
+        </div>
+      ) : null}
 
       {consulta.isError ? (
         <div className={estilos.recado} role="alert">
@@ -137,7 +147,7 @@ export function PaginaDeProprietarios() {
             <CartaoDeProprietario
               key={proprietario.id}
               proprietario={proprietario}
-              vinculos={vinculosPorProprietario.get(proprietario.id ?? 0) ?? []}
+              vinculos={vinculosDe(proprietario)}
               saldos={saldos.data}
               podeGerir={podeGerir}
               aoEditar={(alvo) => setPainel({ modo: 'editar', proprietario: alvo })}
@@ -155,11 +165,11 @@ export function PaginaDeProprietarios() {
           aoFechar={() => setPainel(null)}
         />
       ) : null}
-      {desativando ? (
+      {/* Só com as participações à mão: o painel decide entre desativar direto e redistribuir. */}
+      {desativando && vinculos.data ? (
         <PainelDeDesativacao
           key={desativando.id}
           proprietario={desativando}
-          vinculos={vinculos.data}
           proprietarios={consulta.data ?? []}
           aoFechar={() => setDesativando(null)}
         />

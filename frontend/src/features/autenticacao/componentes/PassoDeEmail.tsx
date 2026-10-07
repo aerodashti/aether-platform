@@ -1,23 +1,31 @@
+import { Formulario } from '@/compartilhado/formulario/Formulario';
+import { ResumoDoFormulario } from '@/compartilhado/formulario/ResumoDoFormulario';
+import { useValidacao } from '@/compartilhado/formulario/useValidacao';
 import { Botao } from '@/design-system/primitivos/Botao';
 import { BotaoDeLink } from '@/design-system/primitivos/BotaoDeLink';
 import { CampoDeTexto } from '@/design-system/primitivos/CampoDeTexto';
 import { Texto } from '@/design-system/primitivos/Texto';
-import type { usePassosDeAcesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
+import type { Acesso } from '@/features/autenticacao/hooks/usePassosDeAcesso';
 
 import { SetaAtras } from './Icones';
 import estilos from './Passos.module.css';
+import { validarPedidoDeCodigo, type CampoDoPedidoDeCodigo } from './validacaoDoPedidoDeCodigo';
 
-type Acesso = ReturnType<typeof usePassosDeAcesso>;
+const ROTULOS: Record<CampoDoPedidoDeCodigo, string> = { email: 'E-mail' };
 
 export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
+  const rascunho = { email: acesso.campos.emailDeRecuperacao };
+  const validacao = useValidacao({
+    erros: validarPedidoDeCodigo(rascunho),
+    valores: rascunho,
+    rotulos: ROTULOS,
+    falha: acesso.falhaDoPedido,
+  });
+
   return (
-    <form
-      className={estilos.passo}
-      onSubmit={(evento) => {
-        evento.preventDefault();
-        void acesso.submeterEmail();
-      }}
-      noValidate
+    <Formulario
+      referencia={validacao.refDoFormulario}
+      aoEnviar={() => validacao.enviar(acesso.pedirCodigo)}
     >
       <header className={estilos.cabecalho}>
         <Texto variante="titulo" como="h1">
@@ -28,20 +36,26 @@ export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
         </Texto>
       </header>
 
-      <CampoDeTexto
-        rotulo="E-mail"
-        tipo="email"
-        valor={acesso.campos.emailDeRecuperacao}
-        aoMudar={(valor) => acesso.preencher('emailDeRecuperacao', valor)}
-        exemplo="nome@empresa.com.br"
-        erro={acesso.erros.emailDeRecuperacao}
-        autoComplete="username"
-        inputMode="email"
-      />
+      <div className={estilos.campos}>
+        <CampoDeTexto
+          rotulo={ROTULOS.email}
+          tipo="email"
+          obrigatorio
+          valor={acesso.campos.emailDeRecuperacao}
+          aoMudar={(valor) => acesso.preencher('emailDeRecuperacao', valor)}
+          exemplo="nome@empresa.com.br"
+          erro={validacao.erroDe('email')}
+          autoComplete="username"
+          inputMode="email"
+        />
+      </div>
 
-      <Botao tipo="submit" tamanho="grande" largura="total" carregando={acesso.enviando}>
-        Enviar código
-      </Botao>
+      <div className={estilos.envio}>
+        <ResumoDoFormulario resumo={validacao.resumo} />
+        <Botao tipo="submit" tamanho="grande" largura="total" carregando={acesso.enviando}>
+          Enviar código
+        </Botao>
+      </div>
 
       <BotaoDeLink
         aoClicar={acesso.voltarParaEntrada}
@@ -52,6 +66,6 @@ export function PassoDeEmail({ acesso }: { acesso: Acesso }) {
       >
         Voltar ao login
       </BotaoDeLink>
-    </form>
+    </Formulario>
   );
 }

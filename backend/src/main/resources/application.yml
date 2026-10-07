@@ -5,6 +5,12 @@ spring:
     url: ${AETHER_BANCO_URL:jdbc:postgresql://localhost:5432/aether}
     username: ${AETHER_BANCO_USUARIO:aether}
     password: ${AETHER_BANCO_SENHA:aether}
+    hikari:
+      data-source-properties:
+        # Sem isto, a mensagem de erro do PostgreSQL traz os valores da linha recusada
+        # ("Key (cpf_cnpj)=(…) already exists"), e o Hibernate a grava em ERROR antes de qualquer
+        # tratamento — um documento em claro no log, contra campos-sensiveis.yml.
+        logServerErrorDetail: false
   jpa:
     # O esquema é responsabilidade do Flyway; o Hibernate só confere se bate.
     hibernate:
@@ -23,6 +29,11 @@ spring:
     # por exemplo) pergunta a este placeholder; produção o troca para "nao".
     placeholders:
       dadosDeDesenvolvimento: sim
+  # 1.5 num campo inteiro vira 400, e não um 1 gravado em silêncio. Propriedade desconhecida
+  # continua ignorada: o front manda campos derivados que o servidor não precisa ler.
+  jackson:
+    deserialization:
+      accept-float-as-int: false
   threads:
     virtual:
       enabled: true
@@ -36,6 +47,11 @@ server:
   port: 8080
   error:
     include-message: never
+  tomcat:
+    # O limite de documentos por envio é 10 (DocumentoService.ARQUIVOS_POR_ENVIO). Com o padrão do
+    # Tomcat, também 10, o 11.º arquivo era barrado antes do controller, sem dizer o limite; com
+    # folga, o envio chega ao serviço e ouve "Envie até 10 arquivos por vez.".
+    max-part-count: 50
 
 springdoc:
   swagger-ui:

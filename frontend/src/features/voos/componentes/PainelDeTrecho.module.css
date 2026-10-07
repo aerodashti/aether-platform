@@ -1,3 +1,11 @@
+/* Os campos ficam num bloco só, onde a validação procura o primeiro inválido; o espaçamento é o
+   mesmo do corpo do painel. */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+}
+
 .grade {
   display: grid;
   grid-template-columns: 1fr 1fr;

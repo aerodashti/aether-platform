@@ -23,7 +23,10 @@ export function dataEmTexto(instante: string | undefined): string {
   return instante ? DATA.format(new Date(instante)) : '—';
 }
 
+/** "1 documento", "3 documentos". */
+export function quantidadeDeDocumentos(quantidade: number): string {
+  return `${quantidade} ${quantidade === 1 ? 'documento' : 'documentos'}`;
+}
+
 /** As extensões que o servidor aceita, para a janela de arquivos oferecer primeiro. */
 export const EXTENSOES_ACEITAS = '.pdf,.png,.jpg,.jpeg,.webp,.heic,.doc,.docx,.xls,.xlsx,.csv,.txt';
-
-export const LIMITE_EM_BYTES = 20 * 1024 * 1024;

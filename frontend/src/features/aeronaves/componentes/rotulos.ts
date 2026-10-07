@@ -115,18 +115,6 @@ export function inteiroEmTexto(valor: number | null | undefined): string {
   return valor == null ? '—' : INTEIRO.format(valor);
 }
 
-/**
- * Valor em reais como se digita no Brasil, inclusive negativo: "-12.500,00", "8500,5". Com vírgula,
- * o ponto é milhar; sem vírgula, é decimal. Vazio ou ilegível é NaN — quem chama decide.
- */
-export function lerMoeda(texto: string): number {
-  const limpo = texto.trim().replace(/\s|R\$/g, '');
-  if (limpo === '') {
-    return Number.NaN;
-  }
-  return Number(limpo.includes(',') ? limpo.replace(/\./g, '').replace(',', '.') : limpo);
-}
-
 export function moedaEmTexto(valor: number | null | undefined): string {
   return valor == null ? '—' : MOEDA.format(valor);
 }
@@ -142,15 +130,6 @@ export function periodoDoContrato(inicio: string | undefined, fim: string | unde
 
 export function dataCompleta(iso: string | undefined): string {
   return iso ? DATA_COMPLETA.format(new Date(iso)) : '—';
-}
-
-/**
- * Percentual digitado → número, aceitando vírgula. Devolve NaN para o que não é número — quem
- * consome decide o que fazer com a linha inválida.
- */
-export function lerPercentual(texto: string): number {
-  const limpo = texto.trim().replace(',', '.');
-  return limpo === '' ? NaN : Number(limpo);
 }
 
 /**
@@ -181,29 +160,6 @@ export function consequenciaDoVencimento(
     return `${sigla} ${prazo}`;
   }
   return dias > 0 ? `${sigla} vence ${prazo}` : `${sigla} venceu ${prazo}`;
-}
-
-export type TomDaSoma = 'positivo' | 'atencao' | 'critico';
-
-/** As mensagens de soma do protótipo, na mesma redação; o tom decide a cor e se dá para salvar. */
-export function mensagemDaSoma(
-  percentuais: number[],
-  houveMudanca: boolean,
-): { tom: TomDaSoma; texto: string } {
-  if (percentuais.some((percentual) => percentual < 0)) {
-    return { tom: 'critico', texto: 'Há participação negativa — corrija para continuar.' };
-  }
-  if (percentuais.length === 0 || percentuais.some((p) => Number.isNaN(p) || p === 0)) {
-    return { tom: 'atencao', texto: 'Todo proprietário precisa de participação maior que 0%.' };
-  }
-  const soma = percentuais.reduce((total, percentual) => total + percentual, 0);
-  if (Math.abs(soma - 100) >= 0.005) {
-    return { tom: 'atencao', texto: 'Ajuste os percentuais para somar 100%.' };
-  }
-  if (!houveMudanca) {
-    return { tom: 'atencao', texto: 'Nenhuma alteração nas participações — contrato mantido.' };
-  }
-  return { tom: 'positivo', texto: 'Fechado em 100% — salvar cria um novo contrato vigente.' };
 }
 
 const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;

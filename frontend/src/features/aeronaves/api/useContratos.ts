@@ -8,7 +8,17 @@ import { CHAVE_DE_VINCULOS_VIGENTES } from '@/compartilhado/participacoes/useVin
 export type ContratosDaAeronaveResponse = components['schemas']['ContratosDaAeronaveResponse'];
 export type ContratoResponse = components['schemas']['ContratoResponse'];
 export type ParticipacaoResponse = components['schemas']['ParticipacaoResponse'];
-export type DefinirContratoRequest = components['schemas']['DefinirContratoRequest'];
+
+/**
+ * O pedido do contrato novo. `contratoVigenteId` é o vigente que a edição tinha à vista (nulo se
+ * não havia nenhum) — se outro entrou em vigor, o servidor responde 409. Declarado aqui, e não
+ * tirado de `tipos-gerados.ts`, porque o percentual ilegível vai nulo, nunca `NaN`, e o tipo gerado
+ * não admite o nulo que o servidor recusa no campo.
+ */
+export interface DefinirContratoRequest {
+  participacoes: Array<{ proprietarioId: number; percentual: number | null }>;
+  contratoVigenteId?: number | null;
+}
 
 const CHAVE = ['contratos'] as const;
 

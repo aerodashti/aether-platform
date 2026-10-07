@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
 import br.com.aerodash.aether.comum.observabilidade.ContextoDaRequisicao;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,12 +32,14 @@ class UsuarioServiceTest {
 
   private UsuarioRepository usuarios;
   private ConviteService convites;
+  private CodigoDeRecuperacaoRepository codigos;
   private UsuarioService service;
 
   @BeforeEach
   void montar() {
     usuarios = mock(UsuarioRepository.class);
     convites = mock(ConviteService.class);
+    codigos = mock(CodigoDeRecuperacaoRepository.class);
     PoliticaDeAcesso politica = mock(PoliticaDeAcesso.class);
     when(politica.agora()).thenReturn(AGORA);
     UsuarioMapper mapper = mock(UsuarioMapper.class);
@@ -53,7 +56,8 @@ class UsuarioServiceTest {
                   usuario.getUltimoAcesso().orElse(null));
             });
     service =
-        new UsuarioService(usuarios, convites, mapper, politica, mock(ContextoDaRequisicao.class));
+        new UsuarioService(
+            usuarios, convites, codigos, mapper, politica, mock(ContextoDaRequisicao.class));
   }
 
   @Test
@@ -118,6 +122,33 @@ class UsuarioServiceTest {
   }
 
   @Test
+  @DisplayName("desativar quem tem convite pendente mata o link: concluí-lo reativaria a pessoa")
+  void desativarRevogaOConvite() {
+    Usuario pendente = comId(7L);
+    when(usuarios.findById(7L)).thenReturn(Optional.of(pendente));
+
+    service.desativar(7L, ADMINISTRADOR);
+
+    verify(convites).revogar(pendente, AGORA);
+  }
+
+  @Test
+  @DisplayName("desativar revoga o código de recuperação pedido antes, sem marcá-lo como usado")
+  void desativarRevogaOCodigoDeRecuperacao() {
+    Usuario alvo = comId(7L);
+    alvo.definirSenha("hash", AGORA);
+    CodigoDeRecuperacao pedido =
+        new CodigoDeRecuperacao(alvo, "hash-do-codigo", AGORA, Duration.ofMinutes(10));
+    when(usuarios.findById(7L)).thenReturn(Optional.of(alvo));
+    when(codigos.findFirstByUsuarioOrderByCriadoEmDesc(alvo)).thenReturn(Optional.of(pedido));
+
+    service.desativar(7L, ADMINISTRADOR);
+
+    assertThat(pedido.estaVigente(AGORA, 5)).isFalse();
+    assertThat(pedido.foiUsado()).isFalse();
+  }
+
+  @Test
   @DisplayName("usuário inexistente vira 404 de domínio")
   void usuarioInexistenteVira404() {
     when(usuarios.findById(99L)).thenReturn(Optional.empty());
@@ -160,6 +191,17 @@ class UsuarioServiceTest {
 
     verify(usuarios)
         .buscar("%nogueira%", PapelDoUsuario.GESTOR, SituacaoDoUsuario.PENDENTE, paginacao);
+  }
+
+  @Test
+  @DisplayName("a busca vai ao banco sem acento e com os curingas escapados")
+  void buscaVaiNormalizada() {
+    PageRequest paginacao = PageRequest.of(0, 20, Sort.by("nome"));
+    when(usuarios.buscar(any(), any(), any(), eq(paginacao))).thenReturn(Page.empty(paginacao));
+
+    service.listar("PATRÍCIA_", null, null, paginacao);
+
+    verify(usuarios).buscar("%patricia!_%", null, null, paginacao);
   }
 
   /**

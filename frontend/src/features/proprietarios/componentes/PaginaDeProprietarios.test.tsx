@@ -65,8 +65,22 @@ const PROPRIETARIOS = [
 ];
 
 const VINCULOS = [
-  { proprietarioId: 1, aeronaveId: 7, matricula: 'PS-AER', modelo: 'Phenom 300E', percentual: 60 },
-  { proprietarioId: 1, aeronaveId: 8, matricula: 'PR-HEL', modelo: 'AW109', percentual: 33.34 },
+  {
+    proprietarioId: 1,
+    aeronaveId: 7,
+    contratoId: 70,
+    matricula: 'PS-AER',
+    modelo: 'Phenom 300E',
+    percentual: 60,
+  },
+  {
+    proprietarioId: 1,
+    aeronaveId: 8,
+    contratoId: 80,
+    matricula: 'PR-HEL',
+    modelo: 'AW109',
+    percentual: 33.34,
+  },
 ];
 
 /** O cartão que contém o nome: o `li` mais próximo que é item da grade, não da lista de vínculos. */
@@ -74,10 +88,15 @@ function cartaoDe(nome: string) {
   return screen.getByText(nome).closest('ul[aria-label="Proprietários"] > li') as HTMLElement;
 }
 
-function prepararFetch(sessao: unknown) {
+/** `respostas` troca a resposta de um caminho (pelo começo do endereço) para o teste. */
+function prepararFetch(sessao: unknown, respostas: Record<string, Response> = {}) {
   vi.stubGlobal(
     'fetch',
     vi.fn((entrada: string) => {
+      const trocada = Object.entries(respostas).find(([caminho]) => entrada.startsWith(caminho));
+      if (trocada) {
+        return Promise.resolve(trocada[1]);
+      }
       if (entrada.startsWith('/api/autenticacao/sessao')) {
         return Promise.resolve(respostaDe(sessao));
       }
@@ -167,6 +186,8 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.queryByRole('button', { name: '+ Novo proprietário' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Editar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Desativar' })).not.toBeInTheDocument();
+    // Documento e contato não chegam a quem não gere a conta: nem o travessão do "sem contato".
+    expect(within(cartaoDe('Helena Sarraf')).queryByText('—')).not.toBeInTheDocument();
   });
 
   it('o filtro de situação recorta a lista sem nova requisição', async () => {
@@ -191,16 +212,75 @@ describe('PaginaDeProprietarios', () => {
     expect(screen.queryByText('Helena Sarraf')).not.toBeInTheDocument();
   });
 
-  it('abre o painel de cadastro com a paleta de cores', async () => {
+  it('a busca acha o documento copiado do cartão e o nome sem acento', async () => {
     prepararFetch(GESTORA);
     envolver(<PaginaDeProprietarios />);
 
     await screen.findByText('Ricardo Meirelles');
-    await userEvent.click(screen.getByRole('button', { name: '+ Novo proprietário' }));
+    await userEvent.type(screen.getByLabelText('Buscar proprietário'), '529.982.247-25');
+    await vi.waitFor(() => expect(screen.queryByText('Otávio Lins')).not.toBeInTheDocument());
+    expect(screen.getByText('Ricardo Meirelles')).toBeInTheDocument();
+
+    await userEvent.clear(screen.getByLabelText('Buscar proprietário'));
+    await userEvent.type(screen.getByLabelText('Buscar proprietário'), 'otavio');
+    expect(await screen.findByText('Otávio Lins')).toBeInTheDocument();
+    await vi.waitFor(() => expect(screen.queryByText('Ricardo Meirelles')).not.toBeInTheDocument());
+  });
+
+  it('abre o painel de cadastro com a paleta, e cancelar devolve o foco a quem o abriu', async () => {
+    prepararFetch(GESTORA);
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Ricardo Meirelles');
+    const novo = screen.getByRole('button', { name: '+ Novo proprietário' });
+    await userEvent.click(novo);
 
     expect(screen.getByRole('radiogroup', { name: 'Cor de identificação' })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Petróleo' })).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Cadastrar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Cadastrar' })).not.toHaveAttribute('aria-disabled');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('dialog', { name: 'Novo proprietário' })).not.toBeInTheDocument();
+    expect(novo).toHaveFocus();
+  });
+
+  it('sem as participações, o cartão não afirma "sem vínculo" e o Desativar espera', async () => {
+    prepararFetch(GESTORA, {
+      '/api/participacoes/vigentes': respostaDe({ title: 'Erro interno' }, 500),
+    });
+    envolver(<PaginaDeProprietarios />);
+
+    expect(
+      await screen.findByText('Não foi possível carregar as participações.'),
+    ).toBeInTheDocument();
+    const cartao = cartaoDe('Helena Sarraf');
+    expect(within(cartao).queryByText(/Sem vínculo com aeronave/)).not.toBeInTheDocument();
+    const desativar = within(cartao).getByRole('button', { name: 'Desativar' });
+    expect(desativar).toHaveAttribute('aria-disabled', 'true');
+    expect(desativar).toHaveAccessibleDescription('Participações ainda não carregadas.');
+
+    await userEvent.click(desativar);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('reativar que falha diz por quê, no cartão', async () => {
+    prepararFetch(GESTORA, {
+      '/api/proprietarios/4/reativacao': respostaDe(
+        { title: 'Acesso negado', detail: 'Seu perfil não tem permissão para esta ação.' },
+        403,
+      ),
+    });
+    envolver(<PaginaDeProprietarios />);
+
+    await screen.findByText('Otávio Lins');
+    await userEvent.click(
+      within(cartaoDe('Otávio Lins')).getByRole('button', { name: 'Reativar' }),
+    );
+
+    expect(await within(cartaoDe('Otávio Lins')).findByRole('alert')).toHaveTextContent(
+      'Não foi possível reativar. Seu perfil não tem permissão para esta ação.',
+    );
   });
 
   it('desativar quem está em contrato pede a redistribuição e manda tudo numa saída só', async () => {
@@ -213,13 +293,21 @@ describe('PaginaDeProprietarios', () => {
     );
     const painel = screen.getByRole('dialog', { name: 'Desativar Ricardo Meirelles' });
     const confirmar = within(painel).getByRole('button', { name: 'Redistribuir e desativar' });
-    expect(confirmar).toBeDisabled();
 
-    // Ricardo era o único nas duas: a fatia inteira vai para quem entra no lugar.
+    // Ricardo era o único nas duas: confirmar já diz que falta quem assuma cada uma.
+    await userEvent.click(confirmar);
+    expect(within(painel).getByRole('alert')).toHaveTextContent(
+      'Revise 2 campos: Soma da PS-AER, Soma da PR-HEL.',
+    );
+
+    // A participação inteira vai para quem entra no lugar.
     for (const matricula of ['PS-AER', 'PR-HEL']) {
       await userEvent.selectOptions(
         within(painel).getByLabelText(`Incluir proprietário na ${matricula}`),
         '3',
+      );
+      await userEvent.click(
+        within(painel).getByRole('button', { name: `Incluir na ${matricula}` }),
       );
       await userEvent.type(
         within(painel).getByLabelText(`Participação de Helena Sarraf na ${matricula} em %`),
@@ -233,8 +321,16 @@ describe('PaginaDeProprietarios', () => {
       .mock.calls.find(([entrada]) => String(entrada) === '/api/proprietarios/1/saida');
     expect(JSON.parse(String(saida?.[1]?.body))).toEqual({
       contratos: [
-        { aeronaveId: 7, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
-        { aeronaveId: 8, participacoes: [{ proprietarioId: 3, percentual: 100 }] },
+        {
+          aeronaveId: 7,
+          contratoVigenteId: 70,
+          participacoes: [{ proprietarioId: 3, percentual: 100 }],
+        },
+        {
+          aeronaveId: 8,
+          contratoVigenteId: 80,
+          participacoes: [{ proprietarioId: 3, percentual: 100 }],
+        },
       ],
     });
   });

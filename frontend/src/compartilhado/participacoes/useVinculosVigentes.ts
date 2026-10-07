@@ -3,6 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { buscar } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 
+/**
+ * O `contratoId` é o contrato vigente de onde vem o vínculo: a saída o devolve para provar que
+ * partiu dele.
+ */
 export type VinculoVigenteResponse = components['schemas']['VinculoVigenteResponse'];
 
 /** Chave da lista de vínculos vigentes no cache; o contrato da aeronave a invalida ao mudar. */

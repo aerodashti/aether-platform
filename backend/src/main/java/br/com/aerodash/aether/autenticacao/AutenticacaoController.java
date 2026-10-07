@@ -25,6 +25,7 @@ public class AutenticacaoController {
   static final String COOKIE_DE_SESSAO = "aether_sessao";
 
   private final AutenticacaoService autenticacao;
+  private final SolicitacaoDeCodigoService solicitacaoDeCodigo;
   private final RecuperacaoDeSenhaService recuperacao;
   private final ConviteService convites;
   private final TrocaDeSenhaService trocaDeSenha;
@@ -32,11 +33,13 @@ public class AutenticacaoController {
 
   public AutenticacaoController(
       AutenticacaoService autenticacao,
+      SolicitacaoDeCodigoService solicitacaoDeCodigo,
       RecuperacaoDeSenhaService recuperacao,
       ConviteService convites,
       TrocaDeSenhaService trocaDeSenha,
       PropriedadesDeAutenticacao propriedades) {
     this.autenticacao = autenticacao;
+    this.solicitacaoDeCodigo = solicitacaoDeCodigo;
     this.recuperacao = recuperacao;
     this.convites = convites;
     this.trocaDeSenha = trocaDeSenha;
@@ -77,7 +80,7 @@ public class AutenticacaoController {
   @Operation(summary = "Envia um código de seis dígitos para o e-mail informado")
   public ResponseEntity<Void> solicitarCodigo(
       @Valid @RequestBody SolicitarRecuperacaoRequest requisicao) {
-    recuperacao.solicitarCodigo(requisicao.email());
+    solicitacaoDeCodigo.solicitar(requisicao.email());
     return ResponseEntity.accepted().build();
   }
 
@@ -110,13 +113,22 @@ public class AutenticacaoController {
     return ResponseEntity.accepted().build();
   }
 
+  /** O cookie diz qual sessão continua aberta: as outras do usuário são encerradas. */
   @PostMapping("/senha")
-  @Operation(summary = "Troca a própria senha: exige a senha atual e o código enviado por e-mail")
+  @Operation(
+      summary =
+          "Troca a própria senha: exige a senha atual e o código enviado por e-mail, e encerra as"
+              + " outras sessões")
   public ResponseEntity<Void> trocarSenha(
       @AuthenticationPrincipal UsuarioAutenticado solicitante,
+      @CookieValue(name = COOKIE_DE_SESSAO) String token,
       @Valid @RequestBody TrocarSenhaRequest requisicao) {
     trocaDeSenha.trocar(
-        solicitante.id(), requisicao.senhaAtual(), requisicao.novaSenha(), requisicao.codigo());
+        solicitante.id(),
+        token,
+        requisicao.senhaAtual(),
+        requisicao.novaSenha(),
+        requisicao.codigo());
     return ResponseEntity.noContent().build();
   }
 

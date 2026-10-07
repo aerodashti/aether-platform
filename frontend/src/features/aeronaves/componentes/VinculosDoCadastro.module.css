@@ -1,0 +1,63 @@
+.vinculos {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* O percentual pode ganhar uma mensagem de erro embaixo: nome e Remover ficam na linha do campo. */
+.vinculo {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: flex-start;
+  padding: var(--espaco-2) 0;
+  border-bottom: 1px solid var(--cor-borda-suave);
+}
+
+.dono {
+  display: flex;
+  flex: 1;
+  gap: var(--espaco-3);
+  align-items: center;
+  min-width: 0;
+  min-height: var(--controle-altura-g);
+  font-size: var(--tamanho-m);
+  font-weight: var(--peso-forte);
+  line-height: var(--altura-m);
+}
+
+.trunca {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.campoDePercentual {
+  width: 140px;
+}
+
+.adicionar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: 420px;
+  margin-top: var(--espaco-4);
+}
+
+/* A escolha e o "Vincular" lado a lado; a escolha ocupa o que sobra. */
+.linha {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+}
+
+.linha > :first-child {
+  flex: 1;
+}
+
+.somaLinha {
+  display: flex;
+  gap: var(--espaco-4);
+  align-items: center;
+  justify-content: space-between;
+}

@@ -1,5 +1,7 @@
 package br.com.aerodash.aether.manutencao;
 
+import static br.com.aerodash.aether.manutencao.Recusa.recusarSe;
+
 import br.com.aerodash.aether.aeronave.Aeronave;
 import br.com.aerodash.aether.aeronave.AeronaveRepository;
 import br.com.aerodash.aether.comum.erro.RecursoNaoEncontradoException;
@@ -8,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
@@ -17,9 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ManutencaoService {
 
+  private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private static final String CONCLUSAO = "concluidaEm";
+
   private final ManutencaoRepository manutencoes;
   private final ParametroDeControleRepository parametros;
   private final AeronaveRepository aeronaves;
+  private final InvariantesDoParametro invariantes;
   private final Clock relogio;
   private final ContextoDaRequisicao contexto;
 
@@ -27,11 +34,13 @@ public class ManutencaoService {
       ManutencaoRepository manutencoes,
       ParametroDeControleRepository parametros,
       AeronaveRepository aeronaves,
+      InvariantesDoParametro invariantes,
       Clock relogio,
       ContextoDaRequisicao contexto) {
     this.manutencoes = manutencoes;
     this.parametros = parametros;
     this.aeronaves = aeronaves;
+    this.invariantes = invariantes;
     this.relogio = relogio;
     this.contexto = contexto;
   }
@@ -56,8 +65,12 @@ public class ManutencaoService {
         aeronave.getContadores().horasDeCelula(),
         aeronave.getContadores().ciclos(),
         julgados,
-        listarEventos(aeronaveId, StatusDaManutencao.PROGRAMADA),
-        listarEventos(aeronaveId, StatusDaManutencao.CONCLUIDA));
+        paraResponses(
+            manutencoes.findByAeronaveIdAndStatusOrderByDataAsc(
+                aeronaveId, StatusDaManutencao.PROGRAMADA)),
+        paraResponses(
+            manutencoes.findByAeronaveIdAndStatusOrderByConcluidaEmDescDataDesc(
+                aeronaveId, StatusDaManutencao.CONCLUIDA)));
   }
 
   @Transactional
@@ -65,6 +78,7 @@ public class ManutencaoService {
     exigirAeronave(request.aeronaveId());
     Manutencao manutencao =
         new Manutencao(request.aeronaveId(), dadosDe(request), Instant.now(relogio));
+    exigirDataProgramavel(manutencao);
     manutencao = manutencoes.save(manutencao);
     contexto.registrar("manutencao.id", manutencao.getId());
     return paraResponse(manutencao);
@@ -73,21 +87,58 @@ public class ManutencaoService {
   @Transactional
   public ManutencaoResponse atualizar(Long id, ManutencaoRequest request) {
     Manutencao manutencao = exigirManutencao(id);
-    boolean trocaDeAeronave = !Objects.equals(request.aeronaveId(), manutencao.getAeronaveId());
-    contexto.decisao("manutencao.trocaDeAeronave", trocaDeAeronave);
-    if (trocaDeAeronave) {
-      throw new ManutencaoInvalidaException(
-          "A aeronave da manutenção não muda: exclua e reagende na aeronave certa.");
-    }
+    recusarSe(
+        contexto,
+        "manutencao.jaConcluida",
+        !manutencao.podeSerCorrigida(),
+        () ->
+            new ManutencaoConcluidaException(
+                "A manutenção já está no histórico: reabra-a para corrigir."));
+    recusarSe(
+        contexto,
+        "manutencao.trocaDeAeronave",
+        !Objects.equals(request.aeronaveId(), manutencao.getAeronaveId()),
+        () ->
+            new ManutencaoInvalidaException(
+                "A aeronave da manutenção não muda: exclua e reagende na aeronave certa."));
+    boolean dataMudou = !Objects.equals(request.data(), manutencao.getData());
     manutencao.atualizar(dadosDe(request), Instant.now(relogio));
+    // A janela vale para a data nova: corrigir a descrição de uma antiga não exige mudar a data.
+    contexto.decisao("manutencao.dataMudou", dataMudou);
+    if (dataMudou) {
+      exigirDataProgramavel(manutencao);
+    }
     return paraResponse(manutencao);
   }
 
   @Transactional
-  public ManutencaoResponse concluir(Long id) {
+  public ManutencaoResponse concluir(Long id, ConclusaoRequest request) {
     Manutencao manutencao = exigirManutencao(id);
-    contexto.decisao("manutencao.jaConcluida", manutencao.estaConcluida());
-    manutencao.concluir(Instant.now(relogio));
+    LocalDate dia = request.concluidaEm();
+    recusarSe(
+        contexto,
+        "manutencao.jaConcluida",
+        manutencao.estaConcluida(),
+        () ->
+            new ManutencaoConcluidaException(
+                "A manutenção já está concluída: reabra-a para mudar a conclusão."));
+    recusarSe(
+        contexto,
+        "manutencao.conclusaoNoFuturo",
+        dia.isAfter(LocalDate.now(relogio)),
+        () -> new ManutencaoInvalidaException("A conclusão não pode estar no futuro.", CONCLUSAO));
+    recusarSe(
+        contexto,
+        "manutencao.conclusaoAntesDaJanela",
+        !manutencao.aceitaConclusaoEm(dia),
+        () ->
+            new ManutencaoInvalidaException(
+                "Use uma data a partir de %s: a manutenção está programada para %s."
+                    .formatted(
+                        DATA.format(manutencao.primeiraDataDeConclusao()),
+                        DATA.format(manutencao.getData())),
+                CONCLUSAO));
+    manutencao.concluir(dia, Instant.now(relogio));
     return paraResponse(manutencao);
   }
 
@@ -109,26 +160,28 @@ public class ManutencaoService {
   @Transactional
   public ParametroResponse criarParametro(ParametroRequest request) {
     Aeronave aeronave = exigirAeronave(request.aeronaveId());
+    LocalDate hoje = LocalDate.now(relogio);
     ParametroDeControle parametro =
         new ParametroDeControle(request.aeronaveId(), dadosDe(request), Instant.now(relogio));
-    validar(parametro);
+    invariantes.exigir(parametro, hoje);
     parametro = parametros.save(parametro);
     contexto.registrar("parametro.id", parametro.getId());
-    return julgar(parametro, aeronave, LocalDate.now(relogio));
+    return julgar(parametro, aeronave, hoje);
   }
 
   @Transactional
   public ParametroResponse atualizarParametro(Long id, ParametroRequest request) {
     ParametroDeControle parametro = exigirParametro(id);
-    boolean trocaDeAeronave = !Objects.equals(request.aeronaveId(), parametro.getAeronaveId());
-    contexto.decisao("parametro.trocaDeAeronave", trocaDeAeronave);
-    if (trocaDeAeronave) {
-      throw new ManutencaoInvalidaException("A aeronave do parâmetro não muda.");
-    }
+    recusarSe(
+        contexto,
+        "parametro.trocaDeAeronave",
+        !Objects.equals(request.aeronaveId(), parametro.getAeronaveId()),
+        () -> new ManutencaoInvalidaException("A aeronave do parâmetro não muda."));
+    LocalDate hoje = LocalDate.now(relogio);
     parametro.atualizar(dadosDe(request), Instant.now(relogio));
-    validar(parametro);
+    invariantes.exigir(parametro, hoje);
     Aeronave aeronave = exigirAeronave(parametro.getAeronaveId());
-    return julgar(parametro, aeronave, LocalDate.now(relogio));
+    return julgar(parametro, aeronave, hoje);
   }
 
   @Transactional
@@ -138,12 +191,19 @@ public class ManutencaoService {
     contexto.registrar("parametro.excluido", id);
   }
 
-  private void validar(ParametroDeControle parametro) {
-    contexto.decisao("parametro.limiteCoerente", parametro.possuiLimiteCoerente());
-    if (!parametro.possuiLimiteCoerente()) {
-      throw new ManutencaoInvalidaException(
-          "Parâmetro de data exige a data limite; de horas ou ciclos exige o limite numérico.");
-    }
+  private void exigirDataProgramavel(Manutencao manutencao) {
+    LocalDate hoje = LocalDate.now(relogio);
+    recusarSe(
+        contexto,
+        "manutencao.dataForaDaJanela",
+        !manutencao.possuiDataProgramavel(hoje),
+        () ->
+            new ManutencaoInvalidaException(
+                "Use uma data entre %s e %s."
+                    .formatted(
+                        DATA.format(Manutencao.primeiraDataProgramavel(hoje)),
+                        DATA.format(Manutencao.ultimaDataProgramavel(hoje))),
+                "data"));
   }
 
   private ParametroResponse julgar(
@@ -163,11 +223,7 @@ public class ManutencaoService {
         parametro.situacao(referencia, hoje));
   }
 
-  private List<ManutencaoResponse> listarEventos(Long aeronaveId, StatusDaManutencao status) {
-    List<Manutencao> eventos =
-        status == StatusDaManutencao.PROGRAMADA
-            ? manutencoes.findByAeronaveIdAndStatusOrderByDataAsc(aeronaveId, status)
-            : manutencoes.findByAeronaveIdAndStatusOrderByDataDesc(aeronaveId, status);
+  private List<ManutencaoResponse> paraResponses(List<Manutencao> eventos) {
     return eventos.stream().map(this::paraResponse).toList();
   }
 
@@ -180,7 +236,8 @@ public class ManutencaoService {
         manutencao.getResponsavel(),
         manutencao.getDescricao(),
         manutencao.getValor(),
-        manutencao.getStatus());
+        manutencao.getStatus(),
+        manutencao.getConcluidaEm());
   }
 
   private DadosDaManutencao dadosDe(ManutencaoRequest request) {

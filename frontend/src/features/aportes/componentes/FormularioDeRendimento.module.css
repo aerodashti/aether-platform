@@ -7,6 +7,11 @@
   border-top: 1px solid var(--cor-borda);
 }
 
+/* O foco vem para cá ao abrir, só para o leitor de tela anunciar o formulário: não é um controle. */
+.formulario:focus {
+  outline: none;
+}
+
 .campos {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

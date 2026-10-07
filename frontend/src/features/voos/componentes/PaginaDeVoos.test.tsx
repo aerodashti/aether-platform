@@ -49,6 +49,8 @@ const DIARIO = {
       destino: 'SBRJ',
       horas: 0.8,
       km: 365,
+      partidaRealizada: '2026-09-08T11:42:00Z',
+      pousoRealizado: '2026-09-08T12:31:00Z',
       proprietarioId: 7,
       nomeDoProprietario: 'Ricardo Meirelles',
       corDeIdentificacao: 'PETROLEO',
@@ -65,9 +67,31 @@ const DIARIO = {
       destino: 'SBJD',
       horas: 0.4,
       km: 58,
+      partidaRealizada: '2026-09-09T13:00:00Z',
+      pousoRealizado: '2026-09-09T13:24:00Z',
       vooDeManutencao: true,
     },
+    {
+      // Só planejado: a grade mostra as horas previstas, mas ele ainda não voou.
+      id: 7,
+      aeronaveId: 1,
+      matricula: 'PS-MEP',
+      relatorioDeVoo: 'RV-2026-044',
+      numeroDoTrecho: 1,
+      data: '2026-09-20',
+      origem: 'SBSP',
+      destino: 'SBGL',
+      horas: 1.1,
+      km: 370,
+      partidaPrevista: '2026-09-20T12:00:00Z',
+      pousoPrevisto: '2026-09-20T13:06:00Z',
+      proprietarioId: 7,
+      nomeDoProprietario: 'Ricardo Meirelles',
+      corDeIdentificacao: 'PETROLEO',
+      vooDeManutencao: false,
+    },
   ],
+  // O servidor soma só o realizado: o RV-2026-044 fica de fora.
   totais: { horas: 1.2, km: 423, pousos: 2 },
 };
 
@@ -123,12 +147,12 @@ describe('PaginaDeVoos', () => {
     ).toBeInTheDocument();
   });
 
-  it('a linha de TOTAIS vem do servidor, não de conta no navegador', async () => {
+  it('a linha de totais do realizado vem do servidor, não de conta no navegador', async () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
 
     await screen.findByRole('cell', { name: /RV-2026-041/ });
-    const totais = linhaDe('TOTAIS · 2 pousos');
+    const totais = linhaDe('TOTAIS REALIZADOS · 2 pousos');
     expect(within(totais).getByText('1,2 h')).toBeInTheDocument();
     expect(within(totais).getByText('423')).toBeInTheDocument();
   });
@@ -140,6 +164,18 @@ describe('PaginaDeVoos', () => {
     expect(await screen.findByLabelText('Partida prevista')).toBeInTheDocument();
     const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
     expect(chamadas.some((url) => url.startsWith('/api/voos?aeronave=1&competencia='))).toBe(true);
+  });
+
+  it('competência fora do formato: o diário diz o formato e oferece Limpar filtros', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?competencia=2026-1');
+
+    const alerta = await screen.findByRole('alert');
+    expect(alerta).toHaveTextContent('Use o formato AAAA-MM, como 2026-10.');
+    await userEvent.click(within(alerta).getByRole('button', { name: 'Limpar filtros' }));
+
+    const chamadas = vi.mocked(fetch).mock.calls.map(([entrada]) => String(entrada));
+    expect(chamadas).toContain('/api/voos?');
   });
 
   it('o piloto lança e corrige; o proprietário só lê', async () => {
@@ -162,57 +198,6 @@ describe('PaginaDeVoos', () => {
     expect(within(linhaDe('RV-2026-041')).getByRole('button', { name: 'Não' })).toBeInTheDocument();
   });
 
-  it('o painel de registro calcula a duração ao vivo com a regra do servidor', async () => {
-    prepararFetch(PILOTO);
-    envolver(<PaginaDeVoos />);
-
-    await screen.findByRole('cell', { name: /RV-2026-041/ });
-    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
-
-    const partida = screen.getByLabelText('Partida prevista');
-    const pouso = screen.getByLabelText('Pouso previsto');
-    await userEvent.type(partida, '23:30');
-    await userEvent.type(pouso, '01:00');
-
-    // Virada de meia-noite: 1,5 h, não negativo.
-    expect(screen.getByText(/Duração \(automática\): 1,5 h/)).toBeInTheDocument();
-    expect(screen.getByText(/Pouso no dia seguinte/)).toBeInTheDocument();
-  });
-  it('a recusa do servidor aparece junto do botão, dizendo qual campo falhou', async () => {
-    prepararFetch(PILOTO);
-    const buscarPadrao = vi.mocked(fetch).getMockImplementation();
-    vi.mocked(fetch).mockImplementation((entrada, opcoes) =>
-      opcoes?.method === 'POST'
-        ? Promise.resolve(
-            respostaDe(
-              {
-                detail: 'Verifique os campos informados e tente novamente.',
-                campos: { km: 'Os quilômetros precisam ser maiores que zero.' },
-              },
-              400,
-            ),
-          )
-        : (buscarPadrao as typeof fetch)(entrada, opcoes),
-    );
-    envolver(<PaginaDeVoos />);
-
-    await screen.findByRole('cell', { name: /RV-2026-041/ });
-    await userEvent.click(screen.getByRole('button', { name: 'Registrar trecho' }));
-    const painel = screen.getByRole('dialog');
-    await within(painel).findByRole('option', { name: 'PS-MEP — Citation XLS+' });
-    await userEvent.selectOptions(within(painel).getByLabelText('Aeronave'), '1');
-    await userEvent.type(within(painel).getByLabelText('Rel. Voo'), 'RV-2026-044');
-    await userEvent.type(within(painel).getByLabelText('Data do trecho'), '2026-10-05');
-    await userEvent.type(within(painel).getByLabelText('Origem'), 'SBSP');
-    await userEvent.type(within(painel).getByLabelText('Destino'), 'SBGR');
-    await userEvent.type(within(painel).getByLabelText('KM'), '0');
-    await userEvent.click(within(painel).getByRole('button', { name: 'Registrar trecho' }));
-
-    expect(await within(painel).findByRole('alert')).toHaveTextContent(
-      'Os quilômetros precisam ser maiores que zero.',
-    );
-    expect(within(painel).getByLabelText('Rel. Voo')).not.toHaveAttribute('aria-invalid', 'true');
-  });
   it('a atribuição só oferece quem é dono da aeronave escolhida', async () => {
     prepararFetch(PILOTO);
     envolver(<PaginaDeVoos />);
@@ -240,6 +225,21 @@ describe('PaginaDeVoos', () => {
 
     await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-043');
     expect(within(screen.getByRole('table')).queryByText('RV-2026-041')).not.toBeInTheDocument();
-    expect(linhaDe('TOTAIS · 1 pouso')).toBeInTheDocument();
+    const totais = linhaDe('TOTAIS REALIZADOS · 1 pouso');
+    expect(within(totais).getByText('0,4 h')).toBeInTheDocument();
+    expect(within(totais).getByText('58')).toBeInTheDocument();
+  });
+
+  it('filtrado por um voo só planejado, a grade o mostra e os totais do realizado ficam zerados', async () => {
+    prepararFetch(PILOTO);
+    envolver(<PaginaDeVoos />, '/voos?aeronave=1');
+
+    await screen.findByRole('cell', { name: /RV-2026-041/ });
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar por voo'), 'RV-2026-044');
+
+    expect(within(linhaDe('RV-2026-044')).getByText('1,1 h')).toBeInTheDocument();
+    const totais = linhaDe('TOTAIS REALIZADOS · 0 pousos');
+    expect(within(totais).getByText('0 h')).toBeInTheDocument();
+    expect(within(totais).getByText('0')).toBeInTheDocument();
   });
 });

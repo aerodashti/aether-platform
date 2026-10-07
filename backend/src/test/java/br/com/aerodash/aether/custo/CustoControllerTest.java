@@ -159,4 +159,85 @@ class CustoControllerTest {
 
     verify(custos, never()).criar(any());
   }
+
+  @Test
+  @DisplayName("valor e câmbio fora da coluna voltam 400 no campo, com o limite na mensagem")
+  void numerosForaDaColuna() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+
+    mockMvc
+        .perform(
+            post("/custos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"categoria":"ABASTECIMENTO","data":"2026-09-08",
+                     "descricao":"Jet A-1","moeda":"USD","valor":1000000000000,
+                     "cambio":4.92235}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.valor").value(CustoRequest.MENSAGEM_DO_VALOR))
+        .andExpect(jsonPath("$.campos.cambio").value(CustoRequest.MENSAGEM_DO_CAMBIO));
+
+    mockMvc
+        .perform(
+            post("/custos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"categoria":"ABASTECIMENTO","data":"2026-09-08",
+                     "descricao":"Jet A-1","moeda":"USD","valor":0.001,"cambio":9999}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.valor").value(CustoRequest.MENSAGEM_DO_VALOR))
+        .andExpect(jsonPath("$.campos.cambio").value(CustoRequest.MENSAGEM_DO_CAMBIO));
+
+    verify(custos, never()).criar(any());
+  }
+
+  @Test
+  @DisplayName("data que não existe volta 400 no campo data, não corpo ilegível")
+  void dataInexistente() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+
+    mockMvc
+        .perform(
+            post("/custos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"categoria":"ABASTECIMENTO","data":"2026-02-30",
+                     "descricao":"Jet A-1","moeda":"BRL","valor":10}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.campos.data").exists());
+  }
+
+  @Test
+  @DisplayName("a recusa de regra chega em campos, com o nome do campo do JSON")
+  void recusaDeRegraNoCampo() throws Exception {
+    when(autenticacao.autenticar(TOKEN)).thenReturn(Optional.of(GESTOR));
+    when(custos.criar(any()))
+        .thenThrow(
+            new CustoInvalidoException(
+                "Lançamento em moeda estrangeira exige o câmbio do dia.", "cambio"));
+
+    mockMvc
+        .perform(
+            post("/custos")
+                .cookie(new Cookie("aether_sessao", TOKEN))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {"aeronaveId":1,"categoria":"ABASTECIMENTO","data":"2026-09-08",
+                     "descricao":"Jet A-1","moeda":"USD","valor":10}
+                    """))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.campos.cambio")
+                .value("Lançamento em moeda estrangeira exige o câmbio do dia."));
+  }
 }

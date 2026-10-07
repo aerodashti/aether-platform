@@ -10,6 +10,7 @@ public record DiarioDeVoosResponse(
     List<TrechoResponse> trechos,
     @Schema(description = "Totais do recorte") TotaisDoDiario totais) {
 
-  @Schema(description = "Totais do recorte")
+  /** Só o realizado, como nos contadores da aeronave: o planejado ainda não voou. */
+  @Schema(description = "Totais do que foi realizado no recorte")
   public record TotaisDoDiario(BigDecimal horas, BigDecimal km, long pousos) {}
 }

@@ -78,6 +78,16 @@ export function MenuSuspenso({
     }
   }
 
+  /**
+   * O foco volta ao gatilho antes da ação: o item vai sumir com o painel, e um painel modal aberto
+   * pela ação guarda quem tinha o foco para devolvê-lo ao fechar — tem de ser o gatilho, visível.
+   */
+  function escolher(item: ItemDeMenu) {
+    gatilho.current?.focus();
+    setAberto(false);
+    item.aoEscolher();
+  }
+
   function aoPerderFoco(evento: FocusEvent<HTMLDivElement>) {
     if (!raiz.current?.contains(evento.relatedTarget as Node | null)) {
       setAberto(false);
@@ -124,14 +134,7 @@ export function MenuSuspenso({
         <ul className={estilos.lista} aria-label={titulo ?? rotulo}>
           {itens.map((item) => (
             <li key={item.rotulo}>
-              <button
-                type="button"
-                className={estilos.item}
-                onClick={() => {
-                  setAberto(false);
-                  item.aoEscolher();
-                }}
-              >
+              <button type="button" className={estilos.item} onClick={() => escolher(item)}>
                 <span className={estilos.itemRotulo}>{item.rotulo}</span>
                 {item.apoio ? <span className={estilos.itemApoio}>{item.apoio}</span> : null}
               </button>
@@ -140,14 +143,7 @@ export function MenuSuspenso({
         </ul>
         {itens.length === 0 && vazio ? <p className={estilos.vazio}>{vazio}</p> : null}
         {rodape ? (
-          <button
-            type="button"
-            className={estilos.rodape}
-            onClick={() => {
-              setAberto(false);
-              rodape.aoEscolher();
-            }}
-          >
+          <button type="button" className={estilos.rodape} onClick={() => escolher(rodape)}>
             {rodape.rotulo}
           </button>
         ) : null}

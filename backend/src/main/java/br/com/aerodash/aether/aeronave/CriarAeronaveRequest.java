@@ -2,6 +2,7 @@ package br.com.aerodash.aether.aeronave;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,13 +18,17 @@ import java.time.LocalDate;
  * <p>O vencimento do CVA não está no protótipo e entra por adaptação deliberada: a situação
  * regulatória da frota é derivada dele, e cadastrar sem CVA criaria uma linha sem a coluna que dá
  * sentido à tela. Ver {@code docs/design-system.md}.
+ *
+ * <p>Matrícula e base toleram espaço nas pontas: a entidade os apara, e recusar "PS-ABC " com
+ * "segue o padrão do RAB" acusaria quem digitou certo. A janela dos vencimentos depende de hoje e é
+ * conferida pela aeronave ({@link Aeronave#documentoComVencimentoImplausivel}).
  */
 @Schema(description = "Cadastro de uma nova aeronave")
 public record CriarAeronaveRequest(
     @Schema(description = "Matrícula no RAB", example = "PS-AER")
         @NotBlank(message = "Informe a matrícula.")
         @Pattern(
-            regexp = "(?i)P[PRSTU]-[A-Z]{3}",
+            regexp = "(?i)\\s*P[PRSTU]-[A-Z]{3}\\s*",
             message = "A matrícula segue o padrão do RAB: PS-MEP.")
         String matricula,
     @Size(max = 80, message = "O fabricante pode ter no máximo 80 caracteres.") String fabricante,
@@ -34,14 +39,20 @@ public record CriarAeronaveRequest(
         String numeroDeSerie,
     @NotBlank(message = "Informe a base.")
         @Pattern(
-            regexp = "[A-Za-z]{4}",
+            regexp = "\\s*[A-Za-z]{4}\\s*",
             message = "A base é um código ICAO de quatro letras, como SBSP.")
         String base,
     @Size(max = 60, message = "O hangar pode ter no máximo 60 caracteres.") String hangar,
     @Size(max = 40, message = "A apólice pode ter no máximo 40 caracteres.") String apoliceDoSeguro,
     @Positive(message = "O peso máximo de decolagem precisa ser maior que zero.")
+        @Max(
+            value = FichaTecnica.PESO_MAXIMO_KG,
+            message = "O peso máximo de decolagem vai até 600.000 kg.")
         Integer pesoMaxDecolagemKg,
     @Positive(message = "O peso máximo de pouso precisa ser maior que zero.")
+        @Max(
+            value = FichaTecnica.PESO_MAXIMO_KG,
+            message = "O peso máximo de pouso vai até 600.000 kg.")
         Integer pesoMaxPousoKg,
     @Schema(description = "Vencimento do CVA") @NotNull(message = "Informe o vencimento do CVA.")
         LocalDate vencimentoCva,

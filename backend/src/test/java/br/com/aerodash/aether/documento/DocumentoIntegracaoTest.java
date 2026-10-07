@@ -22,25 +22,36 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Os documentos com banco e disco de verdade: envio de vários, download como anexo, isolamento
- * entre aeronaves e a remoção que apaga o arquivo depois do commit.
+ * entre aeronaves e a remoção que apaga o arquivo depois do commit. O limite de arquivos passa pelo
+ * Tomcat de verdade, porque o MockMvc não lê o multipart pelo conector e não veria o {@code
+ * max-part-count}.
  *
  * <p>Exige Docker. Fica fora do {@code check}: rode com {@code ./gradlew testeIntegracao}.
  */
 @Tag("integracao")
-@SpringBootTest
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Testcontainers
 @DisplayName("Documentos (integração)")
@@ -61,6 +72,7 @@ class DocumentoIntegracaoTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private AeronaveRepository aeronaves;
   @Autowired private ObjectMapper json;
+  @Autowired private TestRestTemplate cliente;
 
   @Test
   @DisplayName("envia dois, baixa como anexo, não vaza para outra aeronave e remove do disco")
@@ -77,7 +89,7 @@ class DocumentoIntegracaoTest {
         .perform(get("/aeronaves/%d/documentos".formatted(psMep)).cookie(sessao))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.documentos.length()").value(2))
-        .andExpect(jsonPath("$.tamanhoTotal").value(pdf.length + 1));
+        .andExpect(jsonPath("$.tamanhoTotal").value(pdf.length + 3));
 
     MvcResult baixado =
         mockMvc
@@ -110,7 +122,8 @@ class DocumentoIntegracaoTest {
                         new MockMultipartFile(
                             "arquivos", "Apólice RETA.pdf", "application/pdf", pdf))
                     .file(
-                        new MockMultipartFile("arquivos", "foto.jpg", "image/jpeg", new byte[] {1}))
+                        new MockMultipartFile(
+                            "arquivos", "foto.jpg", "image/jpeg", new byte[] {-1, -40, -1}))
                     .cookie(sessao))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.length()").value(2))
@@ -122,6 +135,41 @@ class DocumentoIntegracaoTest {
     try (var arquivos = Files.list(pasta)) {
       return arquivos.filter(Files::isRegularFile).count();
     }
+  }
+
+  @Test
+  @DisplayName("onze arquivos pelo conector de verdade: 400 dizendo o limite, e nada no disco")
+  void limiteDeArquivos() throws Exception {
+    Long psMep = aeronaves.findByMatricula("PS-MEP").orElseThrow().getId();
+    long antes = arquivosNoDisco();
+    MultiValueMap<String, Object> partes = new LinkedMultiValueMap<>();
+    for (int n = 1; n <= 11; n++) {
+      partes.add("arquivos", pdfChamado("laudo-%d.pdf".formatted(n)));
+    }
+    HttpHeaders cabecalhos = new HttpHeaders();
+    cabecalhos.setContentType(MediaType.MULTIPART_FORM_DATA);
+    cabecalhos.add(HttpHeaders.COOKIE, "aether_sessao=" + entrar().getValue());
+
+    ResponseEntity<String> resposta =
+        cliente.postForEntity(
+            "/aeronaves/%d/documentos".formatted(psMep),
+            new HttpEntity<>(partes, cabecalhos),
+            String.class);
+
+    assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    assertThat(json.readTree(resposta.getBody()).at("/campos/arquivos").asText())
+        .isEqualTo("Envie até 10 arquivos por vez.");
+    assertThat(arquivosNoDisco()).isEqualTo(antes);
+  }
+
+  /** Uma parte com nome de arquivo, como o navegador manda; sem nome o Tomcat a lê como campo. */
+  private static ByteArrayResource pdfChamado(String nome) {
+    return new ByteArrayResource("%PDF-1.7".getBytes(StandardCharsets.US_ASCII)) {
+      @Override
+      public String getFilename() {
+        return nome;
+      }
+    };
   }
 
   @Test

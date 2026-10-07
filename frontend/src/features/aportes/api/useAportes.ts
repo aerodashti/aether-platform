@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { buscar, enviar } from '@/api/cliente';
+import { buscar, enviar, ErroDeApi } from '@/api/cliente';
 import type { components } from '@/api/tipos-gerados';
 import { contexto } from '@/compartilhado/observabilidade/observabilidade';
 
@@ -37,70 +37,90 @@ function parametrosDe(filtro: FiltroDoFundo): string {
   return parametros.toString();
 }
 
-export function useAportes(filtro: FiltroDoFundo) {
+/** Com `habilitado` falso (recorte inválido), não consulta nem mantém o recorte anterior na tela. */
+export function useAportes(filtro: FiltroDoFundo, habilitado = true) {
   return useQuery({
     queryKey: [...CHAVE_DE_APORTES, filtro],
     queryFn: () => buscar<AportesResponse>(`/aportes?${parametrosDe(filtro)}`),
-    placeholderData: (anterior) => anterior,
+    enabled: habilitado,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 
-export function useRendimentos(filtro: FiltroDoFundo) {
+export function useRendimentos(filtro: FiltroDoFundo, habilitado = true) {
   return useQuery({
     queryKey: [...CHAVE_DE_RENDIMENTOS, filtro],
     queryFn: () => buscar<RendimentosResponse>(`/rendimentos?${parametrosDe(filtro)}`),
-    placeholderData: (anterior) => anterior,
+    enabled: habilitado,
+    placeholderData: (anterior) => (habilitado ? anterior : undefined),
   });
 }
 
-function useAcaoSobre<T>(
+/** O registro já não existe — excluído por outra pessoa enquanto esta o via na grade. */
+function sumiu(erro: Error): boolean {
+  return erro instanceof ErroDeApi && erro.status === 404;
+}
+
+/**
+ * Registrar, corrigir ou excluir, relendo a grade quando ela mudou: no sucesso, e no 404 — a linha
+ * de um registro que outra pessoa excluiu ficaria na tela repetindo o erro a cada clique.
+ */
+function useAcaoSobre<T, R>(
   chave: readonly string[],
   nome: string,
-  acao: (entrada: T) => Promise<unknown>,
+  acao: (entrada: T) => Promise<R>,
 ) {
   const cliente = useQueryClient();
+  const reler = () => void cliente.invalidateQueries({ queryKey: chave });
   return useMutation({
     mutationFn: (entrada: T) => contexto.interacao(nome, () => acao(entrada)),
-    onSuccess: () => void cliente.invalidateQueries({ queryKey: chave }),
+    onSuccess: reler,
+    onError: (erro) => {
+      if (sumiu(erro)) {
+        reler();
+      }
+    },
   });
 }
 
 export function useRegistrarAporte() {
-  return useAcaoSobre<AporteRequest>(CHAVE_DE_APORTES, 'registrar-aporte', (aporte) =>
+  return useAcaoSobre(CHAVE_DE_APORTES, 'registrar-aporte', (aporte: AporteRequest) =>
     enviar<AporteResponse>('/aportes', aporte),
   );
 }
 
 export function useCorrigirAporte() {
-  return useAcaoSobre<{ id: number; aporte: AporteRequest }>(
+  return useAcaoSobre(
     CHAVE_DE_APORTES,
     'corrigir-aporte',
-    ({ id, aporte }) => enviar<AporteResponse>(`/aportes/${id}`, aporte, 'PUT'),
+    ({ id, aporte }: { id: number; aporte: AporteRequest }) =>
+      enviar<AporteResponse>(`/aportes/${id}`, aporte, 'PUT'),
   );
 }
 
 export function useExcluirAporte() {
-  return useAcaoSobre<number>(CHAVE_DE_APORTES, 'excluir-aporte', (id) =>
+  return useAcaoSobre(CHAVE_DE_APORTES, 'excluir-aporte', (id: number) =>
     enviar<void>(`/aportes/${id}`, undefined, 'DELETE'),
   );
 }
 
 export function useRegistrarRendimento() {
-  return useAcaoSobre<RendimentoRequest>(CHAVE_DE_RENDIMENTOS, 'registrar-rendimento', (corpo) =>
+  return useAcaoSobre(CHAVE_DE_RENDIMENTOS, 'registrar-rendimento', (corpo: RendimentoRequest) =>
     enviar<RendimentoResponse>('/rendimentos', corpo),
   );
 }
 
 export function useCorrigirRendimento() {
-  return useAcaoSobre<{ id: number; rendimento: RendimentoRequest }>(
+  return useAcaoSobre(
     CHAVE_DE_RENDIMENTOS,
     'corrigir-rendimento',
-    ({ id, rendimento }) => enviar<RendimentoResponse>(`/rendimentos/${id}`, rendimento, 'PUT'),
+    ({ id, rendimento }: { id: number; rendimento: RendimentoRequest }) =>
+      enviar<RendimentoResponse>(`/rendimentos/${id}`, rendimento, 'PUT'),
   );
 }
 
 export function useExcluirRendimento() {
-  return useAcaoSobre<number>(CHAVE_DE_RENDIMENTOS, 'excluir-rendimento', (id) =>
+  return useAcaoSobre(CHAVE_DE_RENDIMENTOS, 'excluir-rendimento', (id: number) =>
     enviar<void>(`/rendimentos/${id}`, undefined, 'DELETE'),
   );
 }

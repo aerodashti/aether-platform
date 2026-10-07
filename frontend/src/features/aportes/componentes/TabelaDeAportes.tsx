@@ -1,25 +1,29 @@
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 
+import { FalhaDaConsulta } from '@/compartilhado/recorte/FalhaDaConsulta';
 import { juntarClasses } from '@/design-system/classes';
-import { Botao } from '@/design-system/primitivos/Botao';
 import { Esqueleto } from '@/design-system/primitivos/Esqueleto';
 import { PontoDeCor, type CorDeIdentificacao } from '@/design-system/primitivos/SeletorDeCor';
 import { Texto } from '@/design-system/primitivos/Texto';
 
 import { useExcluirAporte, type AportesResponse, type AporteResponse } from '../api/useAportes';
+import { useExclusaoNaGrade } from '../hooks/useExclusaoNaGrade';
 
 import { AcoesDaLinha } from './AcoesDaLinha';
+import { FalhaDaExclusao } from './FalhaDaExclusao';
 import estilos from './Grade.module.css';
 import { competenciaEmTexto, dataCurta, moedaEmTexto } from './rotulos';
 
 interface TabelaDeAportesProps {
   resposta: AportesResponse | undefined;
   carregando: boolean;
-  erro: boolean;
+  /** A falha da consulta, ou o recorte que a tela já sabe inválido. */
+  erro: Error | null;
   mostraAeronave: boolean;
   podeGerir: boolean;
   aoCorrigir: (aporte: AporteResponse) => void;
   aoTentarDeNovo: () => void;
+  aoLimparFiltros: () => void;
 }
 
 /** Os aportes do recorte, com a linha de TOTAL somada no servidor. */
@@ -31,26 +35,34 @@ export function TabelaDeAportes({
   podeGerir,
   aoCorrigir,
   aoTentarDeNovo,
+  aoLimparFiltros,
 }: TabelaDeAportesProps) {
-  const excluir = useExcluirAporte();
-  const [confirmando, setConfirmando] = useState<number | null>(null);
+  const exclusao = useExclusaoNaGrade(useExcluirAporte());
   const linha = juntarClasses(estilos.aportes, mostraAeronave && estilos.comAeronave);
+  // A falha fica no mesmo lugar em todo estado da grade: se a linha excluída era a última, ela some
+  // e a grade vira o recado de vazio, mas o aviso continua.
+  const comFalha = (conteudo: ReactNode) => (
+    <>
+      <FalhaDaExclusao falha={exclusao.falha} />
+      {conteudo}
+    </>
+  );
 
   if (erro) {
-    return (
+    return comFalha(
       <div className={estilos.recado} role="alert">
-        <Texto variante="corpo" como="p">
-          Não foi possível carregar os aportes.
-        </Texto>
-        <Botao variante="secundario" tamanho="pequeno" aoClicar={aoTentarDeNovo}>
-          Tentar de novo
-        </Botao>
-      </div>
+        <FalhaDaConsulta
+          falha={erro}
+          generica="Não foi possível carregar os aportes."
+          aoTentarDeNovo={aoTentarDeNovo}
+          aoLimpar={aoLimparFiltros}
+        />
+      </div>,
     );
   }
 
   if (carregando) {
-    return (
+    return comFalha(
       <>
         <div role="status" className={estilos.apenasLeitor}>
           Carregando os aportes…
@@ -73,13 +85,13 @@ export function TabelaDeAportes({
             ))}
           </tbody>
         </table>
-      </>
+      </>,
     );
   }
 
   const aportes = resposta?.aportes ?? [];
   if (aportes.length === 0) {
-    return (
+    return comFalha(
       <div className={estilos.recado}>
         <Texto variante="corpo" como="p">
           Nenhum aporte registrado no período selecionado.
@@ -87,11 +99,11 @@ export function TabelaDeAportes({
         <Texto variante="apoio" tom="suave" como="p">
           Amplie o período ou registre o aporte que acabou de cair na conta.
         </Texto>
-      </div>
+      </div>,
     );
   }
 
-  return (
+  return comFalha(
     <table role="table" className={estilos.grade}>
       <thead role="rowgroup" className={estilos.corpo}>
         <tr role="row" className={juntarClasses(estilos.cabecalho, linha)}>
@@ -147,14 +159,12 @@ export function TabelaDeAportes({
                 {podeGerir ? (
                   <AcoesDaLinha
                     descricao={descricao}
-                    confirmando={confirmando === id}
-                    excluindo={excluir.isPending}
+                    confirmando={exclusao.confirmando === id}
+                    excluindo={exclusao.excluindo}
                     aoEditar={() => aoCorrigir(aporte)}
-                    aoPedirExclusao={() => setConfirmando(id)}
-                    aoConfirmar={() =>
-                      excluir.mutate(id, { onSettled: () => setConfirmando(null) })
-                    }
-                    aoDesistir={() => setConfirmando(null)}
+                    aoPedirExclusao={() => exclusao.pedir(id)}
+                    aoConfirmar={() => exclusao.confirmar(id, descricao)}
+                    aoDesistir={exclusao.desistir}
                   />
                 ) : null}
               </td>
@@ -180,6 +190,6 @@ export function TabelaDeAportes({
           <td role="cell" className={estilos.celula} />
         </tr>
       </tfoot>
-    </table>
+    </table>,
   );
 }

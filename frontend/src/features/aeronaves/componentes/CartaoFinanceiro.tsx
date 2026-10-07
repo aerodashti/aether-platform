@@ -27,6 +27,9 @@ export function CartaoFinanceiro({ detalhe, podeGerir, aoEditar }: CartaoFinance
     PERIODICIDADES.find((opcao) => opcao.valor === financeiro?.periodicidadeDoAporteMeses)
       ?.rotulo ?? '—';
 
+  // O proporcional ao uso não tem valor por período: a linha diria uma cobrança que não existe.
+  const aporteFixo = (financeiro?.modeloDeAporte ?? 'FIXO') === 'FIXO';
+
   const linhas: Array<[string, string]> = [
     [
       'Base do rateio',
@@ -37,7 +40,9 @@ export function CartaoFinanceiro({ detalhe, podeGerir, aoEditar }: CartaoFinance
       financeiro ? ROTULO_DO_MODELO_DE_APORTE[financeiro.modeloDeAporte ?? 'FIXO'] : '—',
     ],
     ['Periodicidade do aporte', periodicidade],
-    ['Valor do aporte', moedaEmTexto(financeiro?.valorDoAporte)],
+    ...(aporteFixo
+      ? [['Valor do aporte', moedaEmTexto(financeiro?.valorDoAporte)] as [string, string]]
+      : []),
     ['Dia de fechamento da fatura', financeiro ? `Dia ${financeiro.diaDeFechamento}` : '—'],
     ['Saldo do fundo no cadastro', moedaEmTexto(financeiro?.saldoDeAbertura)],
   ];

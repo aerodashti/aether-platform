@@ -1,6 +1,7 @@
 package br.com.aerodash.aether.voo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,6 +32,10 @@ public record TrechoRequest(
         String destino,
     @NotNull(message = "Informe os quilômetros do trecho.")
         @Positive(message = "Os quilômetros precisam ser maiores que zero.")
+        @Digits(
+            integer = 7,
+            fraction = 1,
+            message = "Use no máximo 9.999.999,9 km, com uma casa decimal.")
         BigDecimal km,
     @Schema(description = "Instante com fuso, em ISO 8601", example = "2026-09-01T11:30:00Z")
         OffsetDateTime partidaPrevista,
