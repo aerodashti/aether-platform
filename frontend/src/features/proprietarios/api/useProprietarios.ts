@@ -27,11 +27,17 @@ export function useReativarProprietario() {
   );
 }
 
+/**
+ * O pedido da saída. `contratoVigenteId` ainda não está em `tipos-gerados.ts` (some na próxima
+ * `npm run gerar-tipos`): é o vigente de onde o painel partiu, e o servidor responde 409 se outro
+ * entrou no lugar. O percentual ilegível vai nulo, nunca `NaN`.
+ */
 export interface SaidaDeProprietario {
   proprietarioId: number;
   contratos: Array<{
     aeronaveId: number;
-    participacoes: Array<{ proprietarioId: number; percentual: number }>;
+    contratoVigenteId: number | null;
+    participacoes: Array<{ proprietarioId: number; percentual: number | null }>;
   }>;
 }
 
